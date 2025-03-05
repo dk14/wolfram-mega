@@ -21,7 +21,6 @@ interface HashCashPow {
     hash: string
 }
 
-
 type PaymentMethod = string
 
 interface OracleId {
@@ -36,36 +35,36 @@ interface OracleId {
     previousIdSignatureToNewPubkey?: string
 }
 
-
-interface Oracle {
+//we keep data in memory (HDD is only used as a backup storage), some data (malleability reports) can be sharded between peers
+// facilitators can start multiple fact sharing nodes in order to keep more data available
+// our secret sauce here is that reports are prioritized by PoW, so even sharding would be eventually consistent
+interface Oracle { 
     id: OracleId
     capabilies: OracleCapability[]
     reports: MaleabilityReport[]
-
 }
 
 interface Mempool {
+    oracles: Oracle[]
+}
 
+interface FactRequest {
+    capability: OracleCapability
+    arguments: { [id: string] : string; }
 }
 
 interface ProofOfPayment {
-    capability: OracleCapability
-    arguments: { [id: string] : string; }
-
-    proof: string
-
+    request: FactRequest
+    proofOfPayment: string
 }
 
 
 interface Fact {
-    capability: OracleCapability
-    arguments: { [id: string] : string; }
+    request: FactRequest
     factWithArguments: string
+    pow: HashCashPow
     signature: string
 }
-
-
-
 
 interface FactDisagreesWithPublic { //this report is for manual review, it requires pow to submit in order to avoid spamming. Strongest pows will be prioritized
     pow: HashCashPow
@@ -73,16 +72,18 @@ interface FactDisagreesWithPublic { //this report is for manual review, it requi
     comment: string
 }
 
-interface FactConflict{
-    facts: Fact[] //must be of the same capability
+interface FactConflict {
+    facts: Fact[] //must be of the same capability; TODO validator
 
 }
 
 interface FactMissing {
-
+    request: FactRequest
+    payment?: ProofOfPayment
+    pow: HashCashPow
 }
 
-type MaleabilityReport = FactDisagreesWithPublic | FactDisagreesWithAnotherOracle | FactMissing
+type MaleabilityReport = FactDisagreesWithPublic | FactConflict | FactMissing
 
 interface PagingDescriptor {
     page: number
@@ -101,19 +102,31 @@ type ReportRejected = string
 
 interface Api {
     mempool: Mempool
-    register: (id: OracleId) => Promise<Registered | RegistrationError>
-    lookupOracles: (paging: PagingDescriptor, questions: string[]) => Promise<OracleId[]>
-    lookupCapabilities: (paging: PagingDescriptor, oracle: OracleId) => Promise<OracleCapability[]>
-    reportMalleability: (report: MaleabilityReport) => Promise<ReportAccepted | ReportRejected>
+
+    //----exposed as P2P----
+    registerOracle: (id: OracleId) => Promise<Registered | RegistrationError>
+    registerCapability: (cp: OracleCapability) => Promise<Registered | RegistrationError>
+    registerMalleabilityReport: (report: MaleabilityReport) => Promise<ReportAccepted | ReportRejected>
     disputeMissingfactClaim: (claim: FactMissing, fact: Fact) => Promise<DisputeAccepted | DisputeRejected> 
     //note: it does not dispute time delay/SLA, but it is less crushial for most option contracts
+
+    //----exposed as REST-----
+    lookupOracles: (paging: PagingDescriptor, questions: string[]) => Promise<OracleId[]>
+    lookupCapabilities: (paging: PagingDescriptor, oracle: OracleId) => Promise<OracleCapability[]>
+    lookupReports: (paging: PagingDescriptor, oracle: OracleId) => Promise<OracleCapability[]>
 
     proxify: (uri: string) => Promise<string>
 
 }
 
+//https://github.com/cryptocoinjs/p2p-node/tree/master
+
 interface Node {
-    process(request: JSON): Promise<JSON>
-    broadcast: () => void
+    peers: string[]
+    discovered: (peer: string) => void
+    broadcastPeer: (peer: string) => void
+
+    processApiRequest: (request: JSON) => Promise<JSON>
+    broadcastMessage: (request: JSON) => void
     evict: () => void
 }
