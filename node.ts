@@ -25,7 +25,10 @@ interface HashCashPow {
     hash: string
 }
 
-type Bid = string
+interface Bid {
+    amount: number
+    proof: string
+}
 
 interface OracleId {
     pubkey: string // sign every request/response
@@ -72,17 +75,20 @@ interface Fact {
 }
 
 interface FactDisagreesWithPublic { //this report is for manual review, it requires pow to submit in order to avoid spamming. Strongest pows will be prioritized
+    type: 'fact-disagreees-with-public'
     pow: HashCashPow
     fact: Fact
     comment: string
 }
 
 interface FactConflict {
+    type: 'fact-conflict'
     facts: Fact[] //must be of the same capability; TODO validator
 
 }
 
 interface FactMissing {
+    type: 'fact-missing'
     request: FactRequest
     payment?: ProofOfPayment
     dispute?: Fact
@@ -119,7 +125,7 @@ interface Api {
     //----exposed as REST----- oracles should be sorted by proofs of payment
     lookupOracles: (paging: PagingDescriptor, questions: string[]) => Promise<OracleId[]>
     lookupCapabilities: (paging: PagingDescriptor, oracle: OracleId) => Promise<OracleCapability[]>
-    lookupReports: (paging: PagingDescriptor, oracle: OracleId) => Promise<OracleCapability[]>
+    lookupReports: (paging: PagingDescriptor, oracle: OracleId) => Promise<MaleabilityReport[]>
 
     proxify: (req: FactRequest, uri: string) => Promise<string>
 
@@ -160,6 +166,14 @@ const checkCapabilityRank = (cp: OracleCapability, o: Oracle): boolean => {
     return true
 }
 
+const validateBid = (bid: Bid): boolean => {
+    return true
+}
+
+const validateFact = (fact: Fact): boolean => {
+    return true
+}
+
 const api: Api = {
     mempool: {
         oracles: {}
@@ -167,13 +181,18 @@ const api: Api = {
     announceOracle: async (id: OracleId): Promise<Registered | RegistrationError> => {
         if (checkPow(id.pow, id.pubkey)) {
             if (checkOracleRank(id, Object.values(api.mempool.oracles).map(v => v.id))) {
-                if (api.mempool.oracles[id.pubkey] ?? true) {
-                    api.mempool.oracles[id.pubkey] = {
-                        id,
-                        capabilies: [],
-                        reports: [] 
-                     }
-                     return "success"
+                if (api.mempool.oracles[id.pubkey] !== undefined) {
+                    if (validateBid(id.bid)) {
+                        api.mempool.oracles[id.pubkey] = {
+                            id,
+                            capabilies: [],
+                            reports: [] 
+                         }
+                         return "success"
+                    } else {
+                        return "invalid bid"
+                    }
+                    
                 } else {
                     //todo merge pows after checking that other fields are same
                     return "duplicate"
@@ -209,22 +228,33 @@ const api: Api = {
     },
     disputeMissingfactClaim: async (claim: FactMissing, fact: Fact): Promise<DisputeAccepted | DisputeRejected> => {
         const oracle = api.mempool.oracles[claim.request.capability.oracleId.pubkey]
-        if (oracle ?? true) {
-            //find report
-            //augment if found
-            return ""
+        if (!validateFact(fact)) {
+            return "invalid fact"
+        }
+        if (oracle !== undefined) {
+            const found = api.mempool.oracles[oracle.id.pubkey].reports.find(x => x.type == "fact-missing" && x.pow == claim.pow)
+            if (found !== undefined && found.type == 'fact-missing') {
+                found.dispute = fact
+                return "accepted"
+            } else {
+                return "not found"
+            }
         } else {
             return "unknown oracle"
         }
     },
     lookupOracles: async (paging: PagingDescriptor, questions: string[]): Promise<OracleId[]> => {
-        return []
+        return Object.values(api.mempool.oracles)
+            .sort((a,b) => a.id.bid.amount - b.id.bid.amount)
+            .map(x => x.id)
+            .slice(paging.page * paging.chunkSize, (paging.page + 1) * paging.chunkSize)
     },
     lookupCapabilities: async (paging: PagingDescriptor, oracle: OracleId): Promise<OracleCapability[]> => {
-        return []
+        return api.mempool.oracles[oracle.pubkey].capabilies.slice(paging.page * paging.chunkSize, (paging.page + 1) * paging.chunkSize)
+        
     },
-    lookupReports: async (paging: PagingDescriptor, oracle: OracleId): Promise<OracleCapability[]> => {
-        return []
+    lookupReports: async (paging: PagingDescriptor, oracle: OracleId): Promise<MaleabilityReport[]> => {
+        return api.mempool.oracles[oracle.pubkey].reports.slice(paging.page * paging.chunkSize, (paging.page + 1) * paging.chunkSize)
     },
 
     proxify: async (req: FactRequest, uri: string): Promise<string> => {
