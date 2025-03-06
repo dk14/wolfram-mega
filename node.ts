@@ -1,4 +1,6 @@
-interface Param {
+
+
+export interface Param {
     name: string
     values: string[]
 }
@@ -6,13 +8,14 @@ interface Param {
 interface OracleCapability {
     oracleId: OracleId
     seqNo: number //used for broadcast
+    cTTL: number //used for broadcast
     question: string // oracle is responsible for unambiguity of question - this field can be use to match capabilities of different oracles
     params: Param[]
     answers: string[] 
     queryUri: string //how to query oracle
     pubkey: string
     signature: string
-    pow: HashCashPow[]
+    pow: HashCashPow
 }
 
 
@@ -33,8 +36,9 @@ interface Bid {
 interface OracleId {
     pubkey: string // sign every request/response
     seqNo: number //used for broadcast
+    cTTL: number //used for broadcast
 
-    pow: HashCashPow[]
+    pow: HashCashPow
     manifestUri?: string
 
     bid: Bid
@@ -70,21 +74,20 @@ interface ProofOfPayment {
 interface Fact {
     request: FactRequest
     factWithArguments: string
-    pow: HashCashPow
     signature: string
 }
 
 interface FactDisagreesWithPublic { //this report is for manual review, it requires pow to submit in order to avoid spamming. Strongest pows will be prioritized
     type: 'fact-disagreees-with-public'
-    pow: HashCashPow
     fact: Fact
     comment: string
+    pow: HashCashPow
 }
 
 interface FactConflict {
     type: 'fact-conflict'
     facts: Fact[] //must be of the same capability; TODO validator
-
+    pow: HashCashPow
 }
 
 interface FactMissing {
@@ -96,6 +99,20 @@ interface FactMissing {
 }
 
 type MaleabilityReport = FactDisagreesWithPublic | FactConflict | FactMissing
+
+interface Dispute {
+    seqNo: number //used for broadcast
+    cTTL: number //used for broadcast
+    claim: FactMissing
+    fact: Fact
+}
+
+interface Report {
+    seqNo: number //used for broadcast
+    cTTL: number //used for broadcast
+    oracleId: OracleId
+    content: MaleabilityReport
+}
 
 interface PagingDescriptor {
     page: number
@@ -115,14 +132,14 @@ type ReportRejected = string
 interface Api {
     mempool: Mempool
 
-    //----exposed as P2P----
+    //----exposed as P2P and REST POST----
     announceOracle: (id: OracleId) => Promise<Registered | RegistrationError>
     announceCapability: (cp: OracleCapability) => Promise<Registered | RegistrationError>
-    reportMalleability: (report: MaleabilityReport) => Promise<ReportAccepted | ReportRejected>
-    disputeMissingfactClaim: (claim: FactMissing, fact: Fact) => Promise<DisputeAccepted | DisputeRejected> 
+    reportMalleability: (report: Report) => Promise<ReportAccepted | ReportRejected>
+    disputeMissingfactClaim: (dispute: Dispute) => Promise<DisputeAccepted | DisputeRejected> 
     //note: it does not dispute time delay/SLA, but it is less crushial for most option contracts
 
-    //----exposed as REST----- oracles should be sorted by proofs of payment
+    //----exposed only as REST GET----- oracles should be sorted by proofs of payment
     lookupOracles: (paging: PagingDescriptor, questions: string[]) => Promise<OracleId[]>
     lookupCapabilities: (paging: PagingDescriptor, oracle: OracleId) => Promise<OracleCapability[]>
     lookupReports: (paging: PagingDescriptor, oracle: OracleId) => Promise<MaleabilityReport[]>
@@ -133,7 +150,7 @@ interface Api {
 
 //https://github.com/cryptocoinjs/p2p-node/tree/master
 
-interface Node {
+interface Node { //TODO implement
     peers: string[]
     discovered: (peer: string) => void
     broadcastPeer: (peer: string) => void
@@ -147,7 +164,7 @@ interface MempoolConfig {
 
 }
 
-const checkPow = (pow: HashCashPow[], preimage: string): boolean => {
+const checkPow = (pow: HashCashPow, preimage: string): boolean => {
     return true
 }
 
@@ -223,18 +240,22 @@ const api: Api = {
             return "wrong signature"
         }
     },
-    reportMalleability: async (report: MaleabilityReport): Promise<ReportAccepted | ReportRejected> => {
-        return ""
+    reportMalleability: async (report: Report): Promise<ReportAccepted | ReportRejected> => {
+        if (!checkPow(report.content.pow, "TODO")) {
+            return "wrong pow"
+        }
+        api.mempool.oracles[report.oracleId.pubkey].reports.push(report.content)
+        return "accepted"
     },
-    disputeMissingfactClaim: async (claim: FactMissing, fact: Fact): Promise<DisputeAccepted | DisputeRejected> => {
-        const oracle = api.mempool.oracles[claim.request.capability.oracleId.pubkey]
-        if (!validateFact(fact)) {
+    disputeMissingfactClaim: async (dispute: Dispute): Promise<DisputeAccepted | DisputeRejected> => {
+        const oracle = api.mempool.oracles[dispute.claim.request.capability.oracleId.pubkey]
+        if (!validateFact(dispute.fact)) {
             return "invalid fact"
         }
         if (oracle !== undefined) {
-            const found = api.mempool.oracles[oracle.id.pubkey].reports.find(x => x.type == "fact-missing" && x.pow == claim.pow)
+            const found = api.mempool.oracles[oracle.id.pubkey].reports.find(x => x.type == "fact-missing" && x.pow == dispute.claim.pow)
             if (found !== undefined && found.type == 'fact-missing') {
-                found.dispute = fact
+                found.dispute = dispute.fact
                 return "accepted"
             } else {
                 return "not found"

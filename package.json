@@ -11,5 +11,11 @@
   "license": "ISC",
   "devDependencies": {
     "typescript": "^5.8.2"
+  },
+  "dependencies": {
+    "@types/node": "^22.13.9",
+    "http": "^0.0.1-security",
+    "p2p-node": "^0.1.1",
+    "url": "^0.11.4"
   }
 }
