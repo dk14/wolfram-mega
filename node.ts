@@ -114,13 +114,13 @@ interface Report {
     content: MaleabilityReport
 }
 
-interface PagingDescriptor {
+export interface PagingDescriptor {
     page: number
     chunkSize: number
 }
 
 type Registered = string
-type RegistrationError = string
+type NotRegistered = string
 
 type DisputeAccepted = string
 type DisputeRejected = string
@@ -133,8 +133,8 @@ interface Api {
     mempool: Mempool
 
     //----exposed as P2P and REST POST----
-    announceOracle: (id: OracleId) => Promise<Registered | RegistrationError>
-    announceCapability: (cp: OracleCapability) => Promise<Registered | RegistrationError>
+    announceOracle: (id: OracleId) => Promise<Registered | NotRegistered>
+    announceCapability: (cp: OracleCapability) => Promise<Registered | NotRegistered>
     reportMalleability: (report: Report) => Promise<ReportAccepted | ReportRejected>
     disputeMissingfactClaim: (dispute: Dispute) => Promise<DisputeAccepted | DisputeRejected> 
     //note: it does not dispute time delay/SLA, but it is less crushial for most option contracts
@@ -150,18 +150,20 @@ interface Api {
 
 //https://github.com/cryptocoinjs/p2p-node/tree/master
 
-interface Node { //TODO implement
-    peers: string[]
-    discovered: (peer: string) => void
-    broadcastPeer: (peer: string) => void
+export interface FacilitatorNode<PeerT> { //TODO implement
+    peers: PeerT[]
+    discovered: (peer: PeerT) => void
+    broadcastPeer: (peer: PeerT) => void
 
-    processApiRequest: (request: JSON) => Promise<JSON>
-    broadcastMessage: (request: JSON) => void
-    evict: () => void
+    processApiRequest: (command: string, content: string) => Promise<string>
+    broadcastMessage: (command: string, content: string) => void
+
 }
 
 interface MempoolConfig {
-
+    maxOracles: number
+    maxCapabilities: number
+    maxReports: number
 }
 
 const checkPow = (pow: HashCashPow, preimage: string): boolean => {
@@ -191,11 +193,11 @@ const validateFact = (fact: Fact): boolean => {
     return true
 }
 
-const api: Api = {
+export const api: Api = {
     mempool: {
         oracles: {}
     },
-    announceOracle: async (id: OracleId): Promise<Registered | RegistrationError> => {
+    announceOracle: async (id: OracleId): Promise<Registered | NotRegistered> => {
         if (checkPow(id.pow, id.pubkey)) {
             if (checkOracleRank(id, Object.values(api.mempool.oracles).map(v => v.id))) {
                 if (api.mempool.oracles[id.pubkey] !== undefined) {
@@ -207,7 +209,7 @@ const api: Api = {
                          }
                          return "success"
                     } else {
-                        return "invalid bid"
+                        return "lowbid"
                     }
                     
                 } else {
@@ -223,10 +225,13 @@ const api: Api = {
         }
         
     },
-    announceCapability: async (cp: OracleCapability): Promise<Registered | RegistrationError> => {
+    announceCapability: async (cp: OracleCapability): Promise<Registered | NotRegistered> => {
         if (checkCapabilitySignature(cp)) {
             if (checkPow(cp.pow, cp.signature)) {
                 if (checkCapabilityRank(cp, api.mempool.oracles[cp.oracleId.pubkey])) {
+                    if (api.mempool.oracles[cp.oracleId.pubkey].capabilies.find(x => x.question == cp.question)) {
+                        return "duplicate"
+                    }
                     api.mempool.oracles[cp.oracleId.pubkey].capabilies.push(cp)
                     return "success"
                 } else {
@@ -244,8 +249,11 @@ const api: Api = {
         if (!checkPow(report.content.pow, "TODO")) {
             return "wrong pow"
         }
+        if (api.mempool.oracles[report.oracleId.pubkey].reports.find(x => x.pow.hash == report.content.pow.hash)) {
+            return "duplicate"
+        }
         api.mempool.oracles[report.oracleId.pubkey].reports.push(report.content)
-        return "accepted"
+        return "success"
     },
     disputeMissingfactClaim: async (dispute: Dispute): Promise<DisputeAccepted | DisputeRejected> => {
         const oracle = api.mempool.oracles[dispute.claim.request.capability.oracleId.pubkey]
@@ -253,10 +261,10 @@ const api: Api = {
             return "invalid fact"
         }
         if (oracle !== undefined) {
-            const found = api.mempool.oracles[oracle.id.pubkey].reports.find(x => x.type == "fact-missing" && x.pow == dispute.claim.pow)
+            const found = api.mempool.oracles[oracle.id.pubkey].reports.find(x => x.type == "fact-missing" && x.pow.hash == dispute.claim.pow.hash)
             if (found !== undefined && found.type == 'fact-missing') {
                 found.dispute = dispute.fact
-                return "accepted"
+                return "success"
             } else {
                 return "not found"
             }
