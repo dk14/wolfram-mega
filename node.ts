@@ -141,8 +141,8 @@ interface Api {
 
     //----exposed only as REST GET----- oracles should be sorted by proofs of payment
     lookupOracles: (paging: PagingDescriptor, questions: string[]) => Promise<OracleId[]>
-    lookupCapabilities: (paging: PagingDescriptor, oracle: OracleId) => Promise<OracleCapability[]>
-    lookupReports: (paging: PagingDescriptor, oracle: OracleId) => Promise<MaleabilityReport[]>
+    lookupCapabilities: (paging: PagingDescriptor, oraclePub: string) => Promise<OracleCapability[]>
+    lookupReports: (paging: PagingDescriptor, oraclePub: string) => Promise<MaleabilityReport[]>
 
     proxify: (req: FactRequest, uri: string) => Promise<string>
 
@@ -278,12 +278,12 @@ export const api: Api = {
             .map(x => x.id)
             .slice(paging.page * paging.chunkSize, (paging.page + 1) * paging.chunkSize)
     },
-    lookupCapabilities: async (paging: PagingDescriptor, oracle: OracleId): Promise<OracleCapability[]> => {
-        return api.mempool.oracles[oracle.pubkey].capabilies.slice(paging.page * paging.chunkSize, (paging.page + 1) * paging.chunkSize)
+    lookupCapabilities: async (paging: PagingDescriptor, oraclePub: string): Promise<OracleCapability[]> => {
+        return api.mempool.oracles[oraclePub].capabilies.slice(paging.page * paging.chunkSize, (paging.page + 1) * paging.chunkSize)
         
     },
-    lookupReports: async (paging: PagingDescriptor, oracle: OracleId): Promise<MaleabilityReport[]> => {
-        return api.mempool.oracles[oracle.pubkey].reports.slice(paging.page * paging.chunkSize, (paging.page + 1) * paging.chunkSize)
+    lookupReports: async (paging: PagingDescriptor, oraclePub: string): Promise<MaleabilityReport[]> => {
+        return api.mempool.oracles[oraclePub].reports.slice(paging.page * paging.chunkSize, (paging.page + 1) * paging.chunkSize)
     },
 
     proxify: async (req: FactRequest, uri: string): Promise<string> => {
