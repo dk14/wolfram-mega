@@ -2,7 +2,7 @@ import * as nd from './node';
 import * as net from 'net';
 import {Peer} from 'p2p-node'
 
-export const sttartP2P = () => {
+export const startP2P = () => {
 
     const onmessage = (ev) => {
         console.log("I got message "+ev.command);
