@@ -2,8 +2,14 @@ import * as nd from './node';
 import * as http from 'http';
 import * as url from 'url';
 
+// curl -i -X POST -H 'Content-Type: application/json' -d '{"pubkey": "AAA", "seqNo": 1, "cTTL": 2, "pow" : {"preimageType": "", "difficukty":0, "algorithm": "", "hash": "BBB"}, "bid": {"amount" : 0, "proof": ""}}' http://localhost:8080/oracle
+
+// curl -i -X GET http://localhost:8080/oracles
+
 export const startHttp = () => {
-    http.createServer((req, res) => {
+    http.createServer(async (req, res) => {
+        res.statusCode = 200;
+        res.setHeader('content-Type', 'Application/json');
 
         try {
             const reqUrl =  url.parse(req.url!, true)
@@ -14,8 +20,7 @@ export const startHttp = () => {
             }
         
             console.log('Request type: ' + req.method + ' Endpoint: ' + req.url);
-            res.statusCode = 200;
-            res.setHeader('content-Type', 'Application/json');
+
         
             if (req.method === 'GET') {
                 if(reqUrl.pathname == '/oracles') {
@@ -36,34 +41,47 @@ export const startHttp = () => {
                 req.on('data',  function (chunk) {
                     body += chunk;
                 });
-                req.on('end', function () {
-                    const postBody = JSON.parse(body);
-                    res.statusCode = 201;
-                    res.setHeader('content-Type', 'Application/json');
-        
-                    if(reqUrl.pathname == '/oracle') {
-                        res.end(JSON.stringify(nd.api.announceOracle(postBody)))
-                    }
-                
-                    if(reqUrl.pathname == '/capability') {
-                        res.end(JSON.stringify(nd.api.announceCapability(postBody)))
-                    }
-                
-                    if(reqUrl.pathname == '/report') {
-                        res.end(JSON.stringify(nd.api.reportMalleability(postBody)))
-                    }
-                
-                    if(reqUrl.pathname == '/dispute') {
-                        res.end(JSON.stringify(nd.api.disputeMissingfactClaim(postBody)))
-                    }
+                req.on('end', async function () {
+
+                    try {
+                        const postBody = JSON.parse(body);
+                        res.statusCode = 201;
+                        res.setHeader('content-Type', 'Application/json');
+            
+                        if(reqUrl.pathname == '/oracle') {
+                            const out = await nd.api.announceOracle(postBody)
+                            res.end(JSON.stringify(out))
+                        }
                     
+                        if(reqUrl.pathname == '/capability') {
+                            const out = await nd.api.announceCapability(postBody)
+                            res.end(JSON.stringify(out))
+                        }
+                    
+                        if(reqUrl.pathname == '/report') {
+                            const out = await nd.api.reportMalleability(postBody)
+                            res.end(JSON.stringify(out))
+                        }
+                    
+                        if(reqUrl.pathname == '/dispute') {
+                            const out = await nd.api.disputeMissingfactClaim(postBody)
+                            res.end(JSON.stringify(out))
+                        }
+
+                    } catch(err) {
+                        console.error(err)
+                        if (!res.writableEnded){
+                            res.end(JSON.stringify({error: err.message}))
+                        } 
+                    } 
                 })
             }
 
         } catch (err) {
-            res.statusCode = 200;
-            res.setHeader('content-Type', 'Application/json');
-            res.end(JSON.stringify({error: err.message}))
+            console.error(err)
+            if (!res.writableEnded){
+                res.end(JSON.stringify({error: err.message}))
+            } 
         }
     
         

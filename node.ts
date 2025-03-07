@@ -200,7 +200,7 @@ export const api: Api = {
     announceOracle: async (id: OracleId): Promise<Registered | NotRegistered> => {
         if (checkPow(id.pow, id.pubkey)) {
             if (checkOracleRank(id, Object.values(api.mempool.oracles).map(v => v.id))) {
-                if (api.mempool.oracles[id.pubkey] !== undefined) {
+                if (api.mempool.oracles[id.pubkey] === undefined) {
                     if (validateBid(id.bid)) {
                         api.mempool.oracles[id.pubkey] = {
                             id,
