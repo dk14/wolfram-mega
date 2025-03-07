@@ -58,6 +58,6 @@ export const startHttp = () => {
                 
               })
         }
-    })
+    }).listen(8080)
 }
 
