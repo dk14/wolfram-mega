@@ -1,7 +1,6 @@
 import * as nd from './node';
 import * as net from 'net';
-
-const Peer = require('p2p-node').Peer
+import {Peer} from 'p2p-node'
 
 export const sttartP2P = () => {
 
