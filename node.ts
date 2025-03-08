@@ -87,6 +87,7 @@ interface FactDisagreesWithPublic { //this report is for manual review, it requi
     request: FactRequest
     comment?: string
     pow: HashCashPow
+    seqNo: number //used for broadcast
 }
 
 interface FactConflict {
@@ -94,6 +95,7 @@ interface FactConflict {
     request: FactRequest
     facts: Fact[] //must be of the same capability; TODO validator
     pow: HashCashPow
+    seqNo: number //used for broadcast
 }
 
 interface FactMissing {
@@ -102,6 +104,7 @@ interface FactMissing {
     payment?: ProofOfPayment
     dispute?: Fact
     pow: HashCashPow
+    seqNo: number //used for broadcast
 }
 
 type MaleabilityReport = FactDisagreesWithPublic | FactConflict | FactMissing
@@ -115,7 +118,6 @@ interface Dispute {
 }
 
 interface Report {
-    seqNo: number //used for broadcast
     cTTL: number //used for broadcast
     oraclePubKey: string
     content: MaleabilityReport
@@ -274,9 +276,13 @@ export const api: Api = {
                     }
 
                 } else {
-                    return "duplicate"
+                    if (api.mempool.oracles[id.pubkey].id.seqNo < id.seqNo) {
+                        api.mempool.oracles[id.pubkey].id.seqNo = id.seqNo
+                        return "success"
+                    } else {
+                        return "duplicate"
+                    }
                 }
-
             } else {
                 return "rank is too low"
             }
@@ -292,8 +298,14 @@ export const api: Api = {
         if (checkCapabilitySignature(cp)) {
             if (checkPow(cp.pow, cp.oracleSignature)) {
                 if (checkCapabilityRank(cfg, cp, api.mempool.oracles[cp.oraclePubKey])) {
-                    if (api.mempool.oracles[cp.oraclePubKey].capabilies.find(x => x.question == cp.question)) {
-                        return "duplicate"
+                    const found = api.mempool.oracles[cp.oraclePubKey].capabilies.find(x => x.question == cp.question)
+                    if (found !== undefined) {
+                        if (found.seqNo < cp.seqNo) {
+                            found.seqNo = cp.seqNo
+                            return "success"
+                        } else {
+                            return "duplicate"
+                        }
                     }
                     api.mempool.oracles[cp.oraclePubKey].capabilies.push(cp)
                     return "success"
@@ -319,8 +331,14 @@ export const api: Api = {
         if (!checkReportRank(cfg, report, api.mempool.oracles[report.oraclePubKey])) {
             return "low pow difficulty"
         }
-        if (api.mempool.oracles[report.oraclePubKey].reports.find(x => x.pow.hash == report.content.pow.hash)) {
-            return "duplicate"
+        const found = api.mempool.oracles[report.oraclePubKey].reports.find(x => x.pow.hash == report.content.pow.hash)
+        if (found !== undefined) {
+            if (found.seqNo < report.content.seqNo) {
+                found.seqNo = report.content.seqNo
+                return "success"
+            } else {
+                return "duplicate"
+            }
         }
         api.mempool.oracles[report.oraclePubKey].reports.push(report.content)
         return "success"

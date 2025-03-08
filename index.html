@@ -42,7 +42,7 @@
         <br>
 
         <label for="content">Content:</label>
-        <input type="text" id="content" name="content" size="100" value='{ "type": "fact-disagreees-with-public", "request": { "capabilityPubKey": "", "arguments": {} }, "pow": {"preimageType": "", "difficukty":0, "algorithm": "", "hash": "BBB"}}'>
+        <input type="text" id="content" name="content" size="100" value='{ "type": "fact-disagreees-with-public", "seqNo": 0, "request": { "capabilityPubKey": "", "arguments": {} }, "pow": {"preimageType": "", "difficukty":0, "algorithm": "", "hash": "BBB"}}'>
         <input id="report" type="button" value="Submit Report">
 
 
@@ -103,7 +103,7 @@
             xhr.open('POST','./report')
             xhr.setRequestHeader("Content-Type", "application/json");
 
-            report = {"seqNo": 1, "cTTL": 0,  pow: {"preimageType": "", "difficukty":0, "algorithm": "", "hash": "BBB"}}
+            report = {"cTTL": 0,  pow: {"preimageType": "", "difficukty":0, "algorithm": "", "hash": "BBB"}}
             report.oraclePubKey = pubkey.value
             report.content = JSON.parse(content.value)
  
