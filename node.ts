@@ -66,7 +66,7 @@ interface Mempool {
 }
 
 interface FactRequest {
-    capability: OracleCapability
+    capabilityPubKey: string
     arguments: { [id: string] : string; }
 }
 
@@ -84,7 +84,7 @@ interface Fact {
 interface FactDisagreesWithPublic { //this report is for manual review, it requires pow to submit in order to avoid spamming. Strongest pows will be prioritized
     type: 'fact-disagreees-with-public'
     request: FactRequest
-    commen?: string
+    comment?: string
     pow: HashCashPow
 }
 

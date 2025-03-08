@@ -14,13 +14,12 @@
         <h2>Oracles:</h2>
 
         <div id="oracles"></div>
-            
-        <h2>Register Oracle:</h2>
+        <br>
         
-        <label for="pubkey">Public Key:</label>
-        <input type="text" id="pubkey" name="pubkey" value="AAA">
+        <label for="pubkey">Oracle PubKey:</label>
+        <input type="text" id="pubkey" size="50" name="pubkey" value="AAA">
 
-        <input type="button" id="oracle" value="Submit">
+        <input type="button" id="oracle" value="Register Oracle!">
 
 
         <hr>
@@ -28,12 +27,11 @@
         <h2>Capabilities:</h2>
 
         <div id="capabilities"></div>
-
-        <h2>Register Capability:</h2>
+        <br>
 
         <label for="question">Question:</label>
-        <input type="text" id="question" name="question" value="Who won?">
-        <input type="button" id="capability" value="Submit">
+        <input type="text" id="question" size="50" name="question" value="Who won?">
+        <input type="button" id="capability" value="Register Capability!">
         
 
         <hr>
@@ -41,12 +39,11 @@
         <h2>Reports:</h2>
 
         <div id="reports"></div>
-
-        <h2> Submit Report: </h2>
+        <br>
 
         <label for="content">Content:</label>
-        <input type="text" id="content" name="content" value="{}">
-        <input id="report" type="button" value="Submit">
+        <input type="text" id="content" name="content" size="100" value='{ "type": "fact-disagreees-with-public", "request": { "capabilityPubKey": "", "arguments": {} }, "pow": {"preimageType": "", "difficukty":0, "algorithm": "", "hash": "BBB"}}'>
+        <input id="report" type="button" value="Submit Report">
 
 
     </body>
@@ -69,7 +66,7 @@
             xhr.open('POST','./oracle')
             xhr.setRequestHeader("Content-Type", "application/json");
 
-            oracle = {"seqNo": 1, "cTTL": 0, pow: {"preimageType": "", "difficukty":0, "algorithm": "", "hash": "BBB"}, "bid": {"amount" : 0, "proof": ""}}
+            oracle = {"seqNo": 1, "cTTL": 0, "pow": {"preimageType": "", "difficukty":0, "algorithm": "", "hash": "BBB"}, "bid": {"amount" : 0, "proof": ""}}
             oracle.pubkey = pubkey.value
             xhr.send(JSON.stringify(oracle));
 
@@ -154,7 +151,7 @@
             }
 
 
-        }, 2000)
+        }, 1000)
 
 
         const reportsTable = document.getElementById('reports');
@@ -168,12 +165,13 @@
             xhr.onreadystatechange = function() {
                 if (xhr.readyState == XMLHttpRequest.DONE) {
                     const reports = JSON.parse(xhr.responseText)
-                    reportsTable.innerHTML = reports.map(x => x.content).join("<br>")
+                    console.log(reports.length)
+                    reportsTable.innerHTML = reports.map(x => JSON.stringify(x)).join("<br>")
                 }
             }
 
 
-        }, 2000)
+        }, 1000)
 
         const peersTable = document.getElementById('peers');
         setInterval(() => {
@@ -191,7 +189,7 @@
             }
 
 
-        }, 2000)
+        }, 1000)
             
     </script>
 </html>
