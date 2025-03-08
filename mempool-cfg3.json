@@ -1,0 +1,12 @@
+{
+    "maxOracles": 100,
+    "maxCapabilities": 100,
+    "maxReports": 100,
+    "maxConnections": 100,
+    "httpPort": 8082,
+    "p2pPort": 8335,
+    "hostname": "localhost",
+    "p2pseed": [
+        {"server": "localhost", "port" : 8333}
+    ]
+}
