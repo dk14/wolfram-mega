@@ -42,6 +42,12 @@ export const startHttp = (cfg: nd.MempoolConfig<any>) => {
             }
 
             res.setHeader('content-Type', 'Application/json');
+
+            if(req.method === 'GET' && reqUrl.pathname == '/testOnlyGenKeyPair') {
+                
+                res.end(JSON.stringify(nd.testOnlyGenerateKeyPair()))
+                return
+            }
             
         
             if (req.method === 'GET') {

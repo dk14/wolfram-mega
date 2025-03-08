@@ -1,4 +1,33 @@
-import {createHash, createVerify} from 'crypto'
+import {createHash, createVerify, generateKeyPairSync} from 'crypto'
+
+
+const curve = 'secp521r1';
+
+interface KeyPair {
+    pub: string, 
+    pk: string
+}
+
+export const testOnlyGenerateKeyPair = (): KeyPair => {
+    const regex = /.{64}/g;
+    
+    const { publicKey, privateKey } = generateKeyPairSync('ec', { namedCurve: curve });
+    const privateKeyDer = privateKey.export({ type: 'sec1', format: 'der' }).toString('base64');
+    const formattedPrivateKey = privateKeyDer.replace(regex, '$&\n');
+
+
+    const publicKeyDer = publicKey.export({ type: 'spki', format: 'der' }).toString('base64');
+    const formattedPublicKey = publicKeyDer.replace(regex, '$&\n');
+
+    return {
+        pub: Buffer.from('-----BEGIN EC PRIVATE KEY-----\n' + formattedPrivateKey + '\n-----END EC PRIVATE KEY-----\n').toString('base64'),
+        pk: Buffer.from('-----BEGIN PUBLIC KEY-----\n'+ formattedPublicKey + '\n-----END PUBLIC KEY-----\n').toString('base64')
+    }
+}
+
+export const testOnlySign = () => {
+
+}
 
 export interface Param {
     name: string
@@ -193,8 +222,6 @@ const hash = (msg: string, algo: string): string => {
 }
 
 const checkPow = (pow: HashCashPow, preimage: string): boolean => {
-    return true
-
     if (!pow.hash.endsWith("0".repeat(pow.difficulty))) {
         return false
     }
@@ -202,12 +229,10 @@ const checkPow = (pow: HashCashPow, preimage: string): boolean => {
 }
 
 const checkCapabilitySignature = (cp: OracleCapability): boolean => {
-    return true
-
     const signature = cp.oracleSignature
     cp.oracleSignature = ""
     
-    return createVerify(cp.oracleSignatureType).update(JSON.stringify(cp)).verify(cp.oraclePubKey, signature)
+    return createVerify(cp.oracleSignatureType).update(JSON.stringify(cp)).verify(Buffer.from(cp.oraclePubKey, 'base64'), Buffer.from(cp.oracleSignature, 'base64'))
 }
 
 const checkOracleRank = (cfg: MempoolConfig<any>, oracle: OracleId, mempool: Mempool): boolean => { 
@@ -248,11 +273,10 @@ const checkReportRank = (cfg: MempoolConfig<any>, report: Report, o: Oracle): bo
 
 const validateBid = (bid: Bid): boolean => {
     //check if payment was confirmed on chain explorers (or local lightning node)
-    return true
+    return false
 }
 
 const validateFact = (fact: Fact, req: FactRequest): boolean => {
-    return true
     return createVerify(fact.signatureType).update(fact.factWithArguments).verify(req.capabilityPubKey, fact.signature)
 }
 
@@ -261,10 +285,10 @@ export const api: Api = {
         oracles: {}
     },
     announceOracle: async (cfg: MempoolConfig<any>, id: OracleId): Promise<Registered | NotRegistered> => {
-        if (checkPow(id.pow, id.pubkey)) {
+        if (checkPow(id.pow, id.pubkey) || id.pow.difficulty == 0) {
             if (checkOracleRank(cfg, id, api.mempool)) {
                 if (api.mempool.oracles[id.pubkey] === undefined) {
-                    if (validateBid(id.bid)) {
+                    if (validateBid(id.bid) || id.bid.amount == 0) {
                         api.mempool.oracles[id.pubkey] = {
                             id,
                             capabilies: [],
@@ -295,8 +319,8 @@ export const api: Api = {
         if (api.mempool.oracles[cp.oraclePubKey] === undefined) {
             return "no oracle found:" + cp.oraclePubKey
         }
-        if (checkCapabilitySignature(cp)) {
-            if (checkPow(cp.pow, cp.oracleSignature)) {
+        if (cp.pow.difficulty == 0 || checkCapabilitySignature(cp)) {
+            if (cp.pow.difficulty == 0 || checkPow(cp.pow, cp.oracleSignature)) {
                 if (checkCapabilityRank(cfg, cp, api.mempool.oracles[cp.oraclePubKey])) {
                     const found = api.mempool.oracles[cp.oraclePubKey].capabilies.find(x => x.question == cp.question)
                     if (found !== undefined) {
@@ -324,7 +348,7 @@ export const api: Api = {
         if (api.mempool.oracles[report.oraclePubKey] === undefined) {
             return "no oracle found:" + report.oraclePubKey
         }
-        if (!checkPow(report.content.pow, "TODO")) {
+        if (!checkPow(report.content.pow, "TODO") && !(report.content.pow.difficulty == 0)) {
             return "wrong pow"
         }
 
@@ -343,7 +367,7 @@ export const api: Api = {
         api.mempool.oracles[report.oraclePubKey].reports.push(report.content)
         return "success"
     },
-    disputeMissingfactClaim: async (dispute: Dispute): Promise<DisputeAccepted | DisputeRejected> => {
+    disputeMissingfactClaim: async (dispute: Dispute): Promise<DisputeAccepted | DisputeRejected> => { //TODO add pow
         if (api.mempool.oracles[dispute.oraclePubKey] === undefined) {
             return "no oracle found:" + dispute.oraclePubKey
         }

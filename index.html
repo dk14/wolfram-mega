@@ -17,7 +17,7 @@
         <br>
         
         <label for="pubkey">Oracle PubKey:</label>
-        <input type="text" id="pubkey" size="50" name="pubkey" value="AAA">
+        <input type="text" id="pubkey" size="50" name="pubkey" value="0001">
 
         <input type="button" id="oracle" value="Register Oracle!">
 
@@ -31,7 +31,13 @@
 
         <label for="question">Question:</label>
         <input type="text" id="question" size="50" name="question" value="Who won?">
+        
         <input type="button" id="capability" value="Register Capability!">
+        <br>
+        <hr>
+
+        <label for="pk">OraclePK:</label><input type="text" id="pk" size="50" name="pk" value="">
+        <input type="button" id="generate" value="Generate!">
         
 
         <hr>
@@ -42,7 +48,7 @@
         <br>
 
         <label for="content">Content:</label>
-        <input type="text" id="content" name="content" size="100" value='{ "type": "fact-disagreees-with-public", "seqNo": 0, "request": { "capabilityPubKey": "", "arguments": {} }, "pow": {"preimageType": "", "difficukty":0, "algorithm": "", "hash": "BBB"}}'>
+        <input type="text" id="content" name="content" size="100" value='{ "type": "fact-disagreees-with-public", "seqNo": 0, "request": { "capabilityPubKey": "", "arguments": {} }, "pow": {"preimageType": "", "difficulty":0, "algorithm": "SHA256", "hash": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"}}'>
         <input id="report" type="button" value="Submit Report">
 
 
@@ -59,14 +65,33 @@
             return hash;
         };
 
-        const oracleForm = document.getElementById('oracle');
+        const genKeyPair = document.getElementById('generate');
         const pubkey = document.getElementById('pubkey');
+        const pk = document.getElementById('pk');
+
+        genKeyPair.onclick = function(event) {
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET','./testOnlyGenKeyPair')
+            xhr.setRequestHeader("Content-Type", "application/json")
+            xhr.send()
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState == XMLHttpRequest.DONE) {
+                    const keypair = JSON.parse(xhr.responseText)
+                    pubkey.value = keypair.pub
+                    pk.value = keypair.pk
+                }
+            }
+        }
+
+        const oracleForm = document.getElementById('oracle');
+        
         oracleForm.onclick = function(event){
             const xhr = new XMLHttpRequest();
             xhr.open('POST','./oracle')
             xhr.setRequestHeader("Content-Type", "application/json");
 
-            oracle = {"seqNo": 1, "cTTL": 0, "pow": {"preimageType": "", "difficukty":0, "algorithm": "", "hash": "BBB"}, "bid": {"amount" : 0, "proof": ""}}
+            const pow = {"preimageType": "", "difficulty":0, "algorithm": "SHA256", "hash": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"}
+            const oracle = {"seqNo": 1, "cTTL": 0, "pow": pow, "bid": {"amount" : 0, "proof": ""}}
             oracle.pubkey = pubkey.value
             xhr.send(JSON.stringify(oracle));
 
@@ -84,7 +109,8 @@
             xhr.open('POST','./capability')
             xhr.setRequestHeader("Content-Type", "application/json");
 
-            capability = {"seqNo": 1, "cTTL": 0, pow: {"preimageType": "", "difficukty":0, "algorithm": "", "hash": "BBB"}, "oracleSignature": ""}
+            const pow = {"preimageType": "", "difficulty":0, "algorithm": "SHA256", "hash": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"}
+            capability = {"seqNo": 1, "cTTL": 0, "pow": pow, "oracleSignature": "MEUCIQDM12f6H73XCMIgnFA/V/JpMnH5/TPbiLRyueAk/Mo+zAIgU/7KFjiBx7AZ/AmXNS4y3/XEOX+gsGdRYU+CgKfcwHk=", "oracleSignatureType": "SHA256"}
             capability.oraclePubKey = pubkey.value
             capability.question = question.value
             xhr.send(JSON.stringify(capability));
@@ -102,8 +128,9 @@
             const xhr = new XMLHttpRequest();
             xhr.open('POST','./report')
             xhr.setRequestHeader("Content-Type", "application/json");
-
-            report = {"cTTL": 0,  pow: {"preimageType": "", "difficukty":0, "algorithm": "", "hash": "BBB"}}
+            const pow = {"preimageType": "", "difficulty":0, "algorithm": "SHA256", "hash": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"}
+            
+            report = {"cTTL": 0,  "pow": pow}
             report.oraclePubKey = pubkey.value
             report.content = JSON.parse(content.value)
  
@@ -165,7 +192,6 @@
             xhr.onreadystatechange = function() {
                 if (xhr.readyState == XMLHttpRequest.DONE) {
                     const reports = JSON.parse(xhr.responseText)
-                    console.log(reports.length)
                     reportsTable.innerHTML = reports.map(x => JSON.stringify(x)).join("<br>")
                 }
             }
