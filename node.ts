@@ -155,7 +155,7 @@ export interface FacilitatorNode<PeerT> { //TODO implement
     discovered: (peer: PeerT) => void
     broadcastPeer: (peer: PeerT) => void
 
-    processApiRequest: (command: string, content: string) => Promise<string>
+    processApiRequest: (command: string, content: string) => Promise<void>
     broadcastMessage: (command: string, content: string) => void
 
 }
@@ -168,6 +168,8 @@ export interface MempoolConfig<PeerAddrT> {
     httpPort: number
     p2pPort: number
     p2pseed: PeerAddrT[]
+    hostSeqNo?: number
+    hostname?: string
 }
 
 const checkPow = (pow: HashCashPow, preimage: string): boolean => {

@@ -5,5 +5,7 @@
     "maxConnections": 100,
     "httpPort": 8081,
     "p2pPort": 8334,
-    "p2pseed": []
+    "p2pseed": [
+        {"server": "localhost", "port" : 8080}
+    ]
 }
