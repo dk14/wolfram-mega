@@ -1,0 +1,9 @@
+{
+    "maxOracles": 100,
+    "maxCapabilities": 100,
+    "maxReports": 100,
+    "maxConnections": 100,
+    "httpPort": 8080,
+    "p2pPort": 8333,
+    "p2pseed": []
+}

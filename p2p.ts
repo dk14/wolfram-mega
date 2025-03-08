@@ -2,7 +2,13 @@ import * as nd from './node';
 import * as net from 'net';
 import {Peer} from 'p2p-node'
 
-export const startP2P = () => {
+interface PeerAddr {
+    server: string,
+    port: number
+}
+
+export const startP2P = (cfg: nd.MempoolConfig<PeerAddr>) => {
+
 
     const onmessage = (ev) => {
         console.log("I got message "+ev.command);
@@ -14,26 +20,27 @@ export const startP2P = () => {
         console.log("I'm connected!" + ev.peer);
     }
 
-    const peers = discoverPeerSeed().map(addr => {
-        const p = new Peer(addr);
-        p.connect()
-        p.on('message', onmessage)
-        p.on('connect', onconnect)
-        return p
-    })
-    
-    function discoverPeerSeed (): string[] {
-        return []
-    }
 
-    function broadcastPeer(peer: string): void {
+
+    const peers: Peer[] = []
+    
+    cfg.p2pseed.forEach(addr => discovered(addr))
+    
+
+
+    function broadcastPeer(peer: PeerAddr): void {
         peers.forEach(p => {
-            p.send('peer', Buffer.from(peer, 'utf8'));
+            p.send('peer', Buffer.from(JSON.stringify(peer), 'utf8'));
         });
     }
 
-    function discovered(peer: string): void {
+    function discovered(peer: PeerAddr): Peer {
+        const p = new Peer(peer.server, peer.port);
+        p.connect()
+        p.on('message', onmessage)
+        p.on('connect', onconnect)
         broadcastPeer(peer)
+        peers.push(p)
     }
 
 
@@ -43,7 +50,7 @@ export const startP2P = () => {
         switch(command) {
             case 'peer': { 
                 if (peers.find(x => x === content) === undefined && peers.length < 100) {
-                    peers.push(content)
+                    discovered(JSON.parse(content))
                 }
                     
                 break; 
@@ -95,15 +102,10 @@ export const startP2P = () => {
     }
     
     const server = net.createServer(function(socket) {
-        const p = new Peer(socket.remoteAddress, socket.remotePort);
-        p.connect(socket);
-        p.on('message', onmessage)
-        p.on('connect', onconnect)
-        discovered(p)
-        peers.push(p)
+        discovered({server: socket.remoteAddress!, port: socket.remotePort!})
     });
 
-    server.listen(8333);
+    server.listen(cfg.p2pPort);
 
     
     

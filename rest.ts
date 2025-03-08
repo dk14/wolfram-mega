@@ -6,7 +6,7 @@ import * as url from 'url';
 
 // curl -i -X GET http://localhost:8080/oracles
 
-export const startHttp = () => {
+export const startHttp = (cfg: nd.MempoolConfig<any>) => {
     http.createServer(async (req, res) => {
         res.statusCode = 200;
         res.setHeader('content-Type', 'Application/json');
@@ -85,5 +85,5 @@ export const startHttp = () => {
         }
     
         
-    }).listen(8080)
+    }).listen(cfg.httpPort)
 }

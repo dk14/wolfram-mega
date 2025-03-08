@@ -160,10 +160,14 @@ export interface FacilitatorNode<PeerT> { //TODO implement
 
 }
 
-interface MempoolConfig {
+export interface MempoolConfig<PeerAddrT> {
     maxOracles: number
     maxCapabilities: number
     maxReports: number
+    maxConnections: number
+    httpPort: number
+    p2pPort: number
+    p2pseed: PeerAddrT[]
 }
 
 const checkPow = (pow: HashCashPow, preimage: string): boolean => {
