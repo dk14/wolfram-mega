@@ -1,6 +1,7 @@
 import * as nd from './node';
 import * as http from 'http';
 import * as url from 'url';
+import {p2pNode} from "./p2p";
 
 // curl -i -X POST -H 'Content-Type: application/json' -d '{"pubkey": "AAA", "seqNo": 1, "cTTL": 2, "pow" : {"preimageType": "", "difficukty":0, "algorithm": "", "hash": "BBB"}, "bid": {"amount" : 0, "proof": ""}}' http://localhost:8080/oracle
 
@@ -68,12 +69,17 @@ export const startHttp = (cfg: nd.MempoolConfig<any>) => {
                             res.end(JSON.stringify(out))
                         }
 
+                        if (p2pNode !== undefined) {
+                            p2pNode.broadcastMessage(reqUrl.pathname!.slice(1), body)
+                        }
+
                     } catch(err) {
                         console.error(err)
                         if (!res.writableEnded){
                             res.end(JSON.stringify({error: err.message}))
                         } 
                     } 
+                    
                 })
             }
 

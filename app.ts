@@ -3,6 +3,8 @@ import {startP2P} from './p2p';
 import {startHttp} from './rest';
 import * as fs from 'fs'
 
+//npx tsx app.ts mempool-cfg.json
+
 process.on('uncaughtException', function (err) {
     console.log(err);
 });

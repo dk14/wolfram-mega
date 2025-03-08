@@ -13,6 +13,8 @@ interface Neighbor {
     addr: PeerAddr
 }
 
+export var p2pNode: nd.FacilitatorNode<Neighbor> | undefined = undefined
+
 export const startP2P = (cfg: nd.MempoolConfig<PeerAddr>) => {
 
     var connections = 0
@@ -44,17 +46,19 @@ export const startP2P = (cfg: nd.MempoolConfig<PeerAddr>) => {
     cfg.p2pseed.forEach(discovered)
 
     function broadcastPeer(peer: PeerAddr): void {
+        console.log("Discovered: " + peer.server + ":" + peer.port);
         peers.forEach(p => {
-            p.peer.send('peer', Buffer.from(JSON.stringify(peer), 'utf8'));
+            console.log("[send][peer]" + JSON.stringify(peer) + "  ==> " + JSON.stringify(p.addr))
+            p.peer.send('peer', Buffer.from(JSON.stringify(peer), 'utf8'))
         });
     }
 
-    function discovered(peer: PeerAddr): void {
-        const found = peers.findIndex(x => peer.server === x.peer.server && peer.port === x.peer.port)
+    function discovered(addr: PeerAddr): void {
+        const found = peers.findIndex(x => addr.server === x.peer.server && addr.port === x.peer.port)
         if (found > -1) {
-            if ((peers[found].addr.seqNo ?? 0) < (peer.seqNo ?? 0)) {
-                peers[found].addr.seqNo = peer.seqNo
-                broadcastPeer(peer)
+            if ((peers[found].addr.seqNo ?? 0) < (addr.seqNo ?? 0)) {
+                peers[found].addr.seqNo = addr.seqNo
+                broadcastPeer(addr)
             }
             return
         }
@@ -62,13 +66,18 @@ export const startP2P = (cfg: nd.MempoolConfig<PeerAddr>) => {
             return
         }
         try {
-            const p = new Peer(peer.server, peer.port)
+            const p = new Peer(addr.server, addr.port)
+            
             p.connect()
+            
             p.on('message', onmessage)
             p.on('connect', onconnect)
             p.on('end', ondisconnect)
-            broadcastPeer(peer)
-            peers.push({peer : p, addr: peer})
+            broadcastPeer(addr)
+            peers.push({peer : p, addr: addr})
+            if (cfg.hostname !== undefined) {
+                broadcastPeer({server: cfg.hostname, port: cfg.p2pPort, seqNo: cfg.hostSeqNo ?? 0})
+            }
         } catch (err) {
             console.error(err)
         }
@@ -78,6 +87,7 @@ export const startP2P = (cfg: nd.MempoolConfig<PeerAddr>) => {
 
     async function processApiRequest(command: string, content: string): Promise<void> {
         //commands: peer, oracle, capability, report, dispute
+        console.log("[receive][cmd: " + command + "] " + content)
         switch(command) {
             case 'peer': { 
                 discovered(JSON.parse(content))
@@ -90,14 +100,16 @@ export const startP2P = (cfg: nd.MempoolConfig<PeerAddr>) => {
                 } else {
                     //TODO reduce cTTL, if not zero - broadcast anyway
                 }
+                break;
             }
             case 'capability': {
-                const result = await nd.api.announceOracle(JSON.parse(content))
+                const result = await nd.api.announceCapability(JSON.parse(content))
                 if (result == 'success') {
                     broadcastMessage(command, content)
                 } else {
                     //TODO reduce cTTL, if not zero - broadcast anyway
                 }
+                break;
             }
             case 'report': {
                 const result = await nd.api.reportMalleability(JSON.parse(content))
@@ -106,6 +118,7 @@ export const startP2P = (cfg: nd.MempoolConfig<PeerAddr>) => {
                 } else {
                     //TODO reduce cTTL, if not zero - broadcast anyway
                 }
+                break;
             }
             case 'dispute': {
                 const result = await nd.api.disputeMissingfactClaim(JSON.parse(content))
@@ -114,6 +127,7 @@ export const startP2P = (cfg: nd.MempoolConfig<PeerAddr>) => {
                 } else {
                     //TODO reduce cTTL, if not zero - broadcast anyway
                 }
+                break;
             }
 
 
@@ -122,6 +136,7 @@ export const startP2P = (cfg: nd.MempoolConfig<PeerAddr>) => {
     }
     function broadcastMessage(command: string, content: string): void {
         peers.forEach(p => {
+            console.log("[send][cmd: " + command + "] " + content + " ===> " + JSON.stringify(p.addr))
             p.peer.send(command, Buffer.from(content, 'utf8'));
         });
     }
@@ -135,12 +150,8 @@ export const startP2P = (cfg: nd.MempoolConfig<PeerAddr>) => {
     });
 
     server.listen(cfg.p2pPort, cfg.hostname);
-
-    if (cfg.hostname !== undefined) {
-        broadcastPeer({server: cfg.hostname, port: cfg.p2pPort, seqNo: cfg.hostSeqNo ?? 0})
-    }
     
-    return node
+    p2pNode = node
     
 }
 
