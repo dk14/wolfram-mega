@@ -1,5 +1,6 @@
 import * as nd from './node';
 import * as net from 'net';
+import { Socket } from 'net';
 import {Peer} from 'p2p-node'
 
 interface PeerAddr {
@@ -43,17 +44,17 @@ export const startP2P = (cfg: nd.MempoolConfig<PeerAddr>) => {
         }
     }
     
-    cfg.p2pseed.forEach(discovered)
+    cfg.p2pseed.forEach(x => discovered(x))
 
     function broadcastPeer(peer: PeerAddr): void {
         console.log("Discovered: " + peer.server + ":" + peer.port);
         peers.forEach(p => {
             console.log("[send][peer]" + JSON.stringify(peer) + "  ==> " + JSON.stringify(p.addr))
-            p.peer.send('peer', Buffer.from(JSON.stringify(peer), 'utf8'))
+            //p.peer.send('peer', Buffer.from(JSON.stringify(peer), 'utf8'))
         });
     }
 
-    function discovered(addr: PeerAddr): void {
+    function discovered(addr: PeerAddr, socket?: Socket): void {
         const found = peers.findIndex(x => addr.server === x.peer.server && addr.port === x.peer.port)
         if (found > -1) {
             if ((peers[found].addr.seqNo ?? 0) < (addr.seqNo ?? 0)) {
@@ -68,7 +69,7 @@ export const startP2P = (cfg: nd.MempoolConfig<PeerAddr>) => {
         try {
             const p = new Peer(addr.server, addr.port)
             
-            p.connect()
+            p.connect(socket)
             
             p.on('message', onmessage)
             p.on('connect', onconnect)
@@ -146,7 +147,8 @@ export const startP2P = (cfg: nd.MempoolConfig<PeerAddr>) => {
     }
     
     const server = net.createServer(function(socket) {
-        discovered({server: socket.remoteAddress!, port: socket.remotePort!, seqNo: 0})
+        console.log("Remote connection")
+        discovered({server: socket.remoteAddress!, port: socket.remotePort!, seqNo: 0}, socket)
     });
 
     server.listen(cfg.p2pPort, cfg.hostname);
