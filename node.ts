@@ -162,7 +162,6 @@ interface Api {
 
 }
 
-//https://github.com/cryptocoinjs/p2p-node/tree/master
 
 export interface FacilitatorNode<PeerT> { //TODO implement
     peers: PeerT[]
@@ -271,11 +270,10 @@ export const api: Api = {
                         }
                         return "success"
                     } else {
-                        return "lowbid"
+                        return "low bid and/or pow difficulty"
                     }
 
                 } else {
-                    //todo merge pows after checking that other fields are same
                     return "duplicate"
                 }
 
@@ -300,7 +298,7 @@ export const api: Api = {
                     api.mempool.oracles[cp.oraclePubKey].capabilies.push(cp)
                     return "success"
                 } else {
-                    return "evicted: rank is too low"
+                    return "low pow difficulty"
                 }
             } else {
                 return "wrong pow"
@@ -319,7 +317,7 @@ export const api: Api = {
         }
 
         if (!checkReportRank(cfg, report, api.mempool.oracles[report.oraclePubKey])) {
-            return "evicted"
+            return "low pow difficulty"
         }
         if (api.mempool.oracles[report.oraclePubKey].reports.find(x => x.pow.hash == report.content.pow.hash)) {
             return "duplicate"
