@@ -259,6 +259,9 @@ export const api: Api = {
 
     },
     announceCapability: async (cp: OracleCapability): Promise<Registered | NotRegistered> => {
+        if (api.mempool.oracles[cp.oraclePubKey] === undefined) {
+            return "no oracle found:" + cp.oraclePubKey
+        }
         if (checkCapabilitySignature(cp)) {
             if (checkPow(cp.pow, cp.oracleSignature)) {
                 if (checkCapabilityRank(cp, api.mempool.oracles[cp.oraclePubKey])) {
@@ -279,6 +282,9 @@ export const api: Api = {
         }
     },
     reportMalleability: async (report: Report): Promise<ReportAccepted | ReportRejected> => {
+        if (api.mempool.oracles[report.oraclePubKey] === undefined) {
+            return "no oracle found:" + report.oraclePubKey
+        }
         if (!checkPow(report.content.pow, "TODO")) {
             return "wrong pow"
         }
@@ -289,6 +295,9 @@ export const api: Api = {
         return "success"
     },
     disputeMissingfactClaim: async (dispute: Dispute): Promise<DisputeAccepted | DisputeRejected> => {
+        if (api.mempool.oracles[dispute.claim.request.capability.oraclePubKey] === undefined) {
+            return "no oracle found:" + dispute.claim.request.capability.oraclePubKey
+        }
         const oracle = api.mempool.oracles[dispute.claim.request.capability.oraclePubKey]
         if (!validateFact(dispute.fact)) {
             return "invalid fact"
@@ -312,10 +321,18 @@ export const api: Api = {
             .slice(paging.page * paging.chunkSize, (paging.page + 1) * paging.chunkSize)
     },
     lookupCapabilities: async (paging: PagingDescriptor, oraclePub: string): Promise<OracleCapability[]> => {
+        if (api.mempool.oracles[oraclePub] === undefined) {
+            console.log("oracle not found " + oraclePub)
+            return []
+        }
         return api.mempool.oracles[oraclePub].capabilies.slice(paging.page * paging.chunkSize, (paging.page + 1) * paging.chunkSize)
 
     },
     lookupReports: async (paging: PagingDescriptor, oraclePub: string): Promise<MaleabilityReport[]> => {
+        if (api.mempool.oracles[oraclePub] === undefined) {
+            console.log("oracle not found " + oraclePub)
+            return []
+        }
         return api.mempool.oracles[oraclePub].reports.slice(paging.page * paging.chunkSize, (paging.page + 1) * paging.chunkSize)
     },
 

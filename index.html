@@ -7,80 +7,47 @@
         <h1>Wofram Mega Node Monitor:</h1>
         <hr>
 
+        Peers: <div id="peers"></div>
+
+        <hr>
+
         <h2>Oracles:</h2>
 
-        <table id="oracles">
-            <thead>
-                <tr>
-                    <th scope="col">PubKey</th>
-                </tr>
-            </thead>
-            <tbody>
-
-            </tbody>
-        </table>
-
+        <div id="oracles"></div>
+            
         <h2>Register Oracle:</h2>
-        <form action="javascript:;" id="oracle">
-            <label for="pubkey">Public Key:</label>
-            <input type="text" id="pubkey" name="pubkey" value="AAA">
+        
+        <label for="pubkey">Public Key:</label>
+        <input type="text" id="pubkey" name="pubkey" value="AAA">
 
-            <input type="submit" value="Submit">
-        </form> 
+        <input type="button" id="oracle" value="Submit">
+
 
         <hr>
 
         <h2>Capabilities:</h2>
 
-        <table id="capabilities">
-            <thead>
-                <tr>
-                    <th scope="col">OraclePubKey</th>
-                    <th scope="col">Question</th>
-                </tr>
-            </thead>
-            <tbody>
-
-            </tbody>
-        </table>
+        <div id="capabilities"></div>
 
         <h2>Register Capability:</h2>
 
-    
-        <form action="javascript:;" id="capability">
-            <label for="oraclePubKey">OraclePubKey: </label>
-            <input type="text" id="fname" name="fname" value="AAA">
-
-            <label for="capabilityPubKey">Question:</label>
-            <input type="text" id="lname" name="lname" value="AAA">
-            <input type="submit" value="Submit">
-        </form> 
+        <label for="question">Question:</label>
+        <input type="text" id="question" name="question" value="Who won?">
+        <input type="button" id="capability" value="Submit">
+        
 
         <hr>
 
         <h2>Reports:</h2>
 
-        <table id="reports">
-            <thead>
-                <tr>
-                    <th scope="col">OraclePubKey</th>
-                    <th scope="col">content</th>
-                </tr>
-            </thead>
-            <tbody>
-
-            </tbody>
-        </table>
+        <div id="reports"></div>
 
         <h2> Submit Report: </h2>
 
-        <form action="javascript:;" id="report-conflict">
-            <label for="oraclePubKey">OraclePubKey:</label>
-            <input type="text" id="oraclePubKey" name="oraclePubKey" value="AAA">
-            <label for="content">Content:</label>
-            <input type="text" id="content" name="content" value="{}">
-            <input type="submit" value="Submit">
-        </form>
+        <label for="content">Content:</label>
+        <input type="text" id="content" name="content" value="{}">
+        <input id="report" type="button" value="Submit">
+
 
     </body>
 
@@ -96,14 +63,14 @@
         };
 
         const oracleForm = document.getElementById('oracle');
-        oracleForm.onsubmit = function(event){
+        const pubkey = document.getElementById('pubkey');
+        oracleForm.onclick = function(event){
             const xhr = new XMLHttpRequest();
-            const formData = new FormData(oracleForm);
             xhr.open('POST','./oracle')
             xhr.setRequestHeader("Content-Type", "application/json");
 
             oracle = {"seqNo": 1, "cTTL": 0, pow: {"preimageType": "", "difficukty":0, "algorithm": "", "hash": "BBB"}, "bid": {"amount" : 0, "proof": ""}}
-            oracle.pubkey = formData.get("pubkey")
+            oracle.pubkey = pubkey.value
             xhr.send(JSON.stringify(oracle));
 
             xhr.onreadystatechange = function() {
@@ -114,14 +81,15 @@
         }
 
         const capabilityForm = document.getElementById('capability');
-        capabilityForm.onsubmit = function(event){
+        const question = document.getElementById('question');
+        capabilityForm.onclick = function(event){
             const xhr = new XMLHttpRequest();
-            const formData = new FormData(capabilityForm);
             xhr.open('POST','./capability')
             xhr.setRequestHeader("Content-Type", "application/json");
 
             capability = {"seqNo": 1, "cTTL": 0, pow: {"preimageType": "", "difficukty":0, "algorithm": "", "hash": "BBB"}, "oracleSignature": ""}
-            capability.oraclePubKey = formData.get("oraclePubKey")
+            capability.oraclePubKey = pubkey.value
+            capability.question = question.value
             xhr.send(JSON.stringify(capability));
 
             xhr.onreadystatechange = function() {
@@ -131,16 +99,16 @@
             }
         }
 
-        const reportForm = document.getElementById('report-conflict');
-        reportForm.onsubmit = function(event){
+        const reportForm = document.getElementById('report');
+        const content = document.getElementById('content');
+        reportForm.onclick = function(event){
             const xhr = new XMLHttpRequest();
-            const formData = new FormData(reportForm);
             xhr.open('POST','./report')
             xhr.setRequestHeader("Content-Type", "application/json");
 
             report = {"seqNo": 1, "cTTL": 0,  pow: {"preimageType": "", "difficukty":0, "algorithm": "", "hash": "BBB"}}
-            report.oraclePubKey = formData.get("oraclePubKey")
-            report.content = JSON.parse(formData.get("content"))
+            report.oraclePubKey = pubkey.value
+            report.content = JSON.parse(content.value)
  
 
             xhr.send(JSON.stringify(report));
@@ -152,71 +120,78 @@
             }
         }
 
+        const oracleTable = document.getElementById('oracles');
         setInterval(() => {
             const xhr = new XMLHttpRequest();
             xhr.open('GET','./oracles')
             xhr.setRequestHeader("Content-Type", "application/json");
             xhr.send()
-            const oracleTable = document.getElementById('oracles');
+            
             xhr.onreadystatechange = function() {
                 if (xhr.readyState == XMLHttpRequest.DONE) {
                     const oracles = JSON.parse(xhr.responseText)
-                    Array(oracleTable.rows.length).keys().forEach(i => oracleTable.deleteRow(i))
+                    oracleTable.innerHTML = oracles.map(x => x.pubkey).join("<br>")
                     
-                    oracles.forEach(oracle => {
-                        let row = oracleTable.insertRow();
-                        let date = row.insertCell(0).innerHTML = oracle.pubkey;
-
-                    })
                 }
             }
 
 
         }, 1000)
+
+        const capabilityTable = document.getElementById('capabilities');
 
         setInterval(() => {
             const xhr = new XMLHttpRequest();
-            xhr.open('GET','./capabilities?pubkey=' + formData.get('pubkey'))
+            xhr.open('GET','./capabilities?pubkey=' + pubkey.value)
             xhr.setRequestHeader("Content-Type", "application/json");
             xhr.send()
-            const capabilityTable = document.getElementById('capabilities');
+            
             xhr.onreadystatechange = function() {
                 if (xhr.readyState == XMLHttpRequest.DONE) {
                     const capabilities = JSON.parse(xhr.responseText)
-                    Array(capabilityTable.rows.length).keys().forEach(i => capabilityTable.deleteRow(i))
-                    capabilities.forEach(capability => {
-                        let row = capabilityTable.insertRow();
-                        row.insertCell(0).innerHTML = capability.oraclePubKey
-                        row.insertCell(1).innerHTML = capability.question
-                    })
+                    capabilityTable.innerHTML = capabilities.map(x => x.question).join("<br>")
                 }
             }
 
 
-        }, 1000)
+        }, 2000)
 
+
+        const reportsTable = document.getElementById('reports');
         setInterval(() => {
             var xhr = new XMLHttpRequest();
-            const formData = new FormData(oracleForm);
-            xhr.open('GET','./reports?pubkey=' + formData.get('pubkey'))
+            
+            xhr.open('GET','./reports?pubkey=' + pubkey.value)
             xhr.setRequestHeader("Content-Type", "application/json");
             xhr.send()
-            var reportsTable = document.getElementById('reports');
+            
             xhr.onreadystatechange = function() {
                 if (xhr.readyState == XMLHttpRequest.DONE) {
                     const reports = JSON.parse(xhr.responseText)
-                    Array(capabilityTable.rows.length).keys().forEach(i => capabilityTable.deleteRow(i))
-                    reports.forEach(report => {
-                        let row = reportsTable.insertRow();
-
-                        row.insertCell(0).innerHTML = report.pow;
-                        row.insertCell(1).innerHTML = JSON.stringify(report.request);
-                    })
+                    reportsTable.innerHTML = reports.map(x => x.content).join("<br>")
                 }
             }
 
 
-        }, 1000)
+        }, 2000)
+
+        const peersTable = document.getElementById('peers');
+        setInterval(() => {
+            var xhr = new XMLHttpRequest();
+            
+            xhr.open('GET','./peers')
+            xhr.setRequestHeader("Content-Type", "application/json");
+            xhr.send()
+            
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState == XMLHttpRequest.DONE) {
+                    
+                    peersTable.innerHTML = xhr.responseText
+                }
+            }
+
+
+        }, 2000)
             
     </script>
 </html>

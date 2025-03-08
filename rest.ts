@@ -25,6 +25,20 @@ export const startHttp = (cfg: nd.MempoolConfig<any>) => {
             if (req.method === 'GET' && (reqUrl.pathname == '/index.html' || reqUrl.pathname == '/index.htm') || reqUrl.pathname == '/') {
                 res.setHeader('content-Type', 'text/html');
                 res.end(fs.readFileSync('./index.html').toString())
+                return
+            }
+
+            if(req.method === 'GET' && reqUrl.pathname == '/peers') {
+                res.setHeader('content-Type', 'text/plain');
+                if (p2pNode !== undefined) {
+                    const list = p2pNode.peers.map(p => p.addr.server + ":" + p.addr.port).join(",")
+                    console.log(list)
+                    res.end(list)
+                } else {
+                    res.end("P2P not started yet!")
+                }
+                
+                return
             }
 
             res.setHeader('content-Type', 'Application/json');
@@ -34,27 +48,34 @@ export const startHttp = (cfg: nd.MempoolConfig<any>) => {
 
                 if(reqUrl.pathname == '/id') {
                     res.end(JSON.stringify(cfg.facilitatorId ?? {}))
+                    return
                 }
 
                 if(reqUrl.pathname == '/oracles') {
                     nd.api.lookupOracles(paging, []).then(x => res.end(JSON.stringify(x)))
+                    return
                 }
+
+                const pubkey: string = typeof reqUrl.query.pubkey === "string" ? reqUrl.query.pubkey : ""
             
                 if(reqUrl.pathname == '/capabilities') {
                     if (reqUrl.query.pubkey == undefined) {
                         res.end(JSON.stringify("Specify capabilities?pubkey=<oracle_pubkey>"))
                     } else {
-                        nd.api.lookupCapabilities(paging, reqUrl.query.pubkey[0]).then(x => res.end(JSON.stringify(x)))
+                        const pubkey: string = typeof reqUrl.query.pubkey === "string" ? reqUrl.query.pubkey : ""
+                        nd.api.lookupCapabilities(paging, pubkey).then(x => res.end(JSON.stringify(x)))
                     }
+                    return
                 }
             
                 if(reqUrl.pathname == '/reports') {
                     if (reqUrl.query.pubkey == undefined) {
                         res.end(JSON.stringify("Specify reports?pubkey=<oracle_pubkey>"))
                     } else {
-                        nd.api.lookupReports(paging, reqUrl.query.pubkey[0]).then(x => res.end(JSON.stringify(x)))
+                        nd.api.lookupReports(paging, pubkey).then(x => res.end(JSON.stringify(x)))
                     }
                 }
+                return
             }
         
             if (req.method === 'POST') {
@@ -92,6 +113,8 @@ export const startHttp = (cfg: nd.MempoolConfig<any>) => {
                         if (p2pNode !== undefined) {
                             p2pNode.broadcastMessage(reqUrl.pathname!.slice(1), body)
                         }
+
+                        return
 
                     } catch(err) {
                         console.error(err)
