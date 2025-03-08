@@ -1,4 +1,4 @@
-import {createHash, createVerify, generateKeyPairSync} from 'crypto'
+import {createHash, createVerify, generateKeyPairSync, createSign} from 'crypto'
 
 
 const curve = 'secp521r1';
@@ -25,8 +25,8 @@ export const testOnlyGenerateKeyPair = (): KeyPair => {
     }
 }
 
-export const testOnlySign = () => {
-
+export const testOnlySign = (msg: string, pk: string) => {
+    return createSign('SHA256').update(msg).sign(pk, 'base64')
 }
 
 export interface Param {
