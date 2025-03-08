@@ -1,4 +1,4 @@
-
+import {createHash} from 'crypto'
 
 export interface Param {
     name: string
@@ -172,8 +172,15 @@ export interface MempoolConfig<PeerAddrT> {
     hostname?: string
 }
 
+const hash = (msg: string, algo: string): string => {
+    return createHash(algo).update(msg).digest('hex')
+}
+
 const checkPow = (pow: HashCashPow, preimage: string): boolean => {
-    return true
+    if (!pow.hash.endsWith("0".repeat(pow.difficulty))) {
+        return false
+    }
+    return hash(preimage, pow.algorithm) === pow.hash
 }
 
 const checkCapabilitySignature = (cp: OracleCapability): boolean => {
