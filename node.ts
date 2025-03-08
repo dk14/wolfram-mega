@@ -1,4 +1,4 @@
-import {createHash} from 'crypto'
+import {createHash, createVerify} from 'crypto'
 
 export interface Param {
     name: string
@@ -6,16 +6,21 @@ export interface Param {
 }
 
 interface OracleCapability {
-    oracleId: OracleId
+    oraclePubKey: string
+    capabilityPubKey: string
+    question: string // oracle is responsible for unambiguity of question - this field can be use to match capabilities of different oracles
+
     seqNo: number //used for broadcast
     cTTL: number //used for broadcast
-    question: string // oracle is responsible for unambiguity of question - this field can be use to match capabilities of different oracles
-    params: Param[]
-    answers: string[] 
-    queryUri: string //how to query oracle
-    pubkey: string
-    signature: string
+
+    oracleSignature: string //sign this OracleCapability JSON record (with empty string signature field)
+    oracleSignatureType: string
     pow: HashCashPow
+    
+    params?: Param[] //possible params
+    answers?: string[] //possible answers
+    endpoint?: string //how to query oracle
+
 }
 
 
@@ -72,20 +77,20 @@ interface ProofOfPayment {
 
 
 interface Fact {
-    request: FactRequest
     factWithArguments: string
     signature: string
 }
 
 interface FactDisagreesWithPublic { //this report is for manual review, it requires pow to submit in order to avoid spamming. Strongest pows will be prioritized
     type: 'fact-disagreees-with-public'
-    fact: Fact
-    comment: string
+    request: FactRequest
+    commen?: string
     pow: HashCashPow
 }
 
 interface FactConflict {
     type: 'fact-conflict'
+    request: FactRequest
     facts: Fact[] //must be of the same capability; TODO validator
     pow: HashCashPow
 }
@@ -110,14 +115,21 @@ interface Dispute {
 interface Report {
     seqNo: number //used for broadcast
     cTTL: number //used for broadcast
-    oracleId: OracleId
+    oraclePubKey: string
     content: MaleabilityReport
+}
+
+interface FacilitatorId {
+    websiteManifestUri?: string
+    rewardAddress?: string[]
+    facilitatorRewardIdPow?: HashCashPow // preimage is concat of reward addresses
 }
 
 export interface PagingDescriptor {
     page: number
     chunkSize: number
 }
+
 
 type Registered = string
 type NotRegistered = string
@@ -170,6 +182,7 @@ export interface MempoolConfig<PeerAddrT> {
     p2pseed: PeerAddrT[]
     hostSeqNo?: number
     hostname?: string
+    facilitatorId?: FacilitatorId
 }
 
 const hash = (msg: string, algo: string): string => {
@@ -177,6 +190,8 @@ const hash = (msg: string, algo: string): string => {
 }
 
 const checkPow = (pow: HashCashPow, preimage: string): boolean => {
+    return true
+
     if (!pow.hash.endsWith("0".repeat(pow.difficulty))) {
         return false
     }
@@ -185,6 +200,11 @@ const checkPow = (pow: HashCashPow, preimage: string): boolean => {
 
 const checkCapabilitySignature = (cp: OracleCapability): boolean => {
     return true
+
+    const signature = cp.oracleSignature
+    cp.oracleSignature = ""
+    
+    return createVerify(cp.oracleSignatureType).update(JSON.stringify(cp)).verify(cp.oraclePubKey, signature)
 }
 
 const checkOracleRank = (oracle: OracleId, oracles: OracleId[]): boolean => { 
@@ -218,34 +238,34 @@ export const api: Api = {
                         api.mempool.oracles[id.pubkey] = {
                             id,
                             capabilies: [],
-                            reports: [] 
-                         }
-                         return "success"
+                            reports: []
+                        }
+                        return "success"
                     } else {
                         return "lowbid"
                     }
-                    
+
                 } else {
                     //todo merge pows after checking that other fields are same
                     return "duplicate"
                 }
-                
+
             } else {
                 return "rank is too low"
             }
         } else {
             return "wrong pow"
         }
-        
+
     },
     announceCapability: async (cp: OracleCapability): Promise<Registered | NotRegistered> => {
         if (checkCapabilitySignature(cp)) {
-            if (checkPow(cp.pow, cp.signature)) {
-                if (checkCapabilityRank(cp, api.mempool.oracles[cp.oracleId.pubkey])) {
-                    if (api.mempool.oracles[cp.oracleId.pubkey].capabilies.find(x => x.question == cp.question)) {
+            if (checkPow(cp.pow, cp.oracleSignature)) {
+                if (checkCapabilityRank(cp, api.mempool.oracles[cp.oraclePubKey])) {
+                    if (api.mempool.oracles[cp.oraclePubKey].capabilies.find(x => x.question == cp.question)) {
                         return "duplicate"
                     }
-                    api.mempool.oracles[cp.oracleId.pubkey].capabilies.push(cp)
+                    api.mempool.oracles[cp.oraclePubKey].capabilies.push(cp)
                     return "success"
                 } else {
                     return "rank is too low"
@@ -253,7 +273,7 @@ export const api: Api = {
             } else {
                 return "wrong pow"
             }
-            
+
         } else {
             return "wrong signature"
         }
@@ -262,14 +282,14 @@ export const api: Api = {
         if (!checkPow(report.content.pow, "TODO")) {
             return "wrong pow"
         }
-        if (api.mempool.oracles[report.oracleId.pubkey].reports.find(x => x.pow.hash == report.content.pow.hash)) {
+        if (api.mempool.oracles[report.oraclePubKey].reports.find(x => x.pow.hash == report.content.pow.hash)) {
             return "duplicate"
         }
-        api.mempool.oracles[report.oracleId.pubkey].reports.push(report.content)
+        api.mempool.oracles[report.oraclePubKey].reports.push(report.content)
         return "success"
     },
     disputeMissingfactClaim: async (dispute: Dispute): Promise<DisputeAccepted | DisputeRejected> => {
-        const oracle = api.mempool.oracles[dispute.claim.request.capability.oracleId.pubkey]
+        const oracle = api.mempool.oracles[dispute.claim.request.capability.oraclePubKey]
         if (!validateFact(dispute.fact)) {
             return "invalid fact"
         }
@@ -287,13 +307,13 @@ export const api: Api = {
     },
     lookupOracles: async (paging: PagingDescriptor, questions: string[]): Promise<OracleId[]> => {
         return Object.values(api.mempool.oracles)
-            .sort((a,b) => a.id.bid.amount - b.id.bid.amount)
+            .sort((a, b) => a.id.bid.amount - b.id.bid.amount)
             .map(x => x.id)
             .slice(paging.page * paging.chunkSize, (paging.page + 1) * paging.chunkSize)
     },
     lookupCapabilities: async (paging: PagingDescriptor, oraclePub: string): Promise<OracleCapability[]> => {
         return api.mempool.oracles[oraclePub].capabilies.slice(paging.page * paging.chunkSize, (paging.page + 1) * paging.chunkSize)
-        
+
     },
     lookupReports: async (paging: PagingDescriptor, oraclePub: string): Promise<MaleabilityReport[]> => {
         return api.mempool.oracles[oraclePub].reports.slice(paging.page * paging.chunkSize, (paging.page + 1) * paging.chunkSize)
@@ -302,6 +322,4 @@ export const api: Api = {
     proxify: async (req: FactRequest, uri: string): Promise<string> => {
         return ""
     }
-
-
 }

@@ -1,0 +1,222 @@
+<html>
+    <head>
+
+    </head>
+    
+    <body>
+        <h1>Wofram Mega Node Monitor:</h1>
+        <hr>
+
+        <h2>Oracles:</h2>
+
+        <table id="oracles">
+            <thead>
+                <tr>
+                    <th scope="col">PubKey</th>
+                </tr>
+            </thead>
+            <tbody>
+
+            </tbody>
+        </table>
+
+        <h2>Register Oracle:</h2>
+        <form action="javascript:;" id="oracle">
+            <label for="pubkey">Public Key:</label>
+            <input type="text" id="pubkey" name="pubkey" value="AAA">
+
+            <input type="submit" value="Submit">
+        </form> 
+
+        <hr>
+
+        <h2>Capabilities:</h2>
+
+        <table id="capabilities">
+            <thead>
+                <tr>
+                    <th scope="col">OraclePubKey</th>
+                    <th scope="col">Question</th>
+                </tr>
+            </thead>
+            <tbody>
+
+            </tbody>
+        </table>
+
+        <h2>Register Capability:</h2>
+
+    
+        <form action="javascript:;" id="capability">
+            <label for="oraclePubKey">OraclePubKey: </label>
+            <input type="text" id="fname" name="fname" value="AAA">
+
+            <label for="capabilityPubKey">Question:</label>
+            <input type="text" id="lname" name="lname" value="AAA">
+            <input type="submit" value="Submit">
+        </form> 
+
+        <hr>
+
+        <h2>Reports:</h2>
+
+        <table id="reports">
+            <thead>
+                <tr>
+                    <th scope="col">OraclePubKey</th>
+                    <th scope="col">content</th>
+                </tr>
+            </thead>
+            <tbody>
+
+            </tbody>
+        </table>
+
+        <h2> Submit Report: </h2>
+
+        <form action="javascript:;" id="report-conflict">
+            <label for="oraclePubKey">OraclePubKey:</label>
+            <input type="text" id="oraclePubKey" name="oraclePubKey" value="AAA">
+            <label for="content">Content:</label>
+            <input type="text" id="content" name="content" value="{}">
+            <input type="submit" value="Submit">
+        </form>
+
+    </body>
+
+    <script>
+        window.getSHA256Hash = async (input) => {
+            const textAsBuffer = new TextEncoder().encode(input);
+            const hashBuffer = await window.crypto.subtle.digest("SHA-256", textAsBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const hash = hashArray
+                .map((item) => item.toString(16).padStart(2, "0"))
+                .join("");
+            return hash;
+        };
+
+        const oracleForm = document.getElementById('oracle');
+        oracleForm.onsubmit = function(event){
+            const xhr = new XMLHttpRequest();
+            const formData = new FormData(oracleForm);
+            xhr.open('POST','./oracle')
+            xhr.setRequestHeader("Content-Type", "application/json");
+
+            oracle = {"seqNo": 1, "cTTL": 0, pow: {"preimageType": "", "difficukty":0, "algorithm": "", "hash": "BBB"}, "bid": {"amount" : 0, "proof": ""}}
+            oracle.pubkey = formData.get("pubkey")
+            xhr.send(JSON.stringify(oracle));
+
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState == XMLHttpRequest.DONE) {
+                    alert(xhr.responseText)
+                }
+            }
+        }
+
+        const capabilityForm = document.getElementById('capability');
+        capabilityForm.onsubmit = function(event){
+            const xhr = new XMLHttpRequest();
+            const formData = new FormData(capabilityForm);
+            xhr.open('POST','./capability')
+            xhr.setRequestHeader("Content-Type", "application/json");
+
+            capability = {"seqNo": 1, "cTTL": 0, pow: {"preimageType": "", "difficukty":0, "algorithm": "", "hash": "BBB"}, "oracleSignature": ""}
+            capability.oraclePubKey = formData.get("oraclePubKey")
+            xhr.send(JSON.stringify(capability));
+
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState == XMLHttpRequest.DONE) {
+                    alert(xhr.responseText)
+                }
+            }
+        }
+
+        const reportForm = document.getElementById('report-conflict');
+        reportForm.onsubmit = function(event){
+            const xhr = new XMLHttpRequest();
+            const formData = new FormData(reportForm);
+            xhr.open('POST','./report')
+            xhr.setRequestHeader("Content-Type", "application/json");
+
+            report = {"seqNo": 1, "cTTL": 0,  pow: {"preimageType": "", "difficukty":0, "algorithm": "", "hash": "BBB"}}
+            report.oraclePubKey = formData.get("oraclePubKey")
+            report.content = JSON.parse(formData.get("content"))
+ 
+
+            xhr.send(JSON.stringify(report));
+
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState == XMLHttpRequest.DONE) {
+                    alert(xhr.responseText)
+                }
+            }
+        }
+
+        setInterval(() => {
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET','./oracles')
+            xhr.setRequestHeader("Content-Type", "application/json");
+            xhr.send()
+            const oracleTable = document.getElementById('oracles');
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState == XMLHttpRequest.DONE) {
+                    const oracles = JSON.parse(xhr.responseText)
+                    Array(oracleTable.rows.length).keys().forEach(i => oracleTable.deleteRow(i))
+                    
+                    oracles.forEach(oracle => {
+                        let row = oracleTable.insertRow();
+                        let date = row.insertCell(0).innerHTML = oracle.pubkey;
+
+                    })
+                }
+            }
+
+
+        }, 1000)
+
+        setInterval(() => {
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET','./capabilities?pubkey=' + formData.get('pubkey'))
+            xhr.setRequestHeader("Content-Type", "application/json");
+            xhr.send()
+            const capabilityTable = document.getElementById('capabilities');
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState == XMLHttpRequest.DONE) {
+                    const capabilities = JSON.parse(xhr.responseText)
+                    Array(capabilityTable.rows.length).keys().forEach(i => capabilityTable.deleteRow(i))
+                    capabilities.forEach(capability => {
+                        let row = capabilityTable.insertRow();
+                        row.insertCell(0).innerHTML = capability.oraclePubKey
+                        row.insertCell(1).innerHTML = capability.question
+                    })
+                }
+            }
+
+
+        }, 1000)
+
+        setInterval(() => {
+            var xhr = new XMLHttpRequest();
+            const formData = new FormData(oracleForm);
+            xhr.open('GET','./reports?pubkey=' + formData.get('pubkey'))
+            xhr.setRequestHeader("Content-Type", "application/json");
+            xhr.send()
+            var reportsTable = document.getElementById('reports');
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState == XMLHttpRequest.DONE) {
+                    const reports = JSON.parse(xhr.responseText)
+                    Array(capabilityTable.rows.length).keys().forEach(i => capabilityTable.deleteRow(i))
+                    reports.forEach(report => {
+                        let row = reportsTable.insertRow();
+
+                        row.insertCell(0).innerHTML = report.pow;
+                        row.insertCell(1).innerHTML = JSON.stringify(report.request);
+                    })
+                }
+            }
+
+
+        }, 1000)
+            
+    </script>
+</html>

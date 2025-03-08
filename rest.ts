@@ -2,6 +2,7 @@ import * as nd from './node';
 import * as http from 'http';
 import * as url from 'url';
 import {p2pNode} from "./p2p";
+import * as fs from 'fs'
 
 // curl -i -X POST -H 'Content-Type: application/json' -d '{"pubkey": "AAA", "seqNo": 1, "cTTL": 2, "pow" : {"preimageType": "", "difficukty":0, "algorithm": "", "hash": "BBB"}, "bid": {"amount" : 0, "proof": ""}}' http://localhost:8080/oracle
 
@@ -10,7 +11,6 @@ import {p2pNode} from "./p2p";
 export const startHttp = (cfg: nd.MempoolConfig<any>) => {
     http.createServer(async (req, res) => {
         res.statusCode = 200;
-        res.setHeader('content-Type', 'Application/json');
 
         try {
             const reqUrl =  url.parse(req.url!, true)
@@ -22,18 +22,38 @@ export const startHttp = (cfg: nd.MempoolConfig<any>) => {
         
             console.log('Request type: ' + req.method + ' Endpoint: ' + req.url);
 
+            if (req.method === 'GET' && (reqUrl.pathname == '/index.html' || reqUrl.pathname == '/index.htm') || reqUrl.pathname == '/') {
+                res.setHeader('content-Type', 'text/html');
+                res.end(fs.readFileSync('./index.html').toString())
+            }
+
+            res.setHeader('content-Type', 'Application/json');
+            
         
             if (req.method === 'GET') {
+
+                if(reqUrl.pathname == '/id') {
+                    res.end(JSON.stringify(cfg.facilitatorId ?? {}))
+                }
+
                 if(reqUrl.pathname == '/oracles') {
                     nd.api.lookupOracles(paging, []).then(x => res.end(JSON.stringify(x)))
                 }
             
                 if(reqUrl.pathname == '/capabilities') {
-                    nd.api.lookupCapabilities(paging, reqUrl.query.pubkey![0]).then(x => res.end(JSON.stringify(x)))
+                    if (reqUrl.query.pubkey == undefined) {
+                        res.end(JSON.stringify("Specify capabilities?pubkey=<oracle_pubkey>"))
+                    } else {
+                        nd.api.lookupCapabilities(paging, reqUrl.query.pubkey[0]).then(x => res.end(JSON.stringify(x)))
+                    }
                 }
             
                 if(reqUrl.pathname == '/reports') {
-                    nd.api.lookupReports(paging, reqUrl.query.pubkey![0]).then(x => res.end(JSON.stringify(x)))
+                    if (reqUrl.query.pubkey == undefined) {
+                        res.end(JSON.stringify("Specify reports?pubkey=<oracle_pubkey>"))
+                    } else {
+                        nd.api.lookupReports(paging, reqUrl.query.pubkey[0]).then(x => res.end(JSON.stringify(x)))
+                    }
                 }
             }
         
