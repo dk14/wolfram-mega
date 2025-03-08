@@ -20,7 +20,6 @@ export const startP2P = (cfg: nd.MempoolConfig<PeerAddr>) => {
 
     var connections = 0
     const onmessage = (ev) => {
-        console.log("I got message "+ev.command);
         try {
             node.processApiRequest(ev.command, ev.data.toString('utf8'))
         } catch (err) {
@@ -33,14 +32,19 @@ export const startP2P = (cfg: nd.MempoolConfig<PeerAddr>) => {
         const p = peers.find(x => ev.peer === x.peer)!
         console.log("I'm connected! " + p.addr.server + ":" + p.addr.port);
 
+        if (cfg.hostname !== undefined) {
+            broadcastPeer({server: cfg.hostname, port: cfg.p2pPort, seqNo: cfg.hostSeqNo ?? 0}, true)
+        }
+
+        peers.forEach(peer => {
+            console.log("[send][peer]" + JSON.stringify(peer.addr) + "  ==> " + JSON.stringify(p.addr))
+            p.peer.send('peer', Buffer.from(JSON.stringify(peer.addr), 'utf8'))
+        });
+
         if (checkDuplicatePeer(p.addr)) {
             return
         }
         broadcastPeer(p.addr)
-
-        if (cfg.hostname !== undefined) {
-            broadcastPeer({server: cfg.hostname, port: cfg.p2pPort, seqNo: cfg.hostSeqNo ?? 0})
-        }
         
     }
 
@@ -62,7 +66,7 @@ export const startP2P = (cfg: nd.MempoolConfig<PeerAddr>) => {
             if ((peers[found].addr.seqNo ?? 0) < (addr.seqNo ?? 0)) {
                 peers[found].addr.seqNo = addr.seqNo
                 console.log("[rebroadcast peer]" + JSON.stringify(addr))
-                broadcastPeer(addr)
+                broadcastPeer(addr, true)
             }
             console.log("[ignore duplicate peer]" + JSON.stringify(addr))
             return true
@@ -71,8 +75,8 @@ export const startP2P = (cfg: nd.MempoolConfig<PeerAddr>) => {
         }
     }
 
-    function broadcastPeer(peer: PeerAddr): void {
-        if (checkDuplicatePeer(peer)) {
+    function broadcastPeer(peer: PeerAddr, skipDuplicateCheck: boolean = false): void {
+        if (!skipDuplicateCheck && checkDuplicatePeer(peer)) {
             return
         }
         console.log("Discovered: " + peer.server + ":" + peer.port);
@@ -99,7 +103,10 @@ export const startP2P = (cfg: nd.MempoolConfig<PeerAddr>) => {
             p.on('connect', onconnect)
             p.on('end', ondisconnect)
 
-            peers.push({peer : p, addr: addr})
+            if (socket === undefined) {
+                peers.push({peer : p, addr: addr})
+            }
+            
 
             
         } catch (err) {
@@ -177,6 +184,14 @@ export const startP2P = (cfg: nd.MempoolConfig<PeerAddr>) => {
     server.listen(cfg.p2pPort, cfg.hostname);
     
     p2pNode = node
+
+    var seqNo = 0
+    setInterval(() => {
+        if (cfg.hostname !== undefined) {
+            seqNo++
+            broadcastPeer({server: cfg.hostname, port: cfg.p2pPort, seqNo: (cfg.hostSeqNo ?? 0) + seqNo}, true)
+        }
+    }, 100000)
     
 }
 
