@@ -32,6 +32,16 @@ export const startP2P = (cfg: nd.MempoolConfig<PeerAddr>) => {
         connections++
         const p = peers.find(x => ev.peer === x.peer)!
         console.log("I'm connected! " + p.addr.server + ":" + p.addr.port);
+
+        if (checkDuplicatePeer(p.addr)) {
+            return
+        }
+        broadcastPeer(p.addr)
+
+        if (cfg.hostname !== undefined) {
+            broadcastPeer({server: cfg.hostname, port: cfg.p2pPort, seqNo: cfg.hostSeqNo ?? 0})
+        }
+        
     }
 
     const peers: Neighbor[] = []
@@ -46,21 +56,35 @@ export const startP2P = (cfg: nd.MempoolConfig<PeerAddr>) => {
     
     cfg.p2pseed.forEach(x => discovered(x))
 
+    function checkDuplicatePeer(addr: PeerAddr): boolean {
+        const found = peers.findIndex(x => addr.server === x.addr.server && addr.port === x.addr.port)
+        if (found > -1) {
+            if ((peers[found].addr.seqNo ?? 0) < (addr.seqNo ?? 0)) {
+                peers[found].addr.seqNo = addr.seqNo
+                console.log("[rebroadcast peer]" + JSON.stringify(addr))
+                broadcastPeer(addr)
+            }
+            console.log("[ignore duplicate peer]" + JSON.stringify(addr))
+            return true
+        } else {
+            return false
+        }
+    }
+
     function broadcastPeer(peer: PeerAddr): void {
+        if (checkDuplicatePeer(peer)) {
+            return
+        }
         console.log("Discovered: " + peer.server + ":" + peer.port);
+        console.log(peers.map(p => p.addr))
         peers.forEach(p => {
             console.log("[send][peer]" + JSON.stringify(peer) + "  ==> " + JSON.stringify(p.addr))
-            //p.peer.send('peer', Buffer.from(JSON.stringify(peer), 'utf8'))
+            p.peer.send('peer', Buffer.from(JSON.stringify(peer), 'utf8'))
         });
     }
 
     function discovered(addr: PeerAddr, socket?: Socket): void {
-        const found = peers.findIndex(x => addr.server === x.peer.server && addr.port === x.peer.port)
-        if (found > -1) {
-            if ((peers[found].addr.seqNo ?? 0) < (addr.seqNo ?? 0)) {
-                peers[found].addr.seqNo = addr.seqNo
-                broadcastPeer(addr)
-            }
+        if (checkDuplicatePeer(addr)) {
             return
         }
         if (connections > cfg.maxConnections) {
@@ -74,11 +98,10 @@ export const startP2P = (cfg: nd.MempoolConfig<PeerAddr>) => {
             p.on('message', onmessage)
             p.on('connect', onconnect)
             p.on('end', ondisconnect)
-            broadcastPeer(addr)
+
             peers.push({peer : p, addr: addr})
-            if (cfg.hostname !== undefined) {
-                broadcastPeer({server: cfg.hostname, port: cfg.p2pPort, seqNo: cfg.hostSeqNo ?? 0})
-            }
+
+            
         } catch (err) {
             console.error(err)
         }
