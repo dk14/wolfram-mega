@@ -91,17 +91,17 @@ export const startHttp = (cfg: nd.MempoolConfig<any>) => {
                         res.setHeader('content-Type', 'Application/json');
             
                         if(reqUrl.pathname == '/oracle') {
-                            const out = await nd.api.announceOracle(postBody)
+                            const out = await nd.api.announceOracle(cfg, postBody)
                             res.end(JSON.stringify(out))
                         }
                     
                         if(reqUrl.pathname == '/capability') {
-                            const out = await nd.api.announceCapability(postBody)
+                            const out = await nd.api.announceCapability(cfg, postBody)
                             res.end(JSON.stringify(out))
                         }
                     
                         if(reqUrl.pathname == '/report') {
-                            const out = await nd.api.reportMalleability(postBody)
+                            const out = await nd.api.reportMalleability(cfg, postBody)
                             res.end(JSON.stringify(out))
                         }
                     

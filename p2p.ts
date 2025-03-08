@@ -125,7 +125,7 @@ export const startP2P = (cfg: nd.MempoolConfig<PeerAddr>) => {
                 break; 
             } 
             case 'oracle': {
-                const result = await nd.api.announceOracle(JSON.parse(content))
+                const result = await nd.api.announceOracle(cfg, JSON.parse(content))
                 if (result == 'success' || result == 'lowbid') { //TODO is lowbid candidate for broadcast, would te message loop?
                     broadcastMessage(command, content) 
                 } else {
@@ -134,7 +134,7 @@ export const startP2P = (cfg: nd.MempoolConfig<PeerAddr>) => {
                 break;
             }
             case 'capability': {
-                const result = await nd.api.announceCapability(JSON.parse(content))
+                const result = await nd.api.announceCapability(cfg, JSON.parse(content))
                 if (result == 'success') {
                     broadcastMessage(command, content)
                 } else {
@@ -143,7 +143,7 @@ export const startP2P = (cfg: nd.MempoolConfig<PeerAddr>) => {
                 break;
             }
             case 'report': {
-                const result = await nd.api.reportMalleability(JSON.parse(content))
+                const result = await nd.api.reportMalleability(cfg, JSON.parse(content))
                 if (result == 'success') {
                     broadcastMessage(command, content)
                 } else {

@@ -78,6 +78,7 @@ interface ProofOfPayment {
 
 interface Fact {
     factWithArguments: string
+    signatureType: string
     signature: string
 }
 
@@ -146,9 +147,9 @@ interface Api {
     mempool: Mempool
 
     //----exposed as P2P and REST POST----
-    announceOracle: (id: OracleId) => Promise<Registered | NotRegistered>
-    announceCapability: (cp: OracleCapability) => Promise<Registered | NotRegistered>
-    reportMalleability: (report: Report) => Promise<ReportAccepted | ReportRejected>
+    announceOracle: (cfg: MempoolConfig<any>, id: OracleId) => Promise<Registered | NotRegistered>
+    announceCapability: (cfg: MempoolConfig<any>, cp: OracleCapability) => Promise<Registered | NotRegistered>
+    reportMalleability: (cfg: MempoolConfig<any>, report: Report) => Promise<ReportAccepted | ReportRejected>
     disputeMissingfactClaim: (dispute: Dispute) => Promise<DisputeAccepted | DisputeRejected> 
     //note: it does not dispute time delay/SLA, but it is less crushial for most option contracts
 
@@ -208,32 +209,59 @@ const checkCapabilitySignature = (cp: OracleCapability): boolean => {
     return createVerify(cp.oracleSignatureType).update(JSON.stringify(cp)).verify(cp.oraclePubKey, signature)
 }
 
-const checkOracleRank = (oracle: OracleId, oracles: OracleId[]): boolean => { 
-    //based on pow difficulty
-    //and proofs of payment
-    //oracles are basicaly bidding with micropayments
+const checkOracleRank = (cfg: MempoolConfig<any>, oracle: OracleId, mempool: Mempool): boolean => { 
+    if (Object.keys(mempool.oracles).length > cfg.maxOracles) {
+        const evict = Object.values(mempool.oracles).find(o => o.id.bid.amount <= oracle.bid.amount && o.id.pow.difficulty <= oracle.pow.difficulty)
+        if (evict !== undefined ) {
+            delete mempool.oracles[evict.id.pubkey]
+            return true
+        }
+        return false
+    }
     return true
 }
 
-const checkCapabilityRank = (cp: OracleCapability, o: Oracle): boolean => {
+const checkCapabilityRank = (cfg: MempoolConfig<any>, cp: OracleCapability, o: Oracle): boolean => {
+    if (o.capabilies.length > cfg.maxCapabilities) {
+        const index = o.capabilies.findIndex(c => c.pow.difficulty <= cp.pow.difficulty)
+        if (index > -1) {
+            o.capabilies.splice(index, 1)
+            return true
+        }
+        return false
+    }
+    return true
+}
+
+const checkReportRank = (cfg: MempoolConfig<any>, report: Report, o: Oracle): boolean => {
+    if (o.reports.length > cfg.maxReports) {
+        const index = o.reports.findIndex(r => r.pow.difficulty <= report.content.pow.difficulty)
+        if (index > -1) {
+            o.reports.splice(index, 1)
+            return true
+        }
+        return false
+    }
     return true
 }
 
 const validateBid = (bid: Bid): boolean => {
+    //check if payment was confirmed on chain explorers (or local lightning node)
     return true
 }
 
-const validateFact = (fact: Fact): boolean => {
+const validateFact = (fact: Fact, req: FactRequest): boolean => {
     return true
+    return createVerify(fact.signatureType).update(fact.factWithArguments).verify(req.capabilityPubKey, fact.signature)
 }
 
 export const api: Api = {
     mempool: {
         oracles: {}
     },
-    announceOracle: async (id: OracleId): Promise<Registered | NotRegistered> => {
+    announceOracle: async (cfg: MempoolConfig<any>, id: OracleId): Promise<Registered | NotRegistered> => {
         if (checkPow(id.pow, id.pubkey)) {
-            if (checkOracleRank(id, Object.values(api.mempool.oracles).map(v => v.id))) {
+            if (checkOracleRank(cfg, id, api.mempool)) {
                 if (api.mempool.oracles[id.pubkey] === undefined) {
                     if (validateBid(id.bid)) {
                         api.mempool.oracles[id.pubkey] = {
@@ -259,20 +287,20 @@ export const api: Api = {
         }
 
     },
-    announceCapability: async (cp: OracleCapability): Promise<Registered | NotRegistered> => {
+    announceCapability: async (cfg: MempoolConfig<any>, cp: OracleCapability): Promise<Registered | NotRegistered> => {
         if (api.mempool.oracles[cp.oraclePubKey] === undefined) {
             return "no oracle found:" + cp.oraclePubKey
         }
         if (checkCapabilitySignature(cp)) {
             if (checkPow(cp.pow, cp.oracleSignature)) {
-                if (checkCapabilityRank(cp, api.mempool.oracles[cp.oraclePubKey])) {
+                if (checkCapabilityRank(cfg, cp, api.mempool.oracles[cp.oraclePubKey])) {
                     if (api.mempool.oracles[cp.oraclePubKey].capabilies.find(x => x.question == cp.question)) {
                         return "duplicate"
                     }
                     api.mempool.oracles[cp.oraclePubKey].capabilies.push(cp)
                     return "success"
                 } else {
-                    return "rank is too low"
+                    return "evicted: rank is too low"
                 }
             } else {
                 return "wrong pow"
@@ -282,12 +310,16 @@ export const api: Api = {
             return "wrong signature"
         }
     },
-    reportMalleability: async (report: Report): Promise<ReportAccepted | ReportRejected> => {
+    reportMalleability: async (cfg: MempoolConfig<any>, report: Report): Promise<ReportAccepted | ReportRejected> => {
         if (api.mempool.oracles[report.oraclePubKey] === undefined) {
             return "no oracle found:" + report.oraclePubKey
         }
         if (!checkPow(report.content.pow, "TODO")) {
             return "wrong pow"
+        }
+
+        if (!checkReportRank(cfg, report, api.mempool.oracles[report.oraclePubKey])) {
+            return "evicted"
         }
         if (api.mempool.oracles[report.oraclePubKey].reports.find(x => x.pow.hash == report.content.pow.hash)) {
             return "duplicate"
@@ -300,7 +332,7 @@ export const api: Api = {
             return "no oracle found:" + dispute.oraclePubKey
         }
         const oracle = api.mempool.oracles[dispute.oraclePubKey]
-        if (!validateFact(dispute.fact)) {
+        if (!validateFact(dispute.fact, dispute.claim.request)) {
             return "invalid fact"
         }
         if (oracle !== undefined) {
