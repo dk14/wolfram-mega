@@ -109,6 +109,7 @@ interface Dispute {
     seqNo: number //used for broadcast
     cTTL: number //used for broadcast
     claim: FactMissing
+    oraclePubKey: string
     fact: Fact
 }
 
@@ -295,10 +296,10 @@ export const api: Api = {
         return "success"
     },
     disputeMissingfactClaim: async (dispute: Dispute): Promise<DisputeAccepted | DisputeRejected> => {
-        if (api.mempool.oracles[dispute.claim.request.capability.oraclePubKey] === undefined) {
-            return "no oracle found:" + dispute.claim.request.capability.oraclePubKey
+        if (api.mempool.oracles[dispute.oraclePubKey] === undefined) {
+            return "no oracle found:" + dispute.oraclePubKey
         }
-        const oracle = api.mempool.oracles[dispute.claim.request.capability.oraclePubKey]
+        const oracle = api.mempool.oracles[dispute.oraclePubKey]
         if (!validateFact(dispute.fact)) {
             return "invalid fact"
         }
