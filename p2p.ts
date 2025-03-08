@@ -9,7 +9,7 @@ interface PeerAddr {
 
 export const startP2P = (cfg: nd.MempoolConfig<PeerAddr>) => {
 
-
+    var connections = 0
     const onmessage = (ev) => {
         console.log("I got message "+ev.command);
         node.processApiRequest(ev.command, ev.data.toString('utf8'))
@@ -18,15 +18,20 @@ export const startP2P = (cfg: nd.MempoolConfig<PeerAddr>) => {
     
     const onconnect = (ev) => {
         console.log("I'm connected!" + ev.peer);
+        connections++
     }
 
-
-
     const peers: Peer[] = []
-    
-    cfg.p2pseed.forEach(addr => discovered(addr))
-    
 
+    const ondisconnect = (ev) => {
+        connections--
+        const index = peers.findIndex((x => ev.peer.server === x.peer.server && ev.peer.port === x.peer.port))
+        if (index > -1) {
+            peers.splice(index, 1);
+        }
+    }
+    
+    cfg.p2pseed.forEach(discovered)
 
     function broadcastPeer(peer: PeerAddr): void {
         peers.forEach(p => {
@@ -34,11 +39,16 @@ export const startP2P = (cfg: nd.MempoolConfig<PeerAddr>) => {
         });
     }
 
-    function discovered(peer: PeerAddr): Peer {
-        const p = new Peer(peer.server, peer.port);
+    function discovered(peer: PeerAddr): void {
+        const found = peers.findIndex(x => peer.server === x.peer.server && peer.port === x.peer.port)
+        if (found > -1 || connections > cfg.maxConnections) {
+            return
+        }
+        const p = new Peer(peer.server, peer.port)
         p.connect()
         p.on('message', onmessage)
         p.on('connect', onconnect)
+        p.on('end', ondisconnect)
         broadcastPeer(peer)
         peers.push(p)
     }
@@ -107,9 +117,7 @@ export const startP2P = (cfg: nd.MempoolConfig<PeerAddr>) => {
 
     server.listen(cfg.p2pPort);
 
-    
-    
-    //TODO remove disconnected peers
+    //TODO max connections
 
     return node
     
