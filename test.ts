@@ -1,5 +1,5 @@
 import * as nd from './node';
-import {assert} from 'assert'
+import * as assert from 'assert'
 
 const cfg = {
     "maxOracles": 100,
@@ -14,7 +14,7 @@ const cfg = {
 
 const pow1: nd.HashCashPow = {
     difficulty: 0,
-    algorithm: '',
+    algorithm: 'SHA256',
     hash: '',
     magicNo: 0
 }
@@ -33,5 +33,5 @@ const oracle1: nd.OracleId = {
 }
 
 
-//const res = nd.api.announceOracle(cfg, oracle1)
-//assert res === "success"
+const res = await nd.api.announceOracle(cfg, oracle1)
+assert.equal(res, "success")
