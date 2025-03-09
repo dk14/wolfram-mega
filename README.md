@@ -2,9 +2,26 @@ A p2p fact sharing network
 
 # Wolfram Mega
 
-Mega *(from מַגָע, contact, pornounced as maga/m'ga)* - is a lightweight infinitely scalable decentralized data marketplace, bringing authentic observers to blockchain contract traders.
+Mega *(from מַגָע, contact, pornounced as maga/m'ga)* - is a lightweight infinitely scalable decentralized data marketplace, bringing authentic observers to blockchain.
 
 *Note: this is proof of concept*
+
+---------
+
+## Node
+
+```
+git clone
+npx tsx app.ts mempool-cfg.json
+npx tsx app.ts mempool-cfg2.json
+npx tsx app.ts mempool-cfg3.json
+```
+Monitoring, REST and swagger would become avialable at:
+
+http://localhost:8080/index.htm, http://localhost:8081/index.htm, http://localhost:8082/index.htm
+
+P2P network uses [Bicoin protocol structure](https://en.bitcoin.it/wiki/Protocol_specification#Message_structure) for communication.
+
 
 --------
 
@@ -59,19 +76,6 @@ Sharding and availability. Since some data losses are acceptable (traders/oracle
 
 --------
 
-## Node
-
-```
-git clone
-npx tsx app.ts mempool-cfg.json
-npx tsx app.ts mempool-cfg2.json
-npx tsx app.ts mempool-cfg3.json
-```
-Monitoring, REST and swagger would become avialable at:
-
-http://localhost:8080/index.htm, http://localhost:8081/index.htm, http://localhost:8082/index.htm
-
-P2P network uses [Bicoin protocol structure](https://en.bitcoin.it/wiki/Protocol_specification#Message_structure) for communication.
 
 ## Architecture
 
