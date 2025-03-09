@@ -64,7 +64,7 @@ Mega allows for dealing with exclusive data - where no alternative data provider
 
 Mega's P2P network acts as an ad-hoc registry of:
 
-- oracles with pubkey identiffication (KYC) supported by proof-of-work (pseudonimity) or by a manifest published on a reputable website (linking to pubkey).
+- oracles with pubkey identiffication (KYC) supported by proof-of-work (pseudonimity) and/or by a manifest published on a reputable website (linking to pubkey).
 - oracle capabilities (questions they can answer) signed with oracle's pubkey
 - proofs of oracle malleabilty, submitted by traders/clients: data conflict with other oracles ("I say 6, you say 9"), data disagreeing with "human consesus", not providing data in exchange for micropayment recieved or any other type of report.
 
