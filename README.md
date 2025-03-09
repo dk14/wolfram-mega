@@ -28,7 +28,7 @@ P2P network uses [Bicoin protocol structure](https://en.bitcoin.it/wiki/Protocol
 ## Aims
 Unlike mainstream solutions (e.g. chainlink), Mega is not concerned with speculative stakes made by resellers of original data. It is not concerned with illusion of security provided by voting with questionable coins that have no other value than the one assigned by stakers themselves.
 
-Oracles in Mega are either not anonymous at all (e.g. Wolfram Alpha) or have reliable anonymous identitites supported by proof-of-work. Identity in Mega is treated as not "something authentified by your human peers", but something that rather requires effort to ackuire.
+Oracles in Mega are either not anonymous at all (e.g. Wolfram Alpha) or have reliable anonymous identitites supported by proof-of-work. Identity in Mega is treated as NOT "something authentified by your human peers", but something that rather requires effort to ackuire.
 
 ### Full accountability
 
