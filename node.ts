@@ -1,4 +1,6 @@
 import {createHash, createVerify, generateKeyPairSync, createSign} from 'crypto'
+import * as request from 'request'
+import * as fs from 'fs'
 
 
 const curve = 'secp521r1';
@@ -63,6 +65,7 @@ interface HashCashPow {
 }
 
 interface Bid {
+    paymentType?: string
     amount: number
     proof: string
 }
@@ -154,7 +157,7 @@ interface Report {
 
 interface FacilitatorId {
     websiteManifestUri?: string
-    rewardAddress?: string[]
+    rewardAddress?: string
     facilitatorRewardIdPow?: HashCashPow // preimage is concat of reward addresses
 }
 
@@ -215,6 +218,8 @@ export interface MempoolConfig<PeerAddrT> {
     hostSeqNo?: number
     hostname?: string
     facilitatorId?: FacilitatorId
+    lnRestHost?: string
+    lnMacaroonPath?: string
 }
 
 const hash = (msg: string, algo: string): string => {
@@ -271,8 +276,34 @@ const checkReportRank = (cfg: MempoolConfig<any>, report: Report, o: Oracle): bo
     return true
 }
 
-const validateBid = (bid: Bid): boolean => {
-    //check if payment was confirmed on chain explorers (or local lightning node)
+const validateBid = async (cfg: MempoolConfig<any>, bid: Bid): Promise<boolean> => {
+    if (cfg.lnRestHost === undefined || cfg.lnMacaroonPath === undefined || cfg.facilitatorId === undefined || cfg.facilitatorId.rewardAddress === undefined){
+        return false
+    }
+    if (bid.paymentType === undefined || bid.paymentType === "lightning") {
+        let options = {
+            url: 'https://' + cfg.lnRestHost + '/v1/invoice/' + bid.proof,
+            rejectUnauthorized: false,
+            json: true,
+            headers: {
+              'Grpc-Metadata-macaroon': fs.readFileSync(cfg.lnMacaroonPath).toString('hex'),
+            },
+          }
+
+        return new Promise<boolean>(function (resolve, reject) {
+            request.get(options, function(error, response, body) {
+                if (!error && response.statusCode === 200) {
+                    if (body.payment_addr === cfg.facilitatorId?.rewardAddress && body.amt_paid_msat === bid.amount && body.state === "SETTLED") {
+                        resolve(true)
+                    } else {
+                        resolve(false)
+                    }
+                } else {
+                    reject(error);
+                }
+            })
+        })
+    }
     return false
 }
 
@@ -288,7 +319,7 @@ export const api: Api = {
         if (checkPow(id.pow, id.pubkey) || id.pow.difficulty == 0) {
             if (checkOracleRank(cfg, id, api.mempool)) {
                 if (api.mempool.oracles[id.pubkey] === undefined) {
-                    if (validateBid(id.bid) || id.bid.amount == 0) {
+                    if (id.bid.amount == 0 || await validateBid(cfg, id.bid)) {
                         api.mempool.oracles[id.pubkey] = {
                             id,
                             capabilies: [],
