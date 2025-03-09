@@ -5,7 +5,8 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "nyc npx tsx test.ts"
+    "test": "nyc npx tsx test.ts",
+    "report": "nyc report"
   },
   "keywords": [],
   "author": "",

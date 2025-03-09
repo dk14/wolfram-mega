@@ -46,7 +46,7 @@ export interface Param {
     values: string[]
 }
 
-interface OracleCapability extends MsgLike {
+export interface OracleCapability extends MsgLike {
     oraclePubKey: string
     capabilityPubKey: string
     question: string // oracle is responsible for unambiguity of question - this field can be use to match capabilities of different oracles
@@ -65,7 +65,7 @@ interface OracleCapability extends MsgLike {
 }
 
 
-interface HashCashPow {
+export interface HashCashPow {
     difficulty: number
     algorithm: string
     hash: string //empty string for preimage
@@ -73,13 +73,13 @@ interface HashCashPow {
     magicString?: number
 }
 
-interface Bid {
+export interface Bid {
     paymentType?: string
     amount: number
     proof: string
 }
 
-interface OracleId extends MsgLike, WithPow {
+export interface OracleId extends MsgLike, WithPow {
     pubkey: string // sign every request/response
     seqNo: number //used for broadcast
     cTTL: number //used for broadcast
@@ -106,37 +106,37 @@ interface Mempool {
     oracles: { [id: string] : Oracle; }
 }
 
-interface FactRequest {
+export interface FactRequest {
     capabilityPubKey: string
     arguments: { [id: string] : string; }
 }
 
-interface ProofOfPayment {
+export interface ProofOfPayment {
     request: FactRequest
     proofOfPayment: string
 }
 
 
-interface Fact {
+export interface Fact {
     factWithArguments: string
     signatureType: string
     signature: string
 }
 
-interface FactDisagreesWithPublic { //this report is for manual review, it requires pow to submit in order to avoid spamming. Strongest pows will be prioritized
+export interface FactDisagreesWithPublic { //this report is for manual review, it requires pow to submit in order to avoid spamming. Strongest pows will be prioritized
     type: 'fact-disagreees-with-public'
     request: FactRequest
     comment?: string
 }
 
-interface FactConflict {
+export interface FactConflict {
     type: 'fact-conflict'
     request: FactRequest
     facts: Fact[] //must be of the same capability; TODO validator
 
 }
 
-interface FactMissing extends WithPow {
+export interface FactMissing extends WithPow {
     type: 'fact-missing'
     request: FactRequest
     payment?: ProofOfPayment
@@ -144,15 +144,15 @@ interface FactMissing extends WithPow {
     pow: HashCashPow
 }
 
-type MaleabilityReport = FactDisagreesWithPublic | FactConflict | FactMissing
+export type MaleabilityReport = FactDisagreesWithPublic | FactConflict | FactMissing
 
-interface Dispute {
+export interface Dispute {
     claim: FactMissing
     oraclePubKey: string
     fact: Fact
 }
 
-interface Report extends MsgLike, WithPow {
+export interface Report extends MsgLike, WithPow {
     seqNo: number
     cTTL: number //used for broadcast
     pow: HashCashPow
@@ -316,6 +316,13 @@ const validateBid = async (cfg: MempoolConfig<any>, bid: Bid): Promise<boolean> 
 
 const validateFact = (fact: Fact, req: FactRequest): boolean => {
     return createVerify(fact.signatureType).update(fact.factWithArguments).verify(req.capabilityPubKey, fact.signature)
+}
+
+export const testOnlyReset = () => { 
+    //could've made api a factory, but this is more realistic, 
+    //since implementations of Api ackuiring sockets, files, databases and other resources 
+    //are outside of the scope of node.ts module
+    api.mempool.oracles = {}
 }
 
 export const api: Api = {
