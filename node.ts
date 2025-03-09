@@ -65,13 +65,12 @@ interface OracleCapability extends MsgLike {
 }
 
 
-type PreimageType = string
-
 interface HashCashPow {
-    preimageType: PreimageType
     difficulty: number
     algorithm: string
-    hash: string
+    hash: string //empty string for preimage
+    magicNo: number
+    magicString?: number
 }
 
 interface Bid {
@@ -238,7 +237,7 @@ const checkPow = (pow: HashCashPow, preimage: string): boolean => {
     if (!pow.hash.endsWith("0".repeat(pow.difficulty))) {
         return false
     }
-    return hash(preimage, pow.algorithm) === pow.hash
+    return hash(preimage + pow.magicNo + (pow.magicString ?? ""), pow.algorithm) === pow.hash
 }
 
 const checkCapabilitySignature = (cp: OracleCapability): boolean => {

@@ -241,13 +241,16 @@ components:
     Pow:
       type: object
       properties: 
-        preimageType: 
-          type: string
         difficulty: 
           type: integer
           format: int32
         algorithm: 
           type: string
         hash: 
+          type: string
+        magicNo: 
+          type: integer
+          format: int32
+        magicString:
           type: string
 
