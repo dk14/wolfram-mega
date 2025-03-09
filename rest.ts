@@ -41,7 +41,7 @@ export const startHttp = (cfg: nd.MempoolConfig<any>) => {
                 return
             }
 
-            if(req.method === 'GET' && reqUrl.pathname == '/testOnlySign') {
+            if(cfg.isTest && req.method === 'GET' && reqUrl.pathname == '/testOnlySign') {
                 res.setHeader('content-Type', 'text/plain');
                 const pk: string = typeof reqUrl.query.pubkey === "string" ? reqUrl.query.pubkey : ""
                 const msg: string = typeof reqUrl.query.pubkey === "string" ? reqUrl.query.pubkey : ""
@@ -52,7 +52,7 @@ export const startHttp = (cfg: nd.MempoolConfig<any>) => {
 
             res.setHeader('content-Type', 'Application/json');
 
-            if(req.method === 'GET' && reqUrl.pathname == '/testOnlyGenKeyPair') {
+            if(cfg.isTest && req.method === 'GET' && reqUrl.pathname == '/testOnlyGenKeyPair') {
                 
                 res.end(JSON.stringify(nd.testOnlyGenerateKeyPair()))
                 return

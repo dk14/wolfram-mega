@@ -220,6 +220,7 @@ export interface MempoolConfig<PeerAddrT> {
     facilitatorId?: FacilitatorId
     lnRestHost?: string
     lnMacaroonPath?: string
+    isTest: boolean
 }
 
 const hash = (msg: string, algo: string): string => {
