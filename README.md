@@ -68,13 +68,15 @@ Mega's P2P network acts as an ad-hoc registry of:
 - oracle capabilities (questions they can answer) signed with oracle's pubkey
 - proofs of oracle malleabilty, submitted by traders/clients: data conflict with other oracles ("I say 6, you say 9"), data disagreeing with "human consesus", not providing data in exchange for micropayment recieved or any other type of report.
 
-The decentrilized registry is organized simillarly to "bitcoin mempool", except it is aimed at preserving "unordered collection of advertisements and malleability reports", thus does not require blockchain (consensus over order) to operate. 
+The decentrilized registry is organized simillarly to "bitcoin mempool", except it is aimed at preserving "unordered collection of advertisements and malleability reports", thus does not require its own or any blockchain (consensus over order) to operate. 
 
-Incentives. Since, unlike with btc mempools, rewards are not attached to such registry entries, oracles can reward Mega-operators by paying (microbiding) for "ad-placement", making oracle's identity available in the network. 
+Incentives. Since, unlike with btc mempools, rewards are not attached to such registry entries, oracles can reward Mega-operators by paying (microbiding using btc-ln) for "ad-placement", for making oracle's identity available in the network. 
 
 Security. Such registries are subject to spam-attacks since anyone can create oracle, submit any report etc. We use hascash (proof-of-work) to address that, since it was it's original purpose before Bitcoin came in. Basicaly node evicts ads and reports with lowest PoW.
 
 Sharding and availability. Since some data losses are acceptable (traders/oracles/orgs can resubmit their data to the network) and avilability can always increase through pow-difficulty (and oracles bidsmicrobidding with BTC-LN), nodes are at the liberty of evicting data randomly (hash mod n) - this effectively increases data capacity. Alice's node can have half of malleability proofs, while Bob's node can the other half. Both halves would be available to a trader. Network can also withstand split-brains and general segmentations, thanks to eventual consistency.
+
+------
 
 Extra-Services.
 
@@ -82,7 +84,9 @@ Protocol can be extended to support P2P matching (advertise "option" offers), th
 
 Nodes potentially can cache signed data-points (mostly "slow facts") from oracles. They can also potentially pool, proxify and anonymize user data requests to protect users from oracles collecting private data.
 
-Protocol can be extended to recognize and negotiate various types of "data contracts" between clients and oracles. E.g. user can order oracle to provide data on a local event, so he and his friend could bet on it. If oracle "scams" user - proof will be published, so oracle would have to abandon its PoW or website verified identity. And, more conventionally, it allows users to find (match) oracles with simillar capabilities to allow quorums and even "slashing" on UtXO networks.
+Protocol can be extended to recognize and negotiate various types of "data contracts" between clients and oracles. E.g. user can order oracle to provide data on a local event, so he and his friend could bet on it. If oracle "scams" user - proof will be published, so oracle would have to abandon its PoW or website verified identity. And, more conventionally, it allows users to find (match) oracles with simillar capabilities to allow quorums and even "meaningful slashing" on UtXO networks.
+
+The approach is not limited to contracts which require oracles: finding a counterparty for a cryptogrphic betting can be facilitated too. Alice picks a number (sends encrypted number to blockchain) and asks Bob if Bob can guess it. If Bob guesses right - it gets Alice's deposit, otherwise looses its own. Rewind...they have to find one another on some sort of tinder first. This could be standardized in our protocol.
 
 --------
 
