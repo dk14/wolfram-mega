@@ -100,3 +100,33 @@ The approach is not limited to contracts which require oracles: finding a counte
 ## Architecture
 
 ![image](image.png)
+
+--------
+
+TODOs:
+- finish coverage tests (cryptography, data corruption)
+- REST service and p2p network tests
+- code improvements
+
+"client APIs" milestone:
+- oracle client REST API (can be on the same node, clients have to sign messages externally though)
+- trader client REST API (can be on the same node, clients have to sign messages externally though)
+- caching API
+- maybe simple offer API (p2p derivatives exchange) to make contracts demo more interesting
+
+"contracts demo" milestone
+- integration with Bitcoin contracts (testnet)
+- integration with Cardano Plutus contracts (testnet)
+- note: generate contracts in client API
+
+"documentation, viability and security assessment" milestone
+- develop more test cases, attack vectors
+- deploy large scale p2p network, run serious performance tests
+- ?consult third-party vendors
+- "financial attacks"
+- write a white paper
+- consider alternatives to node.js (e.g. rust), pros and cons
+
+"onboarding" milestone
+- add support for other UtXO chains in client API (testnet)
+
