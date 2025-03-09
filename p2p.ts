@@ -136,7 +136,7 @@ export const startP2P = (cfg: nd.MempoolConfig<PeerAddr>) => {
                 const result = await nd.api.announceOracle(cfg, JSON.parse(content))
                 if (result == 'success' || result == 'lowbid') { //TODO is lowbid candidate for broadcast, would te message loop?
                     broadcastMessage(command, content) 
-                } else {
+                } else if (result == 'duplicate') {
                     const [adjusted, toBroadcast] = reduceCTTL(content)
                     if (toBroadcast) {
                         broadcastMessage(command, adjusted)
@@ -148,7 +148,7 @@ export const startP2P = (cfg: nd.MempoolConfig<PeerAddr>) => {
                 const result = await nd.api.announceCapability(cfg, JSON.parse(content))
                 if (result == 'success') {
                     broadcastMessage(command, content)
-                } else {
+                } else if (result == 'duplicate') {
                     const [adjusted, toBroadcast] = reduceCTTL(content)
                     if (toBroadcast) {
                         broadcastMessage(command, adjusted)
@@ -160,7 +160,7 @@ export const startP2P = (cfg: nd.MempoolConfig<PeerAddr>) => {
                 const result = await nd.api.reportMalleability(cfg, JSON.parse(content))
                 if (result == 'success') {
                     broadcastMessage(command, content)
-                } else {
+                } else if (result == 'duplicate') {
                     const [adjusted, toBroadcast] = reduceCTTL(content)
                     if (toBroadcast) {
                         broadcastMessage(command, adjusted)
@@ -172,7 +172,7 @@ export const startP2P = (cfg: nd.MempoolConfig<PeerAddr>) => {
                 const result = await nd.api.disputeMissingfactClaim(JSON.parse(content))
                 if (result == 'success') {
                     broadcastMessage(command, content)
-                } else {
+                } else if (result == 'duplicate')  {
                     const [adjusted, toBroadcast] = reduceCTTL(content)
                     if (toBroadcast) {
                         broadcastMessage(command, adjusted)
