@@ -28,6 +28,12 @@ export const startHttp = (cfg: nd.MempoolConfig<any>) => {
                 return
             }
 
+            if (req.method === 'GET' && (reqUrl.pathname == '/wolfram-mega-spec.yaml') || reqUrl.pathname == '/') {
+                res.setHeader('content-Type', 'Application/json');
+                res.end(fs.readFileSync('./wolfram-mega-spec.yaml').toString().replace("$$url", "http://" + (cfg.hostname ?? "localhost") + ":" + cfg.httpPort))
+                return
+            }
+
             if(req.method === 'GET' && reqUrl.pathname == '/peers') {
                 res.setHeader('content-Type', 'text/plain');
                 if (p2pNode !== undefined) {

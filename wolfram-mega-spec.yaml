@@ -1,0 +1,268 @@
+openapi: 3.0.3
+info:
+  title: Wolfram Mega API
+  description: |-
+    [Repo](https://github.com/dk14/wolfram-mega)
+    
+  version: 1.0.0
+
+servers:
+  - url: $$url
+
+paths:
+  /oracle:
+    post:
+      summary: Register oracle
+      description: Register oracle
+      operationId: oracle
+      requestBody:
+        description: Submit oracle id
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Oracle'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            plain/text: 
+              schema:
+                type: string
+                       
+        '400':
+          description: Invalid input
+        '422':
+          description: Validation exception
+          
+  /capability:
+    post:
+      summary: Register capability
+      description: Register capability
+      operationId: capability
+      requestBody:
+        description: Create a new capability
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Oracle'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            plain/text: 
+              schema:
+                type: string
+                       
+        '400':
+          description: Invalid input
+        '422':
+          description: Validation exception
+          
+  /report:
+    post:
+      summary: Register report
+      description: Register malleability report
+      operationId: report
+      requestBody:
+        description: Create a new capability
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Report'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            plain/text: 
+              schema:
+                type: string
+                       
+        '400':
+          description: Invalid input
+        '422':
+          description: Validation exception
+
+
+  
+  /oracles:
+    get:
+      tags:
+        - pet
+      summary: List oracles
+      description: List oracles
+      operationId: lookupOracles
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Oracle'          
+        '400':
+          description: Invalid tag value
+
+  /capabilities:
+    get:
+      tags:
+        - pet
+      summary: Find reports by oracle pubkey
+      description: Returns a single pet
+      operationId: lookupCapabilities
+      parameters:
+        - name: pubkey
+          in: query
+          description: pubkey of oracle
+          required: true
+          schema:
+            type: string
+            format: int64
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Capability'       
+        '400':
+          description: Invalid ID supplied
+        '404':
+          description: Pet not found
+          
+  /reports:
+    get:
+      tags:
+        - pet
+      summary: Find reports by oracle pubkey
+      description: Returns reports
+      operationId: lookupReports
+      parameters:
+        - name: pubkey
+          in: query
+          description: pubkey of oracle
+          required: true
+          schema:
+            type: string
+            format: int64
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Report'          
+        '400':
+          description: Invalid ID supplied
+        '404':
+          description: Pet not found
+
+
+components:
+  schemas:
+    Oracle:
+      type: object
+      properties:
+        pubkey: 
+          type: string
+        seqNo: 
+          type: integer
+          format: int32
+        cTTL: 
+          type: integer
+          format: int32
+        pow: 
+          type: object
+          properties: 
+            preimageType: 
+              type: string
+            difficulty: 
+              type: integer
+              format: int32
+            algorithm: 
+              enum: [SHA256]
+              type: string
+            hash: 
+              type: string
+        bid: 
+          type: object
+          properties: 
+            amount: 
+              type: integer
+              format: int32
+            proof: 
+              type: string
+
+
+    Capability:
+      type: object
+      properties:
+        oraclePubKey: 
+            type: string
+        question: 
+            type: string
+        seqNo: 
+            type: integer
+            format: int32
+        cTTL: 
+          type: integer
+          format: int32
+        pow: 
+          type: object
+          properties: 
+            preimageType: 
+              type: string
+            difficulty: 
+              type: integer
+              format: int32
+            algorithm: 
+              type: string
+              enum: [SHA256]
+            hash: 
+              type: string
+        oracleSignature: 
+          type: string
+        oracleSignatureType: 
+          type: string
+          enum: [SHA256]
+
+    Report:
+      type: object
+      properties:
+        oraclePubKey: 
+          type: string
+        content: 
+          type: object
+          properties: 
+            'type': 
+              type: string
+              enum: [fact-disagreees-with-public, fact-conflict, fact-missing]
+            seqNo: 
+              type: integer
+              format: int32
+            request: 
+              type: object
+              properties: 
+                capabilityPubKey: 
+                  type: string
+                arguments: 
+                  type: object
+            pow: 
+              type: object
+              properties: 
+                preimageType: 
+                  type: string
+                difficulty: 
+                  type: integer
+                  format: int32
+                algorithm: 
+                  type: string
+                hash: 
+                  type: string

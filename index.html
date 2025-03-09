@@ -1,6 +1,8 @@
 <html>
     <head>
-
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui.css" />
     </head>
     
     <body>
@@ -50,7 +52,19 @@
         <label for="content">Content:</label>
         <input type="text" id="content" name="content" size="100" value='{ "type": "fact-disagreees-with-public", "seqNo": 0, "request": { "capabilityPubKey": "", "arguments": {} }, "pow": {"preimageType": "", "difficulty":0, "algorithm": "SHA256", "hash": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"}}'>
         <input id="report" type="button" value="Submit Report">
+        <hr>
 
+        <input id="show-swagger" type="button" value="Toggle Swagger UI">
+        <div id="swagger-ui" style="display:none"></div>
+        <script src="https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui-bundle.js" crossorigin></script>
+        <script>
+            window.onload = () => {
+                window.ui = SwaggerUIBundle({
+                url: 'http://' + window.location.hostname + ":" + window.location.port + '/wolfram-mega-spec.yaml',
+                dom_id: '#swagger-ui',
+                });
+            };
+        </script>
 
     </body>
 
@@ -64,6 +78,16 @@
                 .join("");
             return hash;
         };
+
+        const swaggerSwitch = document.getElementById('show-swagger');
+        swaggerSwitch.onclick = function(event) {
+            const swagger = document.getElementById('swagger-ui').style
+            if (swagger.display === 'none') {
+                swagger.display = 'block'
+            } else {
+                swagger.display = 'none'
+            }
+        }
 
         const genKeyPair = document.getElementById('generate');
         const pubkey = document.getElementById('pubkey');
