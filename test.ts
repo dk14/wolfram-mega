@@ -114,3 +114,4 @@ const paging: nd.PagingDescriptor = {
 }
 
 // TODO dispute, successful PoW-checks, successful signature checks, rejections by pow, rejections by bid, evictions by pow, evictions by bid
+// TODO data corruption, malformed JSON
