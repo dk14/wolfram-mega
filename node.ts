@@ -31,18 +31,23 @@ export const testOnlySign = (msg: string, pk: string) => {
     return createSign('SHA256').update(msg).sign(pk, 'base64')
 }
 
+export interface MsgLike {
+    seqNo: number //used for broadcast
+    cTTL: number //used for broadcast
+}
+
 export interface Param {
     name: string
     values: string[]
 }
 
-interface OracleCapability {
+interface OracleCapability extends MsgLike {
     oraclePubKey: string
     capabilityPubKey: string
     question: string // oracle is responsible for unambiguity of question - this field can be use to match capabilities of different oracles
 
-    seqNo: number //used for broadcast
-    cTTL: number //used for broadcast
+    seqNo: number 
+    cTTL: number
 
     oracleSignature: string //sign this OracleCapability JSON record (with empty string signature field)
     oracleSignatureType: string
@@ -70,7 +75,7 @@ interface Bid {
     proof: string
 }
 
-interface OracleId {
+interface OracleId extends MsgLike {
     pubkey: string // sign every request/response
     seqNo: number //used for broadcast
     cTTL: number //used for broadcast
@@ -90,7 +95,7 @@ interface OracleId {
 interface Oracle { 
     id: OracleId
     capabilies: OracleCapability[]
-    reports: MaleabilityReport[]
+    reports: Report[]
 }
 
 interface Mempool {
@@ -118,16 +123,13 @@ interface FactDisagreesWithPublic { //this report is for manual review, it requi
     type: 'fact-disagreees-with-public'
     request: FactRequest
     comment?: string
-    pow: HashCashPow
-    seqNo: number //used for broadcast
 }
 
 interface FactConflict {
     type: 'fact-conflict'
     request: FactRequest
     facts: Fact[] //must be of the same capability; TODO validator
-    pow: HashCashPow
-    seqNo: number //used for broadcast
+
 }
 
 interface FactMissing {
@@ -136,21 +138,20 @@ interface FactMissing {
     payment?: ProofOfPayment
     dispute?: Fact
     pow: HashCashPow
-    seqNo: number //used for broadcast
 }
 
 type MaleabilityReport = FactDisagreesWithPublic | FactConflict | FactMissing
 
 interface Dispute {
-    seqNo: number //used for broadcast
-    cTTL: number //used for broadcast
     claim: FactMissing
     oraclePubKey: string
     fact: Fact
 }
 
-interface Report {
+interface Report extends MsgLike {
+    seqNo: number
     cTTL: number //used for broadcast
+    pow: HashCashPow
     oraclePubKey: string
     content: MaleabilityReport
 }
@@ -190,7 +191,7 @@ interface Api {
     //----exposed only as REST GET----- oracles should be sorted by proofs of payment
     lookupOracles: (paging: PagingDescriptor, questions: string[]) => Promise<OracleId[]>
     lookupCapabilities: (paging: PagingDescriptor, oraclePub: string) => Promise<OracleCapability[]>
-    lookupReports: (paging: PagingDescriptor, oraclePub: string) => Promise<MaleabilityReport[]>
+    lookupReports: (paging: PagingDescriptor, oraclePub: string) => Promise<Report[]>
 
     proxify: (req: FactRequest, uri: string) => Promise<string>
 
@@ -267,7 +268,7 @@ const checkCapabilityRank = (cfg: MempoolConfig<any>, cp: OracleCapability, o: O
 
 const checkReportRank = (cfg: MempoolConfig<any>, report: Report, o: Oracle): boolean => {
     if (o.reports.length > cfg.maxReports) {
-        const index = o.reports.findIndex(r => r.pow.difficulty <= report.content.pow.difficulty)
+        const index = o.reports.findIndex(r => r.pow.difficulty <= report.pow.difficulty)
         if (index > -1) {
             o.reports.splice(index, 1)
             return true
@@ -380,23 +381,28 @@ export const api: Api = {
         if (api.mempool.oracles[report.oraclePubKey] === undefined) {
             return "no oracle found:" + report.oraclePubKey
         }
-        if (!checkPow(report.content.pow, "TODO") && !(report.content.pow.difficulty == 0)) {
+        if (!checkPow(report.pow, JSON.stringify(report)) && !(report.pow.difficulty == 0)) {
             return "wrong pow"
         }
 
         if (!checkReportRank(cfg, report, api.mempool.oracles[report.oraclePubKey])) {
             return "low pow difficulty"
         }
-        const found = api.mempool.oracles[report.oraclePubKey].reports.find(x => x.pow.hash == report.content.pow.hash)
+
+        if (report.content.type == "fact-missing" && report.content.pow !== report.pow) {
+            return "incoherent pow"
+        }
+
+        const found = api.mempool.oracles[report.oraclePubKey].reports.find(x => x.pow.hash == report.pow.hash)
         if (found !== undefined) {
-            if (found.seqNo < report.content.seqNo) {
-                found.seqNo = report.content.seqNo
+            if (found.seqNo < report.seqNo) {
+                found.seqNo = report.seqNo
                 return "success"
             } else {
                 return "duplicate"
             }
         }
-        api.mempool.oracles[report.oraclePubKey].reports.push(report.content)
+        api.mempool.oracles[report.oraclePubKey].reports.push(report)
         return "success"
     },
     disputeMissingfactClaim: async (dispute: Dispute): Promise<DisputeAccepted | DisputeRejected> => { //TODO add pow
@@ -408,9 +414,9 @@ export const api: Api = {
             return "invalid fact"
         }
         if (oracle !== undefined) {
-            const found = api.mempool.oracles[oracle.id.pubkey].reports.find(x => x.type == "fact-missing" && x.pow.hash == dispute.claim.pow.hash)
-            if (found !== undefined && found.type == 'fact-missing') {
-                found.dispute = dispute.fact
+            const found = api.mempool.oracles[oracle.id.pubkey].reports.find(x => x.content.type == "fact-missing" && x.pow.hash == dispute.claim.pow.hash)
+            if (found !== undefined && found.content.type == 'fact-missing') {
+                found.content.dispute = dispute.fact
                 return "success"
             } else {
                 return "not found"
@@ -433,7 +439,7 @@ export const api: Api = {
         return api.mempool.oracles[oraclePub].capabilies.slice(paging.page * paging.chunkSize, (paging.page + 1) * paging.chunkSize)
 
     },
-    lookupReports: async (paging: PagingDescriptor, oraclePub: string): Promise<MaleabilityReport[]> => {
+    lookupReports: async (paging: PagingDescriptor, oraclePub: string): Promise<Report[]> => {
         if (api.mempool.oracles[oraclePub] === undefined) {
             console.log("oracle not found " + oraclePub)
             return []

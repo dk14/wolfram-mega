@@ -115,9 +115,17 @@ export const startP2P = (cfg: nd.MempoolConfig<PeerAddr>) => {
     }
 
 
+    function reduceCTTL(content: string): [string, boolean] {
+        const msg: nd.MsgLike = JSON.parse(content)
+        if (msg.cTTL <= 0) {
+            return [JSON.stringify(msg), false]
+        } else {
+            msg.cTTL--
+            return [JSON.stringify(msg), true]
+        }
+    }
 
     async function processApiRequest(command: string, content: string): Promise<void> {
-        //commands: peer, oracle, capability, report, dispute
         console.log("[receive][cmd: " + command + "] " + content)
         switch(command) {
             case 'peer': { 
@@ -129,7 +137,10 @@ export const startP2P = (cfg: nd.MempoolConfig<PeerAddr>) => {
                 if (result == 'success' || result == 'lowbid') { //TODO is lowbid candidate for broadcast, would te message loop?
                     broadcastMessage(command, content) 
                 } else {
-                    //TODO reduce cTTL, if not zero - broadcast anyway
+                    const [adjusted, toBroadcast] = reduceCTTL(content)
+                    if (toBroadcast) {
+                        broadcastMessage(command, adjusted)
+                    }
                 }
                 break;
             }
@@ -138,7 +149,10 @@ export const startP2P = (cfg: nd.MempoolConfig<PeerAddr>) => {
                 if (result == 'success') {
                     broadcastMessage(command, content)
                 } else {
-                    //TODO reduce cTTL, if not zero - broadcast anyway
+                    const [adjusted, toBroadcast] = reduceCTTL(content)
+                    if (toBroadcast) {
+                        broadcastMessage(command, adjusted)
+                    }
                 }
                 break;
             }
@@ -147,7 +161,10 @@ export const startP2P = (cfg: nd.MempoolConfig<PeerAddr>) => {
                 if (result == 'success') {
                     broadcastMessage(command, content)
                 } else {
-                    //TODO reduce cTTL, if not zero - broadcast anyway
+                    const [adjusted, toBroadcast] = reduceCTTL(content)
+                    if (toBroadcast) {
+                        broadcastMessage(command, adjusted)
+                    }
                 }
                 break;
             }
@@ -156,7 +173,10 @@ export const startP2P = (cfg: nd.MempoolConfig<PeerAddr>) => {
                 if (result == 'success') {
                     broadcastMessage(command, content)
                 } else {
-                    //TODO reduce cTTL, if not zero - broadcast anyway
+                    const [adjusted, toBroadcast] = reduceCTTL(content)
+                    if (toBroadcast) {
+                        broadcastMessage(command, adjusted)
+                    }
                 }
                 break;
             }
@@ -165,6 +185,7 @@ export const startP2P = (cfg: nd.MempoolConfig<PeerAddr>) => {
         }
 
     }
+    
     function broadcastMessage(command: string, content: string): void {
         peers.forEach(p => {
             console.log("[send][cmd: " + command + "] " + content + " ===> " + JSON.stringify(p.addr))
