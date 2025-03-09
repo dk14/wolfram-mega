@@ -68,7 +68,7 @@ Mega's P2P network acts as an ad-hoc registry of:
 - oracle capabilities (questions they can answer) signed with oracle's pubkey
 - proofs of oracle malleabilty, submitted by traders/clients: data conflict with other oracles ("I say 6, you say 9"), data disagreeing with "human consesus", not providing data in exchange for micropayment recieved or any other type of report.
 
-The decentrilized registry is organized simillarly to "bitcoin mempool", except it is aimed at preserving "unordered collection of advertisements and malleability reports", thus does not require blockchain to operate. 
+The decentrilized registry is organized simillarly to "bitcoin mempool", except it is aimed at preserving "unordered collection of advertisements and malleability reports", thus does not require blockchain (consensus over order) to operate. 
 
 Incentives. Since, unlike with btc mempools, rewards are not attached to such registry entries, oracles can reward Mega-operators by paying (microbiding) for "ad-placement", making oracle's identity available in the network. 
 
