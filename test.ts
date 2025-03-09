@@ -113,4 +113,4 @@ const paging: nd.PagingDescriptor = {
     assert.deepStrictEqual(reports2, [])
 }
 
-// TODO dispute, successful PoW-checks, successful signature checks, evictions
+// TODO dispute, successful PoW-checks, successful signature checks, evictions by pow, evictions by bid
