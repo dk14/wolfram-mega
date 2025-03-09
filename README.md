@@ -30,7 +30,9 @@ Unlike mainstream solutions (e.g. chainlink), Mega is not concerned with specula
 
 Oracles in Mega are either not anonymous at all (e.g. Wolfram Alpha) or have reliable anonymous identitites supported by proof-of-work. Identity in Mega is treated as not "something authentified by your human peers", but something that rather requires effort to ackuire.
 
-### Public reporting rather than (micro)slashing
+### Full accountability
+
+Public reporting rather than (micro)slashing
 
 Mega's primary (although not exclusive) way of assurance of quality of data is through reporting oracle faults. It is not limited to proofs verifiable by machines but also human-interpretable ones. Reputation system is natural and based on such "reports of malleability". 
 
