@@ -28,13 +28,21 @@ P2P network uses [Bicoin protocol structure](https://en.bitcoin.it/wiki/Protocol
 ## Aims
 Unlike mainstream solutions (e.g. chainlink), Mega is not concerned with speculative stakes made by resellers of original data. It is not concerned with illusion of security provided by voting with questionable coins that have no other value than the one assigned by stakers themselves.
 
-Oracles in Mega are either not anonymous at all (e.g. Wolfram Alpha) or have reliable anonymous identitites supported by proof-of-work. Identity in Mega is treated as NOT "something authentified by your human peers", but something that rather requires effort to ackuire.
+### Strong identity.
+
+Oracles in Mega are either not anonymous at all (e.g. Wolfram Alpha) or have reliable pseudonimous identitites supported by proof-of-work. Identity in Mega is treated as NOT "something confirmed by your human peers", but something that rather requires effort (physical work) to ackuire.
+
+### True Data Authenticity
+
+Network keeps **original** data authentication. Mega-operators don't sign data, in fact, they don't even see what data is provided, unless anomaly is reported. Their main concern is to connect trader to an authentic source.
+
+Thus, Mega even allows for dealing with exclusive data - where no alternative data provider practicaly exists, so no reliable quorum-based contracts can be established in principle. Instead of dealing with smokescreen of pseudo-oracles, you get the original authentic data, but with additional assurance from P2P network keeping track of "data crimes".
 
 ### Full accountability
 
 Public reporting rather than (micro)slashing
 
-Mega's primary (although not exclusive) way of assurance of quality of data is through reporting oracle faults. It is not limited to proofs verifiable by machines but also human-interpretable ones. Reputation system is natural and based on such "reports of malleability". 
+Mega's primary (although not exclusive) way of assurance of quality of data is through reporting oracle faults. It is not exclusively limited to proofs verifiable by machines, it also includes human-interpretable ones. Reputation system is natural and based on such "reports of malleability". 
 
 Traders can simply see what is formally and verifiably reported about oracle, which means oracle has whole "business" identity at stake, not some coins. Actual responsibility, actual consequences are invoked. *While, from user perspective, this approach is most suitable to microbets on future events, it does neither exclude nor neccistates additional (but more expensive) "assurance" provided by monetary collateral under a guard of quorum of oracles - mega is compatible with it, just "how much do you actually know about oracle counterparties, are they really independent, do stakes really stop them from anonymous conspiracy?".*
 
@@ -44,7 +52,7 @@ Since many types of reports are still machine-verifiable, traffic can be diverte
 
 Mega avoids speculative tokenomics. Rewards for providing data as well as incentives for p2p facilitators are direct. Thus we don't have "automated market makers" (market making is not automatable), Web3 and other stuff that disagrees with common sense. The main disadvantage of coins having no intrinsic value is low security of the network against financial attacks (see ["deadpool attack"](https://forum.cardano.org/t/deathpool-attack-on-any-pos/143677)).
 
-Nothing stops you from paying with "WolframCoin" though - it is just not necessary for the functioning of the network. Only PoW is.
+Nothing stops you from paying with "WolframCoin" though if you buy attestations from Wolfram - it is just not necessary for the functioning of the network. Only PoW is.
 
 ### Open protocol
 
@@ -54,9 +62,7 @@ We specify protocol, mostly in declarative terms. We provide reference implement
 
 We only benefit from the fact that we actually provide most interesting data (to us at least!) so far (cool sports bets, political events bets, even bets on scientific discoveries).
 
-### True Data Authenticity
 
-Mega allows for dealing with exclusive data - where no alternative data provider practicaly exists, so no reliable quorum-based contracts can be established in principle. Instead of creating smokescreen of pseudo-oracles, you get the original authentic data, but with additional assurance from P2P network keeping track of "data crimes".
 
 --------
 
