@@ -179,18 +179,7 @@ components:
           type: integer
           format: int32
         pow: 
-          type: object
-          properties: 
-            preimageType: 
-              type: string
-            difficulty: 
-              type: integer
-              format: int32
-            algorithm: 
-              enum: [SHA256]
-              type: string
-            hash: 
-              type: string
+          $ref: '#/components/schemas/Pow'
         bid: 
           type: object
           properties: 
@@ -215,18 +204,7 @@ components:
           type: integer
           format: int32
         pow: 
-          type: object
-          properties: 
-            preimageType: 
-              type: string
-            difficulty: 
-              type: integer
-              format: int32
-            algorithm: 
-              type: string
-              enum: [SHA256]
-            hash: 
-              type: string
+          $ref: '#/components/schemas/Pow'
         oracleSignature: 
           type: string
         oracleSignatureType: 
@@ -238,15 +216,18 @@ components:
       properties:
         oraclePubKey: 
           type: string
+        seqNo: 
+          type: integer
+          format: int32
+        cTTL: 
+          type: integer
+          format: int32
         content: 
           type: object
           properties: 
             'type': 
               type: string
-              enum: [fact-disagreees-with-public, fact-conflict, fact-missing]
-            seqNo: 
-              type: integer
-              format: int32
+              enum: [fact-disagreees-with-public, fact-conflict, fact-missing] 
             request: 
               type: object
               properties: 
@@ -254,15 +235,19 @@ components:
                   type: string
                 arguments: 
                   type: object
-            pow: 
-              type: object
-              properties: 
-                preimageType: 
-                  type: string
-                difficulty: 
-                  type: integer
-                  format: int32
-                algorithm: 
-                  type: string
-                hash: 
-                  type: string
+        pow: 
+          $ref: '#/components/schemas/Pow' 
+
+    Pow:
+      type: object
+      properties: 
+        preimageType: 
+          type: string
+        difficulty: 
+          type: integer
+          format: int32
+        algorithm: 
+          type: string
+        hash: 
+          type: string
+

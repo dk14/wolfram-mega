@@ -185,7 +185,7 @@ export const startP2P = (cfg: nd.MempoolConfig<PeerAddr>) => {
         }
 
     }
-    
+
     function broadcastMessage(command: string, content: string): void {
         peers.forEach(p => {
             console.log("[send][cmd: " + command + "] " + content + " ===> " + JSON.stringify(p.addr))
@@ -212,7 +212,7 @@ export const startP2P = (cfg: nd.MempoolConfig<PeerAddr>) => {
             seqNo++
             broadcastPeer({server: cfg.hostname, port: cfg.p2pPort, seqNo: (cfg.hostSeqNo ?? 0) + seqNo}, true)
         }
-    }, 100000)
+    }, (cfg.p2pKeepAlive ?? 100000))
     
 }
 

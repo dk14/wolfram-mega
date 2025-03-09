@@ -31,9 +31,14 @@ export const testOnlySign = (msg: string, pk: string) => {
     return createSign('SHA256').update(msg).sign(pk, 'base64')
 }
 
+//used for broadcast
 export interface MsgLike {
-    seqNo: number //used for broadcast
-    cTTL: number //used for broadcast
+    seqNo: number 
+    cTTL: number 
+}
+
+export interface WithPow {
+    pow: HashCashPow
 }
 
 export interface Param {
@@ -75,7 +80,7 @@ interface Bid {
     proof: string
 }
 
-interface OracleId extends MsgLike {
+interface OracleId extends MsgLike, WithPow {
     pubkey: string // sign every request/response
     seqNo: number //used for broadcast
     cTTL: number //used for broadcast
@@ -132,7 +137,7 @@ interface FactConflict {
 
 }
 
-interface FactMissing {
+interface FactMissing extends WithPow {
     type: 'fact-missing'
     request: FactRequest
     payment?: ProofOfPayment
@@ -148,7 +153,7 @@ interface Dispute {
     fact: Fact
 }
 
-interface Report extends MsgLike {
+interface Report extends MsgLike, WithPow {
     seqNo: number
     cTTL: number //used for broadcast
     pow: HashCashPow
@@ -222,6 +227,7 @@ export interface MempoolConfig<PeerAddrT> {
     lnRestHost?: string
     lnMacaroonPath?: string
     isTest: boolean
+    p2pKeepAlive?: number
 }
 
 const hash = (msg: string, algo: string): string => {
