@@ -72,7 +72,7 @@ Mega's P2P network acts as an ad-hoc registry of:
 
 - oracles with pubkey identiffication (KYC) supported by proof-of-work (pseudonimity) and/or by a manifest published on a reputable website (linking to pubkey).
 - oracle capabilities (questions they can answer) signed with oracle's pubkey
-- proofs of oracle malleabilty, submitted by traders/clients: data conflict with other oracles ("I say 6, you say 9"), data disagreeing with "human consesus", not providing data in exchange for micropayment recieved or any other type of report.
+- proofs of oracle malleabilty, submitted by traders/clients: data conflict with other oracles ("I say 6, you say 9"), data disagreeing with "human consesus", not providing data in exchange for micropayment recieved or any other type of report (e.g. a link to nostr post/thread).
 
 The decentrilized registry is organized simillarly to "bitcoin mempool", except it is aimed at preserving "unordered collection of advertisements and malleability reports", thus does not require its own or any blockchain (consensus over order) to operate. 
 
