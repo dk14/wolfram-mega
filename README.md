@@ -161,4 +161,5 @@ TODOs:
 
 "onboarding" milestone
 - add support for other UtXO chains in client API (testnet)
+- onboard oracles
 
