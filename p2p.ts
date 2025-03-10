@@ -134,7 +134,7 @@ export const startP2P = (cfg: nd.MempoolConfig<PeerAddr>) => {
             } 
             case 'oracle': {
                 const result = await nd.api.announceOracle(cfg, JSON.parse(content))
-                if (result == 'success' || result == 'lowbid') { //TODO is lowbid candidate for broadcast, would te message loop?
+                if (result == 'success') {
                     broadcastMessage(command, content) 
                 } else if (result == 'duplicate') {
                     const [adjusted, toBroadcast] = reduceCTTL(content)

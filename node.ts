@@ -398,19 +398,17 @@ export const api: Api = {
             return "wrong signature"
         }
         if (checkPow(id.pow, id.pubkey) || id.pow.difficulty == 0) {
+            if (!(id.bid.amount == 0 || await validateBid(cfg, id.bid))) {
+                id.bid.amount = 0 //todo unsafe
+            }
             if (checkOracleRank(cfg, id, api.mempool)) {
                 if (api.mempool.oracles[id.pubkey] === undefined) {
-                    if (id.bid.amount == 0 || await validateBid(cfg, id.bid)) {
-                        api.mempool.oracles[id.pubkey] = {
-                            id,
-                            capabilies: [],
-                            reports: []
-                        };
-                        return "success";
-                    } else {
-                        return "low bid and/or pow difficulty";
-                    }
-
+                    api.mempool.oracles[id.pubkey] = {
+                        id,
+                        capabilies: [],
+                        reports: []
+                    };
+                    return "success";
                 } else {
                     if (api.mempool.oracles[id.pubkey].id.seqNo < id.seqNo && api.mempool.oracles[id.pubkey].id.pow.difficulty <= id.pow.difficulty) {
                         api.mempool.oracles[id.pubkey].id.seqNo = id.seqNo;
@@ -421,7 +419,7 @@ export const api: Api = {
                     }
                 }
             } else {
-                return "rank is too low";
+                return "low pow difficulty";
             }
         } else {
             return "wrong pow";
