@@ -231,6 +231,11 @@ components:
               format: int32
             proof: 
               type: string
+        oracleSignature: 
+          type: string
+        oracleSignatureType: 
+          type: string
+          enum: [SHA256]
 
 
     Capability:

@@ -37,10 +37,12 @@ const bid1: nd.Bid = {
 
 const oracle1: nd.OracleId = {
     pubkey: oracle1Pub,
+    oracleSignature: "MEUCIEhiQz9Ki/ySbtMQAHCF8CA9D8GCGYcaLPTFdCqNDcCSAiEAtdy4O7yYNJFB57qk5glZDYAO0njeC0GHc++YXcc8KGU=",
     seqNo: 0,
     cTTL: 0,
     pow: pow1,
-    bid: bid1
+    bid: bid1,
+    oracleSignatureType: 'SHA256'
 }
 
 const capability1: nd.OracleCapability = {

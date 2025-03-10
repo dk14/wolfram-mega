@@ -96,6 +96,8 @@ export interface OracleId extends MsgLike, WithPow {
 
     bid: Bid
 
+    oracleSignature: string
+    oracleSignatureType: string
     previousId?: OracleId //in case oracle has to change pubkey
     previousIdSignatureToNewPubkey?: string
 }
@@ -287,6 +289,14 @@ const checkCapabilitySignature = (cp: OracleCapability): boolean => {
     return res
 }
 
+const checkOracleIdSignature = (o: OracleId): boolean => {
+    const signature = o.oracleSignature
+    o.oracleSignature = ""
+    const res = createVerify(o.oracleSignatureType).update(JSON.stringify(o)).verify(createPemPub(o.pubkey), o.oracleSignature, 'base64')
+    o.oracleSignature = signature
+    return res
+}
+
 const checkOracleRank = (cfg: MempoolConfig<any>, oracle: OracleId, mempool: Mempool): boolean => { 
     if (Object.keys(mempool.oracles).length > cfg.maxOracles) {
         const evict = Object.values(mempool.oracles).find(o => o.id.bid.amount <= oracle.bid.amount && o.id.pow.difficulty <= oracle.pow.difficulty)
@@ -384,6 +394,9 @@ export const api: Api = {
         offers: []
     },
     announceOracle: async (cfg: MempoolConfig<any>, id: OracleId): Promise<Registered | NotRegistered> => {
+        if (!(id.pow.difficulty == 0 || checkOracleIdSignature(id))) {
+            return "wrong signature"
+        }
         if (checkPow(id.pow, id.pubkey) || id.pow.difficulty == 0) {
             if (checkOracleRank(cfg, id, api.mempool)) {
                 if (api.mempool.oracles[id.pubkey] === undefined) {
