@@ -11,20 +11,22 @@ interface KeyPair {
     pk: string
 }
 
-export const testOnlyGenerateKeyPair = (): KeyPair => {
-    const regex = /.{64}/g;
+
+const regexPem = /.{64}/g;
+export const createPemPub = (base64: string): string => {
+    return '-----BEGIN PUBLIC KEY-----\n'+ base64.replace(regexPem, '$&\n') + '\n-----END PUBLIC KEY-----\n'
+}
+
+export const createPemPk = (base64: string): string => {
+    return '-----BEGIN EC PRIVATE KEY-----\n' + base64.replace(regexPem, '$&\n') + '\n-----END EC PRIVATE KEY-----\n'
     
+}
+
+export const testOnlyGenerateKeyPair = (): KeyPair => {
     const { publicKey, privateKey } = generateKeyPairSync('ec', { namedCurve: curve });
-    const privateKeyDer = privateKey.export({ type: 'sec1', format: 'der' }).toString('base64');
-    const formattedPrivateKey = privateKeyDer.replace(regex, '$&\n');
-
-
-    const publicKeyDer = publicKey.export({ type: 'spki', format: 'der' }).toString('base64');
-    const formattedPublicKey = publicKeyDer.replace(regex, '$&\n');
-
     return {
-        pub: Buffer.from('-----BEGIN EC PRIVATE KEY-----\n' + formattedPrivateKey + '\n-----END EC PRIVATE KEY-----\n').toString('base64'),
-        pk: Buffer.from('-----BEGIN PUBLIC KEY-----\n'+ formattedPublicKey + '\n-----END PUBLIC KEY-----\n').toString('base64')
+        pub: publicKey.export({ type: 'spki', format: 'der' }).toString('base64'),
+        pk: privateKey.export({ type: 'sec1', format: 'der' }).toString('base64')
     }
 }
 
@@ -280,8 +282,9 @@ const checkPow = (pow: HashCashPow, preimage: string): boolean => {
 const checkCapabilitySignature = (cp: OracleCapability): boolean => {
     const signature = cp.oracleSignature
     cp.oracleSignature = ""
-    
-    return createVerify(cp.oracleSignatureType).update(JSON.stringify(cp)).verify(Buffer.from(cp.oraclePubKey, 'base64'), Buffer.from(cp.oracleSignature, 'base64'))
+    const res = createVerify(cp.oracleSignatureType).update(JSON.stringify(cp)).verify(createPemPub(cp.oraclePubKey), cp.oracleSignature, 'base64')
+    cp.oracleSignature = signature
+    return res
 }
 
 const checkOracleRank = (cfg: MempoolConfig<any>, oracle: OracleId, mempool: Mempool): boolean => { 
@@ -364,7 +367,7 @@ const validateBid = async (cfg: MempoolConfig<any>, bid: Bid): Promise<boolean> 
 }
 
 const validateFact = (fact: Fact, req: FactRequest): boolean => {
-    return createVerify(fact.signatureType).update(fact.factWithQuestion).verify(Buffer.from(req.capabilityPubKey, 'base64'), fact.signature, 'base64')
+    return createVerify(fact.signatureType).update(fact.factWithQuestion).verify(createPemPub(req.capabilityPubKey), fact.signature, 'base64')
 }
 
 export const testOnlyReset = () => { 

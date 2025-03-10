@@ -14,7 +14,7 @@ const cfg = {
 
 const oracle1Pub = "AAA"
 const capability1Pub = "BBB"
-const capability2Pub = "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZZd0VBWUhLb1pJemowQ0FRWUZLNEVFQUFvRFFnQUVLV04raFNncXpiMnJFN2Z0NGZYQnJJeVhlUndmSEhhMwpJTUQ3WERpWnEvS25WUlFyWTQ3bG1Dd0lTY3FPRStQQXF0Ym92eFBDUks1QzZldVlZUnY3bGc9PQotLS0tLUVORCBQVUJMSUMgS0VZLS0tLS0="
+const capability2Pub = "MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAEKWN+hSgqzb2rE7ft4fXBrIyXeRwfHHa3IMD7XDiZq/KnVRQrY47lmCwIScqOE+PAqtbovxPCRK5C6euYYRv7lg=="
 
 const pow1: nd.HashCashPow = { //pow is only checked when pow difficulty higher than 0
     difficulty: 0,
