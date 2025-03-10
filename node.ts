@@ -364,7 +364,7 @@ const validateBid = async (cfg: MempoolConfig<any>, bid: Bid): Promise<boolean> 
 }
 
 const validateFact = (fact: Fact, req: FactRequest): boolean => {
-    return createVerify(fact.signatureType).update(fact.factWithQuestion).verify(req.capabilityPubKey, fact.signature)
+    return createVerify(fact.signatureType).update(fact.factWithQuestion).verify(Buffer.from(req.capabilityPubKey, 'base64'), fact.signature, 'base64')
 }
 
 export const testOnlyReset = () => { 
@@ -478,7 +478,7 @@ export const api: Api = {
                 found.content.dispute = dispute.fact;
                 return "success";
             } else {
-                return "not found";
+                return "report not found";
             }
         } else {
             return "unknown oracle";

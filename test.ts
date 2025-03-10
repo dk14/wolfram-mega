@@ -14,11 +14,19 @@ const cfg = {
 
 const oracle1Pub = "AAA"
 const capability1Pub = "BBB"
+const capability2Pub = "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZZd0VBWUhLb1pJemowQ0FRWUZLNEVFQUFvRFFnQUVLV04raFNncXpiMnJFN2Z0NGZYQnJJeVhlUndmSEhhMwpJTUQ3WERpWnEvS25WUlFyWTQ3bG1Dd0lTY3FPRStQQXF0Ym92eFBDUks1QzZldVlZUnY3bGc9PQotLS0tLUVORCBQVUJMSUMgS0VZLS0tLS0="
 
 const pow1: nd.HashCashPow = { //pow is only checked when pow difficulty higher than 0
     difficulty: 0,
     algorithm: 'SHA256',
     hash: '',
+    magicNo: 0
+}
+
+const pow2: nd.HashCashPow = { //pow is only checked when pow difficulty higher than 0
+    difficulty: 0,
+    algorithm: 'SHA256',
+    hash: '2222222',
     magicNo: 0
 }
 
@@ -51,6 +59,11 @@ const factreq1: nd.FactRequest = {
     arguments: {}
 }
 
+const factreq2: nd.FactRequest = {
+    capabilityPubKey: capability2Pub, //capability does not have to be in memory, since sharding is allowed
+    arguments: {}
+}
+
 const malleability1: nd.FactDisagreesWithPublic = {
     type: 'fact-disagreees-with-public',
     request: factreq1
@@ -62,6 +75,46 @@ const report1: nd.Report = {
     pow: pow1,
     oraclePubKey: oracle1Pub,
     content: malleability1
+}
+
+const malleability2: nd.FactMissing = {
+    type: 'fact-missing',
+    request: factreq2,
+    capabilitySignatureOverRequest: ''
+}
+
+const malleability2wrong: nd.FactMissing = {
+    type: 'fact-missing',
+    request: factreq1,
+    capabilitySignatureOverRequest: ''
+}
+
+const report2: nd.Report = {
+    seqNo: 0,
+    cTTL: 0,
+    pow: pow2,
+    oraclePubKey: oracle1Pub,
+    content: malleability2
+}
+
+const fact1: nd.Fact = {
+    factWithQuestion: 'Who? You!',
+    signatureType: 'SHA256',
+    signature: 'MEUCIEhiQz9Ki/ySbtMQAHCF8CA9D8GCGYcaLPTFdCqNDcCSAiEAtdy4O7yYNJFB57qk5glZDYAO0njeC0GHc++YXcc8KGU='
+}
+
+const dispute1: nd.Dispute = {
+    claim: malleability2,
+    reportPow: pow2,
+    oraclePubKey: oracle1Pub,
+    fact: fact1
+}
+
+const dispute2: nd.Dispute = {
+    claim: malleability2,
+    reportPow: pow1,
+    oraclePubKey: oracle1Pub,
+    fact: fact1
 }
 
 const paging: nd.PagingDescriptor = {
@@ -111,6 +164,24 @@ const paging: nd.PagingDescriptor = {
 
     const reports2 = await nd.api.lookupCapabilities(paging, "")
     assert.deepStrictEqual(reports2, [])
+}
+
+//-------------------------------------------------------------------------
+{
+    console.log("3. Dispute")
+    const res = await nd.api.reportMalleability(cfg, report2)
+    assert.equal(res, "success")
+
+    const reports = await nd.api.lookupReports(paging, oracle1Pub)
+    assert.deepStrictEqual(reports, [report1, report2])
+
+    const res3 = await nd.api.disputeMissingfactClaim(dispute1)
+    assert.equal(res3, "success")
+
+    const res4 = await nd.api.disputeMissingfactClaim(dispute2)
+    assert.equal(res4, "report not found")
+
+
 }
 
 // TODO dispute, offer, successful PoW-checks, successful signature checks, rejections by pow, rejections by bid, evictions by pow, evictions by bid

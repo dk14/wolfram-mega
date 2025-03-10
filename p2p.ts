@@ -172,7 +172,7 @@ export const startP2P = (cfg: nd.MempoolConfig<PeerAddr>) => {
                 const result = await nd.api.disputeMissingfactClaim(JSON.parse(content))
                 if (result == 'success') {
                     broadcastMessage(command, content)
-                } else if (result == 'duplicate')  {
+                } else if (result == 'duplicate' || result == "report not found")  {
                     const [adjusted, toBroadcast] = reduceCTTL(content)
                     if (toBroadcast) {
                         broadcastMessage(command, adjusted)
