@@ -49,6 +49,7 @@ export interface Param {
 export interface OracleCapability extends MsgLike {
     oraclePubKey: string
     capabilityPubKey: string
+    capabilitySignatureType?: string
     question: string // oracle is responsible for unambiguity of question - this field can be use to match capabilities of different oracles
 
     seqNo: number 
@@ -109,6 +110,7 @@ interface Mempool {
 export interface FactRequest {
     capabilityPubKey: string
     arguments: { [id: string] : string; }
+    invoice?: string
 }
 
 export interface ProofOfPayment {
@@ -118,7 +120,7 @@ export interface ProofOfPayment {
 
 
 export interface Fact {
-    factWithArguments: string
+    factWithQuestion: string
     signatureType: string
     signature: string
 }
@@ -139,6 +141,7 @@ export interface FactConflict {
 export interface FactMissing extends WithPow {
     type: 'fact-missing'
     request: FactRequest
+    capabilitySignatureOverRequest: string
     payment?: ProofOfPayment
     dispute?: Fact
     pow: HashCashPow
@@ -315,7 +318,7 @@ const validateBid = async (cfg: MempoolConfig<any>, bid: Bid): Promise<boolean> 
 }
 
 const validateFact = (fact: Fact, req: FactRequest): boolean => {
-    return createVerify(fact.signatureType).update(fact.factWithArguments).verify(req.capabilityPubKey, fact.signature)
+    return createVerify(fact.signatureType).update(fact.factWithQuestion).verify(req.capabilityPubKey, fact.signature)
 }
 
 export const testOnlyReset = () => { 

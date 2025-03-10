@@ -22,6 +22,21 @@ http://localhost:8080/index.htm, http://localhost:8081/index.htm, http://localho
 
 P2P network uses [Bicoin protocol structure](https://en.bitcoin.it/wiki/Protocol_specification#Message_structure) for communication.
 
+Unit tests:
+
+```
+npm test
+```
+-----
+Configuration:
+
+p2p network is discovered from `p2pseed`, see example at [mempool-cfg2.json](mempool-cfg2.json). Specifying `hostname` would make your node discoverable. `httpPort` is port for REST, `p2pPort` is port for P2P gossiping.
+
+Optional `mempool-cfg` config parameters:
+- `isTest` enables `testOnly` REST endpoints for convenience. 
+- `facilitatorId`: `facilitatorId.rewardAddress` is lightning address for rewards (microbids),  `facilitatorId.facilitatorRewardIdPow` would allow you to establish identity for rewards.
+- `lnRestHost`, `lnMacaroonPath` are used to verify proofs of payments for rewards.
+- `p2pKeepAlive` how often (milliseconds) your peer would remind network about itself.
 
 --------
 
@@ -83,8 +98,21 @@ Security. Such registries are subject to spam-attacks since anyone can create or
 Sharding and availability. Since some data losses are acceptable (traders/oracles/orgs can resubmit their data to the network) and avilability can always increase through pow-difficulty (and oracles bidsmicrobidding with BTC-LN), nodes are at the liberty of evicting data randomly (hash mod n) - this effectively increases data capacity. Alice's node can have half of malleability proofs, while Bob's node can the other half. Both halves would be available to a trader. Network can also withstand split-brains and general segmentations, thanks to eventual consistency.
 
 ------
+Types of proofs currently supported:
 
-Extra-Services.
+- fact conflict: oracle disagrees with others. Can be verified semi-automatically, since user would have to specify a policy and filter which oracles they would trust (even large quorum by itself is unreliable, have to "hand-pick").
+- oracle did not provide data in exchange for payment within an off-chain contract signed by oracle (no need for blockchain, just crypto-signature). Payments and, in many cases, absense of data can be verified automatically, caches databases can be checked. This proof can be disputed by oracle through posting answer to the question. Stronger, but more expensive proof would be publishing data-points on chain, since blockchain would attest reliably to an SLA breach: "not providing data in time". Mega cannot be trusted with timestamps, since it is sensitive to timewarp attacks, so we can only attest to "absense of data so far", not "delay".
+- fact reported by oracle disagrees with public. Can be verified (or at least flagged) automatically by looking it up on the internet or manually through review and DYR. Here, nostr links and such can be added.
+
+Note: verification of proofs is "subjective". Wether automatically or not, verification has to happen on the client. Mega does not provide verifications themselves (although can prioritize reports in mempools based on some automatic ones), since it would require consensus stronger than btc. It only attests to reports filed.
+
+We currently don't standardize SLA contracts, proofs of payments *(except for BTC-LN microbids as incentives - we support hash linking to invoice and experimental verification)*, we only necessitate some meta-fields. Format is generic, but specific formats for specific cases can be supported. 
+
+We standardize parametrized questions (`FactRequest`) for example so whatever signed fact is, it must contain such question as well in order to be fully compatible with our system. Consequently minimal SLA contract, should at least contain fact-request (with non-empty invoice) signed by oracle.
+
+------
+
+Extras.
 
 Protocol can be extended to support P2P matching (advertise "option" offers), thus can act as P2P exchange for fully-collaterized derivatives. 
 
@@ -104,6 +132,7 @@ The approach is not limited to contracts which require oracles: finding a counte
 --------
 
 TODOs:
+- limit lengthes of strings
 - finish coverage tests (cryptography, data corruption)
 - REST service and p2p network tests
 - code improvements
