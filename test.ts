@@ -83,11 +83,6 @@ const malleability2: nd.FactMissing = {
     capabilitySignatureOverRequest: ''
 }
 
-const malleability2wrong: nd.FactMissing = {
-    type: 'fact-missing',
-    request: factreq1,
-    capabilitySignatureOverRequest: ''
-}
 
 const report2: nd.Report = {
     seqNo: 0,
@@ -103,6 +98,14 @@ const fact1: nd.Fact = {
     signature: 'MEUCIEhiQz9Ki/ySbtMQAHCF8CA9D8GCGYcaLPTFdCqNDcCSAiEAtdy4O7yYNJFB57qk5glZDYAO0njeC0GHc++YXcc8KGU='
 }
 
+const fact1wrongsig: nd.Fact = {
+    factWithQuestion: 'Who? You!',
+    signatureType: 'SHA256',
+    signature: 'MEUCIQDARG92FNR9WVyNnQQuCQz0drTz5qyv78OtWGI6U1za1gIgMPYSTpcjVQwCZaetX/35vt4lKZFkMGAX9tqWrDrUIsI='
+}
+
+
+
 const dispute1: nd.Dispute = {
     claim: malleability2,
     reportPow: pow2,
@@ -110,11 +113,18 @@ const dispute1: nd.Dispute = {
     fact: fact1
 }
 
-const dispute2: nd.Dispute = {
+const dispute1wrongreport: nd.Dispute = {
     claim: malleability2,
     reportPow: pow1,
     oraclePubKey: oracle1Pub,
     fact: fact1
+}
+
+const dispute1wrongfactsig: nd.Dispute = {
+    claim: malleability2,
+    reportPow: pow2,
+    oraclePubKey: oracle1Pub,
+    fact: fact1wrongsig
 }
 
 const paging: nd.PagingDescriptor = {
@@ -175,14 +185,24 @@ const paging: nd.PagingDescriptor = {
     const reports = await nd.api.lookupReports(paging, oracle1Pub)
     assert.deepStrictEqual(reports, [report1, report2])
 
+    const res2 = await nd.api.disputeMissingfactClaim(dispute1wrongfactsig)
+    assert.equal(res2, "invalid fact")
+
     const res3 = await nd.api.disputeMissingfactClaim(dispute1)
     assert.equal(res3, "success")
 
-    const res4 = await nd.api.disputeMissingfactClaim(dispute2)
+
+    const res4 = await nd.api.disputeMissingfactClaim(dispute1wrongreport)
     assert.equal(res4, "report not found")
+
+    if (report2.content.type === 'fact-missing') {
+        assert.deepStrictEqual(report2.content.dispute, dispute1.fact)
+    } else {
+        assert.fail("not fact-missing?")
+    }
 
 
 }
 
-// TODO dispute, offer, successful PoW-checks, successful signature checks, rejections by pow, rejections by bid, evictions by pow, evictions by bid
+// TODO offer, successful PoW-checks, successful signature checks, rejections by pow, rejections by bid, evictions by pow, evictions by bid
 // TODO data corruption, malformed JSON
