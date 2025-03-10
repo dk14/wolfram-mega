@@ -519,6 +519,14 @@ export const api: Api = {
         if (api.mempool.offers.find(x => x.pow.hash === offer.pow.hash) !== undefined) {
             return "duplicate"
         }
+        const cp = Object.values(api.mempool.oracles).find(o => 
+            o.capabilies.find(c => 
+                c.capabilityPubKey === offer.content.terms.question.capabilityPubKey
+            ) !== undefined
+        )
+        if (cp === undefined) {
+            return "no oracle found"
+        }
         api.mempool.offers.push(offer)
         return "success"
     },
