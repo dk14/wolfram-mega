@@ -135,7 +135,7 @@ The approach is not limited to contracts which require oracles: finding a counte
 --------
 
 TODOs:
-- limit lengthes of strings
+- limit lengths of strings
 - finish coverage tests (cryptography, data corruption)
 - REST service and p2p network tests
 - code improvements
