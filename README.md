@@ -119,6 +119,8 @@ Extras.
 
 Protocol can be extended to support P2P matching (advertise "option" offers), thus can act as P2P exchange for fully-collaterized derivatives. 
 
+Since data is not limited to conventional future data, anything unknown can be advertised, e.g. solutions to mathematical problems, inverses of one-way functions, your husband's affairs etc.
+
 Nodes potentially can cache signed data-points (mostly "slow facts") from oracles. They can also potentially pool, proxify and anonymize user data requests to protect users from oracles collecting private data.
 
 Protocol can be extended to recognize and negotiate various types of "data contracts" between clients and oracles. E.g. user can order oracle to provide data on a local event, so he and his friend could bet on it. If oracle "scams" user - proof will be published, so oracle would have to abandon its PoW or website verified identity. And, more conventionally, it allows users to find (match) oracles with simillar capabilities to allow quorums and even "meaningful slashing" (security deposit from strongly identified oracle) on UtXO networks.
