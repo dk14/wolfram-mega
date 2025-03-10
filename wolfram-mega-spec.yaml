@@ -311,6 +311,7 @@ components:
           type: integer
           format: int32
         algorithm: 
+          enum: [SHA256]
           type: string
         hash: 
           type: string
