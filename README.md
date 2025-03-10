@@ -65,9 +65,11 @@ Since many types of reports are still machine-verifiable, traffic can be diverte
 
 ### Direct payments
 
-Mega avoids speculative tokenomics. Rewards for providing data as well as incentives for p2p facilitators are direct. Thus we don't have "automated market makers" (market making is not automatable), Web3 and other stuff that disagrees with common sense. The main disadvantage of coins having no intrinsic value is low security of the network against financial attacks (see ["deadpool attack"](https://forum.cardano.org/t/deathpool-attack-on-any-pos/143677)).
+Mega avoids speculative tokenomics. Rewards for providing data as well as incentives for p2p facilitators are direct. Thus we don't have "automated market makers" (market making is not automatable), Web3 and other stuff that disagrees with common sense and comes out of simply not understanding purpose and mechanics of free market.
 
-Nothing stops you from paying with "WolframCoin" though if you buy attestations from Wolfram - it is just not necessary for the functioning of the network. Only PoW is.
+The main disadvantage of coins having no intrinsic value is low security of the network against financial attacks (see ["deadpool attack"](https://forum.cardano.org/t/deathpool-attack-on-any-pos/143677)).
+
+Nevertheless, nothing stops you from paying with "WolframCoin" though if you buy attestations from Wolfram - it is just not necessary for the functioning of the network. Only PoW is.
 
 ### Open protocol
 
