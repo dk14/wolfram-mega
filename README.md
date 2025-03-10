@@ -73,7 +73,7 @@ Nevertheless, nothing stops you from paying with "WolframCoin" though if you buy
 
 ### Open protocol
 
-Since Mega only needs basic network security, there is no entry bar to join it. We don't have to consult security or pretend that we are independent advisers. In our case, P2P network does not depend on us at all. 
+Since Mega only needs basic network security, there is no entry bar to join it. We don't have to consult operators about security or pretend that we are independent advisers. In our case, P2P network does not depend on us at all. 
 
 We specify protocol, mostly in declarative terms. We provide reference implementation and [swagger spec](wolfram-mega-spec.yaml). 
 
