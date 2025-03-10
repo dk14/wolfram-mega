@@ -113,5 +113,5 @@ const paging: nd.PagingDescriptor = {
     assert.deepStrictEqual(reports2, [])
 }
 
-// TODO dispute, successful PoW-checks, successful signature checks, rejections by pow, rejections by bid, evictions by pow, evictions by bid
+// TODO dispute, offer, successful PoW-checks, successful signature checks, rejections by pow, rejections by bid, evictions by pow, evictions by bid
 // TODO data corruption, malformed JSON
