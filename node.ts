@@ -424,7 +424,6 @@ export const api: Api = {
         } else {
             return "wrong pow";
         }
-
     },
     announceCapability: async (cfg: MempoolConfig<any>, cp: OracleCapability): Promise<Registered | NotRegistered> => {
         if (api.mempool.oracles[cp.oraclePubKey] === undefined) {
