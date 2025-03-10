@@ -98,6 +98,15 @@ export const startHttp = (cfg: nd.MempoolConfig<any>) => {
                         nd.api.lookupReports(paging, pubkey).then(x => res.end(JSON.stringify(x)))
                     }
                 }
+
+                if(reqUrl.pathname == '/offers') {
+                    if (reqUrl.query.pubkey == undefined) {
+                        res.end(JSON.stringify("Specify reports?pubkey=<capability_pubkey>"))
+                    } else {
+                        nd.api.lookupOffers(paging, pubkey).then(x => res.end(JSON.stringify(x)))
+                    }
+                }
+
                 return
             }
         
@@ -130,6 +139,11 @@ export const startHttp = (cfg: nd.MempoolConfig<any>) => {
                     
                         if(reqUrl.pathname == '/dispute') {
                             const out = await nd.api.disputeMissingfactClaim(postBody)
+                            res.end(JSON.stringify(out))
+                        }
+
+                        if(reqUrl.pathname == '/offer') {
+                            const out = await nd.api.publishOffer(cfg, postBody)
                             res.end(JSON.stringify(out))
                         }
 

@@ -36,7 +36,7 @@ const oracle1: nd.OracleId = {
 }
 
 const capability1: nd.OracleCapability = {
-    oraclePubKey: oracle1Pub, //oracle does not have to be in memory since sharding is allowed
+    oraclePubKey: oracle1Pub,
     capabilityPubKey: capability1Pub,
     question: 'What?',
     seqNo: 0,

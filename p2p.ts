@@ -180,6 +180,18 @@ export const startP2P = (cfg: nd.MempoolConfig<PeerAddr>) => {
                 }
                 break;
             }
+            case 'offer': {
+                const result = await nd.api.publishOffer(cfg, JSON.parse(content))
+                if (result == 'success') {
+                    broadcastMessage(command, content)
+                } else if (result == 'duplicate') {
+                    const [adjusted, toBroadcast] = reduceCTTL(content)
+                    if (toBroadcast) {
+                        broadcastMessage(command, adjusted)
+                    }
+                }
+                break;
+            }
 
 
         }

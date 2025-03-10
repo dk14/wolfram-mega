@@ -86,11 +86,35 @@ paths:
           description: Validation exception
 
 
+  /offer:
+    post:
+      summary: Publish offer
+      description: Register malleability report
+      operationId: report
+      requestBody:
+        description: Create a new capability
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Report'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            plain/text: 
+              schema:
+                type: string
+                       
+        '400':
+          description: Invalid input
+        '422':
+          description: Validation exception
+
+
   
   /oracles:
     get:
-      tags:
-        - pet
       summary: List oracles
       description: List oracles
       operationId: lookupOracles
@@ -108,8 +132,6 @@ paths:
 
   /capabilities:
     get:
-      tags:
-        - pet
       summary: Find reports by oracle pubkey
       description: Returns a single pet
       operationId: lookupCapabilities
@@ -137,8 +159,6 @@ paths:
           
   /reports:
     get:
-      tags:
-        - pet
       summary: Find reports by oracle pubkey
       description: Returns reports
       operationId: lookupReports
@@ -163,6 +183,29 @@ paths:
           description: Invalid ID supplied
         '404':
           description: Pet not found
+
+  /offers:
+    get:
+      summary: Find P2P exchange offers related to capability
+      description: Returns offers
+      operationId: lookupOffers
+      parameters:
+        - name: pubkey
+          in: query
+          description: pubkey of capabilty
+          required: true
+          schema:
+            type: string
+            format: int64
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Offer'          
 
 
 components:
@@ -229,14 +272,37 @@ components:
               type: string
               enum: [fact-disagreees-with-public, fact-conflict, fact-missing] 
             request: 
-              type: object
-              properties: 
-                capabilityPubKey: 
-                  type: string
-                arguments: 
-                  type: object
+              $ref: '#/components/schemas/FactRequest' 
         pow: 
           $ref: '#/components/schemas/Pow' 
+
+    Offer:
+      type: object
+      properties:
+        seqNo: 
+          type: integer
+          format: int32
+        cTTL: 
+          type: integer
+          format: int32
+        content:
+          type: object
+          properties:
+            message: 
+              type: string
+            customContract: 
+              type: string
+            terms: 
+              $ref: '#/components/schemas/OfferTerms'
+            blockchain: 
+              type: string
+            transactionToBeCoSigned: 
+              type: string 
+            contact: 
+              type: string
+        pow: 
+          $ref: '#/components/schemas/Pow'
+        
 
     Pow:
       type: object
@@ -254,3 +320,33 @@ components:
         magicString:
           type: string
 
+    OfferTerms:
+      type: object
+      properties:
+        question:
+          $ref: '#/components/schemas/FactRequest'
+        partyBetsOn: 
+          type: array
+          items:
+            type: string
+        counterPartyBetsOn: 
+          type: array
+          items:
+            type: string
+        partyBetAmount:
+          type: integer
+          format: int32
+        counterpartyBetAmount: 
+          type: integer
+          format: int32
+
+    FactRequest: 
+      type: object
+      required: [capabilityPubKey]
+      properties: 
+        capabilityPubKey: 
+          type: string
+        arguments: 
+          type: object
+        invoice:
+          type: string

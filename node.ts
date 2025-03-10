@@ -1,6 +1,7 @@
 import {createHash, createVerify, generateKeyPairSync, createSign} from 'crypto'
 import * as request from 'request'
 import * as fs from 'fs'
+import { off } from 'process';
 
 
 const curve = 'secp521r1';
@@ -41,9 +42,12 @@ export interface WithPow {
     pow: HashCashPow
 }
 
+type Value = string
+type Answer = string
+
 export interface Param {
     name: string
-    values: string[]
+    values: Value[]
 }
 
 export interface OracleCapability extends MsgLike {
@@ -60,7 +64,7 @@ export interface OracleCapability extends MsgLike {
     pow: HashCashPow
     
     params?: Param[] //possible params
-    answers?: string[] //possible answers
+    answers?: Answer[] //possible answers
     endpoint?: string //how to query oracle
 
 }
@@ -105,6 +109,7 @@ interface Oracle {
 
 interface Mempool {
     oracles: { [id: string] : Oracle; }
+    offers: OfferMsg[]
 }
 
 export interface FactRequest {
@@ -138,29 +143,55 @@ export interface FactConflict {
 
 }
 
-export interface FactMissing extends WithPow {
+export interface FactMissing {
     type: 'fact-missing'
     request: FactRequest
     capabilitySignatureOverRequest: string
     payment?: ProofOfPayment
     dispute?: Fact
-    pow: HashCashPow
 }
 
 export type MaleabilityReport = FactDisagreesWithPublic | FactConflict | FactMissing
 
 export interface Dispute {
     claim: FactMissing
+    reportPow: HashCashPow
     oraclePubKey: string
     fact: Fact
 }
 
 export interface Report extends MsgLike, WithPow {
     seqNo: number
-    cTTL: number //used for broadcast
+    cTTL: number
     pow: HashCashPow
     oraclePubKey: string
     content: MaleabilityReport
+}
+
+interface OfferTerms {
+    question: FactRequest
+    partyBetsOn: Answer[]
+    counterPartyBetsOn: Answer[]
+    partyBetAmount: number
+    counterpartyBetAmount: number
+}
+
+interface Offer {
+    message: string
+    customContract: string
+    terms: OfferTerms
+    blockchain: string
+    transactionToBeCoSigned: string //counterparty pays fees, can broadcast as a confirmation
+    signaturesToAggregate?: string[]
+    contact: string
+}
+
+
+export interface OfferMsg extends MsgLike, WithPow {
+    seqNo: number
+    cTTL: number
+    pow: HashCashPow
+    content: Offer
 }
 
 interface FacilitatorId {
@@ -193,12 +224,14 @@ interface Api {
     announceCapability: (cfg: MempoolConfig<any>, cp: OracleCapability) => Promise<Registered | NotRegistered>
     reportMalleability: (cfg: MempoolConfig<any>, report: Report) => Promise<ReportAccepted | ReportRejected>
     disputeMissingfactClaim: (dispute: Dispute) => Promise<DisputeAccepted | DisputeRejected> 
+    publishOffer: (cfg: MempoolConfig<any>, offer: OfferMsg) => Promise<Registered | NotRegistered>
     //note: it does not dispute time delay/SLA, but it is less crushial for most option contracts
 
     //----exposed only as REST GET----- oracles should be sorted by proofs of payment
     lookupOracles: (paging: PagingDescriptor, questions: string[]) => Promise<OracleId[]>
     lookupCapabilities: (paging: PagingDescriptor, oraclePub: string) => Promise<OracleCapability[]>
     lookupReports: (paging: PagingDescriptor, oraclePub: string) => Promise<Report[]>
+    lookupOffers: (paging: PagingDescriptor, capabilityPubKey: string) => Promise<OfferMsg[]>
 
     proxify: (req: FactRequest, uri: string) => Promise<string>
 
@@ -219,6 +252,7 @@ export interface MempoolConfig<PeerAddrT> {
     maxOracles: number
     maxCapabilities: number
     maxReports: number
+    maxOffers?: number
     maxConnections: number
     httpPort: number
     p2pPort: number
@@ -286,6 +320,18 @@ const checkReportRank = (cfg: MempoolConfig<any>, report: Report, o: Oracle): bo
     return true
 }
 
+const checkOfferRank = (cfg: MempoolConfig<any>, offer: OfferMsg, m: Mempool): boolean => {
+    if (m.offers.length > (cfg.maxReports ?? 0)) {
+        const index = m.offers.findIndex(r => r.pow.difficulty <= offer.pow.difficulty)
+        if (index > -1) {
+            m.offers.splice(index, 1)
+            return true
+        }
+        return false
+    }
+    return true
+}
+
 const validateBid = async (cfg: MempoolConfig<any>, bid: Bid): Promise<boolean> => {
     if (cfg.lnRestHost === undefined || cfg.lnMacaroonPath === undefined || cfg.facilitatorId === undefined || cfg.facilitatorId.rewardAddress === undefined){
         return false
@@ -326,11 +372,13 @@ export const testOnlyReset = () => {
     //since implementations of Api ackuiring sockets, files, databases and other resources 
     //are outside of the scope of node.ts module
     api.mempool.oracles = {}
+    api.mempool.offers = []
 }
 
 export const api: Api = {
     mempool: {
-        oracles: {}
+        oracles: {},
+        offers: []
     },
     announceOracle: async (cfg: MempoolConfig<any>, id: OracleId): Promise<Registered | NotRegistered> => {
         if (checkPow(id.pow, id.pubkey) || id.pow.difficulty == 0) {
@@ -341,128 +389,141 @@ export const api: Api = {
                             id,
                             capabilies: [],
                             reports: []
-                        }
-                        return "success"
+                        };
+                        return "success";
                     } else {
-                        return "low bid and/or pow difficulty"
+                        return "low bid and/or pow difficulty";
                     }
 
                 } else {
                     if (api.mempool.oracles[id.pubkey].id.seqNo < id.seqNo) {
-                        api.mempool.oracles[id.pubkey].id.seqNo = id.seqNo
-                        return "success"
+                        api.mempool.oracles[id.pubkey].id.seqNo = id.seqNo;
+                        return "success";
                     } else {
-                        return "duplicate"
+                        return "duplicate";
                     }
                 }
             } else {
-                return "rank is too low"
+                return "rank is too low";
             }
         } else {
-            return "wrong pow"
+            return "wrong pow";
         }
 
     },
     announceCapability: async (cfg: MempoolConfig<any>, cp: OracleCapability): Promise<Registered | NotRegistered> => {
         if (api.mempool.oracles[cp.oraclePubKey] === undefined) {
-            return "no oracle found:" + cp.oraclePubKey
+            return "no oracle found:" + cp.oraclePubKey;
         }
         if (cp.pow.difficulty == 0 || checkCapabilitySignature(cp)) {
             if (cp.pow.difficulty == 0 || checkPow(cp.pow, cp.oracleSignature)) {
                 if (checkCapabilityRank(cfg, cp, api.mempool.oracles[cp.oraclePubKey])) {
-                    const found = api.mempool.oracles[cp.oraclePubKey].capabilies.find(x => x.question == cp.question)
+                    const found = api.mempool.oracles[cp.oraclePubKey].capabilies.find(x => x.question == cp.question);
                     if (found !== undefined) {
                         if (found.seqNo < cp.seqNo) {
-                            found.seqNo = cp.seqNo
-                            return "success"
+                            found.seqNo = cp.seqNo;
+                            return "success";
                         } else {
-                            return "duplicate"
+                            return "duplicate";
                         }
                     }
-                    api.mempool.oracles[cp.oraclePubKey].capabilies.push(cp)
-                    return "success"
+                    api.mempool.oracles[cp.oraclePubKey].capabilies.push(cp);
+                    return "success";
                 } else {
-                    return "low pow difficulty"
+                    return "low pow difficulty";
                 }
             } else {
-                return "wrong pow"
+                return "wrong pow";
             }
 
         } else {
-            return "wrong signature"
+            return "wrong signature";
         }
     },
     reportMalleability: async (cfg: MempoolConfig<any>, report: Report): Promise<ReportAccepted | ReportRejected> => {
         if (api.mempool.oracles[report.oraclePubKey] === undefined) {
-            return "no oracle found:" + report.oraclePubKey
+            return "no oracle found:" + report.oraclePubKey;
         }
-        if (!checkPow(report.pow, JSON.stringify(report)) && !(report.pow.difficulty == 0)) {
-            return "wrong pow"
+        if (!checkPow(report.pow, JSON.stringify(report.content)) && !(report.pow.difficulty == 0)) {
+            return "wrong pow";
         }
 
         if (!checkReportRank(cfg, report, api.mempool.oracles[report.oraclePubKey])) {
-            return "low pow difficulty"
+            return "low pow difficulty";
         }
 
-        if (report.content.type == "fact-missing" && report.content.pow !== report.pow) {
-            return "incoherent pow"
-        }
-
-        const found = api.mempool.oracles[report.oraclePubKey].reports.find(x => x.pow.hash == report.pow.hash)
+        const found = api.mempool.oracles[report.oraclePubKey].reports.find(x => x.pow.hash == report.pow.hash);
         if (found !== undefined) {
             if (found.seqNo < report.seqNo) {
-                found.seqNo = report.seqNo
-                return "success"
+                found.seqNo = report.seqNo;
+                return "success";
             } else {
-                return "duplicate"
+                return "duplicate";
             }
         }
-        api.mempool.oracles[report.oraclePubKey].reports.push(report)
-        return "success"
+        api.mempool.oracles[report.oraclePubKey].reports.push(report);
+        return "success";
     },
-    disputeMissingfactClaim: async (dispute: Dispute): Promise<DisputeAccepted | DisputeRejected> => { //TODO add pow
+    disputeMissingfactClaim: async (dispute: Dispute): Promise<DisputeAccepted | DisputeRejected> => {
         if (api.mempool.oracles[dispute.oraclePubKey] === undefined) {
-            return "no oracle found:" + dispute.oraclePubKey
+            return "no oracle found:" + dispute.oraclePubKey;
         }
-        const oracle = api.mempool.oracles[dispute.oraclePubKey]
+        const oracle = api.mempool.oracles[dispute.oraclePubKey];
         if (!validateFact(dispute.fact, dispute.claim.request)) {
-            return "invalid fact"
+            return "invalid fact";
         }
         if (oracle !== undefined) {
-            const found = api.mempool.oracles[oracle.id.pubkey].reports.find(x => x.content.type == "fact-missing" && x.pow.hash == dispute.claim.pow.hash)
+            const found = api.mempool.oracles[oracle.id.pubkey].reports.find(x => x.content.type == "fact-missing" && x.pow.hash == dispute.reportPow.hash);
             if (found !== undefined && found.content.type == 'fact-missing') {
-                found.content.dispute = dispute.fact
-                return "success"
+                found.content.dispute = dispute.fact;
+                return "success";
             } else {
-                return "not found"
+                return "not found";
             }
         } else {
-            return "unknown oracle"
+            return "unknown oracle";
         }
     },
     lookupOracles: async (paging: PagingDescriptor, questions: string[]): Promise<OracleId[]> => {
         return Object.values(api.mempool.oracles)
             .sort((a, b) => a.id.bid.amount - b.id.bid.amount)
             .map(x => x.id)
-            .slice(paging.page * paging.chunkSize, (paging.page + 1) * paging.chunkSize)
+            .slice(paging.page * paging.chunkSize, (paging.page + 1) * paging.chunkSize);
     },
     lookupCapabilities: async (paging: PagingDescriptor, oraclePub: string): Promise<OracleCapability[]> => {
         if (api.mempool.oracles[oraclePub] === undefined) {
-            console.log("oracle not found " + oraclePub)
-            return []
+            console.log("oracle not found " + oraclePub);
+            return [];
         }
-        return api.mempool.oracles[oraclePub].capabilies.slice(paging.page * paging.chunkSize, (paging.page + 1) * paging.chunkSize)
+        return api.mempool.oracles[oraclePub].capabilies.slice(paging.page * paging.chunkSize, (paging.page + 1) * paging.chunkSize);
 
     },
     lookupReports: async (paging: PagingDescriptor, oraclePub: string): Promise<Report[]> => {
         if (api.mempool.oracles[oraclePub] === undefined) {
-            console.log("oracle not found " + oraclePub)
-            return []
+            console.log("oracle not found " + oraclePub);
+            return [];
         }
-        return api.mempool.oracles[oraclePub].reports.slice(paging.page * paging.chunkSize, (paging.page + 1) * paging.chunkSize)
+        return api.mempool.oracles[oraclePub].reports.slice(paging.page * paging.chunkSize, (paging.page + 1) * paging.chunkSize);
     },
 
     proxify: async (req: FactRequest, uri: string): Promise<string> => {
-        return ""
+        return "";
+    },
+    publishOffer: async function (cfg: MempoolConfig<any>, offer: OfferMsg): Promise<string> {
+        if (!checkPow(offer.pow, JSON.stringify(offer.content)) && !(offer.pow.difficulty == 0)) {
+            return "wrong pow";
+        }
+        if (checkOfferRank(cfg, offer, api.mempool)) {
+            return "low pow difficulty";
+        }
+        if (api.mempool.offers.find(x => x.pow.hash === offer.pow.hash) !== undefined) {
+            return "duplicate"
+        }
+        api.mempool.offers.push(offer)
+        return "success"
+    },
+    lookupOffers: async function (paging: PagingDescriptor, capabilityPubKey: string): Promise<OfferMsg[]> {
+        return api.mempool.offers.filter(o => o.content.terms.question.capabilityPubKey === capabilityPubKey)
+            .slice(paging.page * paging.chunkSize, (paging.page + 1) * paging.chunkSize);
     }
 }
