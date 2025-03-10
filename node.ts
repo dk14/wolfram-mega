@@ -399,8 +399,9 @@ export const api: Api = {
                     }
 
                 } else {
-                    if (api.mempool.oracles[id.pubkey].id.seqNo < id.seqNo) {
+                    if (api.mempool.oracles[id.pubkey].id.seqNo < id.seqNo && api.mempool.oracles[id.pubkey].id.pow.difficulty <= id.pow.difficulty) {
                         api.mempool.oracles[id.pubkey].id.seqNo = id.seqNo;
+                        api.mempool.oracles[id.pubkey].id.pow = id.pow
                         return "success";
                     } else {
                         return "duplicate";
@@ -423,8 +424,9 @@ export const api: Api = {
                 if (checkCapabilityRank(cfg, cp, api.mempool.oracles[cp.oraclePubKey])) {
                     const found = api.mempool.oracles[cp.oraclePubKey].capabilies.find(x => x.question == cp.question);
                     if (found !== undefined) {
-                        if (found.seqNo < cp.seqNo) {
+                        if (found.seqNo < cp.seqNo && found.pow.difficulty <= cp.pow.difficulty) {
                             found.seqNo = cp.seqNo;
+                            found.pow = cp.pow
                             return "success";
                         } else {
                             return "duplicate";
