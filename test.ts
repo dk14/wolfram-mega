@@ -178,7 +178,7 @@ const paging: nd.PagingDescriptor = {
 
 //-------------------------------------------------------------------------
 {
-    console.log("3. Dispute")
+    console.log("4. Dispute")
     const res = await nd.api.reportMalleability(cfg, report2)
     assert.equal(res, "success")
 
@@ -200,8 +200,6 @@ const paging: nd.PagingDescriptor = {
     } else {
         assert.fail("not fact-missing?")
     }
-
-
 }
 
 // TODO offer, successful PoW-checks, successful signature checks, rejections by pow, rejections by bid, evictions by pow, evictions by bid
