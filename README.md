@@ -98,7 +98,7 @@ Security. Such registries are subject to spam-attacks since anyone can create or
 Sharding and availability. Since some data losses are acceptable (traders/oracles/orgs can resubmit their data to the network) and avilability can always increase through pow-difficulty (and oracles bidsmicrobidding with BTC-LN), nodes are at the liberty of evicting data randomly (hash mod n) - this effectively increases data capacity. Alice's node can have half of malleability proofs, while Bob's node can the other half. Both halves would be available to a trader. Network can also withstand split-brains and general segmentations, thanks to eventual consistency.
 
 ------
-Types of proofs currently supported:
+Types of public proofs of malleability currently supported:
 
 - fact conflict: oracle disagrees with others. Can be verified semi-automatically, since user would have to specify a policy and filter which oracles they would trust (even large quorum by itself is unreliable, have to "hand-pick").
 - oracle did not provide data in exchange for payment. Verified  based on an off-chain contract signed by oracle (no need for blockchain, just crypto-signature). Payments and, in many cases, absense of data can be verified automatically, caches databases can be checked. This proof can be disputed by oracle through posting answer to the question. 
