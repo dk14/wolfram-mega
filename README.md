@@ -61,7 +61,7 @@ Mega's primary (although not exclusive) way of assurance of quality of data is t
 
 Traders can simply see what is formally and verifiably reported about oracle, which means oracle has whole "business" identity at stake, not some coins. Actual responsibility, actual consequences are invoked. *While, from user perspective, this approach is most suitable to microbets on future events, it does neither exclude nor neccistates additional (but more expensive) "assurance" provided by monetary collateral under a guard of quorum of oracles "slashing" - mega is compatible with it, just "how much do you actually know about oracle counterparties, are they really independent, do stakes really stop them from anonymous conspiracy?".*
 
-Since many types of reports are still machine-verifiable, traffic can be diverted automatically from suspicious oracles.
+Since many types of reports are still machine-verifiable, users/traffic can be diverted automatically from suspicious oracles.
 
 ### Direct payments
 
