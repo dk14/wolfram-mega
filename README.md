@@ -144,7 +144,6 @@ TODOs:
 - oracle client REST API (can be on the same node, clients have to sign messages externally though)
 - trader client REST API (can be on the same node, clients have to sign messages externally though)
 - caching API
-- maybe simple offer API (p2p derivatives exchange) to make contracts demo more interesting
 
 "contracts demo" milestone
 - integration with Bitcoin contracts (testnet)
