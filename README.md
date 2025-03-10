@@ -115,7 +115,7 @@ We standardize parametrized questions (`FactRequest`) for example so whatever si
 
 Extras.
 
-Protocol can be extended to support P2P matching (advertise "option" offers), thus can act as P2P exchange for fully-collaterized derivatives. 
+Protocol has a basic P2P matching engine (to advertise "option" offers), thus can act as P2P exchange for fully-collaterized derivatives. 
 
 Since data is not limited to conventional future data, anything unknown can be advertised, e.g. solutions to mathematical problems, inverses of one-way functions, your husband's affairs etc.
 
