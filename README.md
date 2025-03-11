@@ -152,7 +152,7 @@ TODOs:
 - note: generate contracts in client API
 
 "documentation, viability and security assessment" milestone
-- develop more test cases, attack vectors
+- develop more test cases, attack vectors, add neccessary features like throttling
 - deploy large scale p2p network, run serious performance tests
 - ?consult third-party vendors
 - "financial attacks"
