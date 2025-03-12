@@ -237,8 +237,6 @@ interface Api {
     lookupReports: (paging: PagingDescriptor, oraclePub: string) => Promise<Report[]>
     lookupOffers: (paging: PagingDescriptor, capabilityPubKey: string) => Promise<OfferMsg[]>
 
-    proxify: (req: FactRequest, uri: string) => Promise<string>
-
 }
 
 
@@ -521,10 +519,6 @@ export const api: Api = {
             return [];
         }
         return api.mempool.oracles[oraclePub].reports.slice(paging.page * paging.chunkSize, (paging.page + 1) * paging.chunkSize);
-    },
-
-    proxify: async (req: FactRequest, uri: string): Promise<string> => {
-        return "";
     },
     publishOffer: async function (cfg: MempoolConfig<any>, offer: OfferMsg): Promise<Registered | NotRegistered> {
         if (!checkPow(offer.pow, JSON.stringify(offer.content)) && !(offer.pow.difficulty == 0)) {
