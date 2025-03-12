@@ -153,10 +153,11 @@ TODOs:
 "documentation, viability and security assessment" milestone
 - develop more test cases, attack vectors, add neccessary features like throttling
 - deploy large scale p2p network, run serious performance tests
+- develop versioning for p2p (future protocol upgrades) and dns p2p seed discovery
 - ?consult third-party vendors
-- "financial attacks"
+- model "financial attacks"
 - write a white paper
-- consider alternatives to node.js (e.g. rust), pros and cons
+- consider alternatives to node.js (e.g. c++, rust), pros and cons
 
 "onboarding" milestone
 - add support for other UtXO chains in client API (testnet)
