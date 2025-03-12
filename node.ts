@@ -134,20 +134,29 @@ export interface Fact {
     signature: string
 }
 
-export interface FactDisagreesWithPublic { //this report is for manual review, it requires pow to submit in order to avoid spamming. Strongest pows will be prioritized
+export interface WithFactRequest {
+    request: FactRequest
+    capabilitySignatureOverRequest?: string
+}
+
+export interface FactDisagreesWithPublic extends WithFactRequest { //this report is for manual review, it requires pow to submit in order to avoid spamming. Strongest pows will be prioritized
     type: 'fact-disagreees-with-public'
     request: FactRequest
+    capabilitySignatureOverRequest?: string
+    fact?: Fact
     comment?: string
 }
 
-export interface FactConflict {
+export interface FactConflict extends WithFactRequest {
     type: 'fact-conflict'
     request: FactRequest
+    capabilitySignatureOverRequest?: string
+    fact: Fact
     facts: Fact[] //must be of the same capability; TODO validator
 
 }
 
-export interface FactMissing {
+export interface FactMissing extends WithFactRequest {
     type: 'fact-missing'
     request: FactRequest
     capabilitySignatureOverRequest: string
