@@ -45,6 +45,8 @@ Unlike mainstream solutions (e.g. chainlink), Mega is not concerned with specula
 
 ### Strong identity.
 
+(stronger identities allow for weaker assumptions about their malleabilty)
+
 Oracles in Mega are either not anonymous at all (e.g. Wolfram Alpha) or have reliable pseudonymous identitites supported by proof-of-work. Identity in Mega is treated as NOT "something confirmed by your human peers", but something that rather requires effort (physical work) to aquire.
 
 ### True Data Authenticity
