@@ -137,7 +137,6 @@ The approach is not limited to contracts which require oracles: finding a counte
 TODOs:
 - limit lengths of strings
 - finish coverage tests (cryptography, data corruption)
-- (fix) add signature verification to OracleId
 - REST service and p2p network tests
 - code improvements
 
