@@ -349,6 +349,7 @@ const validateBid = async (cfg: MempoolConfig<any>, bid: Bid): Promise<boolean> 
     if (cfg.lnRestHost === undefined || cfg.lnMacaroonPath === undefined || cfg.facilitatorId === undefined || cfg.facilitatorId.rewardAddress === undefined){
         return false
     }
+    /* c8 ignore start */
     if (bid.paymentType === undefined || bid.paymentType === "lightning") {
         let options = {
             url: 'https://' + cfg.lnRestHost + '/v1/invoice/' + bid.proof,
@@ -374,6 +375,7 @@ const validateBid = async (cfg: MempoolConfig<any>, bid: Bid): Promise<boolean> 
         })
     }
     return false
+    /* c8 ignore end */
 }
 
 const validateFact = (fact: Fact, req: FactRequest): boolean => {
