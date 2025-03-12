@@ -77,7 +77,7 @@ export interface HashCashPow {
     algorithm: string
     hash: string //empty string for preimage
     magicNo: number
-    magicString?: number
+    magicString?: string
 }
 
 export interface Bid {
