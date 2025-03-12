@@ -172,7 +172,7 @@ export interface Report extends MsgLike, WithPow {
     content: MaleabilityReport
 }
 
-interface OfferTerms {
+export interface OfferTerms {
     question: FactRequest
     partyBetsOn: Answer[]
     counterPartyBetsOn: Answer[]
@@ -180,11 +180,11 @@ interface OfferTerms {
     counterpartyBetAmount: number
 }
 
-interface Offer {
+export interface Offer {
     message: string
     customContract: string
     terms: OfferTerms
-    blockchain: string
+    blockchain: 'bitcoin-testnet' | 'bitcoin-mainnet'
     transactionToBeCoSigned: string //counterparty pays fees, can broadcast as a confirmation
     signaturesToAggregate?: string[]
     contact: string
@@ -210,8 +210,8 @@ export interface PagingDescriptor {
 }
 
 
-type Registered = string
-type NotRegistered = string
+type Registered = 'success' | 'duplicate'
+type NotRegistered = 'low pow difficulty' | 'wrong signature' | 'wrong pow' | 'no oracle found'
 
 type DisputeAccepted = string
 type DisputeRejected = string
@@ -334,7 +334,7 @@ const checkReportRank = (cfg: MempoolConfig<any>, report: Report, o: Oracle): bo
 }
 
 const checkOfferRank = (cfg: MempoolConfig<any>, offer: OfferMsg, m: Mempool): boolean => {
-    if (m.offers.length > (cfg.maxReports ?? 0)) {
+    if (m.offers.length > (cfg.maxOffers ?? 0)) {
         const index = m.offers.findIndex(r => r.pow.difficulty <= offer.pow.difficulty)
         if (index > -1) {
             m.offers.splice(index, 1)
@@ -429,7 +429,7 @@ export const api: Api = {
     },
     announceCapability: async (cfg: MempoolConfig<any>, cp: OracleCapability): Promise<Registered | NotRegistered> => {
         if (api.mempool.oracles[cp.oraclePubKey] === undefined) {
-            return "no oracle found:" + cp.oraclePubKey;
+            return 'no oracle found';
         }
         if (cp.pow.difficulty == 0 || checkCapabilitySignature(cp)) {
             if (cp.pow.difficulty == 0 || checkPow(cp.pow, cp.oracleSignature)) {
@@ -526,11 +526,11 @@ export const api: Api = {
     proxify: async (req: FactRequest, uri: string): Promise<string> => {
         return "";
     },
-    publishOffer: async function (cfg: MempoolConfig<any>, offer: OfferMsg): Promise<string> {
+    publishOffer: async function (cfg: MempoolConfig<any>, offer: OfferMsg): Promise<Registered | NotRegistered> {
         if (!checkPow(offer.pow, JSON.stringify(offer.content)) && !(offer.pow.difficulty == 0)) {
             return "wrong pow";
         }
-        if (checkOfferRank(cfg, offer, api.mempool)) {
+        if (!checkOfferRank(cfg, offer, api.mempool)) {
             return "low pow difficulty";
         }
         if (api.mempool.offers.find(x => x.pow.hash === offer.pow.hash) !== undefined) {

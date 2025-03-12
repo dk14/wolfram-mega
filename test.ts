@@ -2,9 +2,10 @@ import * as nd from './node';
 import * as assert from 'assert'
 
 const cfg = {
-    "maxOracles": 100,
-    "maxCapabilities": 100,
-    "maxReports": 100,
+    "maxOracles": 2,
+    "maxCapabilities": 2,
+    "maxReports": 2,
+    "maxOffers": 2,
     "maxConnections": 100,
     "httpPort": 8080,
     "p2pPort": 8333,
@@ -129,6 +130,55 @@ const dispute1wrongfactsig: nd.Dispute = {
     fact: fact1wrongsig
 }
 
+
+const offerTerms1: nd.OfferTerms = {
+    question: factreq1,
+    partyBetsOn: ["me"],
+    counterPartyBetsOn: ["you"],
+    partyBetAmount: 100,
+    counterpartyBetAmount: 200
+}
+
+const offer1: nd.Offer = {
+    message: '',
+    customContract: 'extra terms',
+    terms: offerTerms1,
+    blockchain: 'bitcoin-testnet', //will be used in clientApi
+    transactionToBeCoSigned: 'transactionBase64', //will be used in clientApi
+    contact: ''
+}
+
+const offerTermsWrongOracle: nd.OfferTerms = {
+    question: factreq2,
+    partyBetsOn: ["me"],
+    counterPartyBetsOn: ["you"],
+    partyBetAmount: 100,
+    counterpartyBetAmount: 200
+}
+
+const offerWrongOracle: nd.Offer = {
+    message: '',
+    customContract: 'extra terms',
+    terms: offerTermsWrongOracle,
+    blockchain: 'bitcoin-testnet', //will be used in clientApi
+    transactionToBeCoSigned: 'transactionBase64', //will be used in clientApi
+    contact: ''
+}
+
+const offerMsg1: nd.OfferMsg = {
+    seqNo: 0,
+    cTTL: 0,
+    pow: pow1,
+    content: offer1
+}
+
+const offerMsgWrongOracle: nd.OfferMsg = {
+    seqNo: 0,
+    cTTL: 0,
+    pow: pow1,
+    content: offerWrongOracle
+}
+
 const paging: nd.PagingDescriptor = {
     page: 0,
     chunkSize: 100
@@ -137,6 +187,10 @@ const paging: nd.PagingDescriptor = {
 //-------------------------------------------------------------------------
 {
     console.log("1. Oracles")
+
+    const oracles0 = await nd.api.lookupOracles(paging, [])
+    assert.deepStrictEqual(oracles0, [])
+
     const res = await nd.api.announceOracle(cfg, oracle1)
     assert.equal(res, "success")
     const res2 = await nd.api.announceOracle(cfg, oracle1)
@@ -149,6 +203,10 @@ const paging: nd.PagingDescriptor = {
 //-------------------------------------------------------------------------
 {
     console.log("2. Capabilities")
+
+    const capabilities0 = await nd.api.lookupCapabilities(paging, oracle1Pub)
+    assert.deepStrictEqual(capabilities0, [])
+
     const res = await nd.api.announceCapability(cfg, capability1)
     assert.equal(res, "success")
     
@@ -165,6 +223,10 @@ const paging: nd.PagingDescriptor = {
 //-------------------------------------------------------------------------
 {
     console.log("3. Reports")
+
+    const reports0 = await nd.api.lookupReports(paging, oracle1Pub)
+    assert.deepStrictEqual(reports0, [])
+
     const res = await nd.api.reportMalleability(cfg, report1)
     assert.equal(res, "success")
     
@@ -204,5 +266,28 @@ const paging: nd.PagingDescriptor = {
     }
 }
 
-// TODO offer, successful PoW-checks, successful signature checks, rejections by pow, rejections by bid, evictions by pow, evictions by bid
-// TODO data corruption, malformed JSON
+//-------------------------------------------------------------------------
+{
+    console.log("5. Offers")
+
+    const offers0 = await nd.api.lookupOffers(paging, "")
+    assert.deepStrictEqual(offers0, [])
+
+    const error = await nd.api.publishOffer(cfg, offerMsgWrongOracle)
+    assert.equal(error, "no oracle found")
+
+    const res = await nd.api.publishOffer(cfg, offerMsg1)
+    assert.equal(res, "success")
+    
+    const res2 = await nd.api.publishOffer(cfg, offerMsg1)
+    assert.equal(res2, "duplicate")
+
+    const offers = await nd.api.lookupOffers(paging, offerMsg1.content.terms.question.capabilityPubKey)
+    assert.deepStrictEqual(offers, [offerMsg1])
+
+    const offers2 = await nd.api.lookupOffers(paging, "")
+    assert.deepStrictEqual(offers2, [])
+}
+
+// TODO successful PoW-checks, successful signature checks (oracle, capability), rejections by pow, rejections by bid, evictions by pow, evictions by bid
+// TODO data corruption, malformed JSON, refine schemas
