@@ -127,7 +127,7 @@ Protocol can be extended to recognize and negotiate various types of "data contr
 
 The approach is not limited to contracts which require oracles: finding a counterparty for a cryptogrphic betting can be facilitated too. Alice picks a number (sends encrypted number to blockchain) and asks Bob if Bob can guess it. If Bob guesses right - it gets Alice's deposit, otherwise looses its own. Rewind...they have to find one another on some sort of tinder first. This could be standardized in our protocol.
 
-Securitization. Since PoW is done on reports, reports themselves can be "securitized" (become tradable) by publishing them (ideally zipped rather hashed) on Bitcoin blockchain using 'OP_RETURN' akin to inscriptions. Unlike with inscriptions, there is no need to "issue NFT asset", since value of a given report can be estimated evaluated based on its PoW-difficulty * importance, so it can be fungible (just put n satoshis to the output). This would serve as a persitent database of most important reports.
+Securitization of malleability reports. Since PoW is done on reports, reports themselves can be "securitized" (become tradable) by publishing them (ideally zipped rather hashed) on Bitcoin blockchain using 'OP_RETURN' akin to inscriptions. Unlike with inscriptions, there is no need to "issue NFT asset", since value of a given report can be evaluated based on its PoW-difficulty * importance, so it can be fungible (just put n satoshis to the output). This would serve as a persitent database of most important reports.
 
 --------
 
