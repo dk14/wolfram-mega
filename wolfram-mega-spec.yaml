@@ -26,14 +26,10 @@ paths:
         '200':
           description: Successful operation
           content:
-            plain/text: 
+            text/plain: 
               schema:
                 type: string
                        
-        '400':
-          description: Invalid input
-        '422':
-          description: Validation exception
           
   /capability:
     post:
@@ -45,20 +41,16 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Oracle'
+              $ref: '#/components/schemas/Capability'
         required: true
       responses:
         '200':
           description: Successful operation
           content:
-            plain/text: 
+            text/plain: 
               schema:
                 type: string
                        
-        '400':
-          description: Invalid input
-        '422':
-          description: Validation exception
           
   /report:
     post:
@@ -66,7 +58,7 @@ paths:
       description: Register malleability report
       operationId: report
       requestBody:
-        description: Create a new capability
+        description: Create a new report
         content:
           application/json:
             schema:
@@ -76,42 +68,49 @@ paths:
         '200':
           description: Successful operation
           content:
-            plain/text: 
+            text/plain: 
               schema:
                 type: string
-                       
-        '400':
-          description: Invalid input
-        '422':
-          description: Validation exception
 
+  /dispute:
+    post:
+      summary: Dispute report
+      description: Dispute malleability report
+      operationId: dispute
+      requestBody:
+        description: Dispute report
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Dispute'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            text/plain: 
+              schema:
+                type: string
 
   /offer:
     post:
       summary: Publish offer
-      description: Register malleability report
-      operationId: report
+      description: Publish offer
+      operationId: offer
       requestBody:
         description: Create a new capability
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Report'
+              $ref: '#/components/schemas/Offer'
         required: true
       responses:
         '200':
           description: Successful operation
           content:
-            plain/text: 
+            text/plain: 
               schema:
                 type: string
-                       
-        '400':
-          description: Invalid input
-        '422':
-          description: Validation exception
-
-
   
   /oracles:
     get:
@@ -127,8 +126,6 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Oracle'          
-        '400':
-          description: Invalid tag value
 
   /capabilities:
     get:
@@ -142,7 +139,6 @@ paths:
           required: true
           schema:
             type: string
-            format: int64
       responses:
         '200':
           description: successful operation
@@ -152,10 +148,6 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Capability'       
-        '400':
-          description: Invalid ID supplied
-        '404':
-          description: Pet not found
           
   /reports:
     get:
@@ -169,7 +161,6 @@ paths:
           required: true
           schema:
             type: string
-            format: int64
       responses:
         '200':
           description: successful operation
@@ -179,10 +170,6 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Report'          
-        '400':
-          description: Invalid ID supplied
-        '404':
-          description: Pet not found
 
   /offers:
     get:
@@ -196,7 +183,6 @@ paths:
           required: true
           schema:
             type: string
-            format: int64
       responses:
         '200':
           description: successful operation
@@ -212,6 +198,7 @@ components:
   schemas:
     Oracle:
       type: object
+      required: [pubkey, pow, bid, cTTL, oracleSignature, oracleSignatureType]
       properties:
         pubkey: 
           type: string
@@ -240,8 +227,11 @@ components:
 
     Capability:
       type: object
+      required: [oraclePubKey, capabilityPubKey, pow, cTTL, oracleSignature, oracleSignatureType, question]
       properties:
         oraclePubKey: 
+            type: string
+        capabilityPubKey:
             type: string
         question: 
             type: string
@@ -261,6 +251,7 @@ components:
 
     Report:
       type: object
+      required: [oraclePubKey, seqNo, cTTL, content, pow]
       properties:
         oraclePubKey: 
           type: string
@@ -271,18 +262,23 @@ components:
           type: integer
           format: int32
         content: 
-          type: object
-          properties: 
-            'type': 
-              type: string
-              enum: [fact-disagreees-with-public, fact-conflict, fact-missing] 
-            request: 
-              $ref: '#/components/schemas/FactRequest' 
+          $ref: '#/components/schemas/MalleabilityReport'
         pow: 
           $ref: '#/components/schemas/Pow' 
 
+    MalleabilityReport:
+      type: object
+      properties: 
+        'type': 
+          type: string
+          enum: [fact-disagreees-with-public, fact-conflict, fact-missing] 
+        request: 
+          $ref: '#/components/schemas/FactRequest' 
+
+
     Offer:
       type: object
+      required: [seqNo, cTTL, content]
       properties:
         seqNo: 
           type: integer
@@ -311,6 +307,7 @@ components:
 
     Pow:
       type: object
+      required: [difficulty, algorithm, hash]
       properties: 
         difficulty: 
           type: integer
@@ -356,3 +353,25 @@ components:
           type: object
         invoice:
           type: string
+
+    Fact:
+      type: object
+      properties:
+        factWithQuestion: 
+          type: string
+        signatureType:
+          type: string
+        signature: 
+          type: string
+
+    Dispute:
+      type: object
+      properties:
+        claim: 
+          $ref: '#/components/schemas/MalleabilityReport'
+        reportPow:
+          $ref: '#/components/schemas/Pow'
+        oraclePubKey: 
+          type: string
+        fact: 
+          $ref: '#/components/schemas/Fact'

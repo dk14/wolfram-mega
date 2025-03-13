@@ -1,7 +1,9 @@
 import {createHash, createVerify, generateKeyPairSync, createSign} from 'crypto'
 import * as request from 'request'
 import * as fs from 'fs'
-import { off } from 'process';
+import Enforcer from 'openapi-enforcer'
+
+const openapi = await Enforcer('./wolfram-mega-spec.yaml')
 
 
 const curve = 'secp521r1';
@@ -231,13 +233,13 @@ export interface PagingDescriptor {
 
 
 type Registered = 'success' | 'duplicate'
-type NotRegistered = 'low pow difficulty' | 'wrong signature' | 'wrong pow' | 'no oracle found'
+type NotRegistered = 'low pow difficulty' | 'wrong signature' | 'wrong pow' | 'no oracle found' | ['invalid request', string]
 
-type DisputeAccepted = string
-type DisputeRejected = string
+type DisputeAccepted = Registered
+type DisputeRejected = NotRegistered | 'invalid fact' | 'report not found' | 'unknown'
 
-type ReportAccepted = string
-type ReportRejected = string
+type ReportAccepted = Registered
+type ReportRejected = NotRegistered
 
 
 interface Api {
@@ -414,6 +416,10 @@ export const api: Api = {
         offers: []
     },
     announceOracle: async (cfg: MempoolConfig<any>, id: OracleId): Promise<Registered | NotRegistered> => {
+        const [ _, error ] = openapi.request({ method: 'POST', path: '/oracle', body: id})
+        if (error !== undefined) {
+            return ['invalid request', error.toString()]
+        }
         if (!(id.pow.difficulty == 0 || checkOracleIdSignature(id))) {
             return "wrong signature"
         }
@@ -446,6 +452,10 @@ export const api: Api = {
         }
     },
     announceCapability: async (cfg: MempoolConfig<any>, cp: OracleCapability): Promise<Registered | NotRegistered> => {
+        const [ _, error ] = openapi.request({ method: 'POST', path: '/capability', body: cp})
+        if (error !== undefined) {
+            return ['invalid request', error.toString()]
+        }
         if (api.mempool.oracles[cp.oraclePubKey] === undefined) {
             return 'no oracle found';
         }
@@ -477,8 +487,12 @@ export const api: Api = {
         }
     },
     reportMalleability: async (cfg: MempoolConfig<any>, report: Report): Promise<ReportAccepted | ReportRejected> => {
+        const [ _, error ] = openapi.request({ method: 'POST', path: '/report', body: report})
+        if (error !== undefined) {
+            return ['invalid request', error.toString()]
+        }
         if (api.mempool.oracles[report.oraclePubKey] === undefined) {
-            return "no oracle found:" + report.oraclePubKey;
+            return 'no oracle found'
         }
         if (!checkPow(report.pow, JSON.stringify(report.content)) && !(report.pow.difficulty == 0)) {
             return "wrong pow";
@@ -501,8 +515,12 @@ export const api: Api = {
         return "success";
     },
     disputeMissingfactClaim: async (dispute: Dispute): Promise<DisputeAccepted | DisputeRejected> => {
+        const [ _, error ] = openapi.request({ method: 'POST', path: '/dispute', body: dispute})
+        if (error !== undefined) {
+            return ['invalid request', error.toString()]
+        }
         if (api.mempool.oracles[dispute.oraclePubKey] === undefined) {
-            return "no oracle found:" + dispute.oraclePubKey;
+            return 'no oracle found'
         }
         const oracle = api.mempool.oracles[dispute.oraclePubKey];
         if (!validateFact(dispute.fact, dispute.claim.request)) {
@@ -517,7 +535,7 @@ export const api: Api = {
                 return "report not found";
             }
         } else {
-            return "unknown oracle";
+            return 'no oracle found'
         }
     },
     lookupOracles: async (paging: PagingDescriptor, questions: string[]): Promise<OracleId[]> => {
@@ -542,6 +560,10 @@ export const api: Api = {
         return api.mempool.oracles[oraclePub].reports.slice(paging.page * paging.chunkSize, (paging.page + 1) * paging.chunkSize);
     },
     publishOffer: async function (cfg: MempoolConfig<any>, offer: OfferMsg): Promise<Registered | NotRegistered> {
+        const [ _, error ] = openapi.request({ method: 'POST', path: '/offer', body: offer})
+        if (error !== undefined) {
+            return ['invalid request', error.toString()]
+        }
         if (!checkPow(offer.pow, JSON.stringify(offer.content)) && !(offer.pow.difficulty == 0)) {
             return "wrong pow";
         }

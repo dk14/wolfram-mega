@@ -53,7 +53,7 @@ const capability1: nd.OracleCapability = {
     seqNo: 0,
     cTTL: 0,
     oracleSignature: '', //signature is only checked when pow difficulty higher than 0
-    oracleSignatureType: '',
+    oracleSignatureType: 'SHA256',
     pow: pow1
 }
 
@@ -191,10 +191,13 @@ const paging: nd.PagingDescriptor = {
     const oracles0 = await nd.api.lookupOracles(paging, [])
     assert.deepStrictEqual(oracles0, [])
 
+    const [error, _] = await nd.api.announceOracle(cfg, {} as nd.OracleId)
+    assert.strictEqual(error, "invalid request")
+
     const res = await nd.api.announceOracle(cfg, oracle1)
-    assert.equal(res, "success")
+    assert.strictEqual(res, "success")
     const res2 = await nd.api.announceOracle(cfg, oracle1)
-    assert.equal(res2, "duplicate")
+    assert.strictEqual(res2, "duplicate")
 
     const oracles = await nd.api.lookupOracles(paging, [])
     assert.deepStrictEqual(oracles, [oracle1])
@@ -207,11 +210,14 @@ const paging: nd.PagingDescriptor = {
     const capabilities0 = await nd.api.lookupCapabilities(paging, oracle1Pub)
     assert.deepStrictEqual(capabilities0, [])
 
+    const [error, _] = await nd.api.announceCapability(cfg, {} as nd.OracleCapability)
+    assert.strictEqual(error, "invalid request")
+
     const res = await nd.api.announceCapability(cfg, capability1)
-    assert.equal(res, "success")
+    assert.strictEqual(res, "success")
     
     const res2 = await nd.api.announceCapability(cfg, capability1)
-    assert.equal(res2, "duplicate")
+    assert.strictEqual(res2, "duplicate")
 
     const capabilities = await nd.api.lookupCapabilities(paging, oracle1Pub)
     assert.deepStrictEqual(capabilities, [capability1])
@@ -227,11 +233,14 @@ const paging: nd.PagingDescriptor = {
     const reports0 = await nd.api.lookupReports(paging, oracle1Pub)
     assert.deepStrictEqual(reports0, [])
 
+    const [error, _] = await nd.api.reportMalleability(cfg, {} as nd.Report)
+    assert.strictEqual(error, "invalid request")
+
     const res = await nd.api.reportMalleability(cfg, report1)
-    assert.equal(res, "success")
+    assert.strictEqual(res, "success")
     
     const res2 = await nd.api.reportMalleability(cfg, report1)
-    assert.equal(res2, "duplicate")
+    assert.strictEqual(res2, "duplicate")
 
     const reports = await nd.api.lookupReports(paging, oracle1Pub)
     assert.deepStrictEqual(reports, [report1])
@@ -244,20 +253,20 @@ const paging: nd.PagingDescriptor = {
 {
     console.log("4. Dispute")
     const res = await nd.api.reportMalleability(cfg, report2)
-    assert.equal(res, "success")
+    assert.strictEqual(res, "success")
 
     const reports = await nd.api.lookupReports(paging, oracle1Pub)
     assert.deepStrictEqual(reports, [report1, report2])
 
     const res2 = await nd.api.disputeMissingfactClaim(dispute1wrongfactsig)
-    assert.equal(res2, "invalid fact")
+    assert.strictEqual(res2, "invalid fact")
 
     const res3 = await nd.api.disputeMissingfactClaim(dispute1)
-    assert.equal(res3, "success")
+    assert.strictEqual(res3, "success")
 
 
     const res4 = await nd.api.disputeMissingfactClaim(dispute1wrongreport)
-    assert.equal(res4, "report not found")
+    assert.strictEqual(res4, "report not found")
 
     if (report2.content.type === 'fact-missing') {
         assert.deepStrictEqual(report2.content.dispute, dispute1.fact)
@@ -273,14 +282,17 @@ const paging: nd.PagingDescriptor = {
     const offers0 = await nd.api.lookupOffers(paging, "")
     assert.deepStrictEqual(offers0, [])
 
+    const [error0, _] = await nd.api.publishOffer(cfg, {} as nd.OfferMsg)
+    assert.strictEqual(error0, "invalid request")
+
     const error = await nd.api.publishOffer(cfg, offerMsgWrongOracle)
-    assert.equal(error, "no oracle found")
+    assert.strictEqual(error, "no oracle found")
 
     const res = await nd.api.publishOffer(cfg, offerMsg1)
-    assert.equal(res, "success")
+    assert.strictEqual(res, "success")
     
     const res2 = await nd.api.publishOffer(cfg, offerMsg1)
-    assert.equal(res2, "duplicate")
+    assert.strictEqual(res2, "duplicate")
 
     const offers = await nd.api.lookupOffers(paging, offerMsg1.content.terms.question.capabilityPubKey)
     assert.deepStrictEqual(offers, [offerMsg1])
