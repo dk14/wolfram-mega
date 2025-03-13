@@ -118,6 +118,14 @@ const report2: nd.Report = {
     content: malleability2
 }
 
+const report3: nd.Report = {
+    seqNo: 0,
+    cTTL: 0,
+    pow: undefined,
+    oraclePubKey: undefined,
+    content: malleability2
+}
+
 const fact1: nd.Fact = {
     factWithQuestion: 'Who? You!',
     signatureType: 'SHA256',
@@ -321,6 +329,20 @@ const keypairOracle2 = nd.testOnlyGenerateKeyPair()
 
     const reports2 = await nd.api.lookupCapabilities(paging, "")
     assert.deepStrictEqual(reports2, [])
+
+    //----crypto-----
+
+    report3.pow = await pow.powOverReport(report3, 1)
+    report3.oraclePubKey = keypairOracle2.pub
+
+    const res3 = await nd.api.reportMalleability(cfg, report3)
+    assert.strictEqual(res3, "success", "pow or signature check failed")
+
+    report3.pow.difficulty = 100
+    const err = await nd.api.reportMalleability(cfg, report3)
+    assert.strictEqual(err, "wrong pow")
+    report3.pow.difficulty = 1
+
 }
 
 //-------------------------------------------------------------------------
@@ -330,6 +352,7 @@ const keypairOracle2 = nd.testOnlyGenerateKeyPair()
     assert.strictEqual(res, "success")
 
     const reports = await nd.api.lookupReports(paging, oracle1Pub)
+    assert.deepStrictEqual(reports.length, 2)
     assert.deepStrictEqual(reports, [report1, report2])
 
     const res2 = await nd.api.disputeMissingfactClaim(dispute1wrongfactsig)
@@ -347,6 +370,8 @@ const keypairOracle2 = nd.testOnlyGenerateKeyPair()
     } else {
         assert.fail("not fact-missing?")
     }
+
+    
 }
 
 //-------------------------------------------------------------------------
