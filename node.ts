@@ -72,6 +72,7 @@ export interface OracleCapability extends MsgLike {
     oracleSignature: string //sign this OracleCapability JSON record (with empty string signature field)
     oracleSignatureType: string
     pow: HashCashPow
+    off?: boolean
     
     params?: Param[] //possible params
     answers?: Answer[] //possible answers
