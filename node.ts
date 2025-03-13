@@ -52,6 +52,14 @@ export interface Param {
     values: Value[]
 }
 
+export interface Commitment {
+    req: FactRequest
+    contract: string
+    rValueSchnorrHex?: string
+    rewardAddress?: string
+    oracleSig: string
+}
+
 export interface OracleCapability extends MsgLike {
     oraclePubKey: string
     capabilityPubKey: string
@@ -68,6 +76,7 @@ export interface OracleCapability extends MsgLike {
     params?: Param[] //possible params
     answers?: Answer[] //possible answers
     endpoint?: string //how to query oracle
+    commitmentEndpoint?: string //where to get comitment to future value from oracle
 
 }
 
@@ -137,6 +146,7 @@ export interface Fact {
 export interface WithFactRequest {
     request: FactRequest
     capabilitySignatureOverRequest?: string
+    commitment?: Commitment
 }
 
 export interface FactDisagreesWithPublic extends WithFactRequest { //this report is for manual review, it requires pow to submit in order to avoid spamming. Strongest pows will be prioritized
