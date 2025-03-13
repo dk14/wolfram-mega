@@ -69,6 +69,17 @@ const capability1: nd.OracleCapability = {
     pow: pow1
 }
 
+const capability3: nd.OracleCapability = {
+    oraclePubKey: undefined,
+    capabilityPubKey: undefined,
+    question: 'What?',
+    seqNo: 0,
+    cTTL: 0,
+    oracleSignature: '', //signature is only checked when pow difficulty higher than 0
+    oracleSignatureType: 'SHA256',
+    pow: undefined
+}
+
 const factreq1: nd.FactRequest = {
     capabilityPubKey: capability1Pub, //capability does not have to be in memory, since sharding is allowed
     arguments: {}
@@ -196,6 +207,9 @@ const paging: nd.PagingDescriptor = {
     chunkSize: 100
 }
 
+const keypairOracle2 = nd.testOnlyGenerateKeyPair()
+
+
 //-------------------------------------------------------------------------
 {
     console.log("1. Oracles")
@@ -214,16 +228,26 @@ const paging: nd.PagingDescriptor = {
     const oracles = await nd.api.lookupOracles(paging, [])
     assert.deepStrictEqual(oracles, [oracle1])
 
-    //
-    const keypair = nd.testOnlyGenerateKeyPair()
+    //----crypto-----
 
-    oracle2.pubkey = keypair.pub
+    oracle2.pubkey = keypairOracle2.pub
     oracle2.pow = await pow.powOverOracleId(oracle2, 1)
     oracle2.oracleSignature = ""
-    oracle2.oracleSignature = nd.testOnlySign(JSON.stringify(oracle2), keypair.pk)
+    oracle2.oracleSignature = nd.testOnlySign(JSON.stringify(oracle2), keypairOracle2.pk)
 
     const res3 = await nd.api.announceOracle(cfg, oracle2)
     assert.strictEqual(res3, "success", "pow or signature check failed")
+
+    oracle2.oracleSignature = ""
+    const err = await nd.api.announceOracle(cfg, oracle2)
+    assert.strictEqual(err, "wrong signature")
+
+    oracle2.pow.difficulty = 100
+    oracle2.oracleSignature = nd.testOnlySign(JSON.stringify(oracle2), keypairOracle2.pk)
+    const err2 = await nd.api.announceOracle(cfg, oracle2)
+    assert.strictEqual(err2, "wrong pow")
+    oracle2.pow.difficulty = 1
+    oracle2.oracleSignature = nd.testOnlySign(JSON.stringify(oracle2), keypairOracle2.pk)
 }
 
 //-------------------------------------------------------------------------
@@ -247,6 +271,33 @@ const paging: nd.PagingDescriptor = {
 
     const capabilities2 = await nd.api.lookupCapabilities(paging, "")
     assert.deepStrictEqual(capabilities2, [])
+
+
+    //----crypto-----
+    
+    capability3.oraclePubKey = keypairOracle2.pub
+    capability3.capabilityPubKey = nd.testOnlyGenerateKeyPair().pub
+
+    capability3.oracleSignature = ""
+    capability3.oracleSignature = nd.testOnlySign(JSON.stringify(capability3), keypairOracle2.pk)
+    capability3.pow = await pow.powOverOracleCapability(capability3, 1)
+
+    const res3 = await nd.api.announceCapability(cfg, capability3)
+    assert.strictEqual(res3, "success", "pow or signature check failed")
+
+    const savesig = capability3.oracleSignature
+    capability3.oracleSignature = ""
+    const err = await nd.api.announceCapability(cfg, capability3)
+    assert.strictEqual(err, "wrong signature")
+    capability3.oracleSignature = savesig
+
+
+    capability3.pow.difficulty = 100
+    const err2 = await nd.api.announceCapability(cfg, capability3)
+    assert.strictEqual(err2, "wrong pow")
+    capability3.pow.difficulty = 1
+    capability3.oracleSignature = nd.testOnlySign(JSON.stringify(oracle2), keypairOracle2.pk)
+
 }
 
 //-------------------------------------------------------------------------

@@ -301,9 +301,12 @@ export const checkPow = (pow: HashCashPow, preimage: string): boolean => {
 
 const checkCapabilitySignature = (cp: OracleCapability): boolean => {
     const signature = cp.oracleSignature
+    const pow = cp.pow
     cp.oracleSignature = ""
-    const res = createVerify(cp.oracleSignatureType).update(JSON.stringify(cp)).verify(createPemPub(cp.oraclePubKey), cp.oracleSignature, 'base64')
+    cp.pow = undefined
+    const res = createVerify(cp.oracleSignatureType).update(JSON.stringify(cp)).verify(createPemPub(cp.oraclePubKey), signature, 'base64')
     cp.oracleSignature = signature
+    cp.pow = pow
     return res
 }
 
