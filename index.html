@@ -134,7 +134,7 @@
             xhr.setRequestHeader("Content-Type", "application/json");
 
             const pow = {"magicNo": 1000, "difficulty":0, "algorithm": "SHA256", "hash": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"}
-            capability = {"seqNo": 1, "cTTL": 0, "pow": pow, "oracleSignature": "MEUCIQDM12f6H73XCMIgnFA/V/JpMnH5/TPbiLRyueAk/Mo+zAIgU/7KFjiBx7AZ/AmXNS4y3/XEOX+gsGdRYU+CgKfcwHk=", "oracleSignatureType": "SHA256"}
+            capability = {"seqNo": 1, "cTTL": 0, "pow": pow, "capabilityPubKey": "KEY", "oracleSignature": "MEUCIQDM12f6H73XCMIgnFA/V/JpMnH5/TPbiLRyueAk/Mo+zAIgU/7KFjiBx7AZ/AmXNS4y3/XEOX+gsGdRYU+CgKfcwHk=", "oracleSignatureType": "SHA256"}
             capability.oraclePubKey = pubkey.value
             capability.question = question.value
             xhr.send(JSON.stringify(capability));
@@ -154,7 +154,7 @@
             xhr.setRequestHeader("Content-Type", "application/json");
             const pow = {"magicNo": 1000, "difficulty":0, "algorithm": "SHA256", "hash": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"}
             
-            report = {"cTTL": 0,  "pow": pow}
+            report = {"cTTL": 0, "seqNo": 0, "pow": pow}
             report.oraclePubKey = pubkey.value
             report.content = JSON.parse(content.value)
  
