@@ -3,6 +3,7 @@ import * as request from 'request'
 import * as fs from 'fs'
 import {hash} from './util'
 import Enforcer from 'openapi-enforcer'
+import { console } from 'inspector'
 
 const openapi = await Enforcer('./wolfram-mega-spec.yaml')
 
@@ -34,7 +35,7 @@ export const testOnlyGenerateKeyPair = (): KeyPair => {
 }
 
 export const testOnlySign = (msg: string, pk: string) => {
-    return createSign('SHA256').update(msg).sign(pk, 'base64')
+    return createSign('SHA256').update(msg).sign(createPemPk(pk), 'base64')
 }
 
 //used for broadcast
@@ -291,7 +292,7 @@ export interface MempoolConfig<PeerAddrT> {
     p2pKeepAlive?: number
 }
 
-const checkPow = (pow: HashCashPow, preimage: string): boolean => {
+export const checkPow = (pow: HashCashPow, preimage: string): boolean => {
     if (!pow.hash.endsWith("0".repeat(pow.difficulty))) {
         return false
     }
@@ -309,7 +310,7 @@ const checkCapabilitySignature = (cp: OracleCapability): boolean => {
 const checkOracleIdSignature = (o: OracleId): boolean => {
     const signature = o.oracleSignature
     o.oracleSignature = ""
-    const res = createVerify(o.oracleSignatureType).update(JSON.stringify(o)).verify(createPemPub(o.pubkey), o.oracleSignature, 'base64')
+    const res = createVerify(o.oracleSignatureType).update(JSON.stringify(o)).verify(createPemPub(o.pubkey), signature, 'base64')
     o.oracleSignature = signature
     return res
 }

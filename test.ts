@@ -1,5 +1,6 @@
 import * as nd from './node';
 import * as assert from 'assert'
+import * as pow from './pow'
 
 const cfg = {
     "maxOracles": 2,
@@ -14,6 +15,7 @@ const cfg = {
 }
 
 const oracle1Pub = "AAA"
+
 const capability1Pub = "BBB"
 const capability2Pub = "MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAEKWN+hSgqzb2rE7ft4fXBrIyXeRwfHHa3IMD7XDiZq/KnVRQrY47lmCwIScqOE+PAqtbovxPCRK5C6euYYRv7lg=="
 
@@ -42,6 +44,16 @@ const oracle1: nd.OracleId = {
     seqNo: 0,
     cTTL: 0,
     pow: pow1,
+    bid: bid1,
+    oracleSignatureType: 'SHA256'
+}
+
+const oracle2: nd.OracleId = {
+    pubkey: undefined,
+    oracleSignature:undefined,
+    seqNo: 0,
+    cTTL: 0,
+    pow: undefined,
     bid: bid1,
     oracleSignatureType: 'SHA256'
 }
@@ -201,6 +213,17 @@ const paging: nd.PagingDescriptor = {
 
     const oracles = await nd.api.lookupOracles(paging, [])
     assert.deepStrictEqual(oracles, [oracle1])
+
+    //
+    const keypair = nd.testOnlyGenerateKeyPair()
+
+    oracle2.pubkey = keypair.pub
+    oracle2.pow = await pow.powOverOracleId(oracle2, 1)
+    oracle2.oracleSignature = ""
+    oracle2.oracleSignature = nd.testOnlySign(JSON.stringify(oracle2), keypair.pk)
+
+    const res3 = await nd.api.announceOracle(cfg, oracle2)
+    assert.strictEqual(res3, "success", "pow or signature check failed")
 }
 
 //-------------------------------------------------------------------------

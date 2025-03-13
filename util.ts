@@ -12,13 +12,13 @@ export interface Magic {
 
 export const mine = (difficulty: number, preimage: string, algorithm: string) : Magic => {
     var magicNo: number = 0
-    var magicString: string | undefined = undefined
-    while (!hash(preimage + magicNo + (magicString ?? ""), algorithm).endsWith("0".repeat(difficulty))) {
+    var magicString: string = ""
+    while (!hash(preimage + magicNo + magicString, algorithm).endsWith("0".repeat(difficulty))) {
         magicNo++
     }
     return {
         magicNo,
         magicString,
-        hash: hash(preimage + magicNo + (magicString ?? ""), algorithm)
+        hash: hash(preimage + magicNo + magicString, algorithm)
     }
 }
