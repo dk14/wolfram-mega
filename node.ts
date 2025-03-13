@@ -455,8 +455,9 @@ export const api: Api = {
                     const found = api.mempool.oracles[cp.oraclePubKey].capabilies.find(x => x.question == cp.question);
                     if (found !== undefined) {
                         if (found.seqNo < cp.seqNo && found.pow.difficulty <= cp.pow.difficulty) {
-                            found.seqNo = cp.seqNo;
+                            found.seqNo = cp.seqNo
                             found.pow = cp.pow
+                            found.off = cp.off
                             return "success";
                         } else {
                             return "duplicate";
