@@ -303,4 +303,3 @@ const paging: nd.PagingDescriptor = {
 
 // TODO successful PoW-checks, successful signature checks (oracle, capability), rejections by pow, rejections by bid, evictions by pow, evictions by bid
 // TODO update
-// TODO data corruption, malformed JSON, refine schemas

@@ -1,6 +1,7 @@
-import {createHash, createVerify, generateKeyPairSync, createSign} from 'crypto'
+import {createVerify, generateKeyPairSync, createSign} from 'crypto'
 import * as request from 'request'
 import * as fs from 'fs'
+import {hash} from './util'
 import Enforcer from 'openapi-enforcer'
 
 const openapi = await Enforcer('./wolfram-mega-spec.yaml')
@@ -288,10 +289,6 @@ export interface MempoolConfig<PeerAddrT> {
     lnMacaroonPath?: string
     isTest: boolean
     p2pKeepAlive?: number
-}
-
-const hash = (msg: string, algo: string): string => {
-    return createHash(algo).update(msg).digest('hex')
 }
 
 const checkPow = (pow: HashCashPow, preimage: string): boolean => {
