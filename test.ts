@@ -210,6 +210,13 @@ const offerMsgWrongOracle: nd.OfferMsg = {
     content: offerWrongOracle
 }
 
+const offerMsg2: nd.OfferMsg = {
+    seqNo: 0,
+    cTTL: 0,
+    pow: undefined,
+    content: offer1
+}
+
 const paging: nd.PagingDescriptor = {
     page: 0,
     chunkSize: 100
@@ -232,6 +239,12 @@ const keypairOracle2 = nd.testOnlyGenerateKeyPair()
     assert.strictEqual(res, "success")
     const res2 = await nd.api.announceOracle(cfg, oracle1)
     assert.strictEqual(res2, "duplicate")
+
+    const oracle1Copy = structuredClone(oracle1)
+    oracle1Copy.seqNo++
+    const res22 = await nd.api.announceOracle(cfg, oracle1Copy)
+    assert.strictEqual(res22, "success")
+
 
     const oracles = await nd.api.lookupOracles(paging, [])
     assert.deepStrictEqual(oracles, [oracle1])
@@ -273,6 +286,11 @@ const keypairOracle2 = nd.testOnlyGenerateKeyPair()
     
     const res2 = await nd.api.announceCapability(cfg, capability1)
     assert.strictEqual(res2, "duplicate")
+
+    const capability1Copy = structuredClone(capability1)
+    capability1Copy.seqNo++
+    const res22 = await nd.api.announceCapability(cfg, capability1Copy)
+    assert.strictEqual(res22, "success")
 
     const capabilities = await nd.api.lookupCapabilities(paging, oracle1Pub)
     assert.deepStrictEqual(capabilities, [capability1])
@@ -324,6 +342,11 @@ const keypairOracle2 = nd.testOnlyGenerateKeyPair()
     const res2 = await nd.api.reportMalleability(cfg, report1)
     assert.strictEqual(res2, "duplicate")
 
+    const report1Copy = structuredClone(report1)
+    report1Copy.seqNo++
+    const res22 = await nd.api.reportMalleability(cfg, report1Copy)
+    assert.strictEqual(res22, "success")
+
     const reports = await nd.api.lookupReports(paging, oracle1Pub)
     assert.deepStrictEqual(reports, [report1])
 
@@ -371,7 +394,7 @@ const keypairOracle2 = nd.testOnlyGenerateKeyPair()
         assert.fail("not fact-missing?")
     }
 
-    
+
 }
 
 //-------------------------------------------------------------------------
@@ -393,12 +416,29 @@ const keypairOracle2 = nd.testOnlyGenerateKeyPair()
     const res2 = await nd.api.publishOffer(cfg, offerMsg1)
     assert.strictEqual(res2, "duplicate")
 
+    const offer1Copy = structuredClone(offerMsg1)
+    offer1Copy.seqNo++
+    const res22 = await nd.api.publishOffer(cfg, offer1Copy)
+    assert.strictEqual(res22, "success")
+
     const offers = await nd.api.lookupOffers(paging, offerMsg1.content.terms.question.capabilityPubKey)
     assert.deepStrictEqual(offers, [offerMsg1])
 
     const offers2 = await nd.api.lookupOffers(paging, "")
     assert.deepStrictEqual(offers2, [])
+
+    //----crypto-----
+
+    offerMsg2.pow = await pow.powOverOffer(offerMsg2, 1)
+    const res3 = await nd.api.publishOffer(cfg, structuredClone(offerMsg2))
+    assert.strictEqual(res3, "success")
+
+    offerMsg2.pow.difficulty = 5
+    const err = await nd.api.publishOffer(cfg, structuredClone(offerMsg2))
+    assert.strictEqual(err, "wrong pow")
+
+    offerMsg2.pow.difficulty = 1
+
 }
 
-// TODO successful PoW-checks, successful signature checks (oracle, capability), rejections by pow, rejections by bid, evictions by pow, evictions by bid
-// TODO update
+// TODO: rejections by pow, rejections by bid, evictions by pow, evictions by bid

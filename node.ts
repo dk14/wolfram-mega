@@ -571,7 +571,13 @@ export const api: Api = {
         if (!checkOfferRank(cfg, offer, api.mempool)) {
             return "low pow difficulty";
         }
-        if (api.mempool.offers.find(x => x.pow.hash === offer.pow.hash) !== undefined) {
+        const found = api.mempool.offers.find(x => x.pow.hash === offer.pow.hash)
+        if (found !== undefined) {
+            if (found.seqNo < offer.seqNo && found.pow.difficulty <= offer.pow.difficulty) {
+                found.seqNo = offer.seqNo
+                found.pow = offer.pow
+                return "success"
+            }
             return "duplicate"
         }
         const cp = Object.values(api.mempool.oracles).find(o => 
