@@ -423,7 +423,7 @@ const paging: nd.PagingDescriptor = {
 
     //----crypto-----
 
-    report3.pow = await pow.powOverReport(report3, 1)
+    report3.pow = await pow.powOverReport(report3, 4)
     report3.oraclePubKey = keypairOracle2.pub
 
     const res3 = await nd.api.reportMalleability(cfg, report3)
@@ -432,7 +432,24 @@ const paging: nd.PagingDescriptor = {
     report3.pow.difficulty = 100
     const err = await nd.api.reportMalleability(cfg, report3)
     assert.strictEqual(err, "wrong pow")
-    report3.pow.difficulty = 1
+    report3.pow.difficulty = 4
+
+     //-----rejections/evictions-----
+    assert.deepStrictEqual(await nd.api.lookupReports(paging, keypairOracle2.pub), [report3])
+    const report4 = structuredClone(report3)
+    report4.pow = await pow.powOverReport(report4, 1)
+    assert.strictEqual(await nd.api.reportMalleability(cfg, report4), "success")
+
+    assert.deepStrictEqual(await nd.api.lookupReports(paging, keypairOracle2.pub), [report3, report4])
+
+    const report5 = structuredClone(report3)
+    report5.content.request.invoice = "1"
+    report5.pow = await pow.powOverReport(report5, 2)
+    assert.strictEqual(await nd.api.reportMalleability(cfg, report5), "success")
+
+    assert.deepStrictEqual(await nd.api.lookupReports(paging, keypairOracle2.pub), [report3, report5])
+
+    assert.strictEqual(await nd.api.reportMalleability(cfg, report4), "low pow difficulty")
 
 }
 
