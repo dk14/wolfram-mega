@@ -434,7 +434,7 @@ const paging: nd.PagingDescriptor = {
     assert.strictEqual(err, "wrong pow")
     report3.pow.difficulty = 4
 
-     //-----rejections/evictions-----
+    //-----rejections/evictions-----
     assert.deepStrictEqual(await nd.api.lookupReports(paging, keypairOracle2.pub), [report3])
     const report4 = structuredClone(report3)
     report4.pow = await pow.powOverReport(report4, 1)
@@ -523,6 +523,26 @@ const paging: nd.PagingDescriptor = {
     assert.strictEqual(err, "wrong pow")
 
     offerMsg2.pow.difficulty = 1
+
+     //-----rejections/evictions-----
+     assert.deepStrictEqual(await nd.api.lookupOffers(paging, offerMsg1.content.terms.question.capabilityPubKey), [offerMsg1, offerMsg2])
+     const o1 = structuredClone(offerMsg1)
+     o1.pow = await pow.powOverOffer(o1, 2)
+     assert.strictEqual(await nd.api.publishOffer(cfg, o1), "success")
+ 
+     assert.deepStrictEqual(await nd.api.lookupOffers(paging, offerMsg1.content.terms.question.capabilityPubKey), [offerMsg2, o1])
+ 
+     const o2 = structuredClone(offerMsg1)
+     o2.pow = await pow.powOverOffer(o2, 3)
+     assert.strictEqual(await nd.api.publishOffer(cfg, o2), "success")
+ 
+     assert.deepStrictEqual(await nd.api.lookupOffers(paging, offerMsg1.content.terms.question.capabilityPubKey), [o1, o2])
+ 
+     assert.strictEqual(await nd.api.publishOffer(cfg, offerMsg1), "low pow difficulty")
+
+     const cfg2 = structuredClone(cfg)
+     cfg2.maxOffers = undefined
+     assert.strictEqual(await nd.api.publishOffer(cfg2, offerMsg1), "low pow difficulty")
 
 }
 
