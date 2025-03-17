@@ -105,6 +105,23 @@ const genOracle = async (): Promise<OracleIdWithPk> => {
     }
 }
 
+const genCp = async (pubkey: string, pk: string): Promise<nd.OracleCapability> => {
+    const cp: nd.OracleCapability = {
+        oraclePubKey: pubkey,
+        capabilityPubKey: nd.testOnlyGenerateKeyPair().pub,
+        question: 'What?',
+        seqNo: 0,
+        cTTL: 0,
+        oracleSignature: "",
+        oracleSignatureType: 'SHA256',
+        pow: undefined
+    }
+
+    cp.oracleSignature = nd.testOnlySign(JSON.stringify(cp), pk)
+    cp.pow = await pow.powOverOracleCapability(cp, 2)
+    return cp
+}
+
 
 const peers = await Promise.all(Array.from(Array(5).keys()).map(i => start(8433 + i, 8090 + i, [8433])))
 
@@ -131,7 +148,7 @@ const response1 = await fetch(addr(peers[0]) + 'oracle', {
 const res1 = await response1.text();
 assert.strictEqual(res1, '"success"')
 
-console.log("2) Check oracle id across the nodes")
+console.log("2) Check oracle id synced across the network")
 
 const responses = await Promise.all(peers.map(p => fetch(addr(peers[0]) + 'oracles')))
 const jsons = await Promise.all(responses.map(r => r.json()))
@@ -139,6 +156,30 @@ const results = jsons.map(j => j as nd.OracleId[])
 
 results.forEach(r => {
     assert.deepStrictEqual(r, [oracle1.body])
+})
+
+console.log("3) Submit capability")
+
+const cp1 = await genCp(oracle1.body.pubkey, oracle1.pk)
+
+const response2 = await fetch(addr(peers[0]) + 'capability', {
+	method: 'post',
+	body: JSON.stringify(cp1),
+	headers: {'Content-Type': 'application/json'}
+})
+
+
+const res2 = await response2.text();
+assert.strictEqual(res2, '"success"')
+
+console.log("4) Check capabilities synced across the network")
+
+const responses2 = await Promise.all(peers.map(p => fetch(addr(peers[0]) + 'capabilities?pubkey=' + encodeURIComponent(oracle1.body.pubkey))))
+const jsons2 = await Promise.all(responses2.map(r => r.json()))
+const results2 = jsons2.map(j => j as nd.OracleCapability[])
+
+results2.forEach(r => {
+    assert.deepStrictEqual(r, [cp1])
 })
 
 peers.forEach(x => x.proc.kill())
