@@ -143,6 +143,37 @@ const genReport = async (pubkey: string, cppubkey: string): Promise<nd.Report> =
     return r
 }
 
+const genOffer = async (cppubkey: string): Promise<nd.OfferMsg> => {
+    const req: nd.FactRequest = {
+        capabilityPubKey: cppubkey,
+        arguments: {}
+    }
+    const terms: nd.OfferTerms = {
+        question: req,
+        partyBetsOn: [],
+        counterPartyBetsOn: [],
+        partyBetAmount: 0,
+        counterpartyBetAmount: 0
+    }
+    const content: nd.Offer = {
+        message: '',
+        customContract: '',
+        terms,
+        blockchain: 'bitcoin-testnet',
+        transactionToBeCoSigned: '',
+        contact: ''
+    }
+    const msg: nd.OfferMsg = {
+        seqNo: 0,
+        cTTL: 0,
+        pow: undefined,
+        content
+    }
+
+    msg.pow = await pow.powOverOffer(msg, 2)
+    return msg
+}
+
 
 const peers = await Promise.all(Array.from(Array(5).keys()).map(i => start(8433 + i, 8090 + i, [8433])))
 
@@ -193,7 +224,7 @@ const response2 = await fetch(addr(peers[0]) + 'capability', {
 const res2 = await response2.text();
 assert.strictEqual(res2, '"success"')
 
-console.log("4) Check capabilities synced across the network")
+console.log("4) Check capability synced across the network")
 
 const responses2 = await Promise.all(peers.map(p => fetch(addr(peers[0]) + 'capabilities?pubkey=' + encodeURIComponent(oracle1.body.pubkey))))
 const jsons2 = await Promise.all(responses2.map(r => r.json()))
@@ -217,7 +248,7 @@ const response3 = await fetch(addr(peers[0]) + 'report', {
 const res3 = await response3.text();
 assert.strictEqual(res3, '"success"')
 
-console.log("6) Check reports synced across the network")
+console.log("6) Check report synced across the network")
 
 const responses3 = await Promise.all(peers.map(p => fetch(addr(peers[0]) + 'reports?pubkey=' + encodeURIComponent(oracle1.body.pubkey))))
 const jsons3 = await Promise.all(responses3.map(r => r.json()))
@@ -226,6 +257,31 @@ const results3 = jsons3.map(j => j as nd.OracleCapability[])
 results3.forEach(r => {
     assert.deepStrictEqual(r, [r1])
 })
+
+console.log("7) Submit offer")
+
+const o1 = await genOffer(cp1.capabilityPubKey)
+
+const response4 = await fetch(addr(peers[0]) + 'offer', {
+	method: 'post',
+	body: JSON.stringify(o1),
+	headers: {'Content-Type': 'application/json'}
+})
+
+
+const res4 = await response4.text();
+assert.strictEqual(res4, '"success"')
+
+console.log("8) Check offer synced across the network")
+
+const responses4 = await Promise.all(peers.map(p => fetch(addr(peers[0]) + 'offers?pubkey=' + encodeURIComponent(cp1.capabilityPubKey))))
+const jsons4 = await Promise.all(responses4.map(r => r.json()))
+const results4 = jsons4.map(j => j as nd.OracleCapability[])
+
+results4.forEach(r => {
+    assert.deepStrictEqual(r, [o1])
+})
+
 
 peers.forEach(x => x.proc.kill())
 
