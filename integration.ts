@@ -39,6 +39,7 @@ const start = async (portP2P: number, portHttp: number, seed: number[]): Promise
         "maxConnections": 100,
         "httpPort": portHttp,
         "p2pPort": portP2P,
+        "hostname": "localhost",
         "isTest": true,
         "p2pseed": seed.map(port => {return {"server": "localhost", "port" : port}})
     }
@@ -72,7 +73,7 @@ const start = async (portP2P: number, portHttp: number, seed: number[]): Promise
 }
 
 
-const peers = await Promise.all(Array.from(Array(5).keys()).map(i => start(8433 + i, 8090 +i, [8080])))
+const peers = await Promise.all(Array.from(Array(5).keys()).map(i => start(8433 + i, 8090 +i, [8433])))
 
 //await waitFor(peers.map(p => 'http-get://localhost:' + p.port + '/id'))
 

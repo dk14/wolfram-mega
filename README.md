@@ -26,6 +26,7 @@ Unit tests:
 
 ```
 npm test
+npm run it
 ```
 -----
 Configuration:
