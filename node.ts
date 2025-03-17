@@ -319,7 +319,7 @@ const checkOracleIdSignature = (o: OracleId): boolean => {
 }
 
 const checkOracleRank = (cfg: MempoolConfig<any>, oracle: OracleId, mempool: Mempool): boolean => { 
-    if (Object.keys(mempool.oracles).length > cfg.maxOracles) {
+    if (Object.keys(mempool.oracles).length >= cfg.maxOracles) {
         const evict = Object.values(mempool.oracles).find(o => o.id.bid.amount <= oracle.bid.amount && o.id.pow.difficulty <= oracle.pow.difficulty)
         if (evict !== undefined ) {
             delete mempool.oracles[evict.id.pubkey]
@@ -331,7 +331,7 @@ const checkOracleRank = (cfg: MempoolConfig<any>, oracle: OracleId, mempool: Mem
 }
 
 const checkCapabilityRank = (cfg: MempoolConfig<any>, cp: OracleCapability, o: Oracle): boolean => {
-    if (o.capabilies.length > cfg.maxCapabilities) {
+    if (o.capabilies.length >= cfg.maxCapabilities) {
         const index = o.capabilies.findIndex(c => c.pow.difficulty <= cp.pow.difficulty)
         if (index > -1) {
             o.capabilies.splice(index, 1)
@@ -343,7 +343,7 @@ const checkCapabilityRank = (cfg: MempoolConfig<any>, cp: OracleCapability, o: O
 }
 
 const checkReportRank = (cfg: MempoolConfig<any>, report: Report, o: Oracle): boolean => {
-    if (o.reports.length > cfg.maxReports) {
+    if (o.reports.length >= cfg.maxReports) {
         const index = o.reports.findIndex(r => r.pow.difficulty <= report.pow.difficulty)
         if (index > -1) {
             o.reports.splice(index, 1)
@@ -355,7 +355,7 @@ const checkReportRank = (cfg: MempoolConfig<any>, report: Report, o: Oracle): bo
 }
 
 const checkOfferRank = (cfg: MempoolConfig<any>, offer: OfferMsg, m: Mempool): boolean => {
-    if (m.offers.length > (cfg.maxOffers ?? 0)) {
+    if (m.offers.length >= (cfg.maxOffers ?? 0)) {
         const index = m.offers.findIndex(r => r.pow.difficulty <= offer.pow.difficulty)
         if (index > -1) {
             m.offers.splice(index, 1)
@@ -367,10 +367,10 @@ const checkOfferRank = (cfg: MempoolConfig<any>, offer: OfferMsg, m: Mempool): b
 }
 
 const validateBid = async (cfg: MempoolConfig<any>, bid: Bid): Promise<boolean> => {
+    /* c8 ignore start */
     if (cfg.lnRestHost === undefined || cfg.lnMacaroonPath === undefined || cfg.facilitatorId === undefined || cfg.facilitatorId.rewardAddress === undefined){
         return false
     }
-    /* c8 ignore start */
     if (bid.paymentType === undefined || bid.paymentType === "lightning") {
         let options = {
             url: 'https://' + cfg.lnRestHost + '/v1/invoice/' + bid.proof,

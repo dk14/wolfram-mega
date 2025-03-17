@@ -19,6 +19,10 @@ const oracle1Pub = "AAA"
 const capability1Pub = "BBB"
 const capability2Pub = "MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAEKWN+hSgqzb2rE7ft4fXBrIyXeRwfHHa3IMD7XDiZq/KnVRQrY47lmCwIScqOE+PAqtbovxPCRK5C6euYYRv7lg=="
 
+const keypairOracle2 = nd.testOnlyGenerateKeyPair()
+const keypairOracle3 = nd.testOnlyGenerateKeyPair()
+
+
 const pow1: nd.HashCashPow = { //pow is only checked when pow difficulty higher than 0
     difficulty: 0,
     algorithm: 'SHA256',
@@ -59,7 +63,7 @@ const oracle2: nd.OracleId = {
 }
 
 const capability1: nd.OracleCapability = {
-    oraclePubKey: oracle1Pub,
+    oraclePubKey: keypairOracle3.pub,
     capabilityPubKey: capability1Pub,
     question: 'What?',
     seqNo: 0,
@@ -99,7 +103,7 @@ const report1: nd.Report = {
     seqNo: 0,
     cTTL: 0,
     pow: pow1,
-    oraclePubKey: oracle1Pub,
+    oraclePubKey: keypairOracle3.pub,
     content: malleability1
 }
 
@@ -114,7 +118,7 @@ const report2: nd.Report = {
     seqNo: 0,
     cTTL: 0,
     pow: pow2,
-    oraclePubKey: oracle1Pub,
+    oraclePubKey: keypairOracle3.pub,
     content: malleability2
 }
 
@@ -143,21 +147,21 @@ const fact1wrongsig: nd.Fact = {
 const dispute1: nd.Dispute = {
     claim: malleability2,
     reportPow: pow2,
-    oraclePubKey: oracle1Pub,
+    oraclePubKey: keypairOracle3.pub,
     fact: fact1
 }
 
 const dispute1wrongreport: nd.Dispute = {
     claim: malleability2,
     reportPow: pow1,
-    oraclePubKey: oracle1Pub,
+    oraclePubKey: keypairOracle3.pub,
     fact: fact1
 }
 
 const dispute1wrongfactsig: nd.Dispute = {
     claim: malleability2,
     reportPow: pow2,
-    oraclePubKey: oracle1Pub,
+    oraclePubKey: keypairOracle3.pub,
     fact: fact1wrongsig
 }
 
@@ -222,7 +226,6 @@ const paging: nd.PagingDescriptor = {
     chunkSize: 100
 }
 
-const keypairOracle2 = nd.testOnlyGenerateKeyPair()
 
 
 //-------------------------------------------------------------------------
@@ -252,7 +255,7 @@ const keypairOracle2 = nd.testOnlyGenerateKeyPair()
     //----crypto-----
 
     oracle2.pubkey = keypairOracle2.pub
-    oracle2.pow = await pow.powOverOracleId(oracle2, 1)
+    oracle2.pow = await pow.powOverOracleId(oracle2, 2)
     oracle2.oracleSignature = ""
     oracle2.oracleSignature = nd.testOnlySign(JSON.stringify(oracle2), keypairOracle2.pk)
 
@@ -267,15 +270,43 @@ const keypairOracle2 = nd.testOnlyGenerateKeyPair()
     oracle2.oracleSignature = nd.testOnlySign(JSON.stringify(oracle2), keypairOracle2.pk)
     const err2 = await nd.api.announceOracle(cfg, oracle2)
     assert.strictEqual(err2, "wrong pow")
-    oracle2.pow.difficulty = 1
+    oracle2.pow.difficulty = 2
     oracle2.oracleSignature = nd.testOnlySign(JSON.stringify(oracle2), keypairOracle2.pk)
+
+    //-----rejections/evictions-----
+    const oracles2 = await nd.api.lookupOracles(paging, [])
+    assert.deepStrictEqual(oracles2, [oracle1, oracle2])
+    
+    const oracle3 = structuredClone(oracle2)
+    
+    oracle3.pubkey = keypairOracle3.pub
+    oracle3.pow = await pow.powOverOracleId(oracle3, 2)
+    oracle3.oracleSignature = ""
+    oracle3.oracleSignature = nd.testOnlySign(JSON.stringify(oracle3), keypairOracle3.pk)
+    const res4 = await nd.api.announceOracle(cfg, oracle3)
+    assert.strictEqual(res4, "success")
+
+    const oracles3 = await nd.api.lookupOracles(paging, [])
+    assert.deepStrictEqual(oracles3, [oracle2, oracle3])
+
+
+    const keypairOracle4 = nd.testOnlyGenerateKeyPair()
+    const oracle4 = structuredClone(oracle2)
+    oracle4.pubkey = keypairOracle4.pub
+    oracle4.pow = await pow.powOverOracleId(oracle4, 1)
+    oracle4.oracleSignature = ""
+    oracle4.oracleSignature = nd.testOnlySign(JSON.stringify(oracle4), keypairOracle4.pk)
+    const err3 = await nd.api.announceOracle(cfg, oracle4)
+    assert.strictEqual(err3, "low pow difficulty")
+    assert.deepStrictEqual(await nd.api.lookupOracles(paging, []), [oracle2, oracle3])
+
 }
 
 //-------------------------------------------------------------------------
 {
     console.log("2. Capabilities")
 
-    const capabilities0 = await nd.api.lookupCapabilities(paging, oracle1Pub)
+    const capabilities0 = await nd.api.lookupCapabilities(paging, keypairOracle3.pub)
     assert.deepStrictEqual(capabilities0, [])
 
     const [error, _] = await nd.api.announceCapability(cfg, {} as nd.OracleCapability)
@@ -292,7 +323,7 @@ const keypairOracle2 = nd.testOnlyGenerateKeyPair()
     const res22 = await nd.api.announceCapability(cfg, capability1Copy)
     assert.strictEqual(res22, "success")
 
-    const capabilities = await nd.api.lookupCapabilities(paging, oracle1Pub)
+    const capabilities = await nd.api.lookupCapabilities(paging, keypairOracle3.pub)
     assert.deepStrictEqual(capabilities, [capability1])
 
     const capabilities2 = await nd.api.lookupCapabilities(paging, "")
@@ -330,7 +361,7 @@ const keypairOracle2 = nd.testOnlyGenerateKeyPair()
 {
     console.log("3. Reports")
 
-    const reports0 = await nd.api.lookupReports(paging, oracle1Pub)
+    const reports0 = await nd.api.lookupReports(paging, keypairOracle3.pub)
     assert.deepStrictEqual(reports0, [])
 
     const [error, _] = await nd.api.reportMalleability(cfg, {} as nd.Report)
@@ -347,7 +378,7 @@ const keypairOracle2 = nd.testOnlyGenerateKeyPair()
     const res22 = await nd.api.reportMalleability(cfg, report1Copy)
     assert.strictEqual(res22, "success")
 
-    const reports = await nd.api.lookupReports(paging, oracle1Pub)
+    const reports = await nd.api.lookupReports(paging, keypairOracle3.pub)
     assert.deepStrictEqual(reports, [report1])
 
     const reports2 = await nd.api.lookupCapabilities(paging, "")
@@ -374,7 +405,7 @@ const keypairOracle2 = nd.testOnlyGenerateKeyPair()
     const res = await nd.api.reportMalleability(cfg, report2)
     assert.strictEqual(res, "success")
 
-    const reports = await nd.api.lookupReports(paging, oracle1Pub)
+    const reports = await nd.api.lookupReports(paging, keypairOracle3.pub)
     assert.deepStrictEqual(reports.length, 2)
     assert.deepStrictEqual(reports, [report1, report2])
 
@@ -441,4 +472,4 @@ const keypairOracle2 = nd.testOnlyGenerateKeyPair()
 
 }
 
-// TODO: rejections by pow, rejections by bid, evictions by pow, evictions by bid
+// TODO: rejections by pow, evictions by pow
