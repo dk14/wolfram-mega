@@ -22,7 +22,7 @@ http://localhost:8080/index.htm, http://localhost:8081/index.htm, http://localho
 
 P2P network uses [Bicoin protocol structure](https://en.bitcoin.it/wiki/Protocol_specification#Message_structure) for communication.
 
-Unit tests:
+Tests:
 
 ```
 npm test
