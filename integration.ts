@@ -122,6 +122,27 @@ const genCp = async (pubkey: string, pk: string): Promise<nd.OracleCapability> =
     return cp
 }
 
+const genReport = async (pubkey: string, cppubkey: string): Promise<nd.Report> => {
+    const req: nd.FactRequest = {
+        capabilityPubKey: cppubkey,
+        arguments: {}
+    }
+    const content: nd.FactDisagreesWithPublic = {
+        type: 'fact-disagreees-with-public',
+        request: req
+    }
+    const r: nd.Report = {
+        seqNo: 0,
+        cTTL: 0,
+        pow: undefined,
+        oraclePubKey: pubkey,
+        content
+    }
+
+    r.pow = await pow.powOverReport(r, 2)
+    return r
+}
+
 
 const peers = await Promise.all(Array.from(Array(5).keys()).map(i => start(8433 + i, 8090 + i, [8433])))
 
@@ -180,6 +201,30 @@ const results2 = jsons2.map(j => j as nd.OracleCapability[])
 
 results2.forEach(r => {
     assert.deepStrictEqual(r, [cp1])
+})
+
+console.log("5) Submit report")
+
+const r1 = await genReport(oracle1.body.pubkey, cp1.capabilityPubKey)
+
+const response3 = await fetch(addr(peers[0]) + 'report', {
+	method: 'post',
+	body: JSON.stringify(r1),
+	headers: {'Content-Type': 'application/json'}
+})
+
+
+const res3 = await response3.text();
+assert.strictEqual(res3, '"success"')
+
+console.log("6) Check reports synced across the network")
+
+const responses3 = await Promise.all(peers.map(p => fetch(addr(peers[0]) + 'reports?pubkey=' + encodeURIComponent(oracle1.body.pubkey))))
+const jsons3 = await Promise.all(responses3.map(r => r.json()))
+const results3 = jsons3.map(j => j as nd.OracleCapability[])
+
+results3.forEach(r => {
+    assert.deepStrictEqual(r, [r1])
 })
 
 peers.forEach(x => x.proc.kill())
