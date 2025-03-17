@@ -23,6 +23,7 @@
     "assert": "^2.1.0",
     "crypto": "^1.0.1",
     "http": "^0.0.1-security",
+    "node-fetch": "^3.3.2",
     "openapi-enforcer": "^1.23.0",
     "p2p-node": "^0.1.1",
     "request": "^2.88.2",
