@@ -545,5 +545,3 @@ const paging: nd.PagingDescriptor = {
      assert.strictEqual(await nd.api.publishOffer(cfg2, offerMsg1), "low pow difficulty")
 
 }
-
-// TODO: rejections by pow, evictions by pow
