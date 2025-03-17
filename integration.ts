@@ -20,7 +20,7 @@ process.on('SIGUSR2', cleanUp);
 const waitFor = (resources: string[]) => {
     const opts = { resources }
 
-    return new Promise<any>((resolve, reject) => waitOn(opts, err => err ? resolve(0): reject()))
+    return new Promise<any>((resolve, reject) => waitOn(opts, err => !err ? resolve(0): reject()))
 
 }
 
@@ -75,7 +75,9 @@ const start = async (portP2P: number, portHttp: number, seed: number[]): Promise
 
 const peers = await Promise.all(Array.from(Array(5).keys()).map(i => start(8433 + i, 8090 +i, [8433])))
 
-//await waitFor(peers.map(p => 'http-get://localhost:' + p.port + '/id'))
+console.log("Waiting for P2P...")
+
+await waitFor(peers.map(p => 'http-get://localhost:' + p.port + '/id'))
 
 peers.forEach(x => x.proc.kill())
 
