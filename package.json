@@ -4,7 +4,8 @@
   "description": "A p2p fact sharing network",
   "type": "module",
   "scripts": {
-    "test": "c8 npx tsx test.ts"
+    "test": "c8 npx tsx test.ts",
+    "it": "npx tsx integration.ts"
   },
   "keywords": [],
   "author": "",
@@ -25,6 +26,7 @@
     "openapi-enforcer": "^1.23.0",
     "p2p-node": "^0.1.1",
     "request": "^2.88.2",
-    "url": "^0.11.4"
+    "url": "^0.11.4",
+    "wait-on": "^8.0.3"
   }
 }
