@@ -220,6 +220,7 @@ components:
               type: string
         oracleSignature: 
           type: string
+          maxLength: 2000
         oracleSignatureType: 
           type: string
           enum: [SHA256]
@@ -231,10 +232,13 @@ components:
       properties:
         oraclePubKey: 
             type: string
+            maxLength: 2000
         capabilityPubKey:
             type: string
+            maxLength: 2000
         question: 
             type: string
+            maxLength: 2000
         seqNo: 
             type: integer
             format: int32
@@ -245,6 +249,7 @@ components:
           $ref: '#/components/schemas/Pow'
         oracleSignature: 
           type: string
+          maxLength: 2000
         oracleSignatureType: 
           type: string
           enum: [SHA256]
@@ -255,6 +260,7 @@ components:
       properties:
         oraclePubKey: 
           type: string
+          maxLength: 2000
         seqNo: 
           type: integer
           format: int32
@@ -291,16 +297,21 @@ components:
           properties:
             message: 
               type: string
+              maxLength: 6000
             customContract: 
               type: string
+              maxLength: 6000
             terms: 
               $ref: '#/components/schemas/OfferTerms'
             blockchain: 
               type: string
+              maxLength: 200
             transactionToBeCoSigned: 
-              type: string 
+              type: string
+              maxLength: 6000
             contact: 
               type: string
+              maxLength: 20000
         pow: 
           $ref: '#/components/schemas/Pow'
         
@@ -317,11 +328,13 @@ components:
           type: string
         hash: 
           type: string
+          maxLength: 2000
         magicNo: 
           type: integer
           format: int32
         magicString:
           type: string
+          maxLength: 2000
 
     OfferTerms:
       type: object
@@ -332,10 +345,12 @@ components:
           type: array
           items:
             type: string
+            maxLength: 2000
         counterPartyBetsOn: 
           type: array
           items:
             type: string
+            maxLength: 2000
         partyBetAmount:
           type: integer
           format: int32
@@ -349,20 +364,25 @@ components:
       properties: 
         capabilityPubKey: 
           type: string
+          maxLength: 2000
         arguments: 
           type: object
         invoice:
           type: string
+          maxLength: 2000
 
     Fact:
       type: object
       properties:
         factWithQuestion: 
           type: string
+          maxLength: 20000
         signatureType:
           type: string
+          maxLength: 2000
         signature: 
           type: string
+          maxLength: 2000
 
     Dispute:
       type: object
