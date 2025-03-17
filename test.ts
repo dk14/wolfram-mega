@@ -84,13 +84,38 @@ const capability3: nd.OracleCapability = {
     pow: undefined
 }
 
+
+const capability4 = structuredClone(capability1)
+capability4.pow = undefined
+capability4.question = "hello?"
+capability4.capabilityPubKey = nd.testOnlyGenerateKeyPair().pub
+capability4.oracleSignature = ""
+capability4.oracleSignature = nd.testOnlySign(JSON.stringify(capability4), keypairOracle3.pk)
+capability4.pow = await pow.powOverOracleCapability(capability4, 2)
+
+const capability5 = structuredClone(capability1)
+capability5.pow = undefined
+capability5.question = "hellooo?"
+capability5.capabilityPubKey = nd.testOnlyGenerateKeyPair().pub
+capability5.oracleSignature = ""
+capability5.oracleSignature = nd.testOnlySign(JSON.stringify(capability5), keypairOracle3.pk)
+capability5.pow = await pow.powOverOracleCapability(capability5, 2)
+
+const capability6 = structuredClone(capability1)
+capability6.pow = undefined
+capability6.question = "hellooo???"
+capability6.capabilityPubKey = nd.testOnlyGenerateKeyPair().pub
+capability6.oracleSignature = ""
+capability6.oracleSignature = nd.testOnlySign(JSON.stringify(capability6), keypairOracle3.pk)
+capability6.pow = await pow.powOverOracleCapability(capability6, 1)
+
 const factreq1: nd.FactRequest = {
-    capabilityPubKey: capability1Pub, //capability does not have to be in memory, since sharding is allowed
+    capabilityPubKey: capability4.capabilityPubKey, 
     arguments: {}
 }
 
 const factreq2: nd.FactRequest = {
-    capabilityPubKey: capability2Pub, //capability does not have to be in memory, since sharding is allowed
+    capabilityPubKey: capability2Pub, 
     arguments: {}
 }
 
@@ -354,6 +379,18 @@ const paging: nd.PagingDescriptor = {
     assert.strictEqual(err2, "wrong pow")
     capability3.pow.difficulty = 1
     capability3.oracleSignature = nd.testOnlySign(JSON.stringify(oracle2), keypairOracle2.pk)
+
+    //-----rejections/evictions-----
+    assert.deepStrictEqual(await nd.api.lookupCapabilities(paging, keypairOracle3.pub), [capability1])
+
+
+    assert.strictEqual(await nd.api.announceCapability(cfg, capability4), "success")
+    assert.deepStrictEqual(await nd.api.lookupCapabilities(paging, keypairOracle3.pub), [capability1, capability4])
+
+    assert.strictEqual(await nd.api.announceCapability(cfg, capability5), "success")
+    assert.deepStrictEqual(await nd.api.lookupCapabilities(paging, keypairOracle3.pub), [capability4, capability5])
+
+    assert.strictEqual(await nd.api.announceCapability(cfg, capability6), "low pow difficulty")
 
 }
 
