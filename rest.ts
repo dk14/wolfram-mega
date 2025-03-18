@@ -14,10 +14,13 @@ export const startHttp = (cfg: nd.MempoolConfig<any>) => {
 
         try {
             const reqUrl =  url.parse(req.url!, true)
+
+            const pageNo: number = typeof reqUrl.query.pageNo === "string" ? parseInt(reqUrl.query.pageNo as string) : 0
+            const pageSize: number = typeof reqUrl.query.pageSize === "string" ? parseInt(reqUrl.query.pageSize as string) : 10
     
             const paging: nd.PagingDescriptor = {
-                page: 0,
-                chunkSize: 10
+                page: pageNo,
+                chunkSize: pageSize
             }
         
             console.log('Request type: ' + req.method + ' Endpoint: ' + req.url);

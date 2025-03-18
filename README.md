@@ -8,13 +8,14 @@ Mega *(from מַגָע, contact, pornounced as maga/m'ga)* - is a lightweight in
 
 ---------
 
-## Node
+## Run
 
 ```
-git clone
-npx tsx app.ts mempool-cfg.json
-npx tsx app.ts mempool-cfg2.json
-npx tsx app.ts mempool-cfg3.json
+git clone <github-repo>
+cd wolfram-mega
+npm run peer mempool-cfg.json
+npm run peer mempool-cfg2.json
+npm run peer mempool-cfg3.json
 ```
 Monitoring, REST and swagger would become avialable at:
 
@@ -25,7 +26,7 @@ P2P network uses [Bicoin protocol structure](https://en.bitcoin.it/wiki/Protocol
 Tests:
 
 ```
-npm test
+npm run test
 npm run it
 ```
 -----

@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "test": "c8 npx tsx test.ts",
-    "it": "npx tsx integration.ts"
+    "it": "npx tsx integration.ts",
+    "peer": "npx tsx app.ts"
   },
   "keywords": [],
   "author": "",

@@ -168,7 +168,6 @@ export interface FactConflict extends WithFactRequest {
     capabilitySignatureOverRequest?: string
     fact: Fact
     facts: Fact[] //must be of the same capability; TODO validator
-
 }
 
 export interface FactMissing extends WithFactRequest {

@@ -117,6 +117,23 @@ paths:
       summary: List oracles
       description: List oracles
       operationId: lookupOracles
+      parameters:
+        - name: pageNo
+          in: query
+          description: page number in a list
+          required: false
+          schema:
+            default: 0
+            type: integer
+            format: int32
+        - name: pageSize
+          in: query
+          description: size of page in a list
+          required: false
+          schema:
+            default: 10
+            type: integer
+            format: int32
       responses:
         '200':
           description: successful operation
@@ -139,6 +156,22 @@ paths:
           required: true
           schema:
             type: string
+        - name: pageNo
+          in: query
+          description: page number in a list
+          required: false
+          schema:
+            default: 0
+            type: integer
+            format: int32
+        - name: pageSize
+          in: query
+          description: size of page in a list
+          required: false
+          schema:
+            default: 10
+            type: integer
+            format: int32
       responses:
         '200':
           description: successful operation
@@ -161,6 +194,22 @@ paths:
           required: true
           schema:
             type: string
+        - name: pageNo
+          in: query
+          description: page number in a list
+          required: false
+          schema:
+            default: 0
+            type: integer
+            format: int32
+        - name: pageSize
+          in: query
+          description: size of page in a list
+          required: false
+          schema:
+            default: 10
+            type: integer
+            format: int32
       responses:
         '200':
           description: successful operation
@@ -183,6 +232,22 @@ paths:
           required: true
           schema:
             type: string
+        - name: pageNo
+          in: query
+          description: page number in a list
+          required: false
+          schema:
+            default: 0
+            type: integer
+            format: int32
+        - name: pageSize
+          in: query
+          description: size of page in a list
+          required: false
+          schema:
+            default: 10
+            type: integer
+            format: int32
       responses:
         '200':
           description: successful operation
@@ -274,13 +339,16 @@ components:
 
     MalleabilityReport:
       type: object
+      required: [request]
       properties: 
         'type': 
           type: string
           enum: [fact-disagreees-with-public, fact-conflict, fact-missing] 
         request: 
-          $ref: '#/components/schemas/FactRequest' 
-
+          $ref: '#/components/schemas/FactRequest'
+        capabilitySignatureOverRequest:
+          type: string
+          maxLength: 2000
 
     Offer:
       type: object
