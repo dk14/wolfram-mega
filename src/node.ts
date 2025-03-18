@@ -1,3 +1,4 @@
+/* c8 ignore start */
 import {createVerify, generateKeyPairSync, createSign} from 'crypto'
 import * as request from 'request'
 import * as fs from 'fs'
@@ -6,7 +7,7 @@ import Enforcer from 'openapi-enforcer'
 import { console } from 'inspector'
 
 const openapi = Enforcer('./wolfram-mega-spec.yaml')
-
+/* c8 ignore end */
 
 const curve = 'secp521r1';
 
