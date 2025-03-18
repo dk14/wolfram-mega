@@ -30,6 +30,21 @@ npm i c8 -g
 npm run test
 npm run it
 ```
+
+## Install
+```
+npm i https://github.com/dk14/wolfram-mega
+npx wf-mega-peer <mempool-conf.json>
+```
+
+or
+
+(if you have ~/.npmrc file with //npm.pkg.github.com/:_authToken=TOKEN, aka [GitHub npm repo access](https://github.com/orgs/community/discussions/19037))
+
+```
+npm i @dk14/wolfram-mega -g
+wf-mega-peer <mempool-conf.json>
+```
 -----
 Configuration:
 
