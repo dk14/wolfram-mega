@@ -7,6 +7,9 @@ import * as pow from '../src/pow'
 import fetch from 'node-fetch'
 import * as assert from 'assert'
 
+
+(async () => {
+    
 const cleanUp = async () => {
     peers.forEach(x => x.proc?.kill())
     await exec('rm -r ./.tmp')
@@ -290,3 +293,4 @@ peers.forEach(x => x.proc.kill())
 console.log("OK!")
 process.exit(0)
 
+})()

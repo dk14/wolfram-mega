@@ -1,9 +1,9 @@
 {
     "compilerOptions": {
-      "module": "es2022",
+      "module": "CommonJS",
       "esModuleInterop": true,
-      "resolveJsonModule": true,
-      "target": "es2017",
+      "allowSyntheticDefaultImports": true,
+      "target": "es2022",
       "moduleResolution": "node",
       "sourceMap": true,
       "outDir": "dist"

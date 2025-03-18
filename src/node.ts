@@ -5,7 +5,7 @@ import {hash} from './util'
 import Enforcer from 'openapi-enforcer'
 import { console } from 'inspector'
 
-const openapi = await Enforcer('./wolfram-mega-spec.yaml')
+const openapi = Enforcer('./wolfram-mega-spec.yaml')
 
 
 const curve = 'secp521r1';
@@ -416,7 +416,7 @@ export const api: Api = {
         offers: []
     },
     announceOracle: async (cfg: MempoolConfig<any>, id: OracleId): Promise<Registered | NotRegistered> => {
-        const [ _, error ] = openapi.request({ method: 'POST', path: '/oracle', body: id})
+        const [ _, error ] = (await openapi).request({ method: 'POST', path: '/oracle', body: id})
         if (error !== undefined) {
             return ['invalid request', error.toString()]
         }
@@ -452,7 +452,7 @@ export const api: Api = {
         }
     },
     announceCapability: async (cfg: MempoolConfig<any>, cp: OracleCapability): Promise<Registered | NotRegistered> => {
-        const [ _, error ] = openapi.request({ method: 'POST', path: '/capability', body: cp})
+        const [ _, error ] = (await openapi).request({ method: 'POST', path: '/capability', body: cp})
         if (error !== undefined) {
             return ['invalid request', error.toString()]
         }
@@ -487,7 +487,7 @@ export const api: Api = {
         }
     },
     reportMalleability: async (cfg: MempoolConfig<any>, report: Report): Promise<ReportAccepted | ReportRejected> => {
-        const [ _, error ] = openapi.request({ method: 'POST', path: '/report', body: report})
+        const [ _, error ] = (await openapi).request({ method: 'POST', path: '/report', body: report})
         if (error !== undefined) {
             return ['invalid request', error.toString()]
         }
@@ -515,7 +515,7 @@ export const api: Api = {
         return "success";
     },
     disputeMissingfactClaim: async (dispute: Dispute): Promise<DisputeAccepted | DisputeRejected> => {
-        const [ _, error ] = openapi.request({ method: 'POST', path: '/dispute', body: dispute})
+        const [ _, error ] = (await openapi).request({ method: 'POST', path: '/dispute', body: dispute})
         if (error !== undefined) {
             return ['invalid request', error.toString()]
         }
@@ -560,7 +560,7 @@ export const api: Api = {
         return api.mempool.oracles[oraclePub].reports.slice(paging.page * paging.chunkSize, (paging.page + 1) * paging.chunkSize);
     },
     publishOffer: async function (cfg: MempoolConfig<any>, offer: OfferMsg): Promise<Registered | NotRegistered> {
-        const [ _, error ] = openapi.request({ method: 'POST', path: '/offer', body: offer})
+        const [ _, error ] = (await openapi).request({ method: 'POST', path: '/offer', body: offer})
         if (error !== undefined) {
             return ['invalid request', error.toString()]
         }
