@@ -37,6 +37,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.api = exports.testOnlyReset = exports.checkPow = exports.testOnlySign = exports.testOnlyGenerateKeyPair = exports.createPemPk = exports.createPemPub = void 0;
+/* c8 ignore start */
 const crypto_1 = require("crypto");
 const request = __importStar(require("request"));
 const fs = __importStar(require("fs"));
@@ -44,6 +45,7 @@ const util_1 = require("./util");
 const openapi_enforcer_1 = __importDefault(require("openapi-enforcer"));
 const inspector_1 = require("inspector");
 const openapi = (0, openapi_enforcer_1.default)('./wolfram-mega-spec.yaml');
+/* c8 ignore end */
 const curve = 'secp521r1';
 const regexPem = /.{64}/g;
 const createPemPub = (base64) => {
