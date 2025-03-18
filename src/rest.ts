@@ -27,13 +27,13 @@ export const startHttp = (cfg: nd.MempoolConfig<any>) => {
 
             if (req.method === 'GET' && (reqUrl.pathname == '/index.html' || reqUrl.pathname == '/index.htm') || reqUrl.pathname == '/') {
                 res.setHeader('content-Type', 'text/html');
-                res.end(fs.readFileSync('./index.html').toString())
+                res.end(fs.readFileSync(__dirname + '/../index.html').toString())
                 return
             }
 
             if (req.method === 'GET' && (reqUrl.pathname == '/wolfram-mega-spec.yaml') || reqUrl.pathname == '/') {
                 res.setHeader('content-Type', 'Application/json');
-                res.end(fs.readFileSync('./wolfram-mega-spec.yaml').toString().replace("$$url", "http://" + (cfg.hostname ?? "localhost") + ":" + cfg.httpPort))
+                res.end(fs.readFileSync(__dirname + '/../wolfram-mega-spec.yaml').toString().replace("$$url", "http://" + (cfg.hostname ?? "localhost") + ":" + cfg.httpPort))
                 return
             }
 
