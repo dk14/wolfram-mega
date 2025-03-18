@@ -1,6 +1,6 @@
 {
   "name": "wolfram-mega",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "A p2p fact sharing network",
   "type": "module",
   "scripts": {
@@ -8,8 +8,8 @@
     "it": "npx tsx integration.ts",
     "peer": "npx tsx app.ts"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": ["p2p", "oracle"],
+  "author": "dk14",
   "license": "ISC",
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "^1.0.2",
