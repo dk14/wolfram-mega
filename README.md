@@ -26,6 +26,7 @@ P2P network uses [Bicoin protocol structure](https://en.bitcoin.it/wiki/Protocol
 Tests:
 
 ```
+npm i c8 -g
 npm run test
 npm run it
 ```
