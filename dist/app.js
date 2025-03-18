@@ -41,7 +41,15 @@ process.on('uncaughtException', function (err) {
     console.log(err);
 });
 const path = process.argv[2] ?? "cfg/mempool-1.json";
-const cfg = JSON.parse(fs.readFileSync(__dirname + '/' + path).toString());
+const getcfg = () => {
+    try {
+        return JSON.parse(fs.readFileSync(__dirname + '/' + path).toString());
+    }
+    catch {
+        return JSON.parse(fs.readFileSync(path).toString());
+    }
+};
+const cfg = getcfg();
 console.log("Start HTTP service...  " + cfg.httpPort);
 (0, rest_1.startHttp)(cfg);
 console.log("Start P2P service...   " + cfg.p2pPort);

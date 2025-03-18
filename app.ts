@@ -11,7 +11,16 @@ process.on('uncaughtException', function (err) {
 
 const path = process.argv[2] ?? "cfg/mempool-1.json";
 
-const cfg: MempoolConfig<any> = JSON.parse(fs.readFileSync(__dirname + '/' + path).toString())
+const getcfg = (): MempoolConfig<any> => {
+    try {
+        return JSON.parse(fs.readFileSync(__dirname + '/' + path).toString())
+    } catch {
+        return JSON.parse(fs.readFileSync(path).toString())
+    }
+
+}
+
+const cfg: MempoolConfig<any> = getcfg()
 
 console.log("Start HTTP service...  " + cfg.httpPort)
 startHttp(cfg)
