@@ -1,6 +1,6 @@
-import * as nd from './node';
+import * as nd from '../src/node';
 import * as assert from 'assert'
-import * as pow from './pow'
+import * as pow from '../src/pow'
 
 const cfg = {
     "maxOracles": 2,

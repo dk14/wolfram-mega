@@ -13,9 +13,9 @@ Mega *(from מַגָע, contact, pornounced as maga/m'ga)* - is a lightweight in
 ```
 git clone <github-repo>
 cd wolfram-mega
-npm run peer mempool-cfg.json
-npm run peer mempool-cfg2.json
-npm run peer mempool-cfg3.json
+npm run peer cfg/mempool-1.json 
+npm run peer cfg/mempool-2.json 
+npm run peer cfg/mempool-3.json 
 ```
 Monitoring, REST and swagger would become avialable at:
 

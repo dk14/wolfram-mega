@@ -1,6 +1,6 @@
-import { MempoolConfig } from './node';
-import {startP2P} from './p2p';
-import {startHttp} from './rest';
+import { MempoolConfig } from './src/node';
+import {startP2P} from './src/p2p';
+import {startHttp} from './src/rest';
 import * as fs from 'fs'
 
 //npx tsx app.ts mempool-cfg.json
@@ -9,7 +9,7 @@ process.on('uncaughtException', function (err) {
     console.log(err);
 });
 
-const path = process.argv[2] ?? "mempool-cfg.json";
+const path = process.argv[2] ?? "cfg/mempool-1.json";
 
 const cfg: MempoolConfig<any> = JSON.parse(fs.readFileSync('./' + path).toString())
 
