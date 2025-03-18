@@ -54,8 +54,10 @@ const start = async (portP2P: number, portHttp: number, seed: number[]): Promise
 
     const child = spawn("npx", ["tsx", "app.ts", "./.tmp/" + portP2P + ".json"])
     
-    child.stderr.on('data', function(data){
+    child.stderr.on('data', async function(data){
         console.log("" + data);
+        await exec('rm -r ./.tmp')
+        process.exit(255)
     });
 
     var flag = false
@@ -286,4 +288,5 @@ results4.forEach(r => {
 peers.forEach(x => x.proc.kill())
 
 console.log("OK!")
+process.exit(0)
 

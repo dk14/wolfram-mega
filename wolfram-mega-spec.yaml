@@ -239,7 +239,7 @@ paths:
           schema:
             default: 0
             type: integer
-            format: int32
+            format: int32asdsadassdas
         - name: pageSize
           in: query
           description: size of page in a list
