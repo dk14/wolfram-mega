@@ -1,7 +1,7 @@
 import {createVerify, generateKeyPairSync, createSign} from 'crypto'
 import * as request from 'request'
 import * as fs from 'fs'
-import {hash} from '../util'
+import {hash} from './util'
 import Enforcer from 'openapi-enforcer'
 import { console } from 'inspector'
 

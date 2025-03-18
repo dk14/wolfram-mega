@@ -1,5 +1,5 @@
 import * as nd from './node'
-import {mine} from '../util'
+import {mine} from './util'
 
 export const powOverOracleId = async (o: nd.OracleId, difficulty: number, algorithm: string = "SHA256"): Promise<nd.HashCashPow> => {
     const res = mine(difficulty, o.pubkey, algorithm)
