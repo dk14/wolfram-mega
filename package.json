@@ -1,5 +1,9 @@
 {
-  "name": "wolfram-mega",
+  "name": "@dk14/wolfram-mega",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dk14/wolfram-mega.git"
+  },
   "version": "0.0.1",
   "description": "A p2p fact sharing network",
   "type": "module",
