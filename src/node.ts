@@ -6,7 +6,7 @@ import {hash} from './util'
 import Enforcer from 'openapi-enforcer'
 import { console } from 'inspector'
 
-const openapi = Enforcer('./wolfram-mega-spec.yaml')
+const openapi = Enforcer(__dirname + '/../wolfram-mega-spec.yaml')
 /* c8 ignore end */
 
 const curve = 'secp521r1';

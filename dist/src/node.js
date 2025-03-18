@@ -44,7 +44,7 @@ const fs = __importStar(require("fs"));
 const util_1 = require("./util");
 const openapi_enforcer_1 = __importDefault(require("openapi-enforcer"));
 const inspector_1 = require("inspector");
-const openapi = (0, openapi_enforcer_1.default)('./wolfram-mega-spec.yaml');
+const openapi = (0, openapi_enforcer_1.default)(__dirname + '/../wolfram-mega-spec.yaml');
 /* c8 ignore end */
 const curve = 'secp521r1';
 const regexPem = /.{64}/g;
