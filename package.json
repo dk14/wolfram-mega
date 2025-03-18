@@ -11,7 +11,7 @@
     "test": "c8 npx tsx test/test.ts",
     "it": "npx tsx test/integration.ts",
     "peer": "npx tsx app.ts",
-    "build": "tsc -p tsconfig.json"
+    "build": "tsc -p tsconfig.json && cp wolfram-mega-spec.yaml dist/ && cp index.html dist/ && cp -r cfg dist/"
   },
   "bin": {
     "wf-mega-peer": "./bin/wf-mega-peer"
