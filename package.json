@@ -40,6 +40,6 @@
     "wait-on": "^8.0.3"
   },
   "files": [
-    "dist"
+    "dist", "src", "cfg", ".", "README.md", "app.ts", "index.html", "bin"
   ]
 }
