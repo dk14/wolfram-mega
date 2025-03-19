@@ -104,7 +104,7 @@ export const startHttp = (cfg: nd.MempoolConfig<any>) => {
 
                 if(reqUrl.pathname == '/offers') {
                     if (reqUrl.query.pubkey == undefined) {
-                        res.end(JSON.stringify("Specify reports?pubkey=<capability_pubkey>"))
+                        res.end(JSON.stringify("Specify offers?pubkey=<capability_pubkey>"))
                     } else {
                         nd.api.lookupOffers(paging, pubkey).then(x => res.end(JSON.stringify(x)))
                     }
