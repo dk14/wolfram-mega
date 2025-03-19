@@ -218,13 +218,13 @@ export const startP2P = (cfg: nd.MempoolConfig<PeerAddr>) => {
     
     p2pNode = node
 
-    var seqNo = 0
-    setInterval(() => {
-        if (cfg.hostname !== undefined) {
+    if (cfg.hostname !== undefined) {
+        var seqNo = 0
+        setInterval(() => {
             seqNo++
             broadcastPeer({server: cfg.hostname, port: cfg.p2pPort, seqNo: (cfg.hostSeqNo ?? 0) + seqNo}, true)
-        }
-    }, (cfg.p2pKeepAlive ?? 100000))
+        }, (cfg.p2pKeepAlive ?? 100000))
+    }
     
 }
 
