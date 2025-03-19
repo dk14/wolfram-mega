@@ -49,8 +49,8 @@ export interface WithPow {
     pow: HashCashPow
 }
 
-type Value = string
-type Answer = string
+export type Value = string
+export type Answer = string
 
 export interface Param {
     name: string
