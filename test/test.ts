@@ -536,7 +536,7 @@ import * as pow from '../src/pow'
          assert.deepStrictEqual(await nd.api.lookupOffers(paging, offerMsg1.content.terms.question.capabilityPubKey), [offerMsg2, o1])
      
          const o2 = structuredClone(offerMsg1)
-         offerMsg1.content.message = "msg"
+         o2.content.message = "msg"
          o2.pow = await pow.powOverOffer(o2, 3)
          assert.strictEqual(await nd.api.publishOffer(cfg, o2), "success")
      
