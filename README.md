@@ -48,7 +48,7 @@ wf-mega-peer <mempool-conf.json>
 -----
 Configuration:
 
-p2p network is discovered from `p2pseed`, see example at [mempool-cfg2.json](mempool-cfg2.json). Specifying `hostname` would make your node discoverable. `httpPort` is port for REST, `p2pPort` is port for P2P gossiping.
+p2p network is discovered from `p2pseed`, see example at [mempool-cfg2.json](cfg/mempool-2.json). Specifying `hostname` would make your node discoverable. `httpPort` is port for REST, `p2pPort` is port for P2P gossiping.
 
 Optional `mempool-cfg` config parameters:
 - `isTest` enables `testOnly` REST endpoints for convenience. 
