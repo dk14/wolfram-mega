@@ -1,4 +1,6 @@
-import { OracleCapability, OracleId, Param, Answer, HashCashPow } from "../node";
+import { OracleCapability, OracleId, Param, Answer, HashCashPow, Api, MempoolConfig } from "../node";
+import { powOverOracleCapability, powOverOracleId } from "../pow";
+import { ConnectionPool, ConnectionPoolCfg } from './connection-pool'
 
 
 export interface OracleBasicIdentity {
@@ -19,21 +21,26 @@ export interface OracleBasicCapability {
 export interface OracleCfg {
     id: OracleBasicIdentity
     basicCapabilities?: OracleBasicCapability[]
+    adInterval: number
+    adTopN: number
 }
 
 export interface CapabilityStorage<Query> {
 
-    addCapability: (cp: OracleCapability) => void
+    addCapability: (cp: OracleCapability) => Promise<void>
     
-    deactivateCapability: (capabilityPubKey: string) => void
+    deactivateCapability: (capabilityPubKey: string) => Promise<void>
+    activateCapability: (capabilityPubKey: string) => Promise<void>
 
-    dropCapability: (capabilityPubKey: string) => void
+    dropCapability: (capabilityPubKey: string) => Promise<void>
 
-    getCapability: (capabilityPubKey: string) => OracleCapability | undefined
+    getCapability: (capabilityPubKey: string) =>  Promise<OracleCapability | undefined>
 
-    listCapabilities: (query: Query) => OracleCapability[]
+    listCapabilities: (query: Query) => Promise<OracleCapability[]>
 
-    updateCapabilityPow: (capabilityPubKey: string, pow: HashCashPow) => void
+    listActiveCapabilities: () => Promise<OracleCapability[]>
+
+    updateCapabilityPow: (capabilityPubKey: string, pow: HashCashPow) => Promise<void>
 
 }
 
@@ -44,17 +51,132 @@ export interface OracleAd<MegaPeerT>{
 }
 
 export interface OracleControlAPI<MegaPeerT> {
-    startAdvertising: (cfg: OracleCfg) => void
-    pauseAdvertising: (cfg: OracleCfg) => void
-    upgradeOraclePow: (difficulty: number) => void
+    startAdvertising: (cfg: OracleCfg) =>  Promise<void>
+    pauseAdvertising: (cfg: OracleCfg) =>  Promise<void>
+    upgradeOraclePow: (difficulty: number) =>  Promise<void>
 
-    upgradeCapabilityPow: (capabilityPubKey: string, difficulty: number) => void
+    upgradeCapabilityPow: (capabilityPubKey: string, difficulty: number) =>  Promise<void>
 
-    addCapability: (cp: OracleBasicCapability) => void
+    addCapability: (cp: OracleBasicCapability) =>  Promise<void>
+    deactivateCapability: (capabilityPubKey: string) => Promise<void>
+    activateCapability: (capabilityPubKey: string) => Promise<void>
+    dropCapability: (capabilityPubKey: string) => Promise<void>
 
-    watchMyRankSample: (subscriber: (event: OracleAd<MegaPeerT>) => void) => void
+    watchMyRankSample: (subscriber: (event: OracleAd<MegaPeerT>) => Promise<void>) =>  Promise<void>
 
-    watchSignMyOracleBroadcasts: (subscriber: (event: OracleId) => OracleId) => void
-    watchSignMyCapabilityBroadcasts: (subscriber: (event: OracleCapability) => OracleCapability) => void
+    watchSignMyOracleBroadcasts: (subscriber: (event: OracleId) => Promise<OracleId>) =>  Promise<void>
+    watchSignMyCapabilityBroadcasts: (subscriber: (event: OracleCapability) => Promise<OracleCapability>) =>  Promise<void>
 
+}
+
+export function oracleControlApi<Query, MegaPeerT>(poolcfg: MempoolConfig<MegaPeerT>, nodeApi: Api, storage: CapabilityStorage<Query>, connections: ConnectionPool<MegaPeerT>, concfg: ConnectionPoolCfg): OracleControlAPI<MegaPeerT> {
+   
+    var id : OracleId = null
+    var advertiser = null
+    var signer: (event: OracleId) => Promise<OracleId> = null
+    var cpsigner: (event: OracleCapability) => Promise<OracleCapability> = null
+    var adobserver: (event: OracleAd<MegaPeerT>) => Promise<void> = null
+    
+    return {
+        startAdvertising: async function (cfg: OracleCfg): Promise<void> {
+            if (advertiser !== null) {
+                return
+            }
+            if (id === null) {
+                id = {
+                    pubkey: cfg.id.pubkey,
+                    seqNo: 0,
+                    cTTL: 0,
+                    pow: undefined,
+                    bid: {amount: 0, proof: ""},
+                    oracleSignature: "",
+                    oracleSignatureType: cfg.id.oracleSignatureType,
+                    manifestUri: cfg.id.manifestUri
+                }
+                id.pow = await powOverOracleId(id, 0)
+            }
+            
+            advertiser = setInterval(async () => {
+                if (adobserver !== null) {
+                    await Promise.all((connections.list(concfg).map(async con => {
+                        const api = connections.getapi(con)
+                        const oracles = await api.lookupOracles({
+                            page: 0,
+                            chunkSize: cfg.adTopN
+                        })
+                        oracles.forEach((o, i) => {
+                            if (o.pubkey === cfg.id.pubkey) {
+                                adobserver({
+                                    peer: con,
+                                    rank: i
+                                })
+                            }
+                        })
+                    })))
+                }
+
+                if (signer !== null) {
+                    id.oracleSignature = ""
+                    id = await signer(id)
+                }
+                nodeApi.announceOracle(poolcfg, id)
+                id.seqNo++
+                await Promise.all((await storage.listActiveCapabilities()).map(async cp => {
+                    nodeApi.announceCapability(poolcfg, cp)
+                    if (cpsigner !== null) {
+                        cp.oracleSignature = ""
+                        const difficulty = cp.pow?.difficulty ?? 1
+                        cp.pow = undefined
+                        cp = await cpsigner(cp)
+                        cp.pow = await powOverOracleCapability(cp, difficulty)
+                    }
+                    cp.seqNo++
+                }))
+
+                
+            }, cfg.adInterval)
+            return
+        },
+        pauseAdvertising: function (cfg: OracleCfg): Promise<void> {
+            if (advertiser !== null) {
+                clearInterval(advertiser)
+                advertiser = null
+            }
+            return
+        },
+        upgradeOraclePow: async function (difficulty: number):  Promise<void> {
+            id.pow = await powOverOracleId(id, difficulty)
+        },
+        upgradeCapabilityPow: async function (capabilityPubKey: string, difficulty: number):  Promise<void> {
+            const cp = await storage.getCapability(capabilityPubKey)
+            if (cp !== undefined && cp.oracleSignature !== undefined) {
+                storage.updateCapabilityPow(capabilityPubKey, await powOverOracleCapability(cp, difficulty))
+            }
+        },
+        addCapability: function (cp: OracleBasicCapability):  Promise<void> {
+            throw new Error("Function not implemented.");
+        },
+        deactivateCapability: async function (capabilityPubKey: string): Promise<void> {
+            await storage.deactivateCapability(capabilityPubKey)
+        },
+        activateCapability: async function (capabilityPubKey: string): Promise<void> {
+            await storage.activateCapability(capabilityPubKey)
+        },
+        dropCapability: async function (capabilityPubKey: string): Promise<void> {
+            await storage.dropCapability(capabilityPubKey)
+        },
+        watchMyRankSample: function (subscriber: (event: OracleAd<MegaPeerT>) => Promise<void>): Promise<void> {
+            adobserver = subscriber
+            return
+        },
+        watchSignMyOracleBroadcasts: function (subscriber: (event: OracleId) => Promise<OracleId>): Promise<void> {
+            signer = subscriber
+            return
+        },
+        watchSignMyCapabilityBroadcasts: function (subscriber: (event: OracleCapability) => Promise<OracleCapability>):  Promise<void> {
+            cpsigner = subscriber
+            return
+        }
+    }
+    
 }

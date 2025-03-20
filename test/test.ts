@@ -260,7 +260,7 @@ import * as pow from '../src/pow'
     {
         console.log("1. Oracles")
     
-        const oracles0 = await nd.api.lookupOracles(paging, [])
+        const oracles0 = await nd.api.lookupOracles(paging)
         assert.deepStrictEqual(oracles0, [])
     
         const [error, _] = await nd.api.announceOracle(cfg, {} as nd.OracleId)
@@ -277,7 +277,7 @@ import * as pow from '../src/pow'
         assert.strictEqual(res22, "success")
     
     
-        const oracles = await nd.api.lookupOracles(paging, [])
+        const oracles = await nd.api.lookupOracles(paging)
         assert.deepStrictEqual(oracles, [oracle1])
     
         //----crypto-----
@@ -302,7 +302,7 @@ import * as pow from '../src/pow'
         oracle2.oracleSignature = nd.testOnlySign(JSON.stringify(oracle2), keypairOracle2.pk)
     
         //-----rejections/evictions-----
-        const oracles2 = await nd.api.lookupOracles(paging, [])
+        const oracles2 = await nd.api.lookupOracles(paging)
         assert.deepStrictEqual(oracles2, [oracle1, oracle2])
         
         const oracle3 = structuredClone(oracle2)
@@ -314,7 +314,7 @@ import * as pow from '../src/pow'
         const res4 = await nd.api.announceOracle(cfg, oracle3)
         assert.strictEqual(res4, "success")
     
-        const oracles3 = await nd.api.lookupOracles(paging, [])
+        const oracles3 = await nd.api.lookupOracles(paging)
         assert.deepStrictEqual(oracles3, [oracle2, oracle3])
     
     
@@ -326,7 +326,7 @@ import * as pow from '../src/pow'
         oracle4.oracleSignature = nd.testOnlySign(JSON.stringify(oracle4), keypairOracle4.pk)
         const err3 = await nd.api.announceOracle(cfg, oracle4)
         assert.strictEqual(err3, "low pow difficulty")
-        assert.deepStrictEqual(await nd.api.lookupOracles(paging, []), [oracle2, oracle3])
+        assert.deepStrictEqual(await nd.api.lookupOracles(paging), [oracle2, oracle3])
     
     }
     

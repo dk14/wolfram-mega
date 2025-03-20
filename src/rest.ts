@@ -78,7 +78,7 @@ export const startHttp = (cfg: nd.MempoolConfig<any>) => {
                 }
 
                 if(reqUrl.pathname == '/oracles') {
-                    nd.api.lookupOracles(paging, []).then(x => res.end(JSON.stringify(x)))
+                    nd.api.lookupOracles(paging).then(x => res.end(JSON.stringify(x)))
                     return
                 }
 

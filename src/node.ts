@@ -244,8 +244,7 @@ type ReportAccepted = Registered
 type ReportRejected = NotRegistered
 
 
-interface Api {
-    mempool: Mempool
+export interface Api {
 
     //----exposed as P2P and REST POST----
     announceOracle: (cfg: MempoolConfig<any>, id: OracleId) => Promise<Registered | NotRegistered>
@@ -256,7 +255,7 @@ interface Api {
     //note: it does not dispute time delay/SLA, but it is less crushial for most option contracts
 
     //----exposed only as REST GET----- oracles should be sorted by proofs of payment
-    lookupOracles: (paging: PagingDescriptor, questions: string[]) => Promise<OracleId[]>
+    lookupOracles: (paging: PagingDescriptor) => Promise<OracleId[]>
     lookupCapabilities: (paging: PagingDescriptor, oraclePub: string) => Promise<OracleCapability[]>
     lookupReports: (paging: PagingDescriptor, oraclePub: string) => Promise<Report[]>
     lookupOffers: (paging: PagingDescriptor, capabilityPubKey: string) => Promise<OfferMsg[]>
@@ -407,15 +406,17 @@ export const testOnlyReset = () => {
     //could've made api a factory, but this is more realistic, 
     //since implementations of Api ackuiring sockets, files, databases and other resources 
     //are outside of the scope of node.ts module
-    api.mempool.oracles = {}
-    api.mempool.offers = []
+    mempool.oracles = {}
+    mempool.offers = []
+}
+
+const mempool: Mempool = {
+    oracles: {},
+    offers: []
 }
 
 export const api: Api = {
-    mempool: {
-        oracles: {},
-        offers: []
-    },
+
     announceOracle: async (cfg: MempoolConfig<any>, id: OracleId): Promise<Registered | NotRegistered> => {
         const [ _, error ] = (await openapi).request({ method: 'POST', path: '/oracle', body: id})
         if (error !== undefined) {
@@ -428,18 +429,18 @@ export const api: Api = {
             if (!(id.bid.amount == 0 || await validateBid(cfg, id.bid))) {
                 id.bid.amount = 0 //todo unsafe
             }
-            if (checkOracleRank(cfg, id, api.mempool)) {
-                if (api.mempool.oracles[id.pubkey] === undefined) {
-                    api.mempool.oracles[id.pubkey] = {
+            if (checkOracleRank(cfg, id, mempool)) {
+                if (mempool.oracles[id.pubkey] === undefined) {
+                    mempool.oracles[id.pubkey] = {
                         id,
                         capabilies: [],
                         reports: []
                     };
                     return "success";
                 } else {
-                    if (api.mempool.oracles[id.pubkey].id.seqNo < id.seqNo && api.mempool.oracles[id.pubkey].id.pow.difficulty <= id.pow.difficulty) {
-                        api.mempool.oracles[id.pubkey].id.seqNo = id.seqNo;
-                        api.mempool.oracles[id.pubkey].id.pow = id.pow
+                    if (mempool.oracles[id.pubkey].id.seqNo < id.seqNo && mempool.oracles[id.pubkey].id.pow.difficulty <= id.pow.difficulty) {
+                        mempool.oracles[id.pubkey].id.seqNo = id.seqNo;
+                        mempool.oracles[id.pubkey].id.pow = id.pow
                         return "success";
                     } else {
                         return "duplicate";
@@ -457,13 +458,13 @@ export const api: Api = {
         if (error !== undefined) {
             return ['invalid request', error.toString()]
         }
-        if (api.mempool.oracles[cp.oraclePubKey] === undefined) {
+        if (mempool.oracles[cp.oraclePubKey] === undefined) {
             return 'no oracle found';
         }
         if (cp.pow.difficulty == 0 || checkCapabilitySignature(cp)) {
             if (cp.pow.difficulty == 0 || checkPow(cp.pow, cp.oracleSignature)) {
-                if (checkCapabilityRank(cfg, cp, api.mempool.oracles[cp.oraclePubKey])) {
-                    const found = api.mempool.oracles[cp.oraclePubKey].capabilies.find(x => x.question == cp.question);
+                if (checkCapabilityRank(cfg, cp, mempool.oracles[cp.oraclePubKey])) {
+                    const found = mempool.oracles[cp.oraclePubKey].capabilies.find(x => x.question == cp.question);
                     if (found !== undefined) {
                         if (found.seqNo < cp.seqNo && found.pow.difficulty <= cp.pow.difficulty) {
                             found.seqNo = cp.seqNo
@@ -474,7 +475,7 @@ export const api: Api = {
                             return "duplicate";
                         }
                     }
-                    api.mempool.oracles[cp.oraclePubKey].capabilies.push(cp);
+                    mempool.oracles[cp.oraclePubKey].capabilies.push(cp);
                     return "success";
                 } else {
                     return "low pow difficulty";
@@ -492,18 +493,18 @@ export const api: Api = {
         if (error !== undefined) {
             return ['invalid request', error.toString()]
         }
-        if (api.mempool.oracles[report.oraclePubKey] === undefined) {
+        if (mempool.oracles[report.oraclePubKey] === undefined) {
             return 'no oracle found'
         }
         if (!checkPow(report.pow, JSON.stringify(report.content)) && !(report.pow.difficulty == 0)) {
             return "wrong pow";
         }
 
-        if (!checkReportRank(cfg, report, api.mempool.oracles[report.oraclePubKey])) {
+        if (!checkReportRank(cfg, report, mempool.oracles[report.oraclePubKey])) {
             return "low pow difficulty";
         }
 
-        const found = api.mempool.oracles[report.oraclePubKey].reports.find(x => x.pow.hash == report.pow.hash);
+        const found = mempool.oracles[report.oraclePubKey].reports.find(x => x.pow.hash == report.pow.hash);
         if (found !== undefined) {
             if (found.seqNo < report.seqNo) {
                 found.seqNo = report.seqNo;
@@ -512,7 +513,7 @@ export const api: Api = {
                 return "duplicate";
             }
         }
-        api.mempool.oracles[report.oraclePubKey].reports.push(report);
+        mempool.oracles[report.oraclePubKey].reports.push(report);
         return "success";
     },
     disputeMissingfactClaim: async (dispute: Dispute): Promise<DisputeAccepted | DisputeRejected> => {
@@ -520,15 +521,15 @@ export const api: Api = {
         if (error !== undefined) {
             return ['invalid request', error.toString()]
         }
-        if (api.mempool.oracles[dispute.oraclePubKey] === undefined) {
+        if (mempool.oracles[dispute.oraclePubKey] === undefined) {
             return 'no oracle found'
         }
-        const oracle = api.mempool.oracles[dispute.oraclePubKey];
+        const oracle = mempool.oracles[dispute.oraclePubKey];
         if (!validateFact(dispute.fact, dispute.claim.request)) {
             return "invalid fact";
         }
         if (oracle !== undefined) {
-            const found = api.mempool.oracles[oracle.id.pubkey].reports.find(x => x.content.type == "fact-missing" && x.pow.hash == dispute.reportPow.hash);
+            const found = mempool.oracles[oracle.id.pubkey].reports.find(x => x.content.type == "fact-missing" && x.pow.hash == dispute.reportPow.hash);
             if (found !== undefined && found.content.type == 'fact-missing') {
                 found.content.dispute = dispute.fact;
                 return "success";
@@ -539,26 +540,26 @@ export const api: Api = {
             return 'no oracle found'
         }
     },
-    lookupOracles: async (paging: PagingDescriptor, questions: string[]): Promise<OracleId[]> => {
-        return Object.values(api.mempool.oracles)
+    lookupOracles: async (paging: PagingDescriptor): Promise<OracleId[]> => {
+        return Object.values(mempool.oracles)
             .sort((a, b) => a.id.bid.amount - b.id.bid.amount)
             .map(x => x.id)
             .slice(paging.page * paging.chunkSize, (paging.page + 1) * paging.chunkSize);
     },
     lookupCapabilities: async (paging: PagingDescriptor, oraclePub: string): Promise<OracleCapability[]> => {
-        if (api.mempool.oracles[oraclePub] === undefined) {
+        if (mempool.oracles[oraclePub] === undefined) {
             console.log("oracle not found " + oraclePub);
             return [];
         }
-        return api.mempool.oracles[oraclePub].capabilies.slice(paging.page * paging.chunkSize, (paging.page + 1) * paging.chunkSize);
+        return mempool.oracles[oraclePub].capabilies.slice(paging.page * paging.chunkSize, (paging.page + 1) * paging.chunkSize);
 
     },
     lookupReports: async (paging: PagingDescriptor, oraclePub: string): Promise<Report[]> => {
-        if (api.mempool.oracles[oraclePub] === undefined) {
+        if (mempool.oracles[oraclePub] === undefined) {
             console.log("oracle not found " + oraclePub);
             return [];
         }
-        return api.mempool.oracles[oraclePub].reports.slice(paging.page * paging.chunkSize, (paging.page + 1) * paging.chunkSize);
+        return mempool.oracles[oraclePub].reports.slice(paging.page * paging.chunkSize, (paging.page + 1) * paging.chunkSize);
     },
     publishOffer: async function (cfg: MempoolConfig<any>, offer: OfferMsg): Promise<Registered | NotRegistered> {
         const [ _, error ] = (await openapi).request({ method: 'POST', path: '/offer', body: offer})
@@ -568,10 +569,10 @@ export const api: Api = {
         if (!checkPow(offer.pow, JSON.stringify(offer.content)) && !(offer.pow.difficulty == 0)) {
             return "wrong pow";
         }
-        if (!checkOfferRank(cfg, offer, api.mempool)) {
+        if (!checkOfferRank(cfg, offer, mempool)) {
             return "low pow difficulty";
         }
-        const found = api.mempool.offers.find(x => x.pow.hash === offer.pow.hash)
+        const found = mempool.offers.find(x => x.pow.hash === offer.pow.hash)
         if (found !== undefined) {
             if (found.seqNo < offer.seqNo && found.pow.difficulty <= offer.pow.difficulty) {
                 found.seqNo = offer.seqNo
@@ -580,7 +581,7 @@ export const api: Api = {
             }
             return "duplicate"
         }
-        const cp = Object.values(api.mempool.oracles).find(o => 
+        const cp = Object.values(mempool.oracles).find(o => 
             o.capabilies.find(c => 
                 c.capabilityPubKey === offer.content.terms.question.capabilityPubKey
             ) !== undefined
@@ -588,11 +589,11 @@ export const api: Api = {
         if (cp === undefined) {
             return "no oracle found"
         }
-        api.mempool.offers.push(offer)
+        mempool.offers.push(offer)
         return "success"
     },
     lookupOffers: async function (paging: PagingDescriptor, capabilityPubKey: string): Promise<OfferMsg[]> {
-        return api.mempool.offers.filter(o => o.content.terms.question.capabilityPubKey === capabilityPubKey)
+        return mempool.offers.filter(o => o.content.terms.question.capabilityPubKey === capabilityPubKey)
             .slice(paging.page * paging.chunkSize, (paging.page + 1) * paging.chunkSize);
     }
 }
