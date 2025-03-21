@@ -289,6 +289,7 @@ export interface MempoolConfig<PeerAddrT> {
     lnMacaroonPath?: string
     isTest: boolean
     p2pKeepAlive?: number
+    ttlThreshold?: number
 }
 
 export const checkPow = (pow: HashCashPow, preimage: string): boolean => {

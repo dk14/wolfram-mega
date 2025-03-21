@@ -117,6 +117,9 @@ export const startP2P = (cfg: nd.MempoolConfig<PeerAddr>) => {
 
     function reduceCTTL(content: string): [string, boolean] {
         const msg: nd.MsgLike = JSON.parse(content)
+        if (msg.cTTL > cfg.ttlThreshold ?? 7) {
+            return [JSON.stringify(msg), false]
+        }
         if (msg.cTTL <= 0) {
             return [JSON.stringify(msg), false]
         } else {
