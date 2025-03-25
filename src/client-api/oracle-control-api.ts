@@ -69,7 +69,11 @@ export interface OracleControlAPI<MegaPeerT> {
 
 }
 
-export function oracleControlApi<Query, MegaPeerT>(poolcfg: MempoolConfig<MegaPeerT>, nodeApi: Api, storage: CapabilityStorage<Query>, connections: ConnectionPool<MegaPeerT>, concfg: ConnectionPoolCfg): OracleControlAPI<MegaPeerT> {
+export function oracleControlApi<Query, MegaPeerT>(
+    poolcfg: MempoolConfig<MegaPeerT>, 
+    nodeApi: Api, storage: CapabilityStorage<Query>, 
+    connections: ConnectionPool<MegaPeerT>, 
+    concfg: ConnectionPoolCfg): OracleControlAPI<MegaPeerT> {
    
     var id : OracleId = null
     var advertiser = null
