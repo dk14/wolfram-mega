@@ -1,4 +1,4 @@
-import { Api, MempoolConfig, OfferMsg, OracleCapability, OracleId, Report, api } from "../node";
+import { Api, MempoolConfig, OfferMsg, OracleCapability, OracleId, PagingDescriptor, Report, api } from "../node";
 import { powOverOffer, powOverReport } from "../pow";
 
 
@@ -19,15 +19,13 @@ export interface TraderStorage<OracleQuery, CpQuery, RpQuery, MatchingQuery> {
 
     allOracles: (q: OracleQuery, opredicate: (cp: OracleId) => Promise<boolean>, handler: (id: OracleId) => Promise<void>) => Promise<void>
 
-    queryOracles: (q: OracleQuery) => Promise<OracleId[]>
-    queryCapabilities: (cp: CpQuery) => Promise<OracleCapability[]>
-    queryOffers: (cp: MatchingQuery) => Promise<OfferMsg[]>
-    queryReports: (cp: RpQuery) => Promise<Report[]>
+    queryOracles: (q: OracleQuery, paging: PagingDescriptor) => Promise<OracleId[]>
+    queryCapabilities: (cp: CpQuery, paging: PagingDescriptor) => Promise<OracleCapability[]>
+    queryOffers: (cp: MatchingQuery, paging: PagingDescriptor) => Promise<OfferMsg[]>
+    queryReports: (cp: RpQuery, paging: PagingDescriptor) => Promise<Report[]>
 
     allIssuedOffers: (handler: (o: OfferMsg) => Promise<void>) => Promise<void>
     allIssuedReports: (handler: (r: Report) => Promise<void>) => Promise<void>
-    
-
 
 }
 

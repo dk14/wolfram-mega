@@ -1,4 +1,4 @@
-import { OracleCapability, OracleId, Param, Answer, HashCashPow, Api, MempoolConfig } from "../node";
+import { OracleCapability, OracleId, Param, Answer, HashCashPow, Api, MempoolConfig, PagingDescriptor } from "../node";
 import { powOverOracleCapability, powOverOracleId } from "../pow";
 import { ConnectionPool, ConnectionPoolCfg } from './connection-pool'
 
@@ -36,7 +36,7 @@ export interface CapabilityStorage<Query> {
 
     getCapability: (capabilityPubKey: string) =>  Promise<OracleCapability | undefined>
 
-    listCapabilities: (query: Query) => Promise<OracleCapability[]>
+    listCapabilities: (query: Query, paging: PagingDescriptor) => Promise<OracleCapability[]>
 
     listActiveCapabilities: () => Promise<OracleCapability[]>
 
