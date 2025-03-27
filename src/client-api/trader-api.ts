@@ -3,7 +3,7 @@ import { powOverOffer, powOverReport } from "../pow";
 
 
 export interface TraderStorage<OracleQuery, CpQuery, RpQuery, MatchingQuery> {
-    addOracle: (cp: OracleId) => Promise<void>
+    addOracle: (o: OracleId) => Promise<void>
     addCp: (cp: OracleCapability) => Promise<void>
     addReport: (r: Report) => Promise<void>
     addIssuedReport: (r: Report) => Promise<void>
@@ -20,9 +20,9 @@ export interface TraderStorage<OracleQuery, CpQuery, RpQuery, MatchingQuery> {
     allOracles: (q: OracleQuery, opredicate: (cp: OracleId) => Promise<boolean>, handler: (id: OracleId) => Promise<void>) => Promise<void>
 
     queryOracles: (q: OracleQuery, paging: PagingDescriptor) => Promise<OracleId[]>
-    queryCapabilities: (cp: CpQuery, paging: PagingDescriptor) => Promise<OracleCapability[]>
-    queryOffers: (cp: MatchingQuery, paging: PagingDescriptor) => Promise<OfferMsg[]>
-    queryReports: (cp: RpQuery, paging: PagingDescriptor) => Promise<Report[]>
+    queryCapabilities: (q: CpQuery, paging: PagingDescriptor) => Promise<OracleCapability[]>
+    queryOffers: (q: MatchingQuery, paging: PagingDescriptor) => Promise<OfferMsg[]>
+    queryReports: (q: RpQuery, paging: PagingDescriptor) => Promise<Report[]>
 
     allIssuedOffers: (handler: (o: OfferMsg) => Promise<void>) => Promise<void>
     allIssuedReports: (handler: (r: Report) => Promise<void>) => Promise<void>

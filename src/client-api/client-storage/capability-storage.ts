@@ -1,6 +1,6 @@
 import * as fs from 'fs'
-import { CapabilityStorage } from '../client-api/oracle-control-api'
-import { HashCashPow, OracleCapability, PagingDescriptor } from '../node'
+import { CapabilityStorage } from '../oracle-control-api'
+import { HashCashPow, OracleCapability, PagingDescriptor } from '../../node'
 
 interface CapabilityQuery {
     where: (cp: OracleCapability) => Promise<boolean>
