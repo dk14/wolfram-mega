@@ -20,7 +20,6 @@ export const startTraderService = (cfg: MempoolConfig<PeerAddr>) => {
 
             const reqUrl =  url.parse(req.url!, true)
             const tag: string = typeof reqUrl.query.tag === "string" ? reqUrl.query.tag : ""
-            const difficulty: string = typeof reqUrl.query.difficulty === "string" ? reqUrl.query.difficulty : ""
 
             if(reqUrl.pathname == '/broadcastIssuedOffers') {
                 api.startBroadcastingIssuedOffers()
