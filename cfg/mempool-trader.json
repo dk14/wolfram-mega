@@ -1,0 +1,29 @@
+{
+    "maxOracles": 100,
+    "maxCapabilities": 100,
+    "maxReports": 100,
+    "maxConnections": 100,
+    "httpPort": 8081,
+    "p2pPort": 8334,
+    "hostname": "localhost",
+    "isTest": true,
+    "p2pseed": [
+        {"server": "localhost", "port" : 8333}
+    ],
+    "trader": {
+        "broadcastOfferCycle": 1000,
+        "broadcastReportCycle": 1000,
+        "collectOffersCycle": 1000,
+        "collectReportsCycle": 1000,
+        "collectOracleAdsCycle": 1000,
+        "collectOracleCpCycle": 1000,
+        "pageSize": 100,
+        "maxOraclesPages": 2,
+        "maxCpPages": 2,
+        "maxReportsPages": 2,
+        "maxOffersPages": 2,
+        "maxCollectors": 2,
+        "dbPath": "./db",
+        "httpPort": 7080
+    }
+}

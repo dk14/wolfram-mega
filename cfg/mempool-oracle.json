@@ -1,0 +1,24 @@
+{
+    "maxOracles": 100,
+    "maxCapabilities": 100,
+    "maxReports": 100,
+    "maxConnections": 100,
+    "httpPort": 8081,
+    "p2pPort": 8334,
+    "hostname": "localhost",
+    "isTest": true,
+    "p2pseed": [
+        {"server": "localhost", "port" : 8333}
+    ],
+    "oracle": {
+        "id": {
+            "pubkey": "AAA",
+            "oracleSignatureType" : "SHA256"
+        },
+        "adInterval": 100,
+        "adTopN": 10,
+        "dbPath": "./db",
+        "httpPort": 9080,
+        "wsPort": 9081
+    }
+}
