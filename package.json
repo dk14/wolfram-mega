@@ -41,7 +41,8 @@
     "request": "^2.88.2",
     "safe-eval": "^0.4.1",
     "url": "^0.11.4",
-    "wait-on": "^8.0.3"
+    "wait-on": "^8.0.3",
+    "websocket-stream": "^5.5.2"
   },
   "files": [
     "dist",

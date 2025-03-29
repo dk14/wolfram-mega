@@ -26,6 +26,7 @@ export interface OracleCfg {
     adTopN: number
     dbPath: string
     httpPort: number
+    wsPort: number
 }
 
 export interface CapabilityStorage<Query> {
