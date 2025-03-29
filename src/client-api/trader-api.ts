@@ -70,7 +70,8 @@ export interface TraderCfg {
     maxReportsPages: number,
     maxOffersPages: number
     maxCollectors: number,
-    dbPath: string
+    dbPath: string,
+    httpPort: number
 
 }
 

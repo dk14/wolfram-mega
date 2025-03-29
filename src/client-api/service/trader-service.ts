@@ -102,7 +102,7 @@ export const startTraderService = (cfg: MempoolConfig<PeerAddr>) => {
                 res.end(JSON.stringify({error: err.message}))
             }
         }
-    }).listen(cfg.oracle.httpPort)
+    }).listen(cfg.trader.httpPort)
 
     
     

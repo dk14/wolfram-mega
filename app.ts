@@ -29,6 +29,11 @@ console.log("Start P2P service...   " + cfg.p2pPort)
 startP2P(cfg)
 
 if (cfg.oracle) {
-    console.log("Start Oracle Control service...   " + cfg.oracle.httpPort) 
+    console.log("Start Oracle Control service...   HTTP = " + cfg.oracle.httpPort + ", WS = " + cfg.oracle.wsPort) 
+    startOracleService(cfg)
+}
+
+if (cfg.oracle) {
+    console.log("Start Trader service...           HTTP = " + cfg.trader.httpPort) 
     startOracleService(cfg)
 }
