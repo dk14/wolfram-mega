@@ -16,7 +16,10 @@
   "bin": {
     "wf-mega-peer": "./bin/wf-mega-peer"
   },
-  "keywords": ["p2p", "oracle"],
+  "keywords": [
+    "p2p",
+    "oracle"
+  ],
   "author": "dk14",
   "license": "ISC",
   "devDependencies": {
@@ -36,10 +39,18 @@
     "openapi-enforcer": "^1.23.0",
     "p2p-node": "^0.1.1",
     "request": "^2.88.2",
+    "safe-eval": "^0.4.1",
     "url": "^0.11.4",
     "wait-on": "^8.0.3"
   },
   "files": [
-    "dist", "src", "cfg", ".", "README.md", "app.ts", "index.html", "bin"
+    "dist",
+    "src",
+    "cfg",
+    ".",
+    "README.md",
+    "app.ts",
+    "index.html",
+    "bin"
   ]
 }

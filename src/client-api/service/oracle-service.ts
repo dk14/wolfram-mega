@@ -55,6 +55,8 @@ export const startOracleService = (cfg: MempoolConfig<PeerAddr>) => {
                             api.addCapability(postBody)
                         }
 
+                        //TODO add storage queries
+
                     } catch (err) {
                         console.error(err)
                         if (!res.writableEnded){

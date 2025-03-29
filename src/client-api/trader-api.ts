@@ -69,6 +69,8 @@ export interface TraderCfg {
     maxCpPages: number,
     maxReportsPages: number,
     maxOffersPages: number
+    maxCollectors: number,
+    dbPath: string
 
 }
 
