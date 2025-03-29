@@ -41,8 +41,6 @@ export const startOracleService = (cfg: MempoolConfig<PeerAddr>) => {
             } else if(reqUrl.pathname == '/upgradeCapabilityPow') {
                 api.upgradeCapabilityPow(pubkey,parseInt(difficulty))
             }
-            
-            //TODO web-sockets
     
             if (req.method === 'POST') {
                 var body = ''
@@ -87,7 +85,7 @@ export const startOracleService = (cfg: MempoolConfig<PeerAddr>) => {
 
         // we assume single client app, so subscriptions are mutually exclusive, one subscriber per service
         // last opened socket will get active stream
-        
+
         if(reqUrl.pathname == '/ranks') {
             api.watchMyRankSample(async ev => {  
                 rl.write(JSON.stringify(ev) + "\n")
