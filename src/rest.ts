@@ -2,13 +2,14 @@ import * as nd from './node';
 import * as http from 'http';
 import * as url from 'url';
 import {p2pNode} from "./p2p";
+import { MempoolConfig } from "./config"
 import * as fs from 'fs'
 
 // curl -i -X POST -H 'Content-Type: application/json' -d '{"pubkey": "AAA", "seqNo": 1, "cTTL": 2, "pow" : {"preimageType": "", "difficukty":0, "algorithm": "", "hash": "BBB"}, "bid": {"amount" : 0, "proof": ""}}' http://localhost:8080/oracle
 
 // curl -i -X GET http://localhost:8080/oracles
 
-export const startHttp = (cfg: nd.MempoolConfig<any>) => {
+export const startHttp = (cfg: MempoolConfig<any>) => {
     http.createServer(async (req, res) => {
         res.statusCode = 200;
 

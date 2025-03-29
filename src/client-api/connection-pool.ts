@@ -7,10 +7,6 @@ export interface ConnectionPoolCfg {
 
 export interface ConnectionPool<MegaPeerT> {
     
-    connected: (cfg: ConnectionPoolCfg, peer: MegaPeerT) => void
-
-    connect: (cfg: ConnectionPoolCfg, peer: MegaPeerT) => boolean
-
     list: (cfg: ConnectionPoolCfg) =>  MegaPeerT[]
 
     getapi: (peer: MegaPeerT) => Api

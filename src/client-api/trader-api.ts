@@ -1,4 +1,5 @@
-import { Api, MempoolConfig, OfferMsg, OracleCapability, OracleId, PagingDescriptor, Report, api } from "../node";
+import { Api, OfferMsg, OracleCapability, OracleId, PagingDescriptor, Report, api } from "../node"
+import { MempoolConfig } from "../config"
 import { powOverOffer, powOverReport } from "../pow";
 
 

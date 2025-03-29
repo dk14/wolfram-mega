@@ -1,22 +1,28 @@
 import * as nd from './node';
 import * as net from 'net';
 import { Socket } from 'net';
-import {Peer} from 'p2p-node'
+import { Peer } from 'p2p-node'
+import { MempoolConfig } from "./config"
+import { ConnectionPool, ConnectionPoolCfg } from './client-api/connection-pool';
+import fetch from 'node-fetch'
 
-interface PeerAddr {
+export interface PeerAddr {
     server: string,
     port: number,
-    seqNo?: number
+    seqNo?: number,
+    httpPort?: number
 } 
 
-interface Neighbor {
+export interface Neighbor {
     peer: Peer
     addr: PeerAddr
 }
 
 export var p2pNode: nd.FacilitatorNode<Neighbor> | undefined = undefined
 
-export const startP2P = (cfg: nd.MempoolConfig<PeerAddr>) => {
+export var connectionPool: ConnectionPool<PeerAddr> | undefined = undefined
+
+export const startP2P = (cfg: MempoolConfig<PeerAddr>) => {
 
     var connections = 0
     const onmessage = (ev) => {
@@ -220,12 +226,59 @@ export const startP2P = (cfg: nd.MempoolConfig<PeerAddr>) => {
     server.listen(cfg.p2pPort, cfg.hostname);
     
     p2pNode = node
+    connectionPool = {
+
+        list: function (cfg: ConnectionPoolCfg): PeerAddr[] {
+            return peers.map(x => x.addr)
+        },
+        getapi: function (peer: PeerAddr): nd.Api {
+            const prefix = `http://${peer.server}:${peer.httpPort ?? 8080}/`
+            const suffix = (paging: nd.PagingDescriptor) => {
+                return `pageNo=${paging.page}&pageSize=${paging.chunkSize}`
+            }
+            return {
+                announceOracle: function (cfg: MempoolConfig<any>, id: nd.OracleId): Promise<('success' | 'duplicate') | ('low pow difficulty' | 'wrong signature' | 'wrong pow' | 'no oracle found' | ['invalid request', string])> {
+                    throw new Error('Function not implemented.');
+                },
+                announceCapability: function (cfg: MempoolConfig<any>, cp: nd.OracleCapability): Promise<('success' | 'duplicate') | ('low pow difficulty' | 'wrong signature' | 'wrong pow' | 'no oracle found' | ['invalid request', string])> {
+                    throw new Error('Function not implemented.');
+                },
+                reportMalleability: function (cfg: MempoolConfig<any>, report: nd.Report): Promise<('success' | 'duplicate') | ('low pow difficulty' | 'wrong signature' | 'wrong pow' | 'no oracle found' | ['invalid request', string])> {
+                    throw new Error('Function not implemented.');
+                },
+                disputeMissingfactClaim: function (dispute: nd.Dispute): Promise<('success' | 'duplicate') | (('low pow difficulty' | 'wrong signature' | 'wrong pow' | 'no oracle found' | ['invalid request', string]) | 'invalid fact' | 'report not found' | 'unknown')> {
+                    throw new Error('Function not implemented.');
+                },
+                publishOffer: function (cfg: MempoolConfig<any>, offer: nd.OfferMsg): Promise<('success' | 'duplicate') | ('low pow difficulty' | 'wrong signature' | 'wrong pow' | 'no oracle found' | ['invalid request', string])> {
+                    throw new Error('Function not implemented.');
+                },
+                lookupOracles: async function (paging: nd.PagingDescriptor): Promise<nd.OracleId[]> {
+                    return (await (await fetch(prefix + "oracles?" + suffix(paging))).json()) as nd.OracleId[]
+                },
+                lookupCapabilities: async function (paging: nd.PagingDescriptor, oraclePub: string): Promise<nd.OracleCapability[]> {
+                    return (await (await fetch(prefix + `capabilities?pubkey=${encodeURIComponent(oraclePub)}&` + suffix(paging))).json()) as nd.OracleCapability[]
+                },
+                lookupReports: async function (paging: nd.PagingDescriptor, oraclePub: string): Promise<nd.Report[]> {
+                    return (await (await fetch(prefix + `reports?pubkey=${encodeURIComponent(oraclePub)}&` + suffix(paging))).json()) as nd.Report[]
+                },
+                lookupOffers: async function (paging: nd.PagingDescriptor, capabilityPubKey: string): Promise<nd.OfferMsg[]> {
+                    return (await (await fetch(prefix + `offers?pubkey=${encodeURIComponent(capabilityPubKey)}&` + suffix(paging))).json()) as nd.OfferMsg[]
+                }
+            }
+        },
+        drop: function (cfg: ConnectionPoolCfg, peer: PeerAddr): void {
+            const neighbor = peers.find(x => x.addr === peer)
+            if (neighbor) {
+                neighbor.peer.disconnect()
+            }
+        }
+    }
 
     if (cfg.hostname !== undefined) {
         var seqNo = 0
         setInterval(() => {
             seqNo++
-            broadcastPeer({server: cfg.hostname, port: cfg.p2pPort, seqNo: (cfg.hostSeqNo ?? 0) + seqNo}, true)
+            broadcastPeer({server: cfg.hostname, port: cfg.p2pPort, seqNo: (cfg.hostSeqNo ?? 0) + seqNo, httpPort: cfg.httpPort}, true)
         }, (cfg.p2pKeepAlive ?? 100000))
     }
     

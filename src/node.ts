@@ -5,6 +5,7 @@ import * as fs from 'fs'
 import {hash} from './util'
 import Enforcer from 'openapi-enforcer'
 import { console } from 'inspector'
+import { MempoolConfig } from "./config"
 
 const openapi = Enforcer(__dirname + '/../wolfram-mega-spec.yaml')
 /* c8 ignore end */
@@ -222,11 +223,7 @@ export interface OfferMsg extends MsgLike, WithPow {
     content: Offer
 }
 
-interface FacilitatorId {
-    websiteManifestUri?: string
-    rewardAddress?: string
-    facilitatorRewardIdPow?: HashCashPow // preimage is concat of reward addresses
-}
+
 
 export interface PagingDescriptor {
     page: number
@@ -273,24 +270,7 @@ export interface FacilitatorNode<PeerT> { //TODO implement
 
 }
 
-export interface MempoolConfig<PeerAddrT> {
-    maxOracles: number
-    maxCapabilities: number
-    maxReports: number
-    maxOffers?: number
-    maxConnections: number
-    httpPort: number
-    p2pPort: number
-    p2pseed: PeerAddrT[]
-    hostSeqNo?: number
-    hostname?: string
-    facilitatorId?: FacilitatorId
-    lnRestHost?: string
-    lnMacaroonPath?: string
-    isTest: boolean
-    p2pKeepAlive?: number
-    ttlThreshold?: number
-}
+
 
 export const checkPow = (pow: HashCashPow, preimage: string): boolean => {
     if (!pow.hash.endsWith("0".repeat(pow.difficulty))) {

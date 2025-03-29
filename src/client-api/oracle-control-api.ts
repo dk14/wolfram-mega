@@ -1,5 +1,6 @@
-import { OracleCapability, OracleId, Param, Answer, HashCashPow, Api, MempoolConfig, PagingDescriptor } from "../node";
-import { powOverOracleCapability, powOverOracleId } from "../pow";
+import { OracleCapability, OracleId, Param, Answer, HashCashPow, Api, PagingDescriptor } from "../node"
+import { MempoolConfig } from "../config"
+import { powOverOracleCapability, powOverOracleId } from "../pow"
 import { ConnectionPool, ConnectionPoolCfg } from './connection-pool'
 
 
@@ -23,6 +24,8 @@ export interface OracleCfg {
     basicCapabilities?: OracleBasicCapability[]
     adInterval: number
     adTopN: number
+    dbPath: string
+    httpPort: number
 }
 
 export interface CapabilityStorage<Query> {

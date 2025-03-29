@@ -1,4 +1,5 @@
-import { MempoolConfig } from './src/node';
+import { startOracleService } from './src/client-api/service/oracle-service';
+import { MempoolConfig } from './src/config';
 import {startP2P} from './src/p2p';
 import {startHttp} from './src/rest';
 import * as fs from 'fs'
@@ -26,3 +27,8 @@ console.log("Start HTTP service...  " + cfg.httpPort)
 startHttp(cfg)
 console.log("Start P2P service...   " + cfg.p2pPort)
 startP2P(cfg)
+
+if (cfg.oracle) {
+    console.log("Start Oracle Control service...   " + cfg.oracle.httpPort) 
+    startOracleService(cfg)
+}
