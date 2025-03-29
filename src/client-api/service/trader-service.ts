@@ -6,6 +6,7 @@ import * as url from 'url';
 import * as safeEval from 'safe-eval'
 import { Collector, TraderApi, traderApi } from "../trader-api";
 import { traderStorage, TraderQuery} from "../client-storage/trader-storage";
+import * as fs from 'fs'
 
 export const startTraderService = (cfg: MempoolConfig<PeerAddr>) => {
     const storage = traderStorage(cfg.trader.dbPath, 5)
@@ -20,6 +21,12 @@ export const startTraderService = (cfg: MempoolConfig<PeerAddr>) => {
 
             const reqUrl =  url.parse(req.url!, true)
             const tag: string = typeof reqUrl.query.tag === "string" ? reqUrl.query.tag : ""
+
+            if (req.method === 'GET' && (reqUrl.pathname == '/index.html' || reqUrl.pathname == '/index.htm') || reqUrl.pathname == '/') {
+                res.setHeader('content-Type', 'text/html');
+                res.end(fs.readFileSync(__dirname + '/html/trader/index.html').toString())
+                return
+            }
 
             if(reqUrl.pathname == '/broadcastIssuedOffers') {
                 api.startBroadcastingIssuedOffers()
@@ -46,7 +53,11 @@ export const startTraderService = (cfg: MempoolConfig<PeerAddr>) => {
                         } else if (reqUrl.pathname == '/issueReport') {
                             await  api.issueReport(postBody)
                         } else if (reqUrl.pathname == '/collectCapabilities') {
-                            const collector = await api.collectCapabilities(tag, {where: safeEval(postBody.oquery)}, safeEval(postBody.opredicate), safeEval(postBody.predicate))
+                            const collector = await api.collectCapabilities(tag, 
+                                {where: async x => {return safeEval(postBody.oquery, x)}}, 
+                                async x => {return safeEval(postBody.opredicate, x)}, 
+                                async x => {return safeEval(postBody.predicate, x)}
+                            )
                             if (Object.values(collectors).length < cfg.trader!.maxCollectors) {
                                 if (collectors[collector.tag]) {
                                     collectors[collector.tag].cancel()
@@ -54,7 +65,11 @@ export const startTraderService = (cfg: MempoolConfig<PeerAddr>) => {
                                 collectors[collector.tag] = collector
                             }
                         } else if (reqUrl.pathname == '/collectOffers') {
-                            const collector = await api.collectOffers(tag, {where: safeEval(postBody.oquery)}, safeEval(postBody.opredicate), safeEval(postBody.predicate))
+                            const collector = await api.collectOffers(tag, 
+                                {where: async x => {return safeEval(postBody.oquery, x)}}, 
+                                async x => {return safeEval(postBody.opredicate, x)}, 
+                                async x => {return safeEval(postBody.predicate, x)}
+                            )
                             if (Object.values(collectors).length < cfg.trader!.maxCollectors) {
                                 if (collectors[collector.tag]) {
                                     collectors[collector.tag].cancel()
@@ -62,7 +77,11 @@ export const startTraderService = (cfg: MempoolConfig<PeerAddr>) => {
                                 collectors[collector.tag] = collector
                             }
                         } else if (reqUrl.pathname == '/collectReports') {
-                            const collector = await api.collectReports(tag, {where: safeEval(postBody.oquery)}, safeEval(postBody.opredicate), safeEval(postBody.predicate))
+                            const collector = await api.collectReports(tag, 
+                                {where: async x => {return safeEval(postBody.oquery, x)}}, 
+                                async x => {return safeEval(postBody.opredicate, x)}, 
+                                async x => {return safeEval(postBody.predicate, x)}
+                            )
                             if (Object.values(collectors).length < cfg.trader!.maxCollectors) {
                                 if (collectors[collector.tag]) {
                                     collectors[collector.tag].cancel()
@@ -70,7 +89,7 @@ export const startTraderService = (cfg: MempoolConfig<PeerAddr>) => {
                                 collectors[collector.tag] = collector
                             }
                         } else if (reqUrl.pathname == '/collectReports') {
-                            const collector = await api.collectOracles(tag, safeEval(postBody.predicate))
+                            const collector = await api.collectOracles(tag, async x => {return safeEval(postBody.predicate, x)})
                             if (Object.values(collectors).length < cfg.trader!.maxCollectors) {
                                 if (collectors[collector.tag]) {
                                     collectors[collector.tag].cancel()

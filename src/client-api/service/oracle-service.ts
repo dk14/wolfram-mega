@@ -9,6 +9,7 @@ import * as http from 'http';
 import * as url from 'url';
 import * as websocket from 'websocket-stream'
 import * as readline from 'readline'
+import * as fs from 'fs'
 
 export const startOracleService = (cfg: MempoolConfig<PeerAddr>) => {
     const storage = capabilityStorage(cfg.oracle.dbPath, 5, 100)
@@ -25,6 +26,12 @@ export const startOracleService = (cfg: MempoolConfig<PeerAddr>) => {
             const reqUrl =  url.parse(req.url!, true)
             const pubkey: string = typeof reqUrl.query.pubkey === "string" ? reqUrl.query.pubkey : ""
             const difficulty: string = typeof reqUrl.query.difficulty === "string" ? reqUrl.query.difficulty : ""
+
+            if (req.method === 'GET' && (reqUrl.pathname == '/index.html' || reqUrl.pathname == '/index.htm') || reqUrl.pathname == '/') {
+                res.setHeader('content-Type', 'text/html');
+                res.end(fs.readFileSync(__dirname + '/html/trader/index.html').toString())
+                return
+            }
 
             if(reqUrl.pathname == '/start') {
                 api.startAdvertising(cfg.oracle)
