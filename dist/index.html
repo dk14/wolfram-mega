@@ -5,13 +5,15 @@
         <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui.css" />
     </head>
     
-    <body>
+    <body bgcolor="grey">
         <h1>Wofram Mega Node Monitor:</h1>
         <hr>
 
         Peers: <div id="peers"></div>
 
         <hr>
+        <label for="update">Update View:</label>
+        <input type="checkbox" id="update" name="update" checked />
 
         <h2>Oracles:</h2>
 
@@ -50,7 +52,14 @@
         <br>
 
         <label for="content">Content:</label>
-        <input type="text" id="content" name="content" size="100" value='{ "type": "fact-disagreees-with-public", "seqNo": 0, "request": { "capabilityPubKey": "", "arguments": {} }, "pow": {"preimageType": "", "difficulty":0, "algorithm": "SHA256", "hash": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"}}'>
+        <br>
+        <input type="text" id="content" name="content" size="100" value='{ "type": "fact-disagreees-with-public", "request": { "capabilityPubKey": "", "arguments": {} }}'>
+        <br>
+        <label for="content">Pow:</label>
+        <br>
+        <input type="text" id="pow" name="pow" size="100" value='{"magicNo": 1000, "difficulty":0, "algorithm": "SHA256", "hash": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"}'>
+        <br>
+        <br>
         <input id="report" type="button" value="Submit Report">
         <hr>
 
@@ -148,11 +157,12 @@
 
         const reportForm = document.getElementById('report');
         const content = document.getElementById('content');
+        const powField = document.getElementById('pow');
         reportForm.onclick = function(event){
             const xhr = new XMLHttpRequest();
             xhr.open('POST','./report')
             xhr.setRequestHeader("Content-Type", "application/json");
-            const pow = {"magicNo": 1000, "difficulty":0, "algorithm": "SHA256", "hash": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"}
+            const pow = JSON.parse(powField.value)
             
             report = {"cTTL": 0, "seqNo": 0, "pow": pow}
             report.oraclePubKey = pubkey.value
@@ -170,6 +180,7 @@
 
         const oracleTable = document.getElementById('oracles');
         setInterval(() => {
+            if (!document.getElementById('update').checked) return
             const xhr = new XMLHttpRequest();
             xhr.open('GET','./oracles')
             xhr.setRequestHeader("Content-Type", "application/json");
@@ -189,6 +200,7 @@
         const capabilityTable = document.getElementById('capabilities');
 
         setInterval(() => {
+            if (!document.getElementById('update').checked) return
             const xhr = new XMLHttpRequest();
             xhr.open('GET','./capabilities?pubkey=' + encodeURIComponent(pubkey.value))
             xhr.setRequestHeader("Content-Type", "application/json");
@@ -207,6 +219,7 @@
 
         const reportsTable = document.getElementById('reports');
         setInterval(() => {
+            if (!document.getElementById('update').checked) return
             var xhr = new XMLHttpRequest();
             
             xhr.open('GET','./reports?pubkey=' + encodeURIComponent(pubkey.value))

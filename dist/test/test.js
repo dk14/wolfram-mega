@@ -249,7 +249,7 @@ const pow = __importStar(require("../src/pow"));
     //-------------------------------------------------------------------------
     {
         console.log("1. Oracles");
-        const oracles0 = await nd.api.lookupOracles(paging, []);
+        const oracles0 = await nd.api.lookupOracles(paging);
         assert.deepStrictEqual(oracles0, []);
         const [error, _] = await nd.api.announceOracle(cfg, {});
         assert.strictEqual(error, "invalid request");
@@ -261,7 +261,7 @@ const pow = __importStar(require("../src/pow"));
         oracle1Copy.seqNo++;
         const res22 = await nd.api.announceOracle(cfg, oracle1Copy);
         assert.strictEqual(res22, "success");
-        const oracles = await nd.api.lookupOracles(paging, []);
+        const oracles = await nd.api.lookupOracles(paging);
         assert.deepStrictEqual(oracles, [oracle1]);
         //----crypto-----
         oracle2.pubkey = keypairOracle2.pub;
@@ -280,7 +280,7 @@ const pow = __importStar(require("../src/pow"));
         oracle2.pow.difficulty = 2;
         oracle2.oracleSignature = nd.testOnlySign(JSON.stringify(oracle2), keypairOracle2.pk);
         //-----rejections/evictions-----
-        const oracles2 = await nd.api.lookupOracles(paging, []);
+        const oracles2 = await nd.api.lookupOracles(paging);
         assert.deepStrictEqual(oracles2, [oracle1, oracle2]);
         const oracle3 = structuredClone(oracle2);
         oracle3.pubkey = keypairOracle3.pub;
@@ -289,7 +289,7 @@ const pow = __importStar(require("../src/pow"));
         oracle3.oracleSignature = nd.testOnlySign(JSON.stringify(oracle3), keypairOracle3.pk);
         const res4 = await nd.api.announceOracle(cfg, oracle3);
         assert.strictEqual(res4, "success");
-        const oracles3 = await nd.api.lookupOracles(paging, []);
+        const oracles3 = await nd.api.lookupOracles(paging);
         assert.deepStrictEqual(oracles3, [oracle2, oracle3]);
         const keypairOracle4 = nd.testOnlyGenerateKeyPair();
         const oracle4 = structuredClone(oracle2);
@@ -299,7 +299,7 @@ const pow = __importStar(require("../src/pow"));
         oracle4.oracleSignature = nd.testOnlySign(JSON.stringify(oracle4), keypairOracle4.pk);
         const err3 = await nd.api.announceOracle(cfg, oracle4);
         assert.strictEqual(err3, "low pow difficulty");
-        assert.deepStrictEqual(await nd.api.lookupOracles(paging, []), [oracle2, oracle3]);
+        assert.deepStrictEqual(await nd.api.lookupOracles(paging), [oracle2, oracle3]);
     }
     //-------------------------------------------------------------------------
     {
@@ -440,11 +440,12 @@ const pow = __importStar(require("../src/pow"));
         //-----rejections/evictions-----
         assert.deepStrictEqual(await nd.api.lookupOffers(paging, offerMsg1.content.terms.question.capabilityPubKey), [offerMsg1, offerMsg2]);
         const o1 = structuredClone(offerMsg1);
+        o1.content.message = "msg222";
         o1.pow = await pow.powOverOffer(o1, 2);
         assert.strictEqual(await nd.api.publishOffer(cfg, o1), "success");
         assert.deepStrictEqual(await nd.api.lookupOffers(paging, offerMsg1.content.terms.question.capabilityPubKey), [offerMsg2, o1]);
         const o2 = structuredClone(offerMsg1);
-        offerMsg1.content.message = "msg";
+        o2.content.message = "msg";
         o2.pow = await pow.powOverOffer(o2, 3);
         assert.strictEqual(await nd.api.publishOffer(cfg, o2), "success");
         assert.deepStrictEqual(await nd.api.lookupOffers(paging, offerMsg1.content.terms.question.capabilityPubKey), [o1, o2]);

@@ -32,12 +32,17 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.startP2P = exports.p2pNode = void 0;
+exports.startP2P = exports.connectionPool = exports.p2pNode = void 0;
 const nd = __importStar(require("./node"));
 const net = __importStar(require("net"));
 const p2p_node_1 = require("p2p-node");
+const node_fetch_1 = __importDefault(require("node-fetch"));
 exports.p2pNode = undefined;
+exports.connectionPool = undefined;
 const startP2P = (cfg) => {
     var connections = 0;
     const onmessage = (ev) => {
@@ -122,6 +127,9 @@ const startP2P = (cfg) => {
     }
     function reduceCTTL(content) {
         const msg = JSON.parse(content);
+        if (msg.cTTL > (cfg.ttlThreshold ?? 7)) {
+            return [JSON.stringify(msg), false];
+        }
         if (msg.cTTL <= 0) {
             return [JSON.stringify(msg), false];
         }
@@ -219,13 +227,59 @@ const startP2P = (cfg) => {
     });
     server.listen(cfg.p2pPort, cfg.hostname);
     exports.p2pNode = node;
-    var seqNo = 0;
-    setInterval(() => {
-        if (cfg.hostname !== undefined) {
-            seqNo++;
-            broadcastPeer({ server: cfg.hostname, port: cfg.p2pPort, seqNo: (cfg.hostSeqNo ?? 0) + seqNo }, true);
+    exports.connectionPool = {
+        list: function (cfg) {
+            return peers.map(x => x.addr);
+        },
+        getapi: function (peer) {
+            const prefix = `http://${peer.server}:${peer.httpPort ?? 8080}/`;
+            const suffix = (paging) => {
+                return `pageNo=${paging.page}&pageSize=${paging.chunkSize}`;
+            };
+            return {
+                announceOracle: function (cfg, id) {
+                    throw new Error('Function not implemented.');
+                },
+                announceCapability: function (cfg, cp) {
+                    throw new Error('Function not implemented.');
+                },
+                reportMalleability: function (cfg, report) {
+                    throw new Error('Function not implemented.');
+                },
+                disputeMissingfactClaim: function (dispute) {
+                    throw new Error('Function not implemented.');
+                },
+                publishOffer: function (cfg, offer) {
+                    throw new Error('Function not implemented.');
+                },
+                lookupOracles: async function (paging) {
+                    return (await (await (0, node_fetch_1.default)(prefix + "oracles?" + suffix(paging))).json());
+                },
+                lookupCapabilities: async function (paging, oraclePub) {
+                    return (await (await (0, node_fetch_1.default)(prefix + `capabilities?pubkey=${encodeURIComponent(oraclePub)}&` + suffix(paging))).json());
+                },
+                lookupReports: async function (paging, oraclePub) {
+                    return (await (await (0, node_fetch_1.default)(prefix + `reports?pubkey=${encodeURIComponent(oraclePub)}&` + suffix(paging))).json());
+                },
+                lookupOffers: async function (paging, capabilityPubKey) {
+                    return (await (await (0, node_fetch_1.default)(prefix + `offers?pubkey=${encodeURIComponent(capabilityPubKey)}&` + suffix(paging))).json());
+                }
+            };
+        },
+        drop: function (cfg, peer) {
+            const neighbor = peers.find(x => x.addr === peer);
+            if (neighbor) {
+                neighbor.peer.disconnect();
+            }
         }
-    }, (cfg.p2pKeepAlive ?? 100000));
+    };
+    if (cfg.hostname !== undefined) {
+        var seqNo = 0;
+        setInterval(() => {
+            seqNo++;
+            broadcastPeer({ server: cfg.hostname, port: cfg.p2pPort, seqNo: (cfg.hostSeqNo ?? 0) + seqNo, httpPort: cfg.httpPort }, true);
+        }, (cfg.p2pKeepAlive ?? 100000));
+    }
 };
 exports.startP2P = startP2P;
 //# sourceMappingURL=p2p.js.map

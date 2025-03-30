@@ -33,6 +33,8 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
+const oracle_service_1 = require("./src/client-api/service/oracle-service");
+const trader_service_1 = require("./src/client-api/service/trader-service");
 const p2p_1 = require("./src/p2p");
 const rest_1 = require("./src/rest");
 const fs = __importStar(require("fs"));
@@ -54,4 +56,12 @@ console.log("Start HTTP service...  " + cfg.httpPort);
 (0, rest_1.startHttp)(cfg);
 console.log("Start P2P service...   " + cfg.p2pPort);
 (0, p2p_1.startP2P)(cfg);
+if (cfg.oracle) {
+    console.log("Start Oracle Control service...   HTTP = " + cfg.oracle.httpPort + ", WS = " + cfg.oracle.wsPort);
+    (0, oracle_service_1.startOracleService)(cfg);
+}
+if (cfg.trader) {
+    console.log("Start Trader service...           HTTP = " + cfg.trader.httpPort);
+    (0, trader_service_1.startTraderService)(cfg);
+}
 //# sourceMappingURL=app.js.map

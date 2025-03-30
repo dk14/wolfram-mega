@@ -93,7 +93,7 @@ const startHttp = (cfg) => {
                     return;
                 }
                 if (reqUrl.pathname == '/oracles') {
-                    nd.api.lookupOracles(paging, []).then(x => res.end(JSON.stringify(x)));
+                    nd.api.lookupOracles(paging).then(x => res.end(JSON.stringify(x)));
                     return;
                 }
                 const pubkey = typeof reqUrl.query.pubkey === "string" ? reqUrl.query.pubkey : "";
@@ -117,7 +117,7 @@ const startHttp = (cfg) => {
                 }
                 if (reqUrl.pathname == '/offers') {
                     if (reqUrl.query.pubkey == undefined) {
-                        res.end(JSON.stringify("Specify reports?pubkey=<capability_pubkey>"));
+                        res.end(JSON.stringify("Specify offers?pubkey=<capability_pubkey>"));
                     }
                     else {
                         nd.api.lookupOffers(paging, pubkey).then(x => res.end(JSON.stringify(x)));

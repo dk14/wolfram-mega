@@ -176,15 +176,15 @@ const testOnlyReset = () => {
     //could've made api a factory, but this is more realistic, 
     //since implementations of Api ackuiring sockets, files, databases and other resources 
     //are outside of the scope of node.ts module
-    exports.api.mempool.oracles = {};
-    exports.api.mempool.offers = [];
+    mempool.oracles = {};
+    mempool.offers = [];
 };
 exports.testOnlyReset = testOnlyReset;
+const mempool = {
+    oracles: {},
+    offers: []
+};
 exports.api = {
-    mempool: {
-        oracles: {},
-        offers: []
-    },
     announceOracle: async (cfg, id) => {
         const [_, error] = (await openapi).request({ method: 'POST', path: '/oracle', body: id });
         if (error !== undefined) {
@@ -197,9 +197,9 @@ exports.api = {
             if (!(id.bid.amount == 0 || await validateBid(cfg, id.bid))) {
                 id.bid.amount = 0; //todo unsafe
             }
-            if (checkOracleRank(cfg, id, exports.api.mempool)) {
-                if (exports.api.mempool.oracles[id.pubkey] === undefined) {
-                    exports.api.mempool.oracles[id.pubkey] = {
+            if (checkOracleRank(cfg, id, mempool)) {
+                if (mempool.oracles[id.pubkey] === undefined) {
+                    mempool.oracles[id.pubkey] = {
                         id,
                         capabilies: [],
                         reports: []
@@ -207,9 +207,9 @@ exports.api = {
                     return "success";
                 }
                 else {
-                    if (exports.api.mempool.oracles[id.pubkey].id.seqNo < id.seqNo && exports.api.mempool.oracles[id.pubkey].id.pow.difficulty <= id.pow.difficulty) {
-                        exports.api.mempool.oracles[id.pubkey].id.seqNo = id.seqNo;
-                        exports.api.mempool.oracles[id.pubkey].id.pow = id.pow;
+                    if (mempool.oracles[id.pubkey].id.seqNo < id.seqNo && mempool.oracles[id.pubkey].id.pow.difficulty <= id.pow.difficulty) {
+                        mempool.oracles[id.pubkey].id.seqNo = id.seqNo;
+                        mempool.oracles[id.pubkey].id.pow = id.pow;
                         return "success";
                     }
                     else {
@@ -230,13 +230,13 @@ exports.api = {
         if (error !== undefined) {
             return ['invalid request', error.toString()];
         }
-        if (exports.api.mempool.oracles[cp.oraclePubKey] === undefined) {
+        if (mempool.oracles[cp.oraclePubKey] === undefined) {
             return 'no oracle found';
         }
         if (cp.pow.difficulty == 0 || checkCapabilitySignature(cp)) {
             if (cp.pow.difficulty == 0 || (0, exports.checkPow)(cp.pow, cp.oracleSignature)) {
-                if (checkCapabilityRank(cfg, cp, exports.api.mempool.oracles[cp.oraclePubKey])) {
-                    const found = exports.api.mempool.oracles[cp.oraclePubKey].capabilies.find(x => x.question == cp.question);
+                if (checkCapabilityRank(cfg, cp, mempool.oracles[cp.oraclePubKey])) {
+                    const found = mempool.oracles[cp.oraclePubKey].capabilies.find(x => x.question == cp.question);
                     if (found !== undefined) {
                         if (found.seqNo < cp.seqNo && found.pow.difficulty <= cp.pow.difficulty) {
                             found.seqNo = cp.seqNo;
@@ -248,7 +248,7 @@ exports.api = {
                             return "duplicate";
                         }
                     }
-                    exports.api.mempool.oracles[cp.oraclePubKey].capabilies.push(cp);
+                    mempool.oracles[cp.oraclePubKey].capabilies.push(cp);
                     return "success";
                 }
                 else {
@@ -268,16 +268,16 @@ exports.api = {
         if (error !== undefined) {
             return ['invalid request', error.toString()];
         }
-        if (exports.api.mempool.oracles[report.oraclePubKey] === undefined) {
+        if (mempool.oracles[report.oraclePubKey] === undefined) {
             return 'no oracle found';
         }
         if (!(0, exports.checkPow)(report.pow, JSON.stringify(report.content)) && !(report.pow.difficulty == 0)) {
             return "wrong pow";
         }
-        if (!checkReportRank(cfg, report, exports.api.mempool.oracles[report.oraclePubKey])) {
+        if (!checkReportRank(cfg, report, mempool.oracles[report.oraclePubKey])) {
             return "low pow difficulty";
         }
-        const found = exports.api.mempool.oracles[report.oraclePubKey].reports.find(x => x.pow.hash == report.pow.hash);
+        const found = mempool.oracles[report.oraclePubKey].reports.find(x => x.pow.hash == report.pow.hash);
         if (found !== undefined) {
             if (found.seqNo < report.seqNo) {
                 found.seqNo = report.seqNo;
@@ -287,7 +287,7 @@ exports.api = {
                 return "duplicate";
             }
         }
-        exports.api.mempool.oracles[report.oraclePubKey].reports.push(report);
+        mempool.oracles[report.oraclePubKey].reports.push(report);
         return "success";
     },
     disputeMissingfactClaim: async (dispute) => {
@@ -295,15 +295,15 @@ exports.api = {
         if (error !== undefined) {
             return ['invalid request', error.toString()];
         }
-        if (exports.api.mempool.oracles[dispute.oraclePubKey] === undefined) {
+        if (mempool.oracles[dispute.oraclePubKey] === undefined) {
             return 'no oracle found';
         }
-        const oracle = exports.api.mempool.oracles[dispute.oraclePubKey];
+        const oracle = mempool.oracles[dispute.oraclePubKey];
         if (!validateFact(dispute.fact, dispute.claim.request)) {
             return "invalid fact";
         }
         if (oracle !== undefined) {
-            const found = exports.api.mempool.oracles[oracle.id.pubkey].reports.find(x => x.content.type == "fact-missing" && x.pow.hash == dispute.reportPow.hash);
+            const found = mempool.oracles[oracle.id.pubkey].reports.find(x => x.content.type == "fact-missing" && x.pow.hash == dispute.reportPow.hash);
             if (found !== undefined && found.content.type == 'fact-missing') {
                 found.content.dispute = dispute.fact;
                 return "success";
@@ -316,25 +316,25 @@ exports.api = {
             return 'no oracle found';
         }
     },
-    lookupOracles: async (paging, questions) => {
-        return Object.values(exports.api.mempool.oracles)
+    lookupOracles: async (paging) => {
+        return Object.values(mempool.oracles)
             .sort((a, b) => a.id.bid.amount - b.id.bid.amount)
             .map(x => x.id)
             .slice(paging.page * paging.chunkSize, (paging.page + 1) * paging.chunkSize);
     },
     lookupCapabilities: async (paging, oraclePub) => {
-        if (exports.api.mempool.oracles[oraclePub] === undefined) {
+        if (mempool.oracles[oraclePub] === undefined) {
             inspector_1.console.log("oracle not found " + oraclePub);
             return [];
         }
-        return exports.api.mempool.oracles[oraclePub].capabilies.slice(paging.page * paging.chunkSize, (paging.page + 1) * paging.chunkSize);
+        return mempool.oracles[oraclePub].capabilies.slice(paging.page * paging.chunkSize, (paging.page + 1) * paging.chunkSize);
     },
     lookupReports: async (paging, oraclePub) => {
-        if (exports.api.mempool.oracles[oraclePub] === undefined) {
+        if (mempool.oracles[oraclePub] === undefined) {
             inspector_1.console.log("oracle not found " + oraclePub);
             return [];
         }
-        return exports.api.mempool.oracles[oraclePub].reports.slice(paging.page * paging.chunkSize, (paging.page + 1) * paging.chunkSize);
+        return mempool.oracles[oraclePub].reports.slice(paging.page * paging.chunkSize, (paging.page + 1) * paging.chunkSize);
     },
     publishOffer: async function (cfg, offer) {
         const [_, error] = (await openapi).request({ method: 'POST', path: '/offer', body: offer });
@@ -344,10 +344,10 @@ exports.api = {
         if (!(0, exports.checkPow)(offer.pow, JSON.stringify(offer.content)) && !(offer.pow.difficulty == 0)) {
             return "wrong pow";
         }
-        if (!checkOfferRank(cfg, offer, exports.api.mempool)) {
+        if (!checkOfferRank(cfg, offer, mempool)) {
             return "low pow difficulty";
         }
-        const found = exports.api.mempool.offers.find(x => x.pow.hash === offer.pow.hash);
+        const found = mempool.offers.find(x => x.pow.hash === offer.pow.hash);
         if (found !== undefined) {
             if (found.seqNo < offer.seqNo && found.pow.difficulty <= offer.pow.difficulty) {
                 found.seqNo = offer.seqNo;
@@ -356,15 +356,15 @@ exports.api = {
             }
             return "duplicate";
         }
-        const cp = Object.values(exports.api.mempool.oracles).find(o => o.capabilies.find(c => c.capabilityPubKey === offer.content.terms.question.capabilityPubKey) !== undefined);
+        const cp = Object.values(mempool.oracles).find(o => o.capabilies.find(c => c.capabilityPubKey === offer.content.terms.question.capabilityPubKey) !== undefined);
         if (cp === undefined) {
             return "no oracle found";
         }
-        exports.api.mempool.offers.push(offer);
+        mempool.offers.push(offer);
         return "success";
     },
     lookupOffers: async function (paging, capabilityPubKey) {
-        return exports.api.mempool.offers.filter(o => o.content.terms.question.capabilityPubKey === capabilityPubKey)
+        return mempool.offers.filter(o => o.content.terms.question.capabilityPubKey === capabilityPubKey)
             .slice(paging.page * paging.chunkSize, (paging.page + 1) * paging.chunkSize);
     }
 };
