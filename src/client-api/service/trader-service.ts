@@ -71,7 +71,7 @@ export const startTraderService = (cfg: MempoolConfig<PeerAddr>) => {
                 await storage.removeReports([pubkey])
             } else if(reqUrl.pathname == '/deleteIssuedOffer') {
                 await storage.removeIssuedOffers([pubkey])
-            } else if(reqUrl.pathname == '/deleteIssuedReports') {
+            } else if(reqUrl.pathname == '/deleteIssuedReport') {
                 await storage.removeIssuedReports([pubkey])
             }
     

@@ -48,6 +48,11 @@
         <label for="page">Page:</label>
         <input type="number" id="page" name="page" min="0" max="100" value="0"/>
         <div id="database"></div>
+        <br>
+        <label for="hash">Delete by pubkey/hash:</label>
+        <input type="text" id="hash" size="20" name="hash" value="">
+        <input type="button" id="delete" value="Delete">
+
 
         <h2>Query Oracle</h2>
 
@@ -133,6 +138,20 @@ submit report
 	            body: JSON.stringify({}),
 	            headers: {'Content-Type': 'application/json'}
             })
+        }
+
+        document.getElementById('delete').onclick = async () => {
+            const hash = document.getElementById('hash').value
+            const view = document.getElementById('view').value
+            const endpoints = {
+                "oracles": "deleteOracle",
+                "cps": "deleteCapability",
+                "reports": "deleteReport",
+                "offers": "deleteOffer",
+                "issued-reports": "deleteIssuedReport",
+                "issued-offers": "deleteIssuedOffer"
+            }
+            await fetch(`./${endpoints[view]}?pubkey=${encodeURIComponent(hash)}`)
         }
 
         setInterval(async () => {
