@@ -17,11 +17,11 @@ npm run peer cfg/mempool-1.json
 npm run peer cfg/mempool-2.json 
 npm run peer cfg/mempool-3.json 
 ```
-Monitoring, REST and swagger would become avialable at:
+Monitoring, REST and OpenAPI swagger would become avialable at:
 
-http://localhost:8080/index.htm, http://localhost:8081/index.htm, http://localhost:8082/index.htm
+http://localhost:8080/, http://localhost:8081/, http://localhost:8082/
 
-P2P network uses [Bicoin protocol structure](https://en.bitcoin.it/wiki/Protocol_specification#Message_structure) for communication.
+P2P network uses [Bitcoin protocol structure](https://en.bitcoin.it/wiki/Protocol_specification#Message_structure) for communication.
 
 Tests:
 
@@ -30,6 +30,14 @@ npm i c8 -g
 npm run test
 npm run it
 ```
+- protocol implementation coverage should be 100% for `node.ts`
+
+Client APIs:
+```
+npm run peer cfg/mempool-trader.json
+```
+- Oracle Administration: http://localhost:9080/
+- Trader Console: http://localhost:7080/
 
 ## Install
 ```
@@ -48,13 +56,14 @@ wf-mega-peer <mempool-conf.json>
 -----
 Configuration:
 
-p2p network is discovered from `p2pseed`, see example at [mempool-cfg2.json](cfg/mempool-2.json). Specifying `hostname` would make your node discoverable. `httpPort` is port for REST, `p2pPort` is port for P2P gossiping.
+p2p network is discovered from `p2pseed`, see example at [cfg/mempool-2.json](cfg/mempool-2.json). Specifying `hostname` would make your node discoverable. `httpPort` is port for REST, `p2pPort` is port for P2P gossiping.
 
 Optional `mempool-cfg` config parameters:
 - `isTest` enables `testOnly` REST endpoints for convenience. 
 - `facilitatorId`: `facilitatorId.rewardAddress` is lightning address for rewards (microbids),  `facilitatorId.facilitatorRewardIdPow` would allow you to establish identity for rewards.
 - `lnRestHost`, `lnMacaroonPath` are used to verify proofs of payments for rewards.
 - `p2pKeepAlive` how often (milliseconds) your peer would remind network about itself.
+- `oracle` and `trader` would spawn oracle administration and trader consoles respectively, see example at [cfg/mempool-trader.json](cfg/mempool-trader.json). `dbPath` param is a path for persistent storage. `wsPort` is websocket for signing messages. [README](src/client-api/README.md)
 
 --------
 
