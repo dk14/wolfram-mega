@@ -14,7 +14,7 @@
         <br>
         <input type="button" id="addcp" value="Add Capability!">
         <br>
-        <h2>Capabilities</h2>
+        <h2>Capabilities DB</h2>
 
         <label for="page">Page:</label>
         <input type="number" id="page" name="page" min="0" max="100" value="0"/>
@@ -33,6 +33,11 @@
         <label for="difficulty">Difficulty:</label>
         <input type="number" id="difficulty" name="difficulty" min="0" max="100" value="0"/>
         <input type="button" id="upgrade" value="Upgrade PoW">
+        <br>
+        <label for="difficulty2">Difficulty:</label>
+        <input type="number" id="difficult2y" name="difficulty2" min="0" max="100" value="0"/>
+       
+        <input type="button" id="upgrade_oracle" value="Upgrade Oracle PoW">
 
 
     </body>
@@ -68,8 +73,13 @@
         document.getElementById('upgrade').onclick = async () => {
             const capabilityPubKey = document.getElementById('pubkeymanage').value
             const difficulty = document.getElementById('difficulty').value
-            await fetch('./uogradeCapability?pubkey=' + encodeURIComponent(capabilityPubKey)
+            await fetch('./uogradeCapabilityPow?pubkey=' + encodeURIComponent(capabilityPubKey)
              + "&difficulty=" + encodeURIComponent(difficulty))
+        }
+
+        document.getElementById('upgrade_oracle').onclick = async () => {
+            const difficulty = document.getElementById('difficulty2').value
+            await fetch('./upgradeOraclePow?' + "difficulty=" + encodeURIComponent(difficulty))
         }
 
         setInterval(async () => {
