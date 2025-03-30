@@ -88,7 +88,7 @@ export const startTraderService = (cfg: MempoolConfig<PeerAddr>) => {
                                 }
                                 collectors[collector.tag] = collector
                             }
-                        } else if (reqUrl.pathname == '/collectReports') {
+                        } else if (reqUrl.pathname == '/collectOracles') {
                             const collector = await api.collectOracles(tag, async x => {return safeEval(postBody.predicate, x)})
                             if (Object.values(collectors).length < cfg.trader!.maxCollectors) {
                                 if (collectors[collector.tag]) {

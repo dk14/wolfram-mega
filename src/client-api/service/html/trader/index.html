@@ -6,6 +6,60 @@
     
     <body>
         <h1>Trader UI</h1>
+        <h2>Collectors</h2>
+        <label for="oracle_filter">Oracle Filter:</label>
+        <input type="text" id="pubkey" size="40" name="pubkey" value="true">
+        <br>
+        <label for="cp_filter">Capability Filter:</label>
+        <input type="text" id="cp_filter" size="40" name="pubkey" value="true">
+        <br>
+        <label for="cp_filter">Report Filter:</label>
+        <input type="text" id="cp_filter" size="40" name="pubkey" value="true">
+        <br>
+        <label for="cp_filter">Offer Filter:</label>
+        <input type="text" id="cp_filter" size="40" name="pubkey" value="true">
+        <label for="cp_filter">Collector Tag:</label>
+        <input type="text" id="tag" size="40" name="pubkey" value="tag1">
+
+
+        <input type="button" id="addcp" value="Collect Oracles">
+        <input type="button" id="addcp" value="Collect Capabilities">
+        <br>
+        <input type="button" id="addcp" value="Collect Reports">
+        <input type="button" id="addcp" value="Collect Offers">
+        <br>
+        Collector List: <div id="collectors">[]</div>
+        <br>
+        <input type="button" id="cancel_collector" value="Cancel Collector">
+
+        <h2>Database</h2>
+        
+        <label for="view">View:</label>
+        <select name="view" id="view">
+            <option value="oracles">Oracles</option>
+            <option value="cps">Capabilities</option>
+            <option value="reports">Offers</option>
+            <option value="offers">Reports</option>
+        </select>
+        <label for="page">Page:</label>
+        <input type="number" id="page" name="page" min="0" max="100" value="0"/>
+        <div id="cps">
+
+        <h2>Query Oracle</h2>
+
+        <pre>
+aquire commitment from oracle
+aquire fact from oracle
+        </pre>
+
+        <h2>Trade</h2>
+        <pre>
+generate plutus and btc contracts
+submit opening transaction
+use fact in the closing transaction
+submit report
+        </pre>
+        
 
 
     </body>

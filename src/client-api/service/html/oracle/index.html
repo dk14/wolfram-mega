@@ -6,11 +6,82 @@
     
     <body>
         <h1>Oracle Control UI</h1>
-        
+        <label for="pubkey">Capability PubKey:</label>
+        <input type="text" id="pubkey" size="50" name="pubkey" value="000000">
+        <br>
+        <label for="question">Capability Question:</label>
+        <input type="text" id="question" size="50" name="pubkey" value="?">
+        <br>
+        <input type="button" id="addcp" value="Add Capability!">
+        <br>
+        <h2>Capabilities</h2>
+
+        <label for="page">Page:</label>
+        <input type="number" id="page" name="page" min="0" max="100" value="0"/>
+        <div id="cps">
+
+        </div>
+
+        <h2>Capability Management</h2>
+        <label for="pubkeymanage">Capability PubKey:</label>
+        <input type="text" id="pubkeymanage" size="50" name="pubkey" value="000000">
+        <br>
+        <input type="button" id="deactivate" value="Deactivate">
+        <input type="button" id="activate" value="Activate">
+        <input type="button" id="drop" value="Drop">
+        <br>
+        <label for="difficulty">Difficulty:</label>
+        <input type="number" id="difficulty" name="difficulty" min="0" max="100" value="0"/>
+        <input type="button" id="upgrade" value="Upgrade PoW">
+
 
     </body>
     <script>
         await fetch('./start')
+
+        document.getElementById('addcp').onclick = async () => {
+            const capabilityPubKey = document.getElementById('pubkey').value
+            const question = document.getElementById('question').value
+            const body = { capabilityPubKey, question }
+            await fetch('./addCapability', {
+	            method: 'post',
+	            body: JSON.stringify(body),
+	            headers: {'Content-Type': 'application/json'}
+            })
+        }
+
+        document.getElementById('deactivate').onclick = async () => {
+            const capabilityPubKey = document.getElementById('pubkeymanage').value
+            await fetch('./deactivateCapability?pubkey=' + encodeURIComponent(capabilityPubKey))
+        }
+
+        document.getElementById('activate').onclick = async () => {
+            const capabilityPubKey = document.getElementById('pubkeymanage').value
+            await fetch('./activateCapability?pubkey=' + encodeURIComponent(capabilityPubKey))
+        }
+
+        document.getElementById('drop').onclick = async () => {
+            const capabilityPubKey = document.getElementById('pubkeymanage').value
+            await fetch('./dropCapability?pubkey=' + encodeURIComponent(capabilityPubKey))
+        }
+
+        document.getElementById('upgrade').onclick = async () => {
+            const capabilityPubKey = document.getElementById('pubkeymanage').value
+            const difficulty = document.getElementById('difficulty').value
+            await fetch('./uogradeCapability?pubkey=' + encodeURIComponent(capabilityPubKey)
+             + "&difficulty=" + encodeURIComponent(difficulty))
+        }
+
+        setInterval(async () => {
+            const page = document.getElementById('page').value
+            const cps = await fetch('./viewStoredCapabilities?pageSize=100&pageNo=' + page)
+            const target = document.getElementById('cps')
+            const html = cps.array.map(cp => {
+               return cp.question + " pub=" + cp.capabilityPubKey
+            }).join("<br>")
+            target.innerHTML = html
+
+        }, 2000)
          
     </script>
 </html>

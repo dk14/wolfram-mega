@@ -13,6 +13,7 @@ export interface OracleBasicIdentity {
 export interface OracleBasicCapability {
     capabilitySignatureType?: string
     capabilityPubKey: string
+    question: string
     off?: boolean
     params?: Param[] 
     answers?: Answer[]
@@ -161,8 +162,18 @@ export function oracleControlApi<Query, MegaPeerT>(
                 storage.updateCapabilityPow(capabilityPubKey, await powOverOracleCapability(cp, difficulty))
             }
         },
-        addCapability: function (cp: OracleBasicCapability):  Promise<void> {
-            throw new Error("Function not implemented.");
+        addCapability: async function (cp: OracleBasicCapability):  Promise<void> {
+            const capability: OracleCapability = {
+                oraclePubKey: id.pubkey,
+                capabilityPubKey: cp.capabilityPubKey,
+                question: cp.question,
+                seqNo: 0,
+                cTTL: 0,
+                oracleSignature: "",
+                oracleSignatureType: "SHA256",
+                pow: undefined
+            }
+            await storage.addCapability(capability)
         },
         deactivateCapability: async function (capabilityPubKey: string): Promise<void> {
             await storage.deactivateCapability(capabilityPubKey)
