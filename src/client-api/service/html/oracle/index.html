@@ -84,7 +84,7 @@
 
         setInterval(async () => {
             const page = document.getElementById('page').value
-            const cps = await fetch('./viewStoredCapabilities?pageSize=100&pageNo=' + page)
+            const cps = await (await fetch('./viewStoredCapabilities?pageSize=100&pageNo=' + page)).json()
             const target = document.getElementById('cps')
             const html = cps.array.map(cp => {
                return cp.question + " pub=" + cp.capabilityPubKey

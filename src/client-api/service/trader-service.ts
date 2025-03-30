@@ -1,5 +1,5 @@
 import { MempoolConfig } from "../../config";
-import { api as ndapi, Api, OracleId } from "../../node";
+import { api as ndapi, Api, OracleId, PagingDescriptor } from "../../node";
 import { PeerAddr } from "../../p2p";
 import * as http from 'http';
 import * as url from 'url';
@@ -22,6 +22,16 @@ export const startTraderService = (cfg: MempoolConfig<PeerAddr>) => {
             const reqUrl =  url.parse(req.url!, true)
             const tag: string = typeof reqUrl.query.tag === "string" ? reqUrl.query.tag : ""
 
+            const pageNo: number = typeof reqUrl.query.pageNo === "string" ? parseInt(reqUrl.query.pageNo as string) : 0
+            const pageSize: number = typeof reqUrl.query.pageSize === "string" ? parseInt(reqUrl.query.pageSize as string) : 10
+            const query: string = typeof reqUrl.query.pubkey === "string" ? reqUrl.query.pubkey : "true"
+            const q = {where: async x => {return safeEval(query, x)}}
+    
+            const paging: PagingDescriptor = {
+                page: pageNo,
+                chunkSize: pageSize
+            }
+
             if (req.method === 'GET' && (reqUrl.pathname == '/index.html' || reqUrl.pathname == '/index.htm') || reqUrl.pathname == '/') {
                 res.setHeader('content-Type', 'text/html');
                 res.end(fs.readFileSync(__dirname + '/html/trader/index.html').toString())
@@ -36,6 +46,16 @@ export const startTraderService = (cfg: MempoolConfig<PeerAddr>) => {
                 api.stopBroadcastingIssuedOffers()
             } else if(reqUrl.pathname == '/pauseBroadcastIssuedReports') {
                 api.stopBroadcastingIssuedReports()
+            } else if(reqUrl.pathname == '/listCollectors') {
+                res.end(JSON.stringify(Object.keys(collectors)))
+            } else if(reqUrl.pathname == '/listOracles') {
+                res.end(JSON.stringify(await storage.queryOracles(q, paging)))
+            } else if(reqUrl.pathname == '/listCapabilities') {
+                res.end(JSON.stringify(await storage.queryCapabilities(q, paging)))
+            } else if(reqUrl.pathname == '/listReports') {
+                res.end(JSON.stringify(await storage.queryReports(q, paging)))
+            } else if(reqUrl.pathname == '/listOffers') {
+                res.end(JSON.stringify(await storage.queryOffers(q, paging)))
             }
     
             if (req.method === 'POST') {
@@ -101,8 +121,6 @@ export const startTraderService = (cfg: MempoolConfig<PeerAddr>) => {
                                 collectors[tag].cancel()
                             }
                         }
-
-                        //TODO add storage queries
 
                         res.end({})
 

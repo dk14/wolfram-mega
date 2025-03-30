@@ -8,27 +8,27 @@
         <h1>Trader UI</h1>
         <h2>Collectors</h2>
         <label for="oracle_filter">Oracle Filter:</label>
-        <input type="text" id="pubkey" size="40" name="pubkey" value="true">
+        <input type="text" id="pubkey" size="40" name="oracle_filter" value="true">
         <br>
         <label for="cp_filter">Capability Filter:</label>
-        <input type="text" id="cp_filter" size="40" name="pubkey" value="true">
+        <input type="text" id="cp_filter" size="40" name="cp_filter" value="true">
         <br>
-        <label for="cp_filter">Report Filter:</label>
-        <input type="text" id="cp_filter" size="40" name="pubkey" value="true">
+        <label for="report_filter">Report Filter:</label>
+        <input type="text" id="report_filter" size="40" name="report_filter" value="true">
         <br>
-        <label for="cp_filter">Offer Filter:</label>
-        <input type="text" id="cp_filter" size="40" name="pubkey" value="true">
+        <label for="offer_filter">Offer Filter:</label>
+        <input type="text" id="offer_filter" size="40" name="offer_filter" value="true">
 
         <br>
-        <label for="cp_filter">Collector Tag:</label>
-        <input type="text" id="tag" size="40" name="pubkey" value="tag1">
+        <label for="tag">Collector Tag:</label>
+        <input type="text" id="tag" size="40" name="tag" value="tag1">
 
         <br>
-        <input type="button" id="addcp" value="Collect Oracles">
-        <input type="button" id="addcp" value="Collect Capabilities">
+        <input type="button" id="col_oracles" value="Collect Oracles">
+        <input type="button" id="col_cps" value="Collect Capabilities">
         <br>
-        <input type="button" id="addcp" value="Collect Reports">
-        <input type="button" id="addcp" value="Collect Offers">
+        <input type="button" id="col_reports" value="Collect Reports">
+        <input type="button" id="col_offers" value="Collect Offers">
         <br>
         Collector List: <div id="collectors">[]</div>
         <br>
@@ -45,7 +45,7 @@
         </select>
         <label for="page">Page:</label>
         <input type="number" id="page" name="page" min="0" max="100" value="0"/>
-        <div id="cps">
+        <div id="database"></div>
 
         <h2>Query Oracle</h2>
 
@@ -68,6 +68,103 @@ submit report
     <script>
         await fetch('./broadcastIssuedOffers')
         await fetch('./broadcastIssuedReports')
+
+        document.getElementById('col_oracles').onclick = async () => {
+            const tag = document.getElementById('tag').value
+            const opredicate = document.getElementById('oracle_filter').value
+            const body = { capabilityPubKey, question }
+            await fetch('./collectOracles?tag=' + encodeURIComponent(tag), {
+	            method: 'post',
+	            body: JSON.stringify({
+                    predicate: opredicate
+                }),
+	            headers: {'Content-Type': 'application/json'}
+            })
+        }
+
+        document.getElementById('col_cps').onclick = async () => {
+            const tag = document.getElementById('tag').value
+            const opredicate = document.getElementById('oracle_filter').value
+            const predicate = document.getElementById('cp_filter').value
+            await fetch('./collectCapabilities?tag=' + encodeURIComponent(tag), {
+	            method: 'post',
+	            body: JSON.stringify({
+                    opredicate,
+                    predicate
+                }),
+	            headers: {'Content-Type': 'application/json'}
+            })
+        }
+
+        document.getElementById('col_reports').onclick = async () => {
+            const tag = document.getElementById('tag').value
+            const opredicate = document.getElementById('oracle_filter').value
+            const predicate = document.getElementById('report_filter').value
+            await fetch('./collectReports?tag=' + encodeURIComponent(tag), {
+	            method: 'post',
+	            body: JSON.stringify({
+                    opredicate,
+                    predicate
+                }),
+	            headers: {'Content-Type': 'application/json'}
+            })
+        }
+
+        document.getElementById('col_offers').onclick = async () => {
+            const tag = document.getElementById('tag').value
+            const opredicate = document.getElementById('oracle_filter').value
+            const predicate = document.getElementById('offer_filter').value
+            await fetch('./collectReports?tag=' + encodeURIComponent(tag), {
+	            method: 'post',
+	            body: JSON.stringify({
+                    opredicate,
+                    predicate
+                }),
+	            headers: {'Content-Type': 'application/json'}
+            })
+        }
+
+        document.getElementById('cancel_collector').onclick = async () => {
+            const tag = document.getElementById('tag').value
+                await fetch('./cancelCollector?tag=' + encodeURIComponent(tag), {
+	            method: 'post',
+	            body: JSON.stringify({}),
+	            headers: {'Content-Type': 'application/json'}
+            })
+        }
+
+        setInterval(async () => {
+            const collectors = await (await fetch('./listCollectors')).json()
+            const target = document.getElementById('collectors')
+
+            target.innerHTML = "<pre>" + JSON.stringify(collectors) + "</pre>"
+
+        }, 2000)
+
+        setInterval(async () => {
+            const page = document.getElementById('page').value
+            const target = document.getElementById('database')
+            const view = document.getElementById('view').value
+            const endpoints = {
+                "oracles": "listOracles",
+                "cps": "listCapabilities",
+                "reports": "listReports",
+                "offers": "listOffers"
+            }
+            const data = await (await fetch(`./${endpoints[view]}?pageSize=100&pageNo=${page}`)).json()
+
+            const html = data.array.map(datum => {
+                const formats = {
+                    "oracles": datum.pub,
+                    "cps": `${datum.question} pub=${datum.capabilityPubKey}`,
+                    "reports": `oracle_pub=${datum.oraclePubKey} content=${JSON.stringify(datum.content)}`,
+                    "offers": `${JSON.stringify(datum.content)}`
+                }
+               return formats[view]
+            }).join("\n")
+            target.innerHTML = "<pre>" + html + "</pre>"
+
+        }, 2000)
 
         
     </script>
