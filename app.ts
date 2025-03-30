@@ -33,7 +33,7 @@ if (cfg.oracle) {
     startOracleService(cfg)
 }
 
-if (cfg.oracle) {
+if (cfg.trader) {
     console.log("Start Trader service...           HTTP = " + cfg.trader.httpPort) 
     startOracleService(cfg)
 }

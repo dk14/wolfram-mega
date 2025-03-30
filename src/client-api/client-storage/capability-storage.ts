@@ -10,6 +10,9 @@ type CapabilityDict =  { [id: string] : OracleCapability }
 
 //for demos; clients should build their own implementations (MySQL etc.)
 export const capabilityStorage = (path: string, pageSize: number, activeCpLimit: number): CapabilityStorage<CapabilityQuery> => {
+    if (!fs.existsSync(path + "/")) {
+        fs.mkdirSync(path, {recursive: true})
+    }
     const getPage = async (pageNo: string): Promise<CapabilityDict> => {
         const pagepath = path + "/" + pageNo + ".json"
         if (fs.existsSync(pagepath)) {

@@ -4,20 +4,22 @@
         <meta name="viewport" content="width=device-width, initial-scale=1" />
     </head>
     
-    <body>
+    <body bgcolor="purple">
         <h1>Oracle Administration</h1>
         <label for="pubkey">Capability PubKey:</label>
         <input type="text" id="pubkey" size="50" name="pubkey" value="000000">
-        <br>
+        <br><br>
         <label for="question">Capability Question:</label>
         <input type="text" id="question" size="50" name="pubkey" value="?">
-        <br>
+        <br><br>
         <input type="button" id="addcp" value="Add Capability!">
         <br>
+        <div id="erroradd"></div>
         <h2>Capabilities DB</h2>
 
         <label for="page">Page:</label>
         <input type="number" id="page" name="page" min="0" max="100" value="0"/>
+        <div id="error"></div>
         <div id="cps">
 
         </div>
@@ -26,14 +28,17 @@
         <label for="pubkeymanage">Capability PubKey:</label>
         <input type="text" id="pubkeymanage" size="50" name="pubkey" value="000000">
         <br>
+        <br>
         <input type="button" id="deactivate" value="Deactivate">
         <input type="button" id="activate" value="Activate">
         <input type="button" id="drop" value="Drop">
+        <br>
         <br>
         <label for="difficulty">Difficulty:</label>
         <input type="number" id="difficulty" name="difficulty" min="0" max="100" value="0"/>
         <input type="button" id="upgrade" value="Upgrade PoW">
         <br>
+        <h2>Oracle PoW </h2>
         <label for="difficulty2">Difficulty:</label>
         <input type="number" id="difficult2y" name="difficulty2" min="0" max="100" value="0"/>
        
@@ -42,17 +47,22 @@
 
     </body>
     <script>
-        await fetch('./start')
+        fetch('./start')
 
         document.getElementById('addcp').onclick = async () => {
             const capabilityPubKey = document.getElementById('pubkey').value
             const question = document.getElementById('question').value
             const body = { capabilityPubKey, question }
-            await fetch('./addCapability', {
+            const res = await fetch('./addCapability', {
 	            method: 'post',
 	            body: JSON.stringify(body),
 	            headers: {'Content-Type': 'application/json'}
             })
+            if (res.error) {
+                document.getElementById('erroradd').innerHTML = res.error + "<br>"
+            } else {
+                document.getElementById('erroradd').innerHTML = ""
+            }
         }
 
         document.getElementById('deactivate').onclick = async () => {
@@ -86,7 +96,12 @@
             const page = document.getElementById('page').value
             const cps = await (await fetch('./viewStoredCapabilities?pageSize=100&pageNo=' + page)).json()
             const target = document.getElementById('cps')
-            const html = cps.array.map(cp => {
+            if (cps.error) {
+                document.getElementById('error').innerHTML = cps.error
+            } else {
+                document.getElementById('error').innerHTML = ""
+            }
+            const html = cps.map(cp => {
                return cp.question + " pub=" + cp.capabilityPubKey
             }).join("<br>")
             target.innerHTML = html

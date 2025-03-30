@@ -8,7 +8,7 @@
     "hostname": "localhost",
     "isTest": true,
     "p2pseed": [
-        {"server": "localhost", "port" : 8333}
+       
     ],
     "oracle": {
         "id": {

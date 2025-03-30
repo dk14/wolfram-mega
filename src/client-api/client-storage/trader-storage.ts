@@ -11,6 +11,9 @@ type TraderDict<T> =  { [id: string] : T }
 type TraderStorageT = TraderStorage<TraderQuery<OracleId>, TraderQuery<OracleCapability>, TraderQuery<Report>, TraderQuery<OfferMsg>>
 
 export const traderStorage = (path: string, pageSize: number): TraderStorageT => {
+    if (!fs.existsSync(path + "/")) {
+        fs.mkdirSync(path, {recursive: true})
+    }
     const getPage = async <T>(prefix: string, pageNo: string): Promise<TraderDict<T>> => {
         const pagepath = path + "/" + prefix + "/" + pageNo + ".json"
         if (fs.existsSync(pagepath)) {
@@ -21,6 +24,9 @@ export const traderStorage = (path: string, pageSize: number): TraderStorageT =>
     }
 
     const transformPage = async <T>(prefix: string, pageNo: string, transformer: (page: TraderDict<T>) => TraderDict<T>) => {
+        if (!fs.existsSync((path + "/" + prefix))) {
+            fs.mkdirSync(path + "/" + prefix, {recursive: true})
+        }
         const page = await getPage<T>(prefix, pageNo)
         fs.writeFileSync(path + "/" + prefix + "/" + pageNo + ".json", JSON.stringify(transformer(page)))
     }

@@ -4,32 +4,32 @@
         <meta name="viewport" content="width=device-width, initial-scale=1" />
     </head>
     
-    <body>
+    <body bgcolor="green">
         <h1>Trader UI</h1>
         <h2>Collectors</h2>
         <label for="oracle_filter">Oracle Filter:</label>
         <input type="text" id="pubkey" size="40" name="oracle_filter" value="true">
-        <br>
+        <br><br>
         <label for="cp_filter">Capability Filter:</label>
         <input type="text" id="cp_filter" size="40" name="cp_filter" value="true">
-        <br>
+        <br><br>
         <label for="report_filter">Report Filter:</label>
         <input type="text" id="report_filter" size="40" name="report_filter" value="true">
-        <br>
+        <br><br>
         <label for="offer_filter">Offer Filter:</label>
         <input type="text" id="offer_filter" size="40" name="offer_filter" value="true">
 
-        <br>
+        <br><br>
         <label for="tag">Collector Tag:</label>
         <input type="text" id="tag" size="40" name="tag" value="tag1">
 
-        <br>
+        <br><br>
         <input type="button" id="col_oracles" value="Collect Oracles">
         <input type="button" id="col_cps" value="Collect Capabilities">
-        <br>
+        <br><br>
         <input type="button" id="col_reports" value="Collect Reports">
         <input type="button" id="col_offers" value="Collect Offers">
-        <br>
+        <br><br>
         Collector List: <div id="collectors">[]</div>
         <br>
         <input type="button" id="cancel_collector" value="Cancel Collector">
@@ -73,8 +73,8 @@ submit report
 
     </body>
     <script>
-        await fetch('./broadcastIssuedOffers')
-        await fetch('./broadcastIssuedReports')
+        fetch('./broadcastIssuedOffers')
+        fetch('./broadcastIssuedReports')
 
         document.getElementById('col_oracles').onclick = async () => {
             const tag = document.getElementById('tag').value

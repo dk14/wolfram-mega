@@ -76,6 +76,7 @@ export const startOracleService = (cfg: MempoolConfig<PeerAddr>) => {
                         if(reqUrl.pathname == '/addCapability') {
                             api.addCapability(postBody)
                         }
+                        res.end("{}")
 
                     } catch (err) {
                         console.error(err)
