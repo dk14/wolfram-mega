@@ -184,12 +184,12 @@ submit report
                     const formats = {
                         "oracles": datum.pubkey,
                         "cps": `${datum.question} pub=${datum.capabilityPubKey}`,
-                        "reports": `oracle_pub=${datum.oraclePubKey} content=${JSON.stringify(datum.content)}`,
-                        "offers": `${JSON.stringify(datum.content)}`,
-                        "issued-reports": `oracle_pub=${datum.oraclePubKey} content=${JSON.stringify(datum.content)}`,
-                        "issued-offers": `${JSON.stringify(datum.content)}`
+                        "reports": `oracle_pub=${datum.oraclePubKey}\n   content=${JSON.stringify(datum.content)}\n   pow=${JSON.stringify(datum.pow)}`,
+                        "offers": `${JSON.stringify(datum.content)} pow=${JSON.stringify(datum.pow)}`,
+                        "issued-reports": `oracle_pub=${datum.oraclePubKey}\n   content=${JSON.stringify(datum.content)}\n   pow=${JSON.stringify(datum.pow)}`,
+                        "issued-offers": `${JSON.stringify(datum.content)} pow=${JSON.stringify(datum.pow)}`
                     }
-                return formats[view]
+                    return formats[view]
                 }).join("\n")
                 target.innerHTML = "<pre>" + html + "</pre>"
             }
