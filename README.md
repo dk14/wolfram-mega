@@ -66,9 +66,7 @@ Optional `mempool-cfg` config parameters:
 - `oracle` and `trader` would spawn oracle administration and trader consoles respectively, see example at [cfg/mempool-trader.json](cfg/mempool-trader.json). `dbPath` param is a path for persistent storage. `wsPort` is websocket for signing messages. [README](src/client-api/README.md)
 
 --------
-![image](https://lh7-rt.googleusercontent.com/docsz/AD_4nXdE39F_yE7Wu45Ffg3WKOv2-0-YKOxWmOI0wWdpRb4zVMs1M3ZA3fgqAn7LWk80UTWDa2d_CDz2IDzVqqLrnmd5KzuR23mpMyVSBjRU4LokKTULBq0bekWcN6PVfG181Ec?key=Rm1gHfOo0ww9LGQzkRjPFZRP)
-1-trader, 2-mega p2p, 3-oracle, 4-blockchain, 5-oracle endpoint;
-TODO: ads arrow is wrong (should be 2->1 instead of 1->2)
+
 
 [Presentation](https://docs.google.com/document/d/e/2PACX-1vRQcR311NiVjCxc2Q3cdXWjoKGSNYf7rKrgqkeiEmv8LF3uGBqODSEzujR-XuTyHsMAf0hhGl6B1Anj/pub)
 
@@ -165,7 +163,11 @@ Securitization of malleability reports. Since PoW is done on reports, reports th
 
 
 ## Architecture
+![image](https://lh7-rt.googleusercontent.com/docsz/AD_4nXdE39F_yE7Wu45Ffg3WKOv2-0-YKOxWmOI0wWdpRb4zVMs1M3ZA3fgqAn7LWk80UTWDa2d_CDz2IDzVqqLrnmd5KzuR23mpMyVSBjRU4LokKTULBq0bekWcN6PVfG181Ec?key=Rm1gHfOo0ww9LGQzkRjPFZRP)
+1-trader, 2-mega p2p, 3-oracle, 4-blockchain, 5-oracle endpoint;
+TODO: ads arrow is wrong (should be 2->1 instead of 1->2)
 
+In detail:
 ![image](image.png)
 
 --------
