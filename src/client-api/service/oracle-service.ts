@@ -13,11 +13,12 @@ import * as fs from 'fs'
 import * as safeEval from 'safe-eval'
 
 export const startOracleService = (cfg: MempoolConfig<PeerAddr>) => {
-    const storage = capabilityStorage(cfg.oracle.dbPath, 5, 100)
+    const storage = capabilityStorage(cfg.oracle.dbPath, 1, 100)
     const concfg: ConnectionPoolCfg = {
         maxConnections: cfg.maxConnections
     }
     const api: OracleControlAPI<PeerAddr> = oracleControlApi(cfg, ndapi, storage, connectionPool, concfg)
+    api.startAdvertising(cfg.oracle)
 
     http.createServer(async (req, res) => {
         res.statusCode = 200;

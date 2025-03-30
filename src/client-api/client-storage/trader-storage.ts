@@ -130,57 +130,57 @@ export const traderStorage = (path: string, pageSize: number): TraderStorageT =>
         },
         allOracles: async function (q: TraderQuery<OracleId>, opredicate: (cp: OracleId) => Promise<boolean>, handler: (id: OracleId) => Promise<void>): Promise<void> {
             fs.readdirSync(path + "/oracles/").forEach(file => {
-                const page: TraderDict<OracleId> = JSON.parse(fs.readFileSync(file).toString())
+                const page: TraderDict<OracleId> = JSON.parse(fs.readFileSync(path + "/oracles/" + file).toString())
                 const chunk = Object.values(page).filter(async x => await q.where(x) && opredicate(x))
                 chunk.forEach(async x => await handler(x))
             })
         },
         queryOracles: async function (q: TraderQuery<OracleId>, paging: PagingDescriptor): Promise<OracleId[]> {
             return fs.readdirSync(path + "/oracles/").map(file => {
-                const page: TraderDict<OracleId> = JSON.parse(fs.readFileSync(file).toString())
+                const page: TraderDict<OracleId> = JSON.parse(fs.readFileSync(path + "/oracles/" + file).toString())
                 return Object.values(page).filter(async x => await q.where(x))
             }).flat().slice(paging.page * paging.chunkSize, (paging.page + 1) * paging.chunkSize)
         },
         queryCapabilities: async function (q: TraderQuery<OracleCapability>, paging: PagingDescriptor): Promise<OracleCapability[]> {
             return fs.readdirSync(path + "/capabilities/").map(file => {
-                const page: TraderDict<OracleCapability> = JSON.parse(fs.readFileSync(file).toString())
+                const page: TraderDict<OracleCapability> = JSON.parse(fs.readFileSync(path + "/capabilities/" + file).toString())
                 return Object.values(page).filter(async x => await q.where(x))
             }).flat().slice(paging.page * paging.chunkSize, (paging.page + 1) * paging.chunkSize)
         },
         queryOffers: async function (q: TraderQuery<OfferMsg>, paging: PagingDescriptor): Promise<OfferMsg[]> {
             return fs.readdirSync(path + "/offers/").map(file => {
-                const page: TraderDict<OfferMsg> = JSON.parse(fs.readFileSync(file).toString())
+                const page: TraderDict<OfferMsg> = JSON.parse(fs.readFileSync(path + "/offers/" + file).toString())
                 return Object.values(page).filter(async x => await q.where(x))
             }).flat().slice(paging.page * paging.chunkSize, (paging.page + 1) * paging.chunkSize)
         },
         queryReports: async function (q: TraderQuery<Report>, paging: PagingDescriptor): Promise<Report[]> {
             return fs.readdirSync(path + "/reports/").map(file => {
-                const page: TraderDict<Report> = JSON.parse(fs.readFileSync(file).toString())
+                const page: TraderDict<Report> = JSON.parse(fs.readFileSync(path + "/reports/" + file).toString())
                 return Object.values(page).filter(async x => await q.where(x))
             }).flat().slice(paging.page * paging.chunkSize, (paging.page + 1) * paging.chunkSize)
         },
         queryIssuedOffers: async function (q: TraderQuery<OfferMsg>, paging: PagingDescriptor): Promise<OfferMsg[]> {
             return fs.readdirSync(path + "/issued-offers/").map(file => {
-                const page: TraderDict<OfferMsg> = JSON.parse(fs.readFileSync(file).toString())
+                const page: TraderDict<OfferMsg> = JSON.parse(fs.readFileSync(path + "/issued-offers/" + file).toString())
                 return Object.values(page).filter(async x => await q.where(x))
             }).flat().slice(paging.page * paging.chunkSize, (paging.page + 1) * paging.chunkSize)
         },
         queryIssuedReports: async function (q: TraderQuery<Report>, paging: PagingDescriptor): Promise<Report[]> {
             return fs.readdirSync(path + "/issued-reports/").map(file => {
-                const page: TraderDict<Report> = JSON.parse(fs.readFileSync(file).toString())
+                const page: TraderDict<Report> = JSON.parse(fs.readFileSync(path + "/issued-reports/" + file).toString())
                 return Object.values(page).filter(async x => await q.where(x))
             }).flat().slice(paging.page * paging.chunkSize, (paging.page + 1) * paging.chunkSize)
         },
         allIssuedOffers: async function (handler: (o: OfferMsg) => Promise<void>): Promise<void> {
             fs.readdirSync(path + "/issued-offers/").forEach(file => {
-                const page: TraderDict<OfferMsg> = JSON.parse(fs.readFileSync(file).toString())
+                const page: TraderDict<OfferMsg> = JSON.parse(fs.readFileSync(path + "/issued-offers/" + file).toString())
                 const chunk = Object.values(page)
                 chunk.forEach(async x => await handler(x))
             })
         },
         allIssuedReports: async function (handler: (r: Report) => Promise<void>): Promise<void> {
             fs.readdirSync(path + "/issued-reports/").forEach(file => {
-                const page: TraderDict<Report> = JSON.parse(fs.readFileSync(file).toString())
+                const page: TraderDict<Report> = JSON.parse(fs.readFileSync(path + "/issued-reports/" + file).toString())
                 const chunk = Object.values(page)
                 chunk.forEach(async x => await handler(x))
             })

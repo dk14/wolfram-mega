@@ -64,13 +64,13 @@ export const capabilityStorage = (path: string, pageSize: number, activeCpLimit:
         },
         listCapabilities: async function (query: CapabilityQuery, paging: PagingDescriptor): Promise<OracleCapability[]> {
             return fs.readdirSync(path + "/").map(file => {
-                const page: CapabilityDict = JSON.parse(fs.readFileSync(file).toString())
+                const page: CapabilityDict = JSON.parse(fs.readFileSync(path + "/" + file).toString())
                 return Object.values(page).filter(async x => await query.where(x))
             }).flat().slice(paging.page * paging.chunkSize, (paging.page + 1) * paging.chunkSize)
         },
         listActiveCapabilities: async function (): Promise<OracleCapability[]> {
             return fs.readdirSync(path + "/").map(file => {
-                const page: CapabilityDict = JSON.parse(fs.readFileSync(file).toString())
+                const page: CapabilityDict = JSON.parse(fs.readFileSync(path + "/" + file).toString())
                 return Object.values(page).filter(x => x.off !== true)
             }).flat().slice(0, activeCpLimit)
         },

@@ -9,7 +9,7 @@ import { traderStorage, TraderQuery} from "../client-storage/trader-storage";
 import * as fs from 'fs'
 
 export const startTraderService = (cfg: MempoolConfig<PeerAddr>) => {
-    const storage = traderStorage(cfg.trader.dbPath, 5)
+    const storage = traderStorage(cfg.trader.dbPath, 1)
 
     const api: TraderApi<TraderQuery<OracleId>> = traderApi(cfg.trader, cfg, ndapi, storage)
     const collectors: { [id: string] : Collector<any> } = {}
