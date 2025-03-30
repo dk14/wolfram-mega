@@ -26,6 +26,7 @@ export const startTraderService = (cfg: MempoolConfig<PeerAddr>) => {
             const pageSize: number = typeof reqUrl.query.pageSize === "string" ? parseInt(reqUrl.query.pageSize as string) : 10
             const query: string = typeof reqUrl.query.pubkey === "string" ? reqUrl.query.pubkey : "true"
             const q = {where: async x => {return safeEval(query, x)}}
+            const pubkey: string = typeof reqUrl.query.pubkey === "string" ? reqUrl.query.pubkey : ""
     
             const paging: PagingDescriptor = {
                 page: pageNo,
@@ -56,6 +57,22 @@ export const startTraderService = (cfg: MempoolConfig<PeerAddr>) => {
                 res.end(JSON.stringify(await storage.queryReports(q, paging)))
             } else if(reqUrl.pathname == '/listOffers') {
                 res.end(JSON.stringify(await storage.queryOffers(q, paging)))
+            }  else if(reqUrl.pathname == '/listIssuedReports') {
+                res.end(JSON.stringify(await storage.queryIssuedReports(q, paging)))
+            } else if(reqUrl.pathname == '/listIssuedOffers') {
+                res.end(JSON.stringify(await storage.queryIssuedOffers(q, paging)))
+            } else if(reqUrl.pathname == '/deleteOracle') {
+                await storage.removeOracles([pubkey])
+            } else if(reqUrl.pathname == '/deleteCapability') {
+                await storage.removeCps([pubkey])
+            } else if(reqUrl.pathname == '/deleteOffer') {
+                await storage.removeOffers([pubkey])
+            } else if(reqUrl.pathname == '/deleteReport') {
+                await storage.removeReports([pubkey])
+            } else if(reqUrl.pathname == '/deleteIssuedOffer') {
+                await storage.removeIssuedOffers([pubkey])
+            } else if(reqUrl.pathname == '/deleteIssuedReports') {
+                await storage.removeIssuedReports([pubkey])
             }
     
             if (req.method === 'POST') {

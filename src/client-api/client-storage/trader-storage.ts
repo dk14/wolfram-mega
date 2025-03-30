@@ -153,6 +153,18 @@ export const traderStorage = (path: string, pageSize: number): TraderStorageT =>
                 return Object.values(page).filter(async x => await q.where(x))
             }).flat().slice(paging.page * paging.chunkSize, (paging.page + 1) * paging.chunkSize)
         },
+        queryIssuedOffers: async function (q: TraderQuery<OfferMsg>, paging: PagingDescriptor): Promise<OfferMsg[]> {
+            return fs.readdirSync(path + "/issued-offers/").map(file => {
+                const page: TraderDict<OfferMsg> = JSON.parse(fs.readFileSync(file).toString())
+                return Object.values(page).filter(async x => await q.where(x))
+            }).flat().slice(paging.page * paging.chunkSize, (paging.page + 1) * paging.chunkSize)
+        },
+        queryIssuedReports: async function (q: TraderQuery<Report>, paging: PagingDescriptor): Promise<Report[]> {
+            return fs.readdirSync(path + "/issued-reports/").map(file => {
+                const page: TraderDict<Report> = JSON.parse(fs.readFileSync(file).toString())
+                return Object.values(page).filter(async x => await q.where(x))
+            }).flat().slice(paging.page * paging.chunkSize, (paging.page + 1) * paging.chunkSize)
+        },
         allIssuedOffers: async function (handler: (o: OfferMsg) => Promise<void>): Promise<void> {
             fs.readdirSync(path + "/issued-offers/").forEach(file => {
                 const page: TraderDict<OfferMsg> = JSON.parse(fs.readFileSync(file).toString())

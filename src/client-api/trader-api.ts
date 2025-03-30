@@ -24,6 +24,8 @@ export interface TraderStorage<OracleQuery, CpQuery, RpQuery, MatchingQuery> {
     queryCapabilities: (q: CpQuery, paging: PagingDescriptor) => Promise<OracleCapability[]>
     queryOffers: (q: MatchingQuery, paging: PagingDescriptor) => Promise<OfferMsg[]>
     queryReports: (q: RpQuery, paging: PagingDescriptor) => Promise<Report[]>
+    queryIssuedOffers: (q: MatchingQuery, paging: PagingDescriptor) => Promise<OfferMsg[]>
+    queryIssuedReports: (q: RpQuery, paging: PagingDescriptor) => Promise<Report[]>
 
     allIssuedOffers: (handler: (o: OfferMsg) => Promise<void>) => Promise<void>
     allIssuedReports: (handler: (r: Report) => Promise<void>) => Promise<void>
