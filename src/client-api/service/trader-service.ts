@@ -79,6 +79,10 @@ export const startTraderService = (cfg: MempoolConfig<PeerAddr>) => {
                     delete collectors[tag]
                 }
             }
+            
+            if (req.method === 'GET') {
+                res.end()
+            }
     
             if (req.method === 'POST') {
                 var body = ''
@@ -140,7 +144,7 @@ export const startTraderService = (cfg: MempoolConfig<PeerAddr>) => {
                             }
                         }
 
-                        res.end({})
+                        res.end("{}")
 
                     } catch (err) {
                         console.error(err)

@@ -97,7 +97,7 @@ export function traderApi<OracleQuery, CpQuery, RpQuery, MatchingQuery, MegaPeer
                     page: getRandomInt(tradercfg.maxOraclesPages),
                     chunkSize: tradercfg.pageSize
                 })
-                const picked = oracles.filter(async o => await predicate(o))
+                const picked = (await Promise.all(oracles.map(async o => {return {o, p: await predicate(o)}}))).filter(x => x.p).map(x => x.o)
                 picked.forEach(async id => await storage.addOracle(id))
             }, tradercfg.collectOracleAdsCycle)
             const cl: Collector<OracleId> = {
@@ -119,7 +119,7 @@ export function traderApi<OracleQuery, CpQuery, RpQuery, MatchingQuery, MegaPeer
                         page: getRandomInt(tradercfg.maxCpPages),
                         chunkSize: tradercfg.pageSize
                     }, oracleid.pubkey)
-                    const picked = cps.filter(async cp => await predicate(cp))
+                    const picked = (await Promise.all(cps.map(async cp => {return {cp, p: await predicate(cp)}}))).filter(x => x.p).map(x => x.cp)
                     picked.forEach(async cp => await storage.addCp(cp))
                 })
                 
@@ -143,7 +143,7 @@ export function traderApi<OracleQuery, CpQuery, RpQuery, MatchingQuery, MegaPeer
                         page: getRandomInt(tradercfg.maxReportsPages),
                         chunkSize: tradercfg.pageSize
                     }, oracleid.pubkey)
-                    const picked = rps.filter(async rp => await predicate(rp))
+                    const picked = (await Promise.all(rps.map(async cp => {return {cp, p: await predicate(cp)}}))).filter(x => x.p).map(x => x.cp)
                     picked.forEach(async rp => await storage.addReport(rp))
                 })
                 
@@ -160,14 +160,14 @@ export function traderApi<OracleQuery, CpQuery, RpQuery, MatchingQuery, MegaPeer
             }
             return cl
         },
-        collectOffers: async function (tag: string,  q: OracleQuery, opredicate: (cp: OracleId) => Promise<boolean>, matchingPredicate: (cp: OfferMsg) => Promise<boolean>): Promise<Collector<OfferMsg>> {
+        collectOffers: async function (tag: string,  q: OracleQuery, opredicate: (o: OracleId) => Promise<boolean>, matchingPredicate: (cp: OfferMsg) => Promise<boolean>): Promise<Collector<OfferMsg>> {
             const timeout = setInterval(async () => {
                 storage.allOracles(q, opredicate, async oracleid => {
                     const ofs = await nodeApi.lookupOffers({
                         page: getRandomInt(tradercfg.maxReportsPages),
                         chunkSize: tradercfg.pageSize
                     }, oracleid.pubkey)
-                    const picked = ofs.filter(async of => await matchingPredicate(of))
+                    const picked = (await Promise.all(ofs.map(async cp => {return {cp, p: await matchingPredicate(cp)}}))).filter(x => x.p).map(x => x.cp)
                     picked.forEach(async of => await storage.addOffer(of))
                 })
                 
