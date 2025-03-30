@@ -19,6 +19,8 @@
 
         <label for="page">Page:</label>
         <input type="number" id="page" name="page" min="0" max="100" value="0"/>
+        <label for="update">Update:</label>
+        <input type="checkbox" id="update" name="update" checked />
         <div id="error"></div>
         <div id="cps">
 
@@ -93,18 +95,20 @@
         }
 
         setInterval(async () => {
-            const page = document.getElementById('page').value
-            const cps = await (await fetch('./viewStoredCapabilities?pageSize=100&pageNo=' + page)).json()
-            const target = document.getElementById('cps')
-            if (cps.error) {
-                document.getElementById('error').innerHTML = cps.error
-            } else {
-                document.getElementById('error').innerHTML = ""
+            if (document.getElementById('update').checked) {
+                const page = document.getElementById('page').value
+                const cps = await (await fetch('./viewStoredCapabilities?pageSize=100&pageNo=' + page)).json()
+                const target = document.getElementById('cps')
+                if (cps.error) {
+                    document.getElementById('error').innerHTML = cps.error
+                } else {
+                    document.getElementById('error').innerHTML = ""
+                }
+                const html = cps.map(cp => {
+                return cp.question + " pub=" + cp.capabilityPubKey
+                }).join("<br>")
+                target.innerHTML = html
             }
-            const html = cps.map(cp => {
-               return cp.question + " pub=" + cp.capabilityPubKey
-            }).join("<br>")
-            target.innerHTML = html
 
         }, 2000)
          
