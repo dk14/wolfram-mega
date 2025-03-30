@@ -1,6 +1,6 @@
 import Stream from "stream";
 import { MempoolConfig } from "../../config";
-import { api as ndapi, Api } from "../../node";
+import { api as ndapi, PagingDescriptor } from "../../node";
 import { PeerAddr, connectionPool } from "../../p2p";
 import { capabilityStorage } from "../client-storage/capability-storage";
 import { ConnectionPoolCfg } from "../connection-pool";
@@ -10,6 +10,7 @@ import * as url from 'url';
 import * as websocket from 'websocket-stream'
 import * as readline from 'readline'
 import * as fs from 'fs'
+import * as safeEval from 'safe-eval'
 
 export const startOracleService = (cfg: MempoolConfig<PeerAddr>) => {
     const storage = capabilityStorage(cfg.oracle.dbPath, 5, 100)
@@ -26,6 +27,15 @@ export const startOracleService = (cfg: MempoolConfig<PeerAddr>) => {
             const reqUrl =  url.parse(req.url!, true)
             const pubkey: string = typeof reqUrl.query.pubkey === "string" ? reqUrl.query.pubkey : ""
             const difficulty: string = typeof reqUrl.query.difficulty === "string" ? reqUrl.query.difficulty : ""
+            const pageNo: number = typeof reqUrl.query.pageNo === "string" ? parseInt(reqUrl.query.pageNo as string) : 0
+            const pageSize: number = typeof reqUrl.query.pageSize === "string" ? parseInt(reqUrl.query.pageSize as string) : 10
+            const query: string = typeof reqUrl.query.pubkey === "string" ? reqUrl.query.pubkey : "true"
+            
+    
+            const paging: PagingDescriptor = {
+                page: pageNo,
+                chunkSize: pageSize
+            }
 
             if (req.method === 'GET' && (reqUrl.pathname == '/index.html' || reqUrl.pathname == '/index.htm') || reqUrl.pathname == '/') {
                 res.setHeader('content-Type', 'text/html');
@@ -47,6 +57,10 @@ export const startOracleService = (cfg: MempoolConfig<PeerAddr>) => {
                 api.upgradeOraclePow(parseInt(difficulty))
             } else if(reqUrl.pathname == '/upgradeCapabilityPow') {
                 api.upgradeCapabilityPow(pubkey,parseInt(difficulty))
+            } else if(reqUrl.pathname == '/viewStoredCapabilities') {
+                const q = {where: async x => {return safeEval(query, x)}}
+                const cps = await storage.listCapabilities(q, paging)
+                res.end(JSON.stringify(cps))
             }
     
             if (req.method === 'POST') {
