@@ -39,7 +39,7 @@ export const startOracleService = (cfg: MempoolConfig<PeerAddr>) => {
 
             if (req.method === 'GET' && (reqUrl.pathname == '/index.html' || reqUrl.pathname == '/index.htm') || reqUrl.pathname == '/') {
                 res.setHeader('content-Type', 'text/html');
-                res.end(fs.readFileSync(__dirname + '/html/trader/index.html').toString())
+                res.end(fs.readFileSync(__dirname + '/html/oracle/index.html').toString())
                 return
             }
 
