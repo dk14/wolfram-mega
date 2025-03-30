@@ -35,18 +35,22 @@
         <input type="button" id="cancel_collector" value="Cancel Collector">
 
         <h2>Database</h2>
-        
+
+       
         <label for="view">View:</label>
         <select name="view" id="view">
             <option value="oracles">Oracles</option>
             <option value="cps">Capabilities</option>
-            <option value="reports">Offers</option>
-            <option value="offers">Reports</option>
+            <option value="offers">Offers</option>
+            <option value="reports">Reports</option>
             <option value="issued-reports">IssuedOffers</option>
             <option value="issued-offers">IssuedReports</option>
         </select>
         <label for="page">Page:</label>
         <input type="number" id="page" name="page" min="0" max="100" value="0"/>
+        <label for="update">Update:</label>
+        <input type="checkbox" id="update" name="update" checked />
+        
         <div id="database"></div>
         <br>
         <label for="hash">Delete by pubkey/hash:</label>
@@ -95,6 +99,7 @@ submit report
             await fetch('./collectCapabilities?tag=' + encodeURIComponent(tag), {
 	            method: 'post',
 	            body: JSON.stringify({
+                    oquery: opredicate,
                     opredicate,
                     predicate
                 }),
@@ -109,6 +114,7 @@ submit report
             await fetch('./collectReports?tag=' + encodeURIComponent(tag), {
 	            method: 'post',
 	            body: JSON.stringify({
+                    oquery: opredicate,
                     opredicate,
                     predicate
                 }),
@@ -123,6 +129,7 @@ submit report
             await fetch('./collectReports?tag=' + encodeURIComponent(tag), {
 	            method: 'post',
 	            body: JSON.stringify({
+                    oquery: opredicate,
                     opredicate,
                     predicate
                 }),
@@ -155,36 +162,39 @@ submit report
 
             target.innerHTML = "<pre>" + JSON.stringify(collectors) + "</pre>"
 
-        }, 2000)
+        }, 1000)
 
         setInterval(async () => {
-            const page = document.getElementById('page').value
-            const target = document.getElementById('database')
-            const view = document.getElementById('view').value
-            const endpoints = {
-                "oracles": "listOracles",
-                "cps": "listCapabilities",
-                "reports": "listReports",
-                "offers": "listOffers",
-                "issued-reports": "listIssuedReports",
-                "issued-offers": "listIssuedOffers"
-            }
-            const data = await (await fetch(`./${endpoints[view]}?pageSize=100&pageNo=${page}`)).json()
-
-            const html = data.map(datum => {
-                const formats = {
-                    "oracles": datum.pubkey,
-                    "cps": `${datum.question} pub=${datum.capabilityPubKey}`,
-                    "reports": `oracle_pub=${datum.oraclePubKey} content=${JSON.stringify(datum.content)}`,
-                    "offers": `${JSON.stringify(datum.content)}`,
-                    "issued-reports": `oracle_pub=${datum.oraclePubKey} content=${JSON.stringify(datum.content)}`,
-                    "issued-offers": `${JSON.stringify(datum.content)}`
+            if (document.getElementById('update').checked) {
+                const page = document.getElementById('page').value
+                const target = document.getElementById('database')
+                const view = document.getElementById('view').value
+                const endpoints = {
+                    "oracles": "listOracles",
+                    "cps": "listCapabilities",
+                    "reports": "listReports",
+                    "offers": "listOffers",
+                    "issued-reports": "listIssuedReports",
+                    "issued-offers": "listIssuedOffers"
                 }
-               return formats[view]
-            }).join("\n")
-            target.innerHTML = "<pre>" + html + "</pre>"
+                const data = await (await fetch(`./${endpoints[view]}?pageSize=100&pageNo=${page}`)).json()
 
-        }, 2000)
+                const html = data.map(datum => {
+                    const formats = {
+                        "oracles": datum.pubkey,
+                        "cps": `${datum.question} pub=${datum.capabilityPubKey}`,
+                        "reports": `oracle_pub=${datum.oraclePubKey} content=${JSON.stringify(datum.content)}`,
+                        "offers": `${JSON.stringify(datum.content)}`,
+                        "issued-reports": `oracle_pub=${datum.oraclePubKey} content=${JSON.stringify(datum.content)}`,
+                        "issued-offers": `${JSON.stringify(datum.content)}`
+                    }
+                return formats[view]
+                }).join("\n")
+                target.innerHTML = "<pre>" + html + "</pre>"
+            }
+            
+
+        }, 1000)
 
         
     </script>

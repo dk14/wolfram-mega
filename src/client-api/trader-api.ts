@@ -138,7 +138,7 @@ export function traderApi<OracleQuery, CpQuery, RpQuery, MatchingQuery, MegaPeer
         },
         collectReports: async function (tag: string,  q: OracleQuery, opredicate: (cp: OracleId) => Promise<boolean>, predicate: (cp: Report) => Promise<boolean>): Promise<Collector<Report>> {
             const timeout = setInterval(async () => {
-                storage.allOracles(q, opredicate, async oracleid => {
+                storage.allOracles(q, opredicate, async oracleid => {     
                     const rps = await nodeApi.lookupReports({
                         page: getRandomInt(tradercfg.maxReportsPages),
                         chunkSize: tradercfg.pageSize
