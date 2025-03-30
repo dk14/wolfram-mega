@@ -6,33 +6,7 @@
     
     <body bgcolor="green">
         <h1>Trader Console</h1>
-        <h2>Collectors</h2>
-        <label for="oracle_filter">Oracle Filter:</label>
-        <input type="text" id="oracle_filter" size="40" name="oracle_filter" value="true">
-        <br><br>
-        <label for="cp_filter">Capability Filter:</label>
-        <input type="text" id="cp_filter" size="40" name="cp_filter" value="true">
-        <br><br>
-        <label for="report_filter">Report Filter:</label>
-        <input type="text" id="report_filter" size="40" name="report_filter" value="true">
-        <br><br>
-        <label for="offer_filter">Offer Filter:</label>
-        <input type="text" id="offer_filter" size="40" name="offer_filter" value="true">
-
-        <br><br>
-        <label for="tag">Collector Tag:</label>
-        <input type="text" id="tag" size="40" name="tag" value="tag1">
-
-        <br><br>
-        <input type="button" id="col_oracles" value="Collect Oracles">
-        <input type="button" id="col_cps" value="Collect Capabilities">
-        <br><br>
-        <input type="button" id="col_reports" value="Collect Reports">
-        <input type="button" id="col_offers" value="Collect Offers">
-        <br><br>
-        Collector List: <div id="collectors">[]</div>
-        <br>
-        <input type="button" id="cancel_collector" value="Cancel Collector">
+        
 
         <h2>Database</h2>
 
@@ -57,6 +31,35 @@
         <label for="hash">Delete by pubkey/hash:</label>
         <input type="text" id="hash" size="20" name="hash" value="">
         <input type="button" id="delete" value="Delete">
+
+        <h2>Collectors</h2>
+        <label for="oracle_filter">Oracle Filter:</label>
+        <input type="text" id="oracle_filter" size="40" name="oracle_filter" value="true">
+
+        <label for="cp_filter">Capability Filter:</label>
+        <input type="text" id="cp_filter" size="40" name="cp_filter" value="true">
+        <br><br>
+        <label for="report_filter">Report Filter:</label>
+        <input type="text" id="report_filter" size="40" name="report_filter" value="true">
+
+        <label for="offer_filter">Offer Filter:</label>
+        <input type="text" id="offer_filter" size="40" name="offer_filter" value="true">
+
+
+
+        <br><br>
+        <input type="button" id="col_oracles" value="Collect Oracles">
+        <input type="button" id="col_cps" value="Collect Capabilities">
+        <br><br>
+        <input type="button" id="col_reports" value="Collect Reports">
+        <input type="button" id="col_offers" value="Collect Offers">
+        <br><br>
+        <label for="tag">Collector Tag:</label>
+        <input type="text" id="tag" size="40" name="tag" value="tag1">
+        <br><br>
+        Collector List: <div id="collectors">[]</div>
+        <br>
+        <input type="button" id="cancel_collector" value="Cancel Collector">
 
 
         <h2>Query Oracle</h2>
@@ -127,7 +130,7 @@ submit report
             const tag = document.getElementById('tag').value
             const opredicate = document.getElementById('oracle_filter').value
             const predicate = document.getElementById('offer_filter').value
-            await fetch('./collectReports?tag=' + encodeURIComponent(tag), {
+            await fetch('./collectOffers?tag=' + encodeURIComponent(tag), {
 	            method: 'post',
 	            body: JSON.stringify({
                     oquery: opredicate,

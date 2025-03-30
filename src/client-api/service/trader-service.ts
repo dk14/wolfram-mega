@@ -48,7 +48,7 @@ export const startTraderService = (cfg: MempoolConfig<PeerAddr>) => {
             } else if(reqUrl.pathname == '/pauseBroadcastIssuedReports') {
                 api.stopBroadcastingIssuedReports()
             } else if(reqUrl.pathname == '/listCollectors') {
-                res.end(JSON.stringify(Object.keys(collectors)))
+                res.end(JSON.stringify(Object.keys(collectors).map(tag => `${collectors[tag].type}:${tag}`)))
             } else if(reqUrl.pathname == '/listOracles') {
                 res.end(JSON.stringify(await storage.queryOracles(q, paging)))
             } else if(reqUrl.pathname == '/listCapabilities') {
