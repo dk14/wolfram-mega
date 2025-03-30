@@ -10,7 +10,7 @@ import * as url from 'url';
 import * as websocket from 'websocket-stream'
 import * as readline from 'readline'
 import * as fs from 'fs'
-import * as safeEval from 'safe-eval'
+import safeEval from 'safe-eval'
 
 export const startOracleService = (cfg: MempoolConfig<PeerAddr>) => {
     const storage = capabilityStorage(cfg.oracle.dbPath, 1, 100)

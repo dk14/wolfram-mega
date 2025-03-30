@@ -3,7 +3,7 @@ import { api as ndapi, Api, OracleId, PagingDescriptor } from "../../node";
 import { PeerAddr } from "../../p2p";
 import * as http from 'http';
 import * as url from 'url';
-import * as safeEval from 'safe-eval'
+import safeEval from 'safe-eval'
 import { Collector, TraderApi, traderApi } from "../trader-api";
 import { traderStorage, TraderQuery} from "../client-storage/trader-storage";
 import * as fs from 'fs'
@@ -73,6 +73,11 @@ export const startTraderService = (cfg: MempoolConfig<PeerAddr>) => {
                 await storage.removeIssuedOffers([pubkey])
             } else if(reqUrl.pathname == '/deleteIssuedReport') {
                 await storage.removeIssuedReports([pubkey])
+            } else if (reqUrl.pathname == '/cancelCollector') {
+                if (collectors[tag]) {
+                    collectors[tag].cancel()
+                    delete collectors[tag]
+                }
             }
     
             if (req.method === 'POST') {
@@ -132,10 +137,6 @@ export const startTraderService = (cfg: MempoolConfig<PeerAddr>) => {
                                     collectors[collector.tag].cancel()
                                 }
                                 collectors[collector.tag] = collector
-                            }
-                        } else if (reqUrl.pathname == '/cancelCollector') {
-                            if (collectors[tag]) {
-                                collectors[tag].cancel()
                             }
                         }
 

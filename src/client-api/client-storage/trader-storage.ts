@@ -13,7 +13,15 @@ type TraderStorageT = TraderStorage<TraderQuery<OracleId>, TraderQuery<OracleCap
 export const traderStorage = (path: string, pageSize: number): TraderStorageT => {
     if (!fs.existsSync(path + "/")) {
         fs.mkdirSync(path, {recursive: true})
+        
     }
+    fs.mkdirSync(path + "/issued-reports", {recursive: true})
+    fs.mkdirSync(path + "/reports", {recursive: true})
+    fs.mkdirSync(path + "/issued-offers", {recursive: true})
+    fs.mkdirSync(path + "/offers", {recursive: true})
+    fs.mkdirSync(path + "/oracles", {recursive: true})
+    fs.mkdirSync(path + "/capabilities", {recursive: true})
+    
     const getPage = async <T>(prefix: string, pageNo: string): Promise<TraderDict<T>> => {
         const pagepath = path + "/" + prefix + "/" + pageNo + ".json"
         if (fs.existsSync(pagepath)) {

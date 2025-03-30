@@ -131,6 +131,7 @@ export function oracleControlApi<Query, MegaPeerT>(
                 nodeApi.announceOracle(poolcfg, id)
                 id.seqNo++
                 await Promise.all((await storage.listActiveCapabilities()).map(async cp => {
+                    
                     nodeApi.announceCapability(poolcfg, cp)
                     if (cpsigner !== null) {
                         cp.oracleSignature = ""
@@ -163,6 +164,12 @@ export function oracleControlApi<Query, MegaPeerT>(
             }
         },
         addCapability: async function (cp: OracleBasicCapability):  Promise<void> {
+            const pow: HashCashPow = {
+                difficulty: 0,
+                algorithm: "SHA256",
+                hash: "",
+                magicNo: 0
+            }
             const capability: OracleCapability = {
                 oraclePubKey: id.pubkey,
                 capabilityPubKey: cp.capabilityPubKey,
@@ -171,7 +178,7 @@ export function oracleControlApi<Query, MegaPeerT>(
                 cTTL: 0,
                 oracleSignature: "",
                 oracleSignatureType: "SHA256",
-                pow: undefined
+                pow
             }
             await storage.addCapability(capability)
         },

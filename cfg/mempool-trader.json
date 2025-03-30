@@ -8,8 +8,19 @@
     "hostname": "localhost",
     "isTest": true,
     "p2pseed": [
-        {"server": "localhost", "port" : 8333}
+        
     ],
+    "oracle": {
+        "id": {
+            "pubkey": "AAA",
+            "oracleSignatureType" : "SHA256"
+        },
+        "adInterval": 100,
+        "adTopN": 10,
+        "dbPath": "./db/myoracle",
+        "httpPort": 9080,
+        "wsPort": 9081
+    },
     "trader": {
         "broadcastOfferCycle": 1000,
         "broadcastReportCycle": 1000,

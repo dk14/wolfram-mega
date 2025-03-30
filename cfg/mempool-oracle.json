@@ -17,7 +17,7 @@
         },
         "adInterval": 100,
         "adTopN": 10,
-        "dbPath": "./db",
+        "dbPath": "./db/myoracle",
         "httpPort": 9080,
         "wsPort": 9081
     }

@@ -1,4 +1,5 @@
 import { startOracleService } from './src/client-api/service/oracle-service';
+import { startTraderService } from './src/client-api/service/trader-service';
 import { MempoolConfig } from './src/config';
 import {startP2P} from './src/p2p';
 import {startHttp} from './src/rest';
@@ -35,5 +36,5 @@ if (cfg.oracle) {
 
 if (cfg.trader) {
     console.log("Start Trader service...           HTTP = " + cfg.trader.httpPort) 
-    startOracleService(cfg)
+    startTraderService(cfg)
 }

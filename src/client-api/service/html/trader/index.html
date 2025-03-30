@@ -8,7 +8,7 @@
         <h1>Trader UI</h1>
         <h2>Collectors</h2>
         <label for="oracle_filter">Oracle Filter:</label>
-        <input type="text" id="pubkey" size="40" name="oracle_filter" value="true">
+        <input type="text" id="oracle_filter" size="40" name="oracle_filter" value="true">
         <br><br>
         <label for="cp_filter">Capability Filter:</label>
         <input type="text" id="cp_filter" size="40" name="cp_filter" value="true">
@@ -79,7 +79,6 @@ submit report
         document.getElementById('col_oracles').onclick = async () => {
             const tag = document.getElementById('tag').value
             const opredicate = document.getElementById('oracle_filter').value
-            const body = { capabilityPubKey, question }
             await fetch('./collectOracles?tag=' + encodeURIComponent(tag), {
 	            method: 'post',
 	            body: JSON.stringify({
@@ -133,11 +132,7 @@ submit report
 
         document.getElementById('cancel_collector').onclick = async () => {
             const tag = document.getElementById('tag').value
-                await fetch('./cancelCollector?tag=' + encodeURIComponent(tag), {
-	            method: 'post',
-	            body: JSON.stringify({}),
-	            headers: {'Content-Type': 'application/json'}
-            })
+                await fetch('./cancelCollector?tag=' + encodeURIComponent(tag))
         }
 
         document.getElementById('delete').onclick = async () => {
@@ -176,9 +171,9 @@ submit report
             }
             const data = await (await fetch(`./${endpoints[view]}?pageSize=100&pageNo=${page}`)).json()
 
-            const html = data.array.map(datum => {
+            const html = data.map(datum => {
                 const formats = {
-                    "oracles": datum.pub,
+                    "oracles": datum.pubkey,
                     "cps": `${datum.question} pub=${datum.capabilityPubKey}`,
                     "reports": `oracle_pub=${datum.oraclePubKey} content=${JSON.stringify(datum.content)}`,
                     "offers": `${JSON.stringify(datum.content)}`,
