@@ -32,6 +32,7 @@
   "dependencies": {
     "@types/node": "^22.13.9",
     "@types/request": "^2.48.12",
+    "@types/ws": "^8.18.0",
     "assert": "^2.1.0",
     "crypto": "^1.0.1",
     "http": "^0.0.1-security",
@@ -42,7 +43,7 @@
     "safe-eval": "^0.4.1",
     "url": "^0.11.4",
     "wait-on": "^8.0.3",
-    "websocket-stream": "^5.5.2"
+    "ws": "^8.18.1"
   },
   "files": [
     "dist",
@@ -53,5 +54,8 @@
     "app.ts",
     "index.html",
     "bin"
-  ]
+  ],
+  "optionalDependencies": {
+    "bufferutil": "^4.0.9"
+  }
 }

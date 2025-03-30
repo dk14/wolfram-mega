@@ -7,7 +7,7 @@ import { ConnectionPoolCfg } from "../connection-pool";
 import { OracleControlAPI, oracleControlApi } from "../oracle-control-api";
 import * as http from 'http';
 import * as url from 'url';
-import * as websocket from 'websocket-stream'
+import WebSocket, { WebSocketServer, createWebSocketStream } from 'ws';
 import * as readline from 'readline'
 import * as fs from 'fs'
 import safeEval from 'safe-eval'
@@ -61,7 +61,13 @@ export const startOracleService = (cfg: MempoolConfig<PeerAddr>) => {
             } else if(reqUrl.pathname == '/viewStoredCapabilities') {
                 const q = {where: async x => {return safeEval(query, x)}}
                 const cps = await storage.listCapabilities(q, paging)
+                res.setHeader('content-Type', 'application/json')
                 res.end(JSON.stringify(cps))
+            }
+
+            if (req.method === 'GET') {
+                res.setHeader('content-Type', 'application/json');
+                res.end("{}")
             }
     
             if (req.method === 'POST') {
@@ -96,11 +102,16 @@ export const startOracleService = (cfg: MempoolConfig<PeerAddr>) => {
         }
     }).listen(cfg.oracle.httpPort)
 
-    const wsserver = websocket.createServer({server: http.createServer(), port: cfg.oracle.wsPort })
+    const wss = new WebSocketServer({ port: cfg.oracle.wsPort });
     
-    wsserver.on("stream", (stream, req) => {
 
+    wss.on('connection', function connection(ws, req) {
+        ws.on('error', console.error);
+
+        const stream = createWebSocketStream(ws, { encoding: 'utf8' });
+        
         const reqUrl =  url.parse(req.url!, true)
+
 
         const rl = readline.createInterface(stream, stream);
 
@@ -109,26 +120,27 @@ export const startOracleService = (cfg: MempoolConfig<PeerAddr>) => {
 
         if(reqUrl.pathname == '/ranks') {
             api.watchMyRankSample(async ev => {  
-                rl.write(JSON.stringify(ev) + "\n")
+                stream.write(JSON.stringify(ev) + "\n")
                 
             })
         } else if(reqUrl.pathname == '/signCp') {
             api.watchSignMyCapabilityBroadcasts(ev => {  
-                rl.write(JSON.stringify(ev) + "\n")
-                rl.prompt()
-                return new Promise(resolve => rl.on('line', line => resolve(JSON.parse(line))))
+                return new Promise(resolve => {
+                    rl.question(JSON.stringify(ev) + "\n", a => resolve(JSON.parse(a)))
+                })
             })
         } else if(reqUrl.pathname == '/signAd') {
-            api.watchSignMyOracleBroadcasts(ev => {  
-                rl.write(JSON.stringify(ev) + "\n")
-                rl.prompt()
-                return new Promise(resolve => rl.on('line', line => resolve(JSON.parse(line))))
+            api.watchSignMyOracleBroadcasts(ev => {
+                return new Promise(resolve => {
+                    rl.question(JSON.stringify(ev) + "\n", a => resolve(JSON.parse(a)))
+
+                })
             })
         }
+        
 
     })
- 
 
-    
+   
     
 }

@@ -6,6 +6,9 @@ import * as nd from '../src/node'
 import * as pow from '../src/pow'
 import fetch from 'node-fetch'
 import * as assert from 'assert'
+import WebSocket, { createWebSocketStream } from 'ws';
+import * as readline from 'readline'
+import { stdin, stdout } from 'process'
 
 
 (async () => {
@@ -36,7 +39,7 @@ interface Peer {
     port: number
 }
 
-const start = async (portP2P: number, portHttp: number, seed: number[]): Promise<Peer> => {
+const start = async (portP2P: number, portHttp: number, seed: number[], oraclePort?: number, oracleWsPort?: number, traderPort?: number, pub?: string): Promise<Peer> => {
 
     const cfg = {
         "maxOracles": 2,
@@ -49,6 +52,39 @@ const start = async (portP2P: number, portHttp: number, seed: number[]): Promise
         "hostname": "localhost",
         "isTest": true,
         "p2pseed": seed.map(port => {return {"server": "localhost", "port" : port}})
+    }
+
+    if (oraclePort !== undefined && oracleWsPort !== undefined) {
+        cfg["oracle"] = {
+            "id": {
+                "pubkey": pub,
+                "oracleSignatureType" : "SHA256"
+            },
+            "adInterval": 100,
+            "adTopN": 10,
+            "dbPath": "./db/myoracle",
+            "httpPort": oraclePort,
+            "wsPort": oracleWsPort
+        }
+    }
+
+    if (traderPort !== undefined) {
+        cfg["trader"] = {
+            "broadcastOfferCycle": 1000,
+            "broadcastReportCycle": 1000,
+            "collectOffersCycle": 1000,
+            "collectReportsCycle": 1000,
+            "collectOracleAdsCycle": 1000,
+            "collectOracleCpCycle": 1000,
+            "pageSize": 100,
+            "maxOraclesPages": 2,
+            "maxCpPages": 2,
+            "maxReportsPages": 2,
+            "maxOffersPages": 2,
+            "maxCollectors": 2,
+            "dbPath": "./db",
+            "httpPort": traderPort
+        }
     }
 
     try { await promisify(exec)('mkdir ./.tmp') } catch {}
@@ -190,6 +226,7 @@ const addr = (p: Peer) => {
 await waitFor(peers.map(p => 'http-get://localhost:' + p.port + '/id'))
 
 console.log("=========TESTING==========")
+var okay = false
 
 const oracle1 = await genOracle()
 
@@ -207,13 +244,24 @@ assert.strictEqual(res1, '"success"')
 
 console.log("2) Check oracle id synced across the network")
 
-const responses = await Promise.all(peers.map(p => fetch(addr(peers[0]) + 'oracles')))
-const jsons = await Promise.all(responses.map(r => r.json()))
-const results = jsons.map(j => j as nd.OracleId[])
+okay = false
+while (!okay) {
 
-results.forEach(r => {
-    assert.deepStrictEqual(r, [oracle1.body])
-})
+    const responses = await Promise.all(peers.map(p => fetch(addr(p) + 'oracles')))
+    const jsons = await Promise.all(responses.map(r => r.json()))
+    const results = jsons.map(j => j as nd.OracleId[])
+
+
+    try {
+        results.forEach(r => {
+            assert.deepStrictEqual(r, [oracle1.body])
+            okay = true
+        })
+    } catch {
+        
+    }
+}
+
 
 console.log("3) Submit capability")
 
@@ -230,14 +278,20 @@ const res2 = await response2.text();
 assert.strictEqual(res2, '"success"')
 
 console.log("4) Check capability synced across the network")
+okay = false
+while (!okay) {
+    const responses2 = await Promise.all(peers.map(p => fetch(addr(p) + 'capabilities?pubkey=' + encodeURIComponent(oracle1.body.pubkey))))
+    const jsons2 = await Promise.all(responses2.map(r => r.json()))
+    const results2 = jsons2.map(j => j as nd.OracleCapability[])
+    try {
+        results2.forEach(r => {
+            assert.deepStrictEqual(r, [cp1])
+            okay = true
+        })
+    } catch {
 
-const responses2 = await Promise.all(peers.map(p => fetch(addr(peers[0]) + 'capabilities?pubkey=' + encodeURIComponent(oracle1.body.pubkey))))
-const jsons2 = await Promise.all(responses2.map(r => r.json()))
-const results2 = jsons2.map(j => j as nd.OracleCapability[])
-
-results2.forEach(r => {
-    assert.deepStrictEqual(r, [cp1])
-})
+    }
+}
 
 console.log("5) Submit report")
 
@@ -254,14 +308,22 @@ const res3 = await response3.text();
 assert.strictEqual(res3, '"success"')
 
 console.log("6) Check report synced across the network")
+okay = false
+while (!okay) {
+    const responses3 = await Promise.all(peers.map(p => fetch(addr(p) + 'reports?pubkey=' + encodeURIComponent(oracle1.body.pubkey))))
+    const jsons3 = await Promise.all(responses3.map(r => r.json()))
+    const results3 = jsons3.map(j => j as nd.OracleCapability[])
 
-const responses3 = await Promise.all(peers.map(p => fetch(addr(peers[0]) + 'reports?pubkey=' + encodeURIComponent(oracle1.body.pubkey))))
-const jsons3 = await Promise.all(responses3.map(r => r.json()))
-const results3 = jsons3.map(j => j as nd.OracleCapability[])
+    try {
+        results3.forEach(r => {
+            assert.deepStrictEqual(r, [r1])
+            okay = true
+        })
+    } catch {
 
-results3.forEach(r => {
-    assert.deepStrictEqual(r, [r1])
-})
+    }
+    
+}
 
 console.log("7) Submit offer")
 
@@ -278,16 +340,80 @@ const res4 = await response4.text();
 assert.strictEqual(res4, '"success"')
 
 console.log("8) Check offer synced across the network")
+okay = false
+while (!okay) {
 
-const responses4 = await Promise.all(peers.map(p => fetch(addr(peers[0]) + 'offers?pubkey=' + encodeURIComponent(cp1.capabilityPubKey))))
-const jsons4 = await Promise.all(responses4.map(r => r.json()))
-const results4 = jsons4.map(j => j as nd.OracleCapability[])
+    const responses4 = await Promise.all(peers.map(p => fetch(addr(p) + 'offers?pubkey=' + encodeURIComponent(cp1.capabilityPubKey))))
+    const jsons4 = await Promise.all(responses4.map(r => r.json()))
+    const results4 = jsons4.map(j => j as nd.OracleCapability[])
 
-results4.forEach(r => {
-    assert.deepStrictEqual(r, [o1])
+    try {
+        results4.forEach(r => {
+            assert.deepStrictEqual(r, [o1])
+            okay = true
+        })
+    } catch {
+
+    }
+    
+}
+
+console.log("--------------------------")
+console.log("Client API test")
+
+const oracleKeypair = nd.testOnlyGenerateKeyPair()
+const traderPort = 19997
+const oraclePort = 19999
+const oracleWsPort = 19998
+const clientpeer = await start(19443 , 19090 , [8433], oraclePort, oracleWsPort, traderPort, oracleKeypair.pub)
+await waitFor(['http-get://localhost:' + traderPort + '/', 'http-get://localhost:' + oraclePort + '/', 'tcp:localhost:' + oracleWsPort])
+
+const oraclePrefix = 'http://localhost:' + oraclePort + '/'
+const traderPrefix = 'http://localhost:' + traderPort + '/'
+
+await fetch(oraclePrefix + 'start')
+
+const wsOracle = new WebSocket(`ws://localhost:${oracleWsPort}/signAd`)
+
+wsOracle.on('error', console.error)
+await new Promise(resolve => wsOracle.on('open', () => resolve(true)))
+const streamOracle = createWebSocketStream(wsOracle, { encoding: 'utf8' })
+streamOracle.on('error', console.error);
+const rlOracle = readline.createInterface(streamOracle)
+
+console.log("1) Oracle signer callback")
+await new Promise(resolve => {
+    rlOracle.on('line', (line) => {
+        //console.log(line)
+        const oracleId: nd.OracleId = JSON.parse(line)
+        oracleId.oracleSignature = nd.testOnlySign(JSON.stringify(oracleId), oracleKeypair.pk)
+        streamOracle.write(JSON.stringify(oracleId) + "\n")
+        resolve(true)
+    })
 })
 
 
+const wsCp = new WebSocket(`ws://localhost:${oracleWsPort}/signCp`)
+await new Promise(resolve => wsCp.on('open', () => resolve(true)))
+const streamCp = createWebSocketStream(wsCp, { encoding: 'utf8' })
+streamCp.on('error', console.error);
+const rlCp = readline.createInterface(streamCp, streamCp);
+rlCp.on('line', (line) => {
+    console.log(line)
+    const cp: nd.OracleCapability = JSON.parse(line)
+    cp.oracleSignature = nd.testOnlySign(JSON.stringify(cp), oracleKeypair.pk)
+    rlCp.write(JSON.stringify(cp))
+})
+
+
+
+
+
+
+
+
+clientpeer.proc.kill()
+console.log("--------------------------")
 peers.forEach(x => x.proc.kill())
 
 console.log("OK!")

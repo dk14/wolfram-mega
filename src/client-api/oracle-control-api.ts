@@ -105,51 +105,56 @@ export function oracleControlApi<Query, MegaPeerT>(
                 id.pow = await powOverOracleId(id, 0)
             }
             
-            advertiser = setInterval(async () => {
-                if (adobserver !== null) {
-                    await Promise.all((connections.list(concfg).map(async con => {
-                        const api = connections.getapi(con)
-                        const oracles = await api.lookupOracles({
-                            page: 0,
-                            chunkSize: cfg.adTopN
-                        })
-                        oracles.forEach((o, i) => {
-                            if (o.pubkey === cfg.id.pubkey) {
-                                adobserver({
-                                    peer: con,
-                                    rank: i
-                                })
-                            }
-                        })
-                    })))
-                }
-
-                if (signer !== null) {
-                    id.oracleSignature = ""
-                    id = await signer(id)
-                }
-                nodeApi.announceOracle(poolcfg, id)
-                id.seqNo++
-                await Promise.all((await storage.listActiveCapabilities()).map(async cp => {
-                    
-                    nodeApi.announceCapability(poolcfg, cp)
-                    if (cpsigner !== null) {
-                        cp.oracleSignature = ""
-                        const difficulty = cp.pow?.difficulty ?? 1
-                        cp.pow = undefined
-                        cp = await cpsigner(cp)
-                        cp.pow = await powOverOracleCapability(cp, difficulty)
+            advertiser = async () => {
+                try {
+                    if (adobserver !== null) {
+                        await Promise.all((connections.list(concfg).map(async con => {
+                            const api = connections.getapi(con)
+                            const oracles = await api.lookupOracles({
+                                page: 0,
+                                chunkSize: cfg.adTopN
+                            })
+                            oracles.forEach((o, i) => {
+                                if (o.pubkey === cfg.id.pubkey) {
+                                    adobserver({
+                                        peer: con,
+                                        rank: i
+                                    })
+                                }
+                            })
+                        })))
                     }
-                    cp.seqNo++
-                }))
+    
+                    if (signer !== null) {
+                        id.oracleSignature = ""
+                        id = await signer(id)
+                    }
+                    nodeApi.announceOracle(poolcfg, id)
+                    id.seqNo++
+                    await Promise.all((await storage.listActiveCapabilities()).map(async cp => {
+                        
+                        nodeApi.announceCapability(poolcfg, cp)
+                        if (cpsigner !== null) {
+                            cp.oracleSignature = ""
+                            const difficulty = cp.pow?.difficulty ?? 1
+                            cp.pow = undefined
+                            cp = await cpsigner(cp)
+                            cp.pow = await powOverOracleCapability(cp, difficulty)
+                        }
+                        cp.seqNo++
+                    }))
 
-                
-            }, cfg.adInterval)
+                } finally {
+                    if (advertiser !== null) {
+                        setTimeout(advertiser, cfg.adInterval)
+                    }
+                }    
+            }
+            await advertiser()
             return
         },
         pauseAdvertising: function (cfg: OracleCfg): Promise<void> {
             if (advertiser !== null) {
-                clearInterval(advertiser)
                 advertiser = null
             }
             return
