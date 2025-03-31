@@ -8,7 +8,7 @@ interface InputId {
 } 
 
 interface OpeningTransaction {
-    tx: helios.Tx,
+    tx: string,
     asInput: InputId
 }
 
@@ -44,9 +44,9 @@ export const generateOpeningTransaction = (aliceInput: InputId, bobInput: InputI
     tx.addOutput(utxo3)
     
     return {
-        tx, 
+        tx: tx.toCborHex(), //helios.Tx.fromCbor()
         asInput: {
-            cbor: "string",
+            cbor: utxo3.toCborHex(),
             amount: collateral,
             addr: helios.Address.fromHash(uplc.validatorHash, true).toBech32()
         }
