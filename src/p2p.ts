@@ -23,6 +23,7 @@ export var p2pNode: nd.FacilitatorNode<Neighbor> | undefined = undefined
 export var connectionPool: ConnectionPool<PeerAddr> | undefined = undefined
 
 export const startP2P = (cfg: MempoolConfig<PeerAddr>) => {
+    var peersAnnounced = 0
 
     var connections = 0
     const onmessage = (ev) => {
@@ -82,6 +83,8 @@ export const startP2P = (cfg: MempoolConfig<PeerAddr>) => {
     }
 
     function broadcastPeer(peer: PeerAddr, skipDuplicateCheck: boolean = false): void {
+        peersAnnounced++
+        if (peersAnnounced > (cfg.peerAnnouncementQuota ?? 10)) return
         if (!skipDuplicateCheck && checkDuplicatePeer(peer)) {
             return
         }
@@ -273,6 +276,10 @@ export const startP2P = (cfg: MempoolConfig<PeerAddr>) => {
             }
         }
     }
+
+    setInterval(() => {
+        peersAnnounced = 0
+    }, 1000)
 
     if (cfg.hostname !== undefined) {
         var seqNo = 0

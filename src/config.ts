@@ -27,4 +27,6 @@ export interface MempoolConfig<PeerAddrT> {
     isTest: boolean
     p2pKeepAlive?: number
     ttlThreshold?: number
+    peerAnnouncementQuota?: number
+
 }
