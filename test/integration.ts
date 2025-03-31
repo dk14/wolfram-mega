@@ -226,6 +226,7 @@ const addr = (p: Peer) => {
 await waitFor(peers.map(p => 'http-get://localhost:' + p.port + '/id'))
 
 console.log("=========TESTING==========")
+console.log("Protocol...\n")
 var okay = false
 
 const oracle1 = await genOracle()
@@ -262,7 +263,7 @@ while (!okay) {
     }
 }
 
-
+console.log("")
 console.log("3) Submit capability")
 
 const cp1 = await genCp(oracle1.body.pubkey, oracle1.pk)
@@ -292,7 +293,7 @@ while (!okay) {
 
     }
 }
-
+console.log("")
 console.log("5) Submit report")
 
 const r1 = await genReport(oracle1.body.pubkey, cp1.capabilityPubKey)
@@ -325,6 +326,7 @@ while (!okay) {
     
 }
 
+console.log("")
 console.log("7) Submit offer")
 
 const o1 = await genOffer(cp1.capabilityPubKey)
@@ -358,8 +360,10 @@ while (!okay) {
     
 }
 
+console.log("")
+
 console.log("--------------------------")
-console.log("Client API tests...")
+console.log("Client API tests...\n")
 
 const oracleKeypair = nd.testOnlyGenerateKeyPair()
 const traderPort = 19997
@@ -381,7 +385,8 @@ const streamOracle = createWebSocketStream(wsOracle, { encoding: 'utf8' })
 streamOracle.on('error', console.error);
 const rlOracle = readline.createInterface(streamOracle)
 
-console.log("1) Oracle signer callback")
+console.log("1. Oracle admin:")
+console.log(" a) broadcast and auto-sign oracle ads")
 
 await new Promise(resolve => {
     rlOracle.on('line', (line) => {
@@ -400,7 +405,7 @@ const streamCp = createWebSocketStream(wsCp, { encoding: 'utf8' })
 streamCp.on('error', console.error);
 const rlCp = readline.createInterface(streamCp, streamCp);
 
-console.log("2) Create new capability")
+console.log(" b) create, broadcast and auto-sign new capability")
 
 const cpKeyPair = nd.testOnlyGenerateKeyPair()
 const capabilityPubKey = cpKeyPair.pub
@@ -442,7 +447,9 @@ while (!okay) {
     }
 }
 
-console.log("3) Collect oracles")
+console.log("")
+console.log("2. Trader console:")
+console.log(" a) collect oracles")
 
 const oraclesTag = "oracles"
 await fetch(traderPrefix + 'collectOracles?tag=' + encodeURIComponent(oraclesTag), {
@@ -465,7 +472,7 @@ while (!okay) {
 
 }
 
-console.log("4) Collect capabilities")
+console.log(" b) collect capabilities")
 
 const cpsTag = "cps"
 await fetch(traderPrefix + 'collectCapabilities?tag=' + encodeURIComponent(cpsTag), {
@@ -490,7 +497,7 @@ while (!okay) {
 
 }
 
-console.log("5) Collect reports")
+console.log(" c) collect reports")
 
 
 const r2 = await genReport(oracleKeypair.pub, capabilityPubKey)
@@ -524,7 +531,7 @@ while (!okay) {
 
 }
 
-console.log("6) Collect offers")
+console.log(" d) collect offers")
 
 const o2 = await genOffer(capabilityPubKey)
 
