@@ -15,7 +15,7 @@
             "pubkey": "AAA",
             "oracleSignatureType" : "SHA256"
         },
-        "adInterval": 100,
+        "adInterval": 1000,
         "adTopN": 10,
         "dbPath": "./db/myoracle",
         "httpPort": 9080,

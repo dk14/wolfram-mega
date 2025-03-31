@@ -446,7 +446,7 @@ export const api: Api = {
         if (cp.pow.difficulty == 0 || checkCapabilitySignature(cp)) {
             if (cp.pow.difficulty == 0 || checkPow(cp.pow, cp.oracleSignature)) {
                 if (checkCapabilityRank(cfg, cp, mempool.oracles[cp.oraclePubKey])) {
-                    const found = mempool.oracles[cp.oraclePubKey].capabilies.find(x => x.question == cp.question);
+                    const found = mempool.oracles[cp.oraclePubKey].capabilies.find(x => x.capabilityPubKey == cp.capabilityPubKey);
                     if (found !== undefined) {
                         if (found.seqNo < cp.seqNo && found.pow.difficulty <= cp.pow.difficulty) {
                             found.seqNo = cp.seqNo

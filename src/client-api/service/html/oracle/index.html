@@ -6,6 +6,7 @@
     
     <body bgcolor="purple">
         <h1>Oracle Administration</h1>
+        <div id="oid"></div>
         <label for="pubkey">Capability PubKey:</label>
         <input type="text" id="pubkey" size="50" name="pubkey" value="000000">
         <br><br>
@@ -43,7 +44,7 @@
         <br>
         <h2>Oracle PoW </h2>
         <label for="difficulty2">Difficulty:</label>
-        <input type="number" id="difficult2y" name="difficulty2" min="0" max="100" value="0"/>
+        <input type="number" id="difficulty2" name="difficulty2" min="0" max="100" value="0"/>
        
         <input type="button" id="upgrade_oracle" value="Upgrade Oracle PoW">
 
@@ -86,7 +87,7 @@
         document.getElementById('upgrade').onclick = async () => {
             const capabilityPubKey = document.getElementById('pubkeymanage').value
             const difficulty = document.getElementById('difficulty').value
-            await fetch('./uogradeCapabilityPow?pubkey=' + encodeURIComponent(capabilityPubKey)
+            await fetch('./upgradeCapabilityPow?pubkey=' + encodeURIComponent(capabilityPubKey)
              + "&difficulty=" + encodeURIComponent(difficulty))
         }
 
@@ -94,6 +95,13 @@
             const difficulty = document.getElementById('difficulty2').value
             await fetch('./upgradeOraclePow?' + "difficulty=" + encodeURIComponent(difficulty))
         }
+
+        setInterval(async () => {
+            if (document.getElementById('update').checked) {
+                const id = await (await fetch('./id')).json()
+                document.getElementById('oid').innerHTML = `<pre> seqno = ${id.seqNo} pow = ${id.pow.difficulty} </pre>`
+            }
+        }, 2000)
 
         setInterval(async () => {
             if (document.getElementById('update').checked) {
@@ -106,7 +114,7 @@
                     document.getElementById('error').innerHTML = ""
                 }
                 const html = cps.map(cp => {
-                return cp.question + " pub=" + cp.capabilityPubKey
+                    return cp.question + " pub=" + cp.capabilityPubKey + " pow=" + cp.pow.difficulty
                 }).join("<br>")
                 target.innerHTML = html
             }

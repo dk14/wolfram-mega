@@ -23,7 +23,6 @@ export interface OracleBasicCapability {
 
 export interface OracleCfg {
     id: OracleBasicIdentity
-    basicCapabilities?: OracleBasicCapability[]
     adInterval: number
     adTopN: number
     dbPath: string
@@ -32,6 +31,9 @@ export interface OracleCfg {
 }
 
 export interface CapabilityStorage<Query> {
+
+    storeOracleAdSeqNo: (seqNo: number) => Promise<void>
+    readOracleAdSeqNo: () => Promise<number>
 
     addCapability: (cp: OracleCapability) => Promise<void>
     
@@ -87,6 +89,19 @@ export function oracleControlApi<Query, MegaPeerT>(
     var signer: (event: OracleId) => Promise<OracleId> = null
     var cpsigner: (event: OracleCapability) => Promise<OracleCapability> = null
     var adobserver: (event: OracleAd<MegaPeerT>) => Promise<void> = null
+
+    const signPowIncCp = async(cp: OracleCapability): Promise<OracleCapability> => {
+        if (signer !== undefined) {
+            cp.oracleSignature = ""
+            const difficulty = cp.pow?.difficulty ?? 1
+            cp.pow = undefined
+            cp.seqNo++
+            const signed = await cpsigner(cp)
+            signed.pow = await powOverOracleCapability(signed, difficulty === 0? 1: difficulty)
+            return signed
+        }
+        
+    }
     
     return {
         id: async function (): Promise<OracleId> {
@@ -99,7 +114,7 @@ export function oracleControlApi<Query, MegaPeerT>(
             if (id === null) {
                 id = {
                     pubkey: cfg.id.pubkey,
-                    seqNo: 0,
+                    seqNo: await storage.readOracleAdSeqNo(),
                     cTTL: 0,
                     pow: undefined,
                     bid: {amount: 0, proof: ""},
@@ -130,6 +145,7 @@ export function oracleControlApi<Query, MegaPeerT>(
                         })))
                     }
                     id.seqNo++
+                    await storage.storeOracleAdSeqNo(id.seqNo)
     
                     if (signer !== null) {
                         id.oracleSignature = ""
@@ -139,6 +155,7 @@ export function oracleControlApi<Query, MegaPeerT>(
                     if (res !== "success" && res !== "low pow difficulty") {
                         console.error(res  + " oraclepub=" + id.pubkey)
                     }
+                    
                     if (p2pNode !== undefined) {
                         p2pNode.broadcastMessage('oracle', JSON.stringify(structuredClone(id)))
                     }
@@ -147,12 +164,7 @@ export function oracleControlApi<Query, MegaPeerT>(
                     await Promise.all((await storage.listActiveCapabilities()).map(async cp => {
                         
                         if (cpsigner !== null) {
-                            cp.oracleSignature = ""
-                            const difficulty = cp.pow?.difficulty ?? 1
-                            cp.pow = undefined
-                            cp.seqNo++
-                            const signed = await cpsigner(cp)
-                            signed.pow = await powOverOracleCapability(signed, difficulty === 0? 1: difficulty)
+                            const signed = await signPowIncCp(cp)
                             storage.addCapability(signed)
                             const res = await nodeApi.announceCapability(poolcfg, signed)
                             if (res !== "success" && res !== "low pow difficulty" && !res.includes("no oracle")) {
@@ -162,12 +174,17 @@ export function oracleControlApi<Query, MegaPeerT>(
                                 p2pNode.broadcastMessage('capability', JSON.stringify(structuredClone(signed)))
                             }
                         } else {
-                            cp.pow.difficulty = 0
+                            const unsigned = structuredClone(cp)
+                            unsigned.pow.difficulty = 0
+                            unsigned.seqNo++
                             cp.seqNo++
                             storage.addCapability(cp)
-                            const res = await nodeApi.announceCapability(poolcfg, cp)
+                            const res = await nodeApi.announceCapability(poolcfg, structuredClone(unsigned))
                             if (res !== "success" && res !== "low pow difficulty" && !res.includes("no oracle")) {
-                                console.error(res + " cppub=" + cp.capabilityPubKey)
+                                console.error(res + " _cppub=" + unsigned.capabilityPubKey)
+                            }
+                            if (p2pNode !== undefined) {
+                                p2pNode.broadcastMessage('capability', JSON.stringify(structuredClone(unsigned)))
                             }
                         }
                         
@@ -193,7 +210,7 @@ export function oracleControlApi<Query, MegaPeerT>(
         },
         upgradeCapabilityPow: async function (capabilityPubKey: string, difficulty: number):  Promise<void> {
             const cp = await storage.getCapability(capabilityPubKey)
-            if (cp !== undefined && cp.oracleSignature !== undefined) {
+            if (cp !== undefined) {
                 storage.updateCapabilityPow(capabilityPubKey, await powOverOracleCapability(cp, difficulty))
             }
         },
@@ -217,12 +234,22 @@ export function oracleControlApi<Query, MegaPeerT>(
             await storage.addCapability(capability)
         },
         deactivateCapability: async function (capabilityPubKey: string): Promise<void> {
+            const cp = await storage.getCapability(capabilityPubKey)
+            cp.off = true
+            if (p2pNode !== undefined) {
+                p2pNode.broadcastMessage('capability', JSON.stringify(structuredClone(signPowIncCp(cp))))
+            }
             await storage.deactivateCapability(capabilityPubKey)
         },
         activateCapability: async function (capabilityPubKey: string): Promise<void> {
             await storage.activateCapability(capabilityPubKey)
         },
         dropCapability: async function (capabilityPubKey: string): Promise<void> {
+            const cp = await storage.getCapability(capabilityPubKey)
+            cp.off = true
+            if (p2pNode !== undefined) {
+                p2pNode.broadcastMessage('capability', JSON.stringify(structuredClone(signPowIncCp(cp))))
+            }
             await storage.dropCapability(capabilityPubKey)
         },
         watchMyRankSample: function (subscriber: (event: OracleAd<MegaPeerT>) => Promise<void>): Promise<void> {

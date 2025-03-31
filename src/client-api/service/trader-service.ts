@@ -20,6 +20,7 @@ export const startTraderService = (cfg: MempoolConfig<PeerAddr>) => {
 
         try {
 
+            console.log('Request type: ' + req.method + ' Endpoint: ' + req.url);
             const reqUrl =  url.parse(req.url!, true)
             const tag: string = typeof reqUrl.query.tag === "string" ? reqUrl.query.tag : ""
 

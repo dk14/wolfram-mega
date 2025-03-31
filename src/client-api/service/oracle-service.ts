@@ -26,6 +26,8 @@ export const startOracleService = (cfg: MempoolConfig<PeerAddr>) => {
         try {
 
             const reqUrl =  url.parse(req.url!, true)
+            console.log('Request type: ' + req.method + ' Endpoint: ' + req.url);
+
             const pubkey: string = typeof reqUrl.query.pubkey === "string" ? reqUrl.query.pubkey : ""
             const difficulty: string = typeof reqUrl.query.difficulty === "string" ? reqUrl.query.difficulty : ""
             const pageNo: number = typeof reqUrl.query.pageNo === "string" ? parseInt(reqUrl.query.pageNo as string) : 0
@@ -67,7 +69,7 @@ export const startOracleService = (cfg: MempoolConfig<PeerAddr>) => {
                 res.setHeader('content-Type', 'application/json');
                 res.end("{}")
             } else if(reqUrl.pathname == '/upgradeCapabilityPow') {
-                api.upgradeCapabilityPow(pubkey,parseInt(difficulty))
+                api.upgradeCapabilityPow(pubkey, parseInt(difficulty))
                 res.setHeader('content-Type', 'application/json');
                 res.end("{}")
             } else if(reqUrl.pathname == '/viewStoredCapabilities') {
