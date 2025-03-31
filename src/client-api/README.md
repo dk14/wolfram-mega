@@ -16,3 +16,6 @@ After starting oracle administration service
 `ws://host:port/signCp` and `ws://host:port/signAd` would give you streams for signing capabilities and oracle ads respectively. You read a message - you write same message but with oracleSignature.
 
 The best approach is to sign messages manually unless they only differ in `seqNo` field.
+
+## Utils
+`utils\` folder contains examples of oracle endpoint and auto-signing services
