@@ -399,15 +399,6 @@ await new Promise(resolve => wsCp.on('open', () => resolve(true)))
 const streamCp = createWebSocketStream(wsCp, { encoding: 'utf8' })
 streamCp.on('error', console.error);
 const rlCp = readline.createInterface(streamCp, streamCp);
-rlCp.on('line', (line) => {
-    //console.log(line)
-    const cp: nd.OracleCapability = JSON.parse(line)
-    cp.oracleSignature = ""
-    cp.pow = undefined
-    assert.strictEqual(cp.oraclePubKey, oracleKeypair.pub)
-    cp.oracleSignature = nd.testOnlySign(JSON.stringify(cp), oracleKeypair.pk)
-    streamCp.write(JSON.stringify(cp) + "\n")
-})
 
 console.log("2) Create new capability")
 
@@ -419,6 +410,19 @@ await fetch(oraclePrefix + 'addCapability', {
     method: 'post',
     body: JSON.stringify(body),
     headers: {'Content-Type': 'application/json'}
+})
+
+await new Promise(resolve => {
+    rlCp.on('line', (line) => {
+        //console.log(line)
+        const cp: nd.OracleCapability = JSON.parse(line)
+        cp.oracleSignature = ""
+        cp.pow = undefined
+        assert.strictEqual(cp.oraclePubKey, oracleKeypair.pub)
+        cp.oracleSignature = nd.testOnlySign(JSON.stringify(cp), oracleKeypair.pk)
+        streamCp.write(JSON.stringify(cp) + "\n")
+        resolve(true)
+    })
 })
 
 okay = false
