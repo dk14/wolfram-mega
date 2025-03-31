@@ -490,6 +490,72 @@ while (!okay) {
 
 }
 
+console.log("5) Collect reports")
+
+
+const r2 = await genReport(oracleKeypair.pub, capabilityPubKey)
+
+
+const rpsTag = "rps"
+await fetch(traderPrefix + 'collectReports?tag=' + encodeURIComponent(rpsTag), {
+    method: 'post',
+    body: JSON.stringify({
+        oquery: `pubkey==='${oracleKeypair.pub}'`,
+        opredicate: `pubkey==='${oracleKeypair.pub}'`,
+        predicate: `true` 
+    }),
+    headers: {'Content-Type': 'application/json'}
+})
+
+okay = false
+while (!okay) {
+    try {
+        await fetch(addr(peers[0]) + 'report', {
+            method: 'post',
+            body: JSON.stringify(r2),
+            headers: {'Content-Type': 'application/json'}
+        })
+        const list = await (await fetch(`${traderPrefix}listReports`)).json() as nd.Report[]
+        assert.deepStrictEqual(list, [r2])
+        okay = true
+    } catch(err) {
+        //console.log(err); okay = true;
+    }
+
+}
+
+console.log("6) Collect offers")
+
+const o2 = await genOffer(capabilityPubKey)
+
+const ofsTag = "ofs"
+await fetch(traderPrefix + 'collectOffers?tag=' + encodeURIComponent(ofsTag), {
+    method: 'post',
+    body: JSON.stringify({
+        cpquery: `oraclePubKey==='${oracleKeypair.pub}'`,
+        cppredicate: `capabilityPubKey==='${capabilityPubKey}'`,
+        predicate: `true` 
+    }),
+    headers: {'Content-Type': 'application/json'}
+})
+
+okay = false
+while (!okay) {
+    try {
+        await fetch(addr(peers[0]) + 'offer', {
+            method: 'post',
+            body: JSON.stringify(o2),
+            headers: {'Content-Type': 'application/json'}
+        })
+        const list = await (await fetch(`${traderPrefix}listOffers`)).json() as nd.OfferMsg[]
+        assert.deepStrictEqual(list, [o2])
+        okay = true
+    } catch(err) {
+        //console.log(err); okay = true;
+    }
+
+}
+
 
 
 clientpeer.proc.kill()

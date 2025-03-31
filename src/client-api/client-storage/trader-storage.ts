@@ -148,6 +148,18 @@ export const traderStorage = (path: string, pageSize: number): TraderStorageT =>
             })
             await Promise.all(res)
         },
+        allCps: async function (q: TraderQuery<OracleCapability>, cppredicate: (cp: OracleCapability) => Promise<boolean>, handler: (id: OracleCapability) => Promise<void>): Promise<void> {
+            const res = fs.readdirSync(path + "/capabilities/").map(async file => {
+                const page: TraderDict<OracleCapability> = JSON.parse(fs.readFileSync(path + "/capabilities/" + file).toString())
+                const chunkWithPredicate = Object.values(page).map(async x => {
+                    const p = (await q.where(x)) && (await cppredicate(x))
+                    return {x, p}
+                })
+                const chunk = (await Promise.all(chunkWithPredicate)).filter(x => x.p).map(x => x.x)
+                return chunk.map(async x => await handler(x))
+            })
+            await Promise.all(res)
+        },
         queryOracles: async function (q: TraderQuery<OracleId>, paging: PagingDescriptor): Promise<OracleId[]> {
             return (await Promise.all(fs.readdirSync(path + "/oracles/").map(async file => {
                 const page: TraderDict<OracleId> = JSON.parse(fs.readFileSync(path + "/oracles/" + file).toString())

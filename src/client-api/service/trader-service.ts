@@ -1,5 +1,5 @@
 import { MempoolConfig } from "../../config";
-import { api as ndapi, Api, OracleId, PagingDescriptor } from "../../node";
+import { api as ndapi, Api, OracleId, PagingDescriptor, OracleCapability } from "../../node";
 import { PeerAddr } from "../../p2p";
 import * as http from 'http';
 import * as url from 'url';
@@ -11,7 +11,7 @@ import * as fs from 'fs'
 export const startTraderService = (cfg: MempoolConfig<PeerAddr>) => {
     const storage = traderStorage(cfg.trader.dbPath, 1)
 
-    const api: TraderApi<TraderQuery<OracleId>> = traderApi(cfg.trader, cfg, ndapi, storage)
+    const api: TraderApi<TraderQuery<OracleId>, TraderQuery<OracleCapability>> = traderApi(cfg.trader, cfg, ndapi, storage)
     const collectors: { [id: string] : Collector<any> } = {}
 
     http.createServer(async (req, res) => {
@@ -112,8 +112,8 @@ export const startTraderService = (cfg: MempoolConfig<PeerAddr>) => {
                             }
                         } else if (reqUrl.pathname == '/collectOffers') {
                             const collector = await api.collectOffers(tag, 
-                                {where: async x => {return safeEval(postBody.oquery, x)}}, 
-                                async x => {return safeEval(postBody.opredicate, x)}, 
+                                {where: async x => {return safeEval(postBody.cpquery, x)}}, 
+                                async x => {return safeEval(postBody.cppredicate, x)}, 
                                 async x => {return safeEval(postBody.predicate, x)}
                             )
                             if (Object.values(collectors).length < cfg.trader!.maxCollectors) {

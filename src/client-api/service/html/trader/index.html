@@ -128,13 +128,13 @@ submit report
 
         document.getElementById('col_offers').onclick = async () => {
             const tag = document.getElementById('tag').value
-            const opredicate = document.getElementById('oracle_filter').value
+            const cpquery = document.getElementById('cp_filter').value
             const predicate = document.getElementById('offer_filter').value
             await fetch('./collectOffers?tag=' + encodeURIComponent(tag), {
 	            method: 'post',
 	            body: JSON.stringify({
-                    oquery: opredicate,
-                    opredicate,
+                    cpquery,
+                    cppredicate,
                     predicate
                 }),
 	            headers: {'Content-Type': 'application/json'}

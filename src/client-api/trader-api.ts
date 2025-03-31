@@ -20,6 +20,8 @@ export interface TraderStorage<OracleQuery, CpQuery, RpQuery, MatchingQuery> {
     removeIssuedReports: (pubkeys: string[]) => Promise<void>
 
     allOracles: (q: OracleQuery, opredicate: (cp: OracleId) => Promise<boolean>, handler: (id: OracleId) => Promise<void>) => Promise<void>
+    allCps: (q: CpQuery, cppredicate: (cp: OracleCapability) => Promise<boolean>, handler: (id: OracleCapability) => Promise<void>) => Promise<void>
+
 
     queryOracles: (q: OracleQuery, paging: PagingDescriptor) => Promise<OracleId[]>
     queryCapabilities: (q: CpQuery, paging: PagingDescriptor) => Promise<OracleCapability[]>
@@ -41,12 +43,12 @@ export interface Collector<T> {
     cancel: () => Promise<void>
 }
 
-export interface TraderApi<OracleQuery> {
+export interface TraderApi<OracleQuery, CpQuery> {
 
     collectOracles: (tag: string, predicate: (cp: OracleId) => Promise<boolean>) => Promise<Collector<OracleId>>
     collectCapabilities: (tag: string, q: OracleQuery, opredicate: (cp: OracleId) => Promise<boolean>,  predicate: (cp: OracleCapability) => Promise<boolean>) => Promise<Collector<OracleCapability>>
     collectReports: (tag: string, q: OracleQuery, opredicate: (cp: OracleId) => Promise<boolean>, predicate: (cp: Report) => Promise<boolean>) => Promise<Collector<Report>>
-    collectOffers: (tag: string, q: OracleQuery, opredicate: (cp: OracleId) => Promise<boolean>, matchingPredicate: (cp: OfferMsg) => Promise<boolean>) => Promise<Collector<OfferMsg>>
+    collectOffers: (tag: string, q: CpQuery, cppredicate: (cp: OracleCapability) => Promise<boolean>, matchingPredicate: (cp: OfferMsg) => Promise<boolean>) => Promise<Collector<OfferMsg>>
 
     issueReport: (r: Report) => Promise<void>
 
@@ -82,7 +84,7 @@ export function traderApi<OracleQuery, CpQuery, RpQuery, MatchingQuery, MegaPeer
     tradercfg: TraderCfg,
     poolcfg: MempoolConfig<MegaPeerT>, 
     nodeApi: Api, 
-    storage: TraderStorage<OracleQuery, CpQuery, RpQuery, MatchingQuery>): TraderApi<OracleQuery> {
+    storage: TraderStorage<OracleQuery, CpQuery, RpQuery, MatchingQuery>): TraderApi<OracleQuery, CpQuery> {
 
     function getRandomInt(max) {
         return Math.floor(Math.random() * max);
@@ -91,7 +93,7 @@ export function traderApi<OracleQuery, CpQuery, RpQuery, MatchingQuery, MegaPeer
     var obroadcaster = null
     var rbroadcaster = null
 
-    const tapi: TraderApi<OracleQuery> = {
+    const tapi: TraderApi<OracleQuery, CpQuery> = {
         collectOracles: async function (tag: string, predicate: (cp: OracleId) => Promise<boolean>): Promise<Collector<OracleId>> {
             const timeout = setInterval(async () => {
                 const oracles = await nodeApi.lookupOracles({
@@ -161,14 +163,14 @@ export function traderApi<OracleQuery, CpQuery, RpQuery, MatchingQuery, MegaPeer
             }
             return cl
         },
-        collectOffers: async function (tag: string,  q: OracleQuery, opredicate: (o: OracleId) => Promise<boolean>, matchingPredicate: (cp: OfferMsg) => Promise<boolean>): Promise<Collector<OfferMsg>> {
+        collectOffers: async function (tag: string,  q: CpQuery, cppredicate: (o: OracleCapability) => Promise<boolean>, matchingPredicate: (cp: OfferMsg) => Promise<boolean>): Promise<Collector<OfferMsg>> {
             const timeout = setInterval(async () => {
-                storage.allOracles(q, opredicate, async oracleid => {
+                storage.allCps(q, cppredicate, async cp => {
                     const ofs = await nodeApi.lookupOffers({
                         page: getRandomInt(tradercfg.maxReportsPages),
                         chunkSize: tradercfg.pageSize
-                    }, oracleid.pubkey)
-                    const picked = (await Promise.all(ofs.map(async cp => {return {cp, p: await matchingPredicate(cp)}}))).filter(x => x.p).map(x => x.cp)
+                    }, cp.capabilityPubKey)
+                    const picked = (await Promise.all(ofs.map(async of => {return {of, p: await matchingPredicate(of)}}))).filter(x => x.p).map(x => x.of)
                     picked.forEach(async of => await storage.addOffer(of))
                 })
                 
