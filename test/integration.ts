@@ -442,6 +442,28 @@ while (!okay) {
     }
 }
 
+console.log("3) Collect oracles")
+
+const oraclesTag = "oracles"
+await fetch(traderPrefix + 'collectOracles?tag=' + encodeURIComponent(oraclesTag), {
+    method: 'post',
+    body: JSON.stringify({
+        predicate: `pubkey==='${oracleKeypair.pub}'`
+    }),
+    headers: {'Content-Type': 'application/json'}
+})
+
+okay = false
+while (!okay) {
+    try {
+        const list = await (await fetch(`${traderPrefix}listOracles`)).json() as nd.OracleId[]
+        assert.deepStrictEqual(list.map(o => o.pubkey), [oracleKeypair.pub])
+        okay = true
+    } catch(err) {
+        //console.log(err); okay = true;
+    }
+
+}
 
 
 

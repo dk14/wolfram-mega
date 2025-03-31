@@ -155,7 +155,7 @@ export function oracleControlApi<Query, MegaPeerT>(
                             signed.pow = await powOverOracleCapability(signed, difficulty === 0? 1: difficulty)
                             storage.addCapability(signed)
                             const res = await nodeApi.announceCapability(poolcfg, signed)
-                            if (res !== "success" && res !== "low pow difficulty") {
+                            if (res !== "success" && res !== "low pow difficulty" && !res.includes("no oracle")) {
                                 console.error(res) + " cppub=" + cp.capabilityPubKey
                             }
                             if (p2pNode !== undefined) {
@@ -166,7 +166,7 @@ export function oracleControlApi<Query, MegaPeerT>(
                             cp.seqNo++
                             storage.addCapability(cp)
                             const res = await nodeApi.announceCapability(poolcfg, cp)
-                            if (res !== "success" && res !== "low pow difficulty") {
+                            if (res !== "success" && res !== "low pow difficulty" && !res.includes("no oracle")) {
                                 console.error(res + " cppub=" + cp.capabilityPubKey)
                             }
                         }
