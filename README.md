@@ -165,6 +165,7 @@ Securitization of malleability reports. Since PoW is done on reports, reports th
 ## Architecture
 ![image](https://lh7-rt.googleusercontent.com/docsz/AD_4nXeUWfzdI9ARP760J9ZquB5KRgfNXDRj_Z976U3KmiKf23Ky9LqC-alwiwpTZ3IAotH5BUVJAWY0-eE3wDn1mGuCyZwfGgN9suGuc08eIq8k4PihpvsgJnSERdDJwKYL6HlEgFXcFw?key=Rm1gHfOo0ww9LGQzkRjPFZRP)
 1-trader, 2-mega p2p, 3-oracle, 4-blockchain, 5-oracle endpoint
+
 In detail:
 ![image](image.png)
 
