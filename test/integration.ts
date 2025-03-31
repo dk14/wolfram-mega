@@ -359,7 +359,7 @@ while (!okay) {
 }
 
 console.log("--------------------------")
-console.log("Client API test")
+console.log("Client API tests...")
 
 const oracleKeypair = nd.testOnlyGenerateKeyPair()
 const traderPort = 19997
@@ -458,6 +458,31 @@ while (!okay) {
     try {
         const list = await (await fetch(`${traderPrefix}listOracles`)).json() as nd.OracleId[]
         assert.deepStrictEqual(list.map(o => o.pubkey), [oracleKeypair.pub])
+        okay = true
+    } catch(err) {
+        //console.log(err); okay = true;
+    }
+
+}
+
+console.log("4) Collect capabilities")
+
+const cpsTag = "cps"
+await fetch(traderPrefix + 'collectCapabilities?tag=' + encodeURIComponent(cpsTag), {
+    method: 'post',
+    body: JSON.stringify({
+        oquery: `pubkey==='${oracleKeypair.pub}'`,
+        opredicate: `pubkey==='${oracleKeypair.pub}'`,
+        predicate: `capabilityPubKey==='${capabilityPubKey}'` 
+    }),
+    headers: {'Content-Type': 'application/json'}
+})
+
+okay = false
+while (!okay) {
+    try {
+        const list = await (await fetch(`${traderPrefix}listCapabilities`)).json() as nd.OracleCapability[]
+        assert.deepStrictEqual(list.map(o => o.capabilityPubKey), [capabilityPubKey])
         okay = true
     } catch(err) {
         //console.log(err); okay = true;
