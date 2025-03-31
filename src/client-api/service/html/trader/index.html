@@ -17,8 +17,8 @@
             <option value="cps">Capabilities</option>
             <option value="offers">Offers</option>
             <option value="reports">Reports</option>
-            <option value="issued-reports">IssuedOffers</option>
-            <option value="issued-offers">IssuedReports</option>
+            <option value="issued-offers">IssuedOffers</option>
+            <option value="issued-reports">IssuedReports</option>
         </select>
         <label for="page">Page:</label>
         <input type="number" id="page" name="page" min="0" max="100" value="0"/>
@@ -61,6 +61,21 @@
         <br>
         <input type="button" id="cancel_collector" value="Cancel Collector">
 
+        <h2>Matching</h2>
+
+        <pre>
+1. find suitable oracle
+2. submit offer OR find appropriate offer
+        </pre>
+
+        <label for="offer">Offer Content:</label>
+        <input type="text" id="offer" size="40" name="offer" value='{"message":"","customContract":"","terms":{"question":{"capabilityPubKey":"MIGbMBAGByqGSM49AgEGBSuBBAAjA4GGAAQACueFRtmeL2wZF83Y5gDMjQFmcv2ovTjTQUfUbz5OEU3c3CVMLpxOFm/t/CoEA04qBXlROqY0BwmOF7R53ZodCd8ATqIqeEH1/bVZ66cO2IyS/UowYX/CfBMZEKbeMCn2LHJrfQEq29iXXtpZSecEZJBs1bDcT1zx8WGZ8tg8zbUxGGs=","arguments":{}},"partyBetsOn":[],"counterPartyBetsOn":[],"partyBetAmount":0,"counterpartyBetAmount":0},"blockchain":"bitcoin-testnet","transactionToBeCoSigned":"","contact":""}'>
+        <br>
+        <label for="offer_pow">Offer PoW:</label>
+        <input type="text" id="offer_pow" size="40" name="offer_pow" value='{"difficulty":2,"algorithm":"SHA256","hash":"b2d387f4c00c6ac6f5a2a10cb3caba7a0749b9f28e22394129706f22d3b82f00","magicNo":31,"magicString":""}'>
+        
+        <br><br>
+        <input type="button" id="submit_offer" value="Issue Offer">
 
         <h2>Query Oracle</h2>
 
@@ -134,9 +149,20 @@ submit report
 	            method: 'post',
 	            body: JSON.stringify({
                     cpquery,
-                    cppredicate,
+                    cppredicate: cpquery,
                     predicate
                 }),
+	            headers: {'Content-Type': 'application/json'}
+            })
+        }
+
+        document.getElementById('submit_offer').onclick = async () => {
+            const content = JSON.parse(document.getElementById('offer').value)
+            const pow = JSON.parse(document.getElementById('offer_pow').value)
+            const msg = { seqNo: 0, cTTL: 0, pow, content }
+            await fetch('./issueOffer', {
+	            method: 'post',
+	            body: JSON.stringify(msg),
 	            headers: {'Content-Type': 'application/json'}
             })
         }

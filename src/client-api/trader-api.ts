@@ -207,7 +207,7 @@ export function traderApi<OracleQuery, CpQuery, RpQuery, MatchingQuery, MegaPeer
                         res = await api.publishOffer(poolcfg, o)
                     }
                     if (p2pNode !== undefined) {
-                        p2pNode.broadcastMessage('report', JSON.stringify(structuredClone(o)))
+                        p2pNode.broadcastMessage('offer', JSON.stringify(structuredClone(o)))
                     }
                     storage.addIssuedOffer(o)
                 })
@@ -248,5 +248,7 @@ export function traderApi<OracleQuery, CpQuery, RpQuery, MatchingQuery, MegaPeer
             }
         }
     }
+    tapi.startBroadcastingIssuedOffers()
+    tapi.stopBroadcastingIssuedReports()
     return tapi   
 }

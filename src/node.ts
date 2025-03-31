@@ -210,7 +210,7 @@ export interface Offer {
     message: string
     customContract: string
     terms: OfferTerms
-    blockchain: 'bitcoin-testnet' | 'bitcoin-mainnet'
+    blockchain: 'bitcoin-testnet' | 'bitcoin-mainnet' | 'plutus-testnet'
     transactionToBeCoSigned: string //counterparty pays fees, can broadcast as a confirmation
     signaturesToAggregate?: string[]
     contact: string
