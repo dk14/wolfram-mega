@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.traderApi = traderApi;
 const node_1 = require("../node");
 const pow_1 = require("../pow");
+const p2p_1 = require("../p2p");
 function traderApi(tradercfg, poolcfg, nodeApi, storage) {
     function getRandomInt(max) {
         return Math.floor(Math.random() * max);
@@ -77,14 +78,14 @@ function traderApi(tradercfg, poolcfg, nodeApi, storage) {
             };
             return cl;
         },
-        collectOffers: async function (tag, q, opredicate, matchingPredicate) {
+        collectOffers: async function (tag, q, cppredicate, matchingPredicate) {
             const timeout = setInterval(async () => {
-                storage.allOracles(q, opredicate, async (oracleid) => {
+                storage.allCps(q, cppredicate, async (cp) => {
                     const ofs = await nodeApi.lookupOffers({
                         page: getRandomInt(tradercfg.maxReportsPages),
                         chunkSize: tradercfg.pageSize
-                    }, oracleid.pubkey);
-                    const picked = (await Promise.all(ofs.map(async (cp) => { return { cp, p: await matchingPredicate(cp) }; }))).filter(x => x.p).map(x => x.cp);
+                    }, cp.capabilityPubKey);
+                    const picked = (await Promise.all(ofs.map(async (of) => { return { of, p: await matchingPredicate(of) }; }))).filter(x => x.p).map(x => x.of);
                     picked.forEach(async (of) => await storage.addOffer(of));
                 });
             }, tradercfg.collectOracleAdsCycle);
@@ -119,6 +120,9 @@ function traderApi(tradercfg, poolcfg, nodeApi, storage) {
                         o.pow = upgraded;
                         res = await node_1.api.publishOffer(poolcfg, o);
                     }
+                    if (p2p_1.p2pNode !== undefined) {
+                        p2p_1.p2pNode.broadcastMessage('report', JSON.stringify(structuredClone(o)));
+                    }
                     storage.addIssuedOffer(o);
                 });
             }, tradercfg.broadcastOfferCycle);
@@ -142,6 +146,9 @@ function traderApi(tradercfg, poolcfg, nodeApi, storage) {
                         const upgraded = await (0, pow_1.powOverReport)(r, r.pow.difficulty + 1);
                         r.pow = upgraded;
                         res = await node_1.api.reportMalleability(poolcfg, r);
+                    }
+                    if (p2p_1.p2pNode !== undefined) {
+                        p2p_1.p2pNode.broadcastMessage('report', JSON.stringify(structuredClone(r)));
                     }
                     storage.addIssuedReport(r);
                 });

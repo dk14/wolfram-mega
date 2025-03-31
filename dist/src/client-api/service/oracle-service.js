@@ -43,7 +43,7 @@ const capability_storage_1 = require("../client-storage/capability-storage");
 const oracle_control_api_1 = require("../oracle-control-api");
 const http = __importStar(require("http"));
 const url = __importStar(require("url"));
-const websocket = __importStar(require("websocket-stream"));
+const ws_1 = require("ws");
 const readline = __importStar(require("readline"));
 const fs = __importStar(require("fs"));
 const safe_eval_1 = __importDefault(require("safe-eval"));
@@ -74,29 +74,46 @@ const startOracleService = (cfg) => {
             }
             if (reqUrl.pathname == '/start') {
                 api.startAdvertising(cfg.oracle);
+                res.setHeader('content-Type', 'application/json');
+                res.end("{}");
             }
             else if (reqUrl.pathname == '/pause') {
                 api.pauseAdvertising(cfg.oracle);
             }
             else if (reqUrl.pathname == '/deactivateCapability') {
                 api.deactivateCapability(pubkey);
+                res.setHeader('content-Type', 'application/json');
+                res.end("{}");
             }
             else if (reqUrl.pathname == '/dropCapability') {
                 api.dropCapability(pubkey);
+                res.setHeader('content-Type', 'application/json');
+                res.end("{}");
             }
             else if (reqUrl.pathname == '/activateCapability') {
                 api.dropCapability(pubkey);
+                res.setHeader('content-Type', 'application/json');
+                res.end("{}");
             }
             else if (reqUrl.pathname == '/upgradeOraclePow') {
                 api.upgradeOraclePow(parseInt(difficulty));
+                res.setHeader('content-Type', 'application/json');
+                res.end("{}");
             }
             else if (reqUrl.pathname == '/upgradeCapabilityPow') {
                 api.upgradeCapabilityPow(pubkey, parseInt(difficulty));
+                res.setHeader('content-Type', 'application/json');
+                res.end("{}");
             }
             else if (reqUrl.pathname == '/viewStoredCapabilities') {
                 const q = { where: async (x) => { return (0, safe_eval_1.default)(query, x); } };
                 const cps = await storage.listCapabilities(q, paging);
+                res.setHeader('content-Type', 'application/json');
                 res.end(JSON.stringify(cps));
+            }
+            else if (reqUrl.pathname == '/id') {
+                res.setHeader('content-Type', 'application/json');
+                res.end(JSON.stringify(await api.id()));
             }
             if (req.method === 'POST') {
                 var body = '';
@@ -129,29 +146,31 @@ const startOracleService = (cfg) => {
             }
         }
     }).listen(cfg.oracle.httpPort);
-    const wsserver = websocket.createServer({ server: http.createServer(), port: cfg.oracle.wsPort });
-    wsserver.on("stream", (stream, req) => {
+    const wss = new ws_1.WebSocketServer({ port: cfg.oracle.wsPort });
+    wss.on('connection', function connection(ws, req) {
+        ws.on('error', console.error);
+        const stream = (0, ws_1.createWebSocketStream)(ws, { encoding: 'utf8' });
         const reqUrl = url.parse(req.url, true);
         const rl = readline.createInterface(stream, stream);
         // we assume single client app, so subscriptions are mutually exclusive, one subscriber per service
         // last opened socket will get active stream
         if (reqUrl.pathname == '/ranks') {
             api.watchMyRankSample(async (ev) => {
-                rl.write(JSON.stringify(ev) + "\n");
+                stream.write(JSON.stringify(ev) + "\n");
             });
         }
         else if (reqUrl.pathname == '/signCp') {
             api.watchSignMyCapabilityBroadcasts(ev => {
-                rl.write(JSON.stringify(ev) + "\n");
-                rl.prompt();
-                return new Promise(resolve => rl.on('line', line => resolve(JSON.parse(line))));
+                return new Promise(resolve => {
+                    rl.question(JSON.stringify(ev) + "\n", a => resolve(JSON.parse(a)));
+                });
             });
         }
         else if (reqUrl.pathname == '/signAd') {
             api.watchSignMyOracleBroadcasts(ev => {
-                rl.write(JSON.stringify(ev) + "\n");
-                rl.prompt();
-                return new Promise(resolve => rl.on('line', line => resolve(JSON.parse(line))));
+                return new Promise(resolve => {
+                    rl.question(JSON.stringify(ev) + "\n", a => resolve(JSON.parse(a)));
+                });
             });
         }
     });

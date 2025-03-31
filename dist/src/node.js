@@ -36,7 +36,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.api = exports.testOnlyReset = exports.checkPow = exports.testOnlySign = exports.testOnlyGenerateKeyPair = exports.createPemPk = exports.createPemPub = void 0;
+exports.api = exports.testOnlyReset = exports.checkOracleIdSignature = exports.checkCapabilitySignature = exports.checkPow = exports.testOnlySign = exports.testOnlyGenerateKeyPair = exports.createPemPk = exports.createPemPub = void 0;
 /* c8 ignore start */
 const crypto_1 = require("crypto");
 const request = __importStar(require("request"));
@@ -85,6 +85,7 @@ const checkCapabilitySignature = (cp) => {
     cp.pow = pow;
     return res;
 };
+exports.checkCapabilitySignature = checkCapabilitySignature;
 const checkOracleIdSignature = (o) => {
     const signature = o.oracleSignature;
     o.oracleSignature = "";
@@ -92,6 +93,7 @@ const checkOracleIdSignature = (o) => {
     o.oracleSignature = signature;
     return res;
 };
+exports.checkOracleIdSignature = checkOracleIdSignature;
 const checkOracleRank = (cfg, oracle, mempool) => {
     if (Object.keys(mempool.oracles).length >= cfg.maxOracles) {
         const evict = Object.values(mempool.oracles).find(o => o.id.bid.amount <= oracle.bid.amount && o.id.pow.difficulty <= oracle.pow.difficulty);
@@ -190,7 +192,7 @@ exports.api = {
         if (error !== undefined) {
             return ['invalid request', error.toString()];
         }
-        if (!(id.pow.difficulty == 0 || checkOracleIdSignature(id))) {
+        if (!(id.pow.difficulty == 0 || (0, exports.checkOracleIdSignature)(id))) {
             return "wrong signature";
         }
         if ((0, exports.checkPow)(id.pow, id.pubkey) || id.pow.difficulty == 0) {
@@ -233,7 +235,7 @@ exports.api = {
         if (mempool.oracles[cp.oraclePubKey] === undefined) {
             return 'no oracle found';
         }
-        if (cp.pow.difficulty == 0 || checkCapabilitySignature(cp)) {
+        if (cp.pow.difficulty == 0 || (0, exports.checkCapabilitySignature)(cp)) {
             if (cp.pow.difficulty == 0 || (0, exports.checkPow)(cp.pow, cp.oracleSignature)) {
                 if (checkCapabilityRank(cfg, cp, mempool.oracles[cp.oraclePubKey])) {
                     const found = mempool.oracles[cp.oraclePubKey].capabilies.find(x => x.question == cp.question);

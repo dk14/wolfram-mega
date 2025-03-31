@@ -41,7 +41,7 @@ const capabilityStorage = (path, pageSize, activeCpLimit) => {
         fs.mkdirSync(path, { recursive: true });
     }
     const getPage = async (pageNo) => {
-        const pagepath = path + "/" + pageNo + ".json";
+        const pagepath = path + "/" + encodeURIComponent(pageNo) + ".json";
         if (fs.existsSync(pagepath)) {
             return JSON.parse(fs.readFileSync(pagepath).toString());
         }
@@ -51,7 +51,7 @@ const capabilityStorage = (path, pageSize, activeCpLimit) => {
     };
     const transformPage = async (pageNo, transformer) => {
         const page = await getPage(pageNo);
-        fs.writeFileSync(path + "/" + pageNo + ".json", JSON.stringify(transformer(page)));
+        fs.writeFileSync(path + "/" + encodeURIComponent(pageNo) + ".json", JSON.stringify(transformer(page)));
     };
     const cps = {
         addCapability: async function (cp) {
@@ -97,7 +97,7 @@ const capabilityStorage = (path, pageSize, activeCpLimit) => {
         listActiveCapabilities: async function () {
             return fs.readdirSync(path + "/").map(file => {
                 const page = JSON.parse(fs.readFileSync(path + "/" + file).toString());
-                return Object.values(page).filter(x => x.off !== true);
+                return Object.values(page).filter(x => (x.off === undefined) || (x.off === false));
             }).flat().slice(0, activeCpLimit);
         },
         updateCapabilityPow: async function (capabilityPubKey, pow) {

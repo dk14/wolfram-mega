@@ -46,7 +46,7 @@ const traderStorage = (path, pageSize) => {
     fs.mkdirSync(path + "/oracles", { recursive: true });
     fs.mkdirSync(path + "/capabilities", { recursive: true });
     const getPage = async (prefix, pageNo) => {
-        const pagepath = path + "/" + prefix + "/" + pageNo + ".json";
+        const pagepath = path + "/" + prefix + "/" + encodeURIComponent(pageNo) + ".json";
         if (fs.existsSync(pagepath)) {
             return JSON.parse(fs.readFileSync(pagepath).toString());
         }
@@ -59,7 +59,7 @@ const traderStorage = (path, pageSize) => {
             fs.mkdirSync(path + "/" + prefix, { recursive: true });
         }
         const page = await getPage(prefix, pageNo);
-        fs.writeFileSync(path + "/" + prefix + "/" + pageNo + ".json", JSON.stringify(transformer(page)));
+        fs.writeFileSync(path + "/" + prefix + "/" + encodeURIComponent(pageNo) + ".json", JSON.stringify(transformer(page)));
     };
     const storage = {
         addOracle: async function (o) {
@@ -163,6 +163,18 @@ const traderStorage = (path, pageSize) => {
                 const page = JSON.parse(fs.readFileSync(path + "/oracles/" + file).toString());
                 const chunkWithPredicate = Object.values(page).map(async (x) => {
                     const p = (await q.where(x)) && (await opredicate(x));
+                    return { x, p };
+                });
+                const chunk = (await Promise.all(chunkWithPredicate)).filter(x => x.p).map(x => x.x);
+                return chunk.map(async (x) => await handler(x));
+            });
+            await Promise.all(res);
+        },
+        allCps: async function (q, cppredicate, handler) {
+            const res = fs.readdirSync(path + "/capabilities/").map(async (file) => {
+                const page = JSON.parse(fs.readFileSync(path + "/capabilities/" + file).toString());
+                const chunkWithPredicate = Object.values(page).map(async (x) => {
+                    const p = (await q.where(x)) && (await cppredicate(x));
                     return { x, p };
                 });
                 const chunk = (await Promise.all(chunkWithPredicate)).filter(x => x.p).map(x => x.x);

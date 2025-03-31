@@ -153,7 +153,7 @@ const startTraderService = (cfg) => {
                             }
                         }
                         else if (reqUrl.pathname == '/collectOffers') {
-                            const collector = await api.collectOffers(tag, { where: async (x) => { return (0, safe_eval_1.default)(postBody.oquery, x); } }, async (x) => { return (0, safe_eval_1.default)(postBody.opredicate, x); }, async (x) => { return (0, safe_eval_1.default)(postBody.predicate, x); });
+                            const collector = await api.collectOffers(tag, { where: async (x) => { return (0, safe_eval_1.default)(postBody.cpquery, x); } }, async (x) => { return (0, safe_eval_1.default)(postBody.cppredicate, x); }, async (x) => { return (0, safe_eval_1.default)(postBody.predicate, x); });
                             if (Object.values(collectors).length < cfg.trader.maxCollectors) {
                                 if (collectors[collector.tag]) {
                                     collectors[collector.tag].cancel();
