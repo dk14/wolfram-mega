@@ -161,10 +161,12 @@ submit report
         }
 
         setInterval(async () => {
-            const collectors = await (await fetch('./listCollectors')).json()
-            const target = document.getElementById('collectors')
+            if (document.getElementById('update').checked) {
+                const collectors = await (await fetch('./listCollectors')).json()
+                const target = document.getElementById('collectors')
 
-            target.innerHTML = "<pre>" + JSON.stringify(collectors) + "</pre>"
+                target.innerHTML = "<pre>" + JSON.stringify(collectors) + "</pre>"
+            }
 
         }, 1000)
 
@@ -202,4 +204,6 @@ submit report
 
         
     </script>
+    <script src="https://helios.hyperion-bt.org/0.16.7/helios.js" type="module" crossorigin></script>
+
 </html>
