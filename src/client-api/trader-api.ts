@@ -76,8 +76,8 @@ export interface TraderCfg {
     maxOffersPages: number
     maxCollectors: number,
     dbPath: string,
-    httpPort: number
-
+    httpPort: number,
+    autoUpgradePowLimit?: number
 }
 
 export function traderApi<OracleQuery, CpQuery, RpQuery, MatchingQuery, MegaPeerT>(
@@ -201,7 +201,11 @@ export function traderApi<OracleQuery, CpQuery, RpQuery, MatchingQuery, MegaPeer
                 storage.allIssuedOffers(async o => {
                     o.seqNo++
                     var res = await api.publishOffer(poolcfg, o)
-                    while (res === 'low pow difficulty' || res === 'wrong pow') {
+                    if (res === 'low pow difficulty') {
+                        storage.removeIssuedOffers([o.pow.hash])
+                    }
+                    while (res === 'low pow difficulty' && o.pow.difficulty < (tradercfg.autoUpgradePowLimit ?? 4)) {
+                        console.log('auto-upgrade pow')
                         const upgraded = await powOverOffer(o, o.pow.difficulty + 1)
                         o.pow = upgraded
                         res = await api.publishOffer(poolcfg, o)
@@ -228,7 +232,10 @@ export function traderApi<OracleQuery, CpQuery, RpQuery, MatchingQuery, MegaPeer
                 storage.allIssuedReports(async r => {
                     r.seqNo++
                     var res = await api.reportMalleability(poolcfg, r)
-                    while (res === 'low pow difficulty' || res === 'wrong pow') {
+                    if (res === 'low pow difficulty') {
+                        storage.removeIssuedReports([r.pow.hash])
+                    }
+                    while (res === 'low pow difficulty' && r.pow.difficulty < (tradercfg.autoUpgradePowLimit ?? 4)){
                         const upgraded = await powOverReport(r, r.pow.difficulty + 1)
                         r.pow = upgraded
                         res = await api.reportMalleability(poolcfg, r)

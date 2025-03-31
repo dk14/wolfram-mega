@@ -113,6 +113,7 @@ export const startOracleService = (cfg: MempoolConfig<PeerAddr>) => {
             }
         }
     }).listen(cfg.oracle.httpPort)
+    
 
     const wss = new WebSocketServer({ port: cfg.oracle.wsPort });
     
