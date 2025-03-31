@@ -30,6 +30,7 @@
     "typescript": "^5.8.2"
   },
   "dependencies": {
+    "@hyperionbt/helios": "^0.16.7",
     "@types/node": "^22.13.9",
     "@types/request": "^2.48.12",
     "@types/ws": "^8.18.0",
