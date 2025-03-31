@@ -32,8 +32,8 @@ export interface OracleCfg {
 
 export interface CapabilityStorage<Query> {
 
-    storeOracleAdSeqNo: (seqNo: number) => Promise<void>
-    readOracleAdSeqNo: () => Promise<number>
+    storeOracleAdSeqNo: (seqNo: number, pow: HashCashPow) => Promise<void>
+    readOracleAdSeqNo: () => Promise<[number, HashCashPow]>
 
     addCapability: (cp: OracleCapability) => Promise<void>
     
@@ -114,7 +114,7 @@ export function oracleControlApi<Query, MegaPeerT>(
             if (id === null) {
                 id = {
                     pubkey: cfg.id.pubkey,
-                    seqNo: await storage.readOracleAdSeqNo(),
+                    seqNo: (await storage.readOracleAdSeqNo())[0],
                     cTTL: 0,
                     pow: undefined,
                     bid: {amount: 0, proof: ""},
@@ -122,7 +122,12 @@ export function oracleControlApi<Query, MegaPeerT>(
                     oracleSignatureType: cfg.id.oracleSignatureType,
                     manifestUri: cfg.id.manifestUri
                 }
-                id.pow = await powOverOracleId(id, 0)
+                if (await storage.readOracleAdSeqNo()[1] === undefined) {
+                    id.pow = await powOverOracleId(id, 0)
+                } else {
+                    id.pow = await storage.readOracleAdSeqNo()[1]
+                }
+                
             }
             
             advertiser = async () => {
@@ -145,7 +150,7 @@ export function oracleControlApi<Query, MegaPeerT>(
                         })))
                     }
                     id.seqNo++
-                    await storage.storeOracleAdSeqNo(id.seqNo)
+                    await storage.storeOracleAdSeqNo(id.seqNo, id.pow)
     
                     if (signer !== null) {
                         id.oracleSignature = ""

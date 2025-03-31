@@ -90,14 +90,14 @@ export const capabilityStorage = (path: string, pageSize: number, activeCpLimit:
                 return page
             })
         },
-        storeOracleAdSeqNo: async function (seqNo: number): Promise<void> {
-            fs.writeFileSync(path + "/seqno.json", JSON.stringify(seqNo))
+        storeOracleAdSeqNo: async function (seqNo: number, pow: HashCashPow): Promise<void> {
+            fs.writeFileSync(path + "/seqno.json", JSON.stringify([seqNo, pow]))
         },
-        readOracleAdSeqNo: async function (): Promise<number> {
+        readOracleAdSeqNo: async function (): Promise<[number, HashCashPow]> {
             if (fs.existsSync(path + "/seqno.json")) {
                 return JSON.parse(fs.readFileSync(path + "/seqno.json").toString())
             } else {
-                return 0
+                return [0, undefined]
             }
         }
     }
