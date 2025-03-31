@@ -170,10 +170,6 @@ In detail:
 
 --------
 
-"client APIs" milestone:
-- oracle client REST API (can be on the same node, clients have to sign messages externally though)
-- trader client REST API (can be on the same node, clients have to sign messages externally though)
-
 "contracts demo" milestone
 - integration with Bitcoin contracts (testnet)
 - integration with Cardano Plutus contracts (testnet)
