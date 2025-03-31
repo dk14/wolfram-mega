@@ -163,10 +163,8 @@ Securitization of malleability reports. Since PoW is done on reports, reports th
 
 
 ## Architecture
-![image](https://lh7-rt.googleusercontent.com/docsz/AD_4nXdE39F_yE7Wu45Ffg3WKOv2-0-YKOxWmOI0wWdpRb4zVMs1M3ZA3fgqAn7LWk80UTWDa2d_CDz2IDzVqqLrnmd5KzuR23mpMyVSBjRU4LokKTULBq0bekWcN6PVfG181Ec?key=Rm1gHfOo0ww9LGQzkRjPFZRP)
-1-trader, 2-mega p2p, 3-oracle, 4-blockchain, 5-oracle endpoint;
-TODO: ads arrow is wrong (should be 2->1 instead of 1->2)
-
+![image](https://lh7-rt.googleusercontent.com/docsz/AD_4nXeUWfzdI9ARP760J9ZquB5KRgfNXDRj_Z976U3KmiKf23Ky9LqC-alwiwpTZ3IAotH5BUVJAWY0-eE3wDn1mGuCyZwfGgN9suGuc08eIq8k4PihpvsgJnSERdDJwKYL6HlEgFXcFw?key=Rm1gHfOo0ww9LGQzkRjPFZRP)
+1-trader, 2-mega p2p, 3-oracle, 4-blockchain, 5-oracle endpoint
 In detail:
 ![image](image.png)
 
