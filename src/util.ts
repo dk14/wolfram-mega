@@ -1,6 +1,6 @@
 import {createHash} from 'crypto'
 
-export const hash = (msg: string, algo: string): string => {
+export const hash = (msg: string, algo: string = "SHA256"): string => {
     return createHash(algo).update(msg).digest('hex')
 }
 

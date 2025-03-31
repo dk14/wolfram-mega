@@ -7,6 +7,7 @@ import safeEval from 'safe-eval'
 import { Collector, TraderApi, traderApi } from "../trader-api";
 import { traderStorage, TraderQuery} from "../client-storage/trader-storage";
 import * as fs from 'fs'
+import { generateClosingTransaction, generateOpeningTransaction } from "../contracts/generate-cardano-tx";
 
 export const startTraderService = (cfg: MempoolConfig<PeerAddr>) => {
     const storage = traderStorage(cfg.trader.dbPath, 1)
@@ -143,8 +144,14 @@ export const startTraderService = (cfg: MempoolConfig<PeerAddr>) => {
                                 collectors[collector.tag] = collector
                             }
                         }
-
-                        res.end("{}")
+                        
+                        if (reqUrl.pathname == '/generateOpeningTransaction') {
+                            res.end(JSON.stringify(generateOpeningTransaction(postBody)))
+                        } else if (reqUrl.pathname == '/generateClosingTransaction') {
+                            res.end(JSON.stringify(generateClosingTransaction(postBody)))
+                        } else {
+                            res.end("{}")
+                        }
 
                     } catch (err) {
                         console.error(err)

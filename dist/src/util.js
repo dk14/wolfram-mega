@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.mine = exports.hash = void 0;
 const crypto_1 = require("crypto");
-const hash = (msg, algo) => {
+const hash = (msg, algo = "SHA256") => {
     return (0, crypto_1.createHash)(algo).update(msg).digest('hex');
 };
 exports.hash = hash;

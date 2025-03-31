@@ -44,6 +44,7 @@ const safe_eval_1 = __importDefault(require("safe-eval"));
 const trader_api_1 = require("../trader-api");
 const trader_storage_1 = require("../client-storage/trader-storage");
 const fs = __importStar(require("fs"));
+const generate_cardano_tx_1 = require("../contracts/generate-cardano-tx");
 const startTraderService = (cfg) => {
     const storage = (0, trader_storage_1.traderStorage)(cfg.trader.dbPath, 1);
     const api = (0, trader_api_1.traderApi)(cfg.trader, cfg, node_1.api, storage);
@@ -179,7 +180,15 @@ const startTraderService = (cfg) => {
                                 collectors[collector.tag] = collector;
                             }
                         }
-                        res.end("{}");
+                        if (reqUrl.pathname == '/generateOpeningTransaction') {
+                            res.end(JSON.stringify((0, generate_cardano_tx_1.generateOpeningTransaction)(postBody)));
+                        }
+                        else if (reqUrl.pathname == '/generateClosingTransaction') {
+                            res.end(JSON.stringify((0, generate_cardano_tx_1.generateClosingTransaction)(postBody)));
+                        }
+                        else {
+                            res.end("{}");
+                        }
                     }
                     catch (err) {
                         console.error(err);

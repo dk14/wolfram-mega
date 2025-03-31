@@ -1,9 +1,11 @@
-spending vesting
+spending option
 
 struct Datum {
     alice: PubKeyHash
     bob: PubKeyHash
     oracle: PubKey
+    msgAlice: ByteArray
+    msgBob: ByteArray
 }
 
 struct Redeemer {
@@ -15,7 +17,7 @@ func main(datum: Datum, input: Redeemer, context: ScriptContext) -> Bool {
     tx: Tx = context.tx;
 
     datum.oracle.verify(input.msg, input.sig) &&
-    (((input.msg == #00001) && tx.is_signed_by(datum.alice)) 
-    || ((input.msg == #00002) && tx.is_signed_by(datum.bob)))
+    (((input.msg == datum.msgAlice) && tx.is_signed_by(datum.alice)) 
+    || ((input.msg == datum.msgBob) && tx.is_signed_by(datum.bob)))
     
 }

@@ -62,6 +62,7 @@ export interface Commitment {
     req: FactRequest
     contract: string
     rValueSchnorrHex?: string
+    curve?: string
     rewardAddress?: string
     oracleSig: string
 }
