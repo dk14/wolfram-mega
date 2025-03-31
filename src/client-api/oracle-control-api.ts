@@ -93,11 +93,11 @@ export function oracleControlApi<Query, MegaPeerT>(
     const signPowIncCp = async(cp: OracleCapability): Promise<OracleCapability> => {
         if (signer !== null) {
             cp.oracleSignature = ""
-            const difficulty = cp.pow?.difficulty ?? 1
+            const powsave = cp.pow
             cp.pow = undefined
             cp.seqNo++
             const signed = await cpsigner(cp)
-            signed.pow = await powOverOracleCapability(signed, difficulty === 0? 1: difficulty)
+            signed.pow = powsave
             return signed
         }
         
