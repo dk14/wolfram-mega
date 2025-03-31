@@ -21,7 +21,6 @@ export const generateOpeningTransaction = (aliceInput: InputId, bobInput: InputI
 
     const uplc = program.compile(false)
 
-
     const utxo1 = new helios.TxInput(helios.TxOutputId.fromCbor(aliceInput.cbor))
     const utxo2 = new helios.TxInput(helios.TxOutputId.fromCbor(bobInput.cbor))
     tx.addInputs([utxo1, utxo2])

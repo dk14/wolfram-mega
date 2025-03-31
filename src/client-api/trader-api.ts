@@ -1,6 +1,7 @@
 import { Api, OfferMsg, OracleCapability, OracleId, PagingDescriptor, Report, api } from "../node"
 import { MempoolConfig } from "../config"
 import { powOverOffer, powOverReport } from "../pow";
+import { p2pNode } from "../p2p";
 
 
 export interface TraderStorage<OracleQuery, CpQuery, RpQuery, MatchingQuery> {
@@ -203,6 +204,9 @@ export function traderApi<OracleQuery, CpQuery, RpQuery, MatchingQuery, MegaPeer
                         o.pow = upgraded
                         res = await api.publishOffer(poolcfg, o)
                     }
+                    if (p2pNode !== undefined) {
+                        p2pNode.broadcastMessage('report', JSON.stringify(structuredClone(o)))
+                    }
                     storage.addIssuedOffer(o)
                 })
             }, tradercfg.broadcastOfferCycle)
@@ -221,11 +225,14 @@ export function traderApi<OracleQuery, CpQuery, RpQuery, MatchingQuery, MegaPeer
             rbroadcaster = setInterval(() => {
                 storage.allIssuedReports(async r => {
                     r.seqNo++
-                   var res = await api.reportMalleability(poolcfg, r)
+                    var res = await api.reportMalleability(poolcfg, r)
                     while (res === 'low pow difficulty' || res === 'wrong pow') {
                         const upgraded = await powOverReport(r, r.pow.difficulty + 1)
                         r.pow = upgraded
                         res = await api.reportMalleability(poolcfg, r)
+                    }
+                    if (p2pNode !== undefined) {
+                        p2pNode.broadcastMessage('report', JSON.stringify(structuredClone(r)))
                     }
                     storage.addIssuedReport(r)
                 })

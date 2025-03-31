@@ -23,7 +23,7 @@ export const traderStorage = (path: string, pageSize: number): TraderStorageT =>
     fs.mkdirSync(path + "/capabilities", {recursive: true})
 
     const getPage = async <T>(prefix: string, pageNo: string): Promise<TraderDict<T>> => {
-        const pagepath = path + "/" + prefix + "/" + pageNo + ".json"
+        const pagepath = path + "/" + prefix + "/" + encodeURIComponent(pageNo) + ".json"
         if (fs.existsSync(pagepath)) {
             return JSON.parse(fs.readFileSync(pagepath).toString())
         } else {
@@ -36,7 +36,7 @@ export const traderStorage = (path: string, pageSize: number): TraderStorageT =>
             fs.mkdirSync(path + "/" + prefix, {recursive: true})
         }
         const page = await getPage<T>(prefix, pageNo)
-        fs.writeFileSync(path + "/" + prefix + "/" + pageNo + ".json", JSON.stringify(transformer(page)))
+        fs.writeFileSync(path + "/" + prefix + "/" + encodeURIComponent(pageNo) + ".json", JSON.stringify(transformer(page)))
     }
 
     const storage: TraderStorageT = {

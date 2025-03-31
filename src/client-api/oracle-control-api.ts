@@ -1,7 +1,8 @@
-import { OracleCapability, OracleId, Param, Answer, HashCashPow, Api, PagingDescriptor } from "../node"
+import { OracleCapability, OracleId, Param, Answer, HashCashPow, Api, PagingDescriptor, checkCapabilitySignature } from "../node"
 import { MempoolConfig } from "../config"
 import { powOverOracleCapability, powOverOracleId } from "../pow"
 import { ConnectionPool, ConnectionPoolCfg } from './connection-pool'
+import { p2pNode } from "../p2p"
 
 
 export interface OracleBasicIdentity {
@@ -56,6 +57,7 @@ export interface OracleAd<MegaPeerT>{
 }
 
 export interface OracleControlAPI<MegaPeerT> {
+    id: () => Promise<OracleId>
     startAdvertising: (cfg: OracleCfg) =>  Promise<void>
     pauseAdvertising: (cfg: OracleCfg) =>  Promise<void>
     upgradeOraclePow: (difficulty: number) =>  Promise<void>
@@ -87,6 +89,9 @@ export function oracleControlApi<Query, MegaPeerT>(
     var adobserver: (event: OracleAd<MegaPeerT>) => Promise<void> = null
     
     return {
+        id: async function (): Promise<OracleId> {
+            return id
+        },
         startAdvertising: async function (cfg: OracleCfg): Promise<void> {
             if (advertiser !== null) {
                 return
@@ -124,24 +129,48 @@ export function oracleControlApi<Query, MegaPeerT>(
                             })
                         })))
                     }
+                    id.seqNo++
     
                     if (signer !== null) {
                         id.oracleSignature = ""
                         id = await signer(id)
                     }
-                    nodeApi.announceOracle(poolcfg, id)
-                    id.seqNo++
+                    const res = await nodeApi.announceOracle(poolcfg, structuredClone(id))
+                    if (res !== "success" && res !== "low pow difficulty") {
+                        console.error(res  + " oraclepub=" + id.pubkey)
+                    }
+                    if (p2pNode !== undefined) {
+                        p2pNode.broadcastMessage('oracle', JSON.stringify(structuredClone(id)))
+                    }
+                    
+                    
                     await Promise.all((await storage.listActiveCapabilities()).map(async cp => {
                         
-                        nodeApi.announceCapability(poolcfg, cp)
                         if (cpsigner !== null) {
                             cp.oracleSignature = ""
                             const difficulty = cp.pow?.difficulty ?? 1
                             cp.pow = undefined
-                            cp = await cpsigner(cp)
-                            cp.pow = await powOverOracleCapability(cp, difficulty)
+                            cp.seqNo++
+                            const signed = await cpsigner(cp)
+                            signed.pow = await powOverOracleCapability(signed, difficulty === 0? 1: difficulty)
+                            storage.addCapability(signed)
+                            const res = await nodeApi.announceCapability(poolcfg, signed)
+                            if (res !== "success" && res !== "low pow difficulty") {
+                                console.error(res) + " cppub=" + cp.capabilityPubKey
+                            }
+                            if (p2pNode !== undefined) {
+                                p2pNode.broadcastMessage('capability', JSON.stringify(structuredClone(signed)))
+                            }
+                        } else {
+                            cp.pow.difficulty = 0
+                            cp.seqNo++
+                            storage.addCapability(cp)
+                            const res = await nodeApi.announceCapability(poolcfg, cp)
+                            if (res !== "success" && res !== "low pow difficulty") {
+                                console.error(res + " cppub=" + cp.capabilityPubKey)
+                            }
                         }
-                        cp.seqNo++
+                        
                     }))
 
                 } finally {

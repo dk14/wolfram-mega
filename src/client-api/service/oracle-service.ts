@@ -46,28 +46,38 @@ export const startOracleService = (cfg: MempoolConfig<PeerAddr>) => {
 
             if(reqUrl.pathname == '/start') {
                 api.startAdvertising(cfg.oracle)
+                res.setHeader('content-Type', 'application/json');
+                res.end("{}")
             } else if(reqUrl.pathname == '/pause') {
                 api.pauseAdvertising(cfg.oracle)
             } else if(reqUrl.pathname == '/deactivateCapability') {
                 api.deactivateCapability(pubkey)
+                res.setHeader('content-Type', 'application/json');
+                res.end("{}")
             } else if(reqUrl.pathname == '/dropCapability') {
                 api.dropCapability(pubkey)
+                res.setHeader('content-Type', 'application/json');
+                res.end("{}")
             } else if(reqUrl.pathname == '/activateCapability') {
                 api.dropCapability(pubkey)
+                res.setHeader('content-Type', 'application/json');
+                res.end("{}")
             } else if(reqUrl.pathname == '/upgradeOraclePow') {
                 api.upgradeOraclePow(parseInt(difficulty))
+                res.setHeader('content-Type', 'application/json');
+                res.end("{}")
             } else if(reqUrl.pathname == '/upgradeCapabilityPow') {
                 api.upgradeCapabilityPow(pubkey,parseInt(difficulty))
+                res.setHeader('content-Type', 'application/json');
+                res.end("{}")
             } else if(reqUrl.pathname == '/viewStoredCapabilities') {
                 const q = {where: async x => {return safeEval(query, x)}}
                 const cps = await storage.listCapabilities(q, paging)
                 res.setHeader('content-Type', 'application/json')
                 res.end(JSON.stringify(cps))
-            }
-
-            if (req.method === 'GET') {
-                res.setHeader('content-Type', 'application/json');
-                res.end("{}")
+            } else if(reqUrl.pathname == '/id') {
+                res.setHeader('content-Type', 'application/json')
+                res.end(JSON.stringify(await api.id()))
             }
     
             if (req.method === 'POST') {

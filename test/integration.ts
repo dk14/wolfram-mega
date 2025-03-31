@@ -15,6 +15,7 @@ import { stdin, stdout } from 'process'
     
 const cleanUp = async () => {
     peers.forEach(x => x.proc?.kill())
+    clientpeer.proc.kill()
     await exec('rm -r ./.tmp')
 }
 
@@ -42,8 +43,8 @@ interface Peer {
 const start = async (portP2P: number, portHttp: number, seed: number[], oraclePort?: number, oracleWsPort?: number, traderPort?: number, pub?: string): Promise<Peer> => {
 
     const cfg = {
-        "maxOracles": 2,
-        "maxCapabilities": 2,
+        "maxOracles": 10,
+        "maxCapabilities": 10,
         "maxReports": 2,
         "maxOffers": 2,
         "maxConnections": 100,
@@ -60,9 +61,9 @@ const start = async (portP2P: number, portHttp: number, seed: number[], oraclePo
                 "pubkey": pub,
                 "oracleSignatureType" : "SHA256"
             },
-            "adInterval": 100,
+            "adInterval": 1000,
             "adTopN": 10,
-            "dbPath": "./db/myoracle",
+            "dbPath": "./.tmp/dbtest-oracle",
             "httpPort": oraclePort,
             "wsPort": oracleWsPort
         }
@@ -82,7 +83,7 @@ const start = async (portP2P: number, portHttp: number, seed: number[], oraclePo
             "maxReportsPages": 2,
             "maxOffersPages": 2,
             "maxCollectors": 2,
-            "dbPath": "./db",
+            "dbPath": "./.tmp/dbtest",
             "httpPort": traderPort
         }
     }
@@ -101,9 +102,8 @@ const start = async (portP2P: number, portHttp: number, seed: number[], oraclePo
 
     var flag = false
     return new Promise<Peer>((resolve, reject) => 
-        child.stdout.on('data', function(data){
-            //console.log("" + data);
-            
+        child.stdout.on('data', function(data: string){
+            //if (data.includes("[send][cmd:")) { console.log("" + data) }
             if (!flag) {
                 resolve({
                     proc: child,
@@ -382,6 +382,7 @@ streamOracle.on('error', console.error);
 const rlOracle = readline.createInterface(streamOracle)
 
 console.log("1) Oracle signer callback")
+
 await new Promise(resolve => {
     rlOracle.on('line', (line) => {
         //console.log(line)
@@ -399,15 +400,43 @@ const streamCp = createWebSocketStream(wsCp, { encoding: 'utf8' })
 streamCp.on('error', console.error);
 const rlCp = readline.createInterface(streamCp, streamCp);
 rlCp.on('line', (line) => {
-    console.log(line)
+    //console.log(line)
     const cp: nd.OracleCapability = JSON.parse(line)
+    cp.oracleSignature = ""
+    cp.pow = undefined
+    assert.strictEqual(cp.oraclePubKey, oracleKeypair.pub)
     cp.oracleSignature = nd.testOnlySign(JSON.stringify(cp), oracleKeypair.pk)
-    rlCp.write(JSON.stringify(cp))
+    streamCp.write(JSON.stringify(cp) + "\n")
 })
 
+console.log("2) Create new capability")
 
+const cpKeyPair = nd.testOnlyGenerateKeyPair()
+const capabilityPubKey = cpKeyPair.pub
+const question = "[it] what?"
+const body = { capabilityPubKey, question }
+await fetch(oraclePrefix + 'addCapability', {
+    method: 'post',
+    body: JSON.stringify(body),
+    headers: {'Content-Type': 'application/json'}
+})
 
-
+okay = false
+while (!okay) {
+    const responses2 = await Promise.all(peers.map(p => fetch(addr(p) + 'capabilities?pubkey=' + encodeURIComponent(oracleKeypair.pub))))
+    const jsons2 = await Promise.all(responses2.map(r => r.json()))
+    const results2 = jsons2.map(j => j as nd.OracleCapability[])
+    try {
+        results2.forEach(cps => {
+            const found = cps.filter(cp => cp.capabilityPubKey === capabilityPubKey)
+            assert.strictEqual(found[0].capabilityPubKey, capabilityPubKey)
+            assert.strictEqual(found[0].question, question)
+            okay = true
+        })
+    } catch(err) {
+        //console.log(err); okay = true;
+    }
+}
 
 
 

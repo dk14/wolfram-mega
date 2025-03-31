@@ -279,7 +279,7 @@ export const checkPow = (pow: HashCashPow, preimage: string): boolean => {
     return hash(preimage + pow.magicNo + (pow.magicString ?? ""), pow.algorithm) === pow.hash
 }
 
-const checkCapabilitySignature = (cp: OracleCapability): boolean => {
+export const checkCapabilitySignature = (cp: OracleCapability): boolean => {
     const signature = cp.oracleSignature
     const pow = cp.pow
     cp.oracleSignature = ""
@@ -290,7 +290,7 @@ const checkCapabilitySignature = (cp: OracleCapability): boolean => {
     return res
 }
 
-const checkOracleIdSignature = (o: OracleId): boolean => {
+export const checkOracleIdSignature = (o: OracleId): boolean => {
     const signature = o.oracleSignature
     o.oracleSignature = ""
     const res = createVerify(o.oracleSignatureType).update(JSON.stringify(o)).verify(createPemPub(o.pubkey), signature, 'base64')

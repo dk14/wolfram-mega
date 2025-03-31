@@ -14,7 +14,7 @@ export const capabilityStorage = (path: string, pageSize: number, activeCpLimit:
         fs.mkdirSync(path, {recursive: true})
     }
     const getPage = async (pageNo: string): Promise<CapabilityDict> => {
-        const pagepath = path + "/" + pageNo + ".json"
+        const pagepath = path + "/" + encodeURIComponent(pageNo) + ".json"
         if (fs.existsSync(pagepath)) {
             return JSON.parse(fs.readFileSync(pagepath).toString())
         } else {
@@ -24,7 +24,7 @@ export const capabilityStorage = (path: string, pageSize: number, activeCpLimit:
 
     const transformPage = async (pageNo: string, transformer: (page: CapabilityDict) => CapabilityDict) => {
         const page = await getPage(pageNo)
-        fs.writeFileSync(path + "/" + pageNo + ".json", JSON.stringify(transformer(page)))
+        fs.writeFileSync(path + "/" + encodeURIComponent(pageNo) + ".json", JSON.stringify(transformer(page)))
     }
 
     const cps: CapabilityStorage<CapabilityQuery> = {
@@ -71,7 +71,7 @@ export const capabilityStorage = (path: string, pageSize: number, activeCpLimit:
         listActiveCapabilities: async function (): Promise<OracleCapability[]> {
             return fs.readdirSync(path + "/").map(file => {
                 const page: CapabilityDict = JSON.parse(fs.readFileSync(path + "/" + file).toString())
-                return Object.values(page).filter(x => x.off !== true)
+                return Object.values(page).filter(x => (x.off === undefined) || (x.off === false))
             }).flat().slice(0, activeCpLimit)
         },
         updateCapabilityPow: async function (capabilityPubKey: string, pow: HashCashPow): Promise<void> {
