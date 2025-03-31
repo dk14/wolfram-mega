@@ -91,7 +91,7 @@ export function oracleControlApi<Query, MegaPeerT>(
     var adobserver: (event: OracleAd<MegaPeerT>) => Promise<void> = null
 
     const signPowIncCp = async(cp: OracleCapability): Promise<OracleCapability> => {
-        if (signer !== undefined) {
+        if (signer !== null) {
             cp.oracleSignature = ""
             const difficulty = cp.pow?.difficulty ?? 1
             cp.pow = undefined
@@ -237,7 +237,7 @@ export function oracleControlApi<Query, MegaPeerT>(
             const cp = await storage.getCapability(capabilityPubKey)
             cp.off = true
             if (p2pNode !== undefined) {
-                p2pNode.broadcastMessage('capability', JSON.stringify(structuredClone(signPowIncCp(cp))))
+                p2pNode.broadcastMessage('capability', JSON.stringify(structuredClone(await signPowIncCp(cp))))
             }
             await storage.deactivateCapability(capabilityPubKey)
         },
@@ -248,7 +248,7 @@ export function oracleControlApi<Query, MegaPeerT>(
             const cp = await storage.getCapability(capabilityPubKey)
             cp.off = true
             if (p2pNode !== undefined) {
-                p2pNode.broadcastMessage('capability', JSON.stringify(structuredClone(signPowIncCp(cp))))
+                p2pNode.broadcastMessage('capability', JSON.stringify(structuredClone(await signPowIncCp(cp))))
             }
             await storage.dropCapability(capabilityPubKey)
         },
