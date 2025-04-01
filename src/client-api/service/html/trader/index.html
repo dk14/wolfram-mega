@@ -27,11 +27,11 @@
         <hr>
         <div id="database"></div>
         <hr>
-        <br>
         <label for="hash">Delete by pubkey/hash:</label>
         <input type="text" id="hash" size="20" name="hash" value="">
         <input type="button" id="delete" value="Delete">
 
+        <hr>
         <h2>Collectors</h2>
         <label for="oracle_filter">Oracle Filter:</label>
         <input type="text" id="oracle_filter" size="40" name="oracle_filter" value="true">
@@ -60,7 +60,7 @@
         Collector List: <div id="collectors">[]</div>
         <br>
         <input type="button" id="cancel_collector" value="Cancel Collector">
-
+        <hr>
         <h2>Matching</h2>
 
         <pre>
@@ -70,28 +70,72 @@
 
         <label for="offer">Offer Content:</label>
         <input type="text" id="offer" size="40" name="offer" value='{"message":"","customContract":"","terms":{"question":{"capabilityPubKey":"MIGbMBAGByqGSM49AgEGBSuBBAAjA4GGAAQACueFRtmeL2wZF83Y5gDMjQFmcv2ovTjTQUfUbz5OEU3c3CVMLpxOFm/t/CoEA04qBXlROqY0BwmOF7R53ZodCd8ATqIqeEH1/bVZ66cO2IyS/UowYX/CfBMZEKbeMCn2LHJrfQEq29iXXtpZSecEZJBs1bDcT1zx8WGZ8tg8zbUxGGs=","arguments":{}},"partyBetsOn":[],"counterPartyBetsOn":[],"partyBetAmount":0,"counterpartyBetAmount":0},"blockchain":"bitcoin-testnet","transactionToBeCoSigned":"","contact":""}'>
-        <br>
+        <br><br>
         <label for="offer_pow">Offer PoW:</label>
         <input type="text" id="offer_pow" size="40" name="offer_pow" value='{"difficulty":2,"algorithm":"SHA256","hash":"b2d387f4c00c6ac6f5a2a10cb3caba7a0749b9f28e22394129706f22d3b82f00","magicNo":31,"magicString":""}'>
         
         <br><br>
         <input type="button" id="submit_offer" value="Issue Offer">
 
+        <hr>
         <h2>Query Oracle</h2>
+        
+        <pre>endpoint:</pre><pre id="endpoint"></pre>
+        
+        <label for="fact_req">Fact Request:</label>
+        <input type="text" id="fact_req" name="fact_req" size="40" value='{ "capabilityPubKey": "", "arguments": {} }'>
+        <br><br>
+        <label for="fact_req">Commitment:</label>
+        <input type="text" id="fact_req" name="fact_req" size="40" value=''>
+        <br><br>
+        <input id="get_endpoint" type="button" value="1:Get Endpoint">
+        <input id="get_commitment" type="button" value="2:Get Commitment">
+    
+        <input id="get_commitment" type="button" value="3:Get Fact">
+        <pre>fact:</pre><pre id="fact"></pre>
 
-        <pre>
-aquire commitment from oracle
-aquire fact from oracle
-        </pre>
+        <hr>
+        <h4>Report Oracle</h4>
+        <label for="oracle_pub">Oracle Pub:</label>
+        <input type="text" id="oracle_pub" name="oracle_pub" size="40" value=''>
+        <br><br>
+        <label for="report">Report Content:</label>
+        <input type="text" id="report" name="report" size="40" value='{ "type": "fact-disagreees-with-public", "request": { "capabilityPubKey": "", "arguments": {} }}'>
+        <br><br>
+        <label for="report_pow">Report Pow:</label>
+        <input type="text" id="report_pow" name="report_pow" size="40" value='{"magicNo": 1000, "difficulty":0, "algorithm": "SHA256", "hash": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"}'>
+        <br><br>
+        <input id="submit_report" type="button" value="Issue Report">
+        <hr>
+        
 
         <h2>Trade</h2>
-        <pre>
-generate plutus and btc contracts
-submit opening transaction
-use fact in the closing transaction
-submit report
-        </pre>
+        <h4>Helios-contract</h4>
+
+
+        <label for="terms"><h5>Terms:</h5></label>
+        <input type="text" id="terms" name="terms" size="80" value='{"question":{"capabilityPubKey":"MIGbMBAGByqGSM49AgEGBSuBBAAjA4GGAAQACueFRtmeL2wZF83Y5gDMjQFmcv2ovTjTQUfUbz5OEU3c3CVMLpxOFm/t/CoEA04qBXlROqY0BwmOF7R53ZodCd8ATqIqeEH1/bVZ66cO2IyS/UowYX/CfBMZEKbeMCn2LHJrfQEq29iXXtpZSecEZJBs1bDcT1zx8WGZ8tg8zbUxGGs=","arguments":{}},"partyBetsOn":[],"counterPartyBetsOn":[],"partyBetAmount":0,"counterpartyBetAmount":0}'>
+
+        <h5>tx-in-addr:</h5>
+        <label for="alice_in_addr">Alice:</label>
+        <input type="text" id="alice_in_addr" name="alice_in_addr" size="20" value=''>
+        <label for="bob_in_addr">Bob:</label>
+        <input type="text" id="bob_in_addr" name="bob_in_addr" size="20" value=''>
+        <br><br>
+        <input id="opening_helios" type="button" value="Generate Opening Tx">
+        <pre>opening tx: </pre><pre id="opening_tx"></pre>
         
+        <h5>tx-out-addr:</h5>
+        <label for="alice_in_addr">Alice:</label>
+        <input type="text" id="alice_in_addr" name="alice_in_addr" size="20" value=''>
+        <label for="bob_in_addr">Bob:</label>
+        <input type="text" id="bob_in_addr" name="bob_in_addr" size="20" value=''>
+ 
+        <br><br>
+        <input id="closing_helios" type="button" value="Generate Closing Tx">
+        <pre>closing tx: </pre><pre id="opening_tx"></pre>
+
+        <h4>Btc-contract</h4>
 
 
     </body>
@@ -167,6 +211,18 @@ submit report
             })
         }
 
+        document.getElementById('submit_report').onclick = async () => {
+            const content = JSON.parse(document.getElementById('report').value)
+            const pow = JSON.parse(document.getElementById('report_pow').value)
+            const oraclePubKey = document.getElementById('oracle_pub').value
+            const msg = { seqNo: 0, cTTL: 0, oraclePubKey, pow, content }
+            await fetch('./issueReport', {
+	            method: 'post',
+	            body: JSON.stringify(msg),
+	            headers: {'Content-Type': 'application/json'}
+            })
+        }
+
         document.getElementById('cancel_collector').onclick = async () => {
             const tag = document.getElementById('tag').value
                 await fetch('./cancelCollector?tag=' + encodeURIComponent(tag))
@@ -213,7 +269,7 @@ submit report
 
                 const html = data.map(datum => {
                     const formats = {
-                        "oracles": datum.pubkey,
+                        "oracles": `pub=${datum.pubkey}`,
                         "cps": `${datum.question} pub=${datum.capabilityPubKey}`,
                         "reports": `oracle_pub=${datum.oraclePubKey}\n   content=${JSON.stringify(datum.content)}\n   pow=${JSON.stringify(datum.pow)}`,
                         "offers": `${JSON.stringify(datum.content)} pow=${JSON.stringify(datum.pow)}`,
