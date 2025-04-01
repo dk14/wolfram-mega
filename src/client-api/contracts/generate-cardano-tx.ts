@@ -10,7 +10,7 @@ export interface InputId {
     txid: Hex,
     txout: number,
     amount: number,
-    addr: Bech32
+    addr?: Bech32
 } 
 
 interface Redemption {
@@ -29,12 +29,13 @@ export interface OpeningInputs {
 
 export interface ClosingInputs {
     input: InputId,
+    aliceInput: InputId, 
+    bobInput: InputId,
+    oraclePubKey: Base64,
     msg: Base64, 
     sig: Base64,
     r: Redemption
 }
-
-
 
 // https://github.com/lley154/helios-examples/blob/main/vesting/pages/index.tsx
 
@@ -88,16 +89,36 @@ export const generateOpeningTransaction = (inputs: OpeningInputs): CborHex => {
 
 export const generateClosingTransaction = (inputs: ClosingInputs): CborHex => {
     const tx = new Tx()
+    const src = fs.readFileSync(__dirname + "/plutus-option.hl").toString()
+    const program = Program.new(src)
+
+    const uplc = program.compile(false)
+    const addr = Address.fromHash(uplc.validatorHash)
+
+    const alicePkh = Address.fromBech32(inputs.aliceInput.addr).pubKeyHash
+    const BobPkh = Address.fromBech32(inputs.bobInput.addr).pubKeyHash
+
+    const datum = new ListData([new ByteArrayData(alicePkh.bytes),
+        new ByteArrayData(BobPkh.bytes),
+        new ByteArrayData(stringToArray(inputs.oraclePubKey)),
+        new ByteArrayData(stringToArray(inputs.r.aliceBetsOnMsg)),
+        new ByteArrayData(stringToArray(inputs.r.bobBetsOnMsg))
+    ])
+
     const collateral = new TxInput(TxOutputId.fromProps({
         txId: TxId.fromHex(inputs.input.txid), 
         utxoId: inputs.input.txout
-    }))
+    }), new TxOutput(addr, new Value(BigInt(inputs.input.amount)),  Datum.inline(datum)))
+
     const valRedeemer = new ConstrData(1, [
         new ByteArrayData(stringToArray(inputs.msg)),
         new ByteArrayData(stringToArray(inputs.sig))
     ])
     tx.addInput(collateral, valRedeemer)
     const value = new Value(BigInt(inputs.input.amount))
+
+    tx.attachScript(uplc)
+
     if (inputs.msg === inputs.r.aliceBetsOnMsg) {
         const addr = Address.fromBech32(inputs.r.aliceRedemptionAddr)
         const out = new TxOutput(addr, value)

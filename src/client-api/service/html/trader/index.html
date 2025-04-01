@@ -143,6 +143,7 @@
         <input id="sign_helios" type="button" value="Sign (Helios)">
         <input id="sign_btc" type="button" value="Sign (BTC)">
         <pre>signed tx: </pre><pre id="signed_tx"></pre>
+        <pre>signed tx id: </pre><pre id="signed_tx_id"></pre>
         <input id="broadcast_helios" type="button" value="Broadcast (Helios, testnet)">
         <input id="sign_btc" type="button" value="Broadcast (BTC, testnet)">
 
@@ -316,6 +317,73 @@
             document.getElementById('opening_tx').innerHTML = tx
 
         }
+
+        document.getElementById('closing_helios').onclick = async () => {
+            const terms = JSON.parse(document.getElementById('terms').value)
+            const alice_txin = document.getElementById('alice_in_txout').value
+            const bob_txin = document.getElementById('bob_in_txout').value
+            const alice_addr_out = document.getElementById('alice_out_addr').value
+            const bob_addr_out = document.getElementById('bob_out_addr').value
+            //TODO finalize opening tx
+            const openingTxId = "a00fa40eb81720cf2bd58564d1625f8340d222eaa2fe4d87c26eca0793eb01dd" 
+
+            const fact = (() => {
+                const mock = {
+                    factWithQuestion: terms.partyBetsOn,
+                    signatureType: "SHA256",
+                    signature: "NULL"
+                }
+                try {
+                    
+                    const parsed = JSON.parse(document.getElementById('fact').innerHTML)
+                    if (parsed.factWithQuestion === undefined) {
+                        document.getElementById('fact').innerHTML = JSON.stringify(mock)
+                        return mock
+                    }
+                    return parsed
+                } catch {
+                    document.getElementById('fact').innerHTML = JSON.stringify(mock)
+                    return mock
+                }     
+            })()
+
+            const inputs = {
+                input: {
+                    txid: openingTxId,
+                    txout: 0,
+                    amount: terms.partyBetAmount + terms.counterpartyBetAmount,
+                }, 
+                aliceInput: {
+                    txid: alice_txin.split(" # ")[0],
+                    txout: parseInt(alice_txin.split(" # ")[1]),
+                    amount: terms.partyBetAmount,
+                    addr: alice_addr_out
+                }, 
+                bobInput: {
+                    txid: bob_txin.split(" # ")[0],
+                    txout: parseInt(bob_txin.split(" # ")[1]),
+                    amount: terms.counterpartyBetAmount,
+                    addr: bob_addr_out
+                },
+                oraclePubKey: terms.question.capabilityPubKey,
+                msg: fact.factWithQuestion,
+                sig: fact.signature,
+                r: {
+                    aliceRedemptionAddr: alice_addr_out,
+                    aliceBetsOnMsg: terms.partyBetsOn,
+                    bobRedemptionAddr: bob_addr_out,
+                    bobBetsOnMsg: terms.counterPartyBetsOn
+                }
+            }
+            const tx = await (await fetch('./generateClosingTransaction', {
+	            method: 'post',
+	            body: JSON.stringify(inputs),
+	            headers: {'Content-Type': 'application/json'}
+            })).json()
+            document.getElementById('closing_tx').innerHTML = tx
+
+        }
+
 
         setInterval(async () => {
             if (document.getElementById('update').checked) {
