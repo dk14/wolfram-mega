@@ -55,6 +55,15 @@ export const startTraderService = (cfg: MempoolConfig<PeerAddr>) => {
                 res.end(JSON.stringify(await storage.queryOracles(q, paging)))
             } else if(reqUrl.pathname == '/listCapabilities') {
                 res.end(JSON.stringify(await storage.queryCapabilities(q, paging)))
+            } else if(reqUrl.pathname == '/capabilityEndpoint') {
+                const out = await storage.queryCapabilities({where: async cp => cp.capabilityPubKey === pubkey}, paging)
+                const found = out.map(cp => (cp.endpoint ?? ''))
+                if (found.length == 0) {
+                    res.end(JSON.stringify(''))
+                } else {
+                    res.end(JSON.stringify(''))
+                }
+                
             } else if(reqUrl.pathname == '/listReports') {
                 res.end(JSON.stringify(await storage.queryReports(q, paging)))
             } else if(reqUrl.pathname == '/listOffers') {
@@ -65,24 +74,27 @@ export const startTraderService = (cfg: MempoolConfig<PeerAddr>) => {
                 res.end(JSON.stringify(await storage.queryIssuedOffers(q, paging)))
             } else if(reqUrl.pathname == '/deleteOracle') {
                 await storage.removeOracles([pubkey])
+                res.end()
             } else if(reqUrl.pathname == '/deleteCapability') {
                 await storage.removeCps([pubkey])
+                res.end()
             } else if(reqUrl.pathname == '/deleteOffer') {
                 await storage.removeOffers([pubkey])
+                res.end()
             } else if(reqUrl.pathname == '/deleteReport') {
                 await storage.removeReports([pubkey])
+                res.end()
             } else if(reqUrl.pathname == '/deleteIssuedOffer') {
                 await storage.removeIssuedOffers([pubkey])
+                res.end()
             } else if(reqUrl.pathname == '/deleteIssuedReport') {
                 await storage.removeIssuedReports([pubkey])
+                res.end()
             } else if (reqUrl.pathname == '/cancelCollector') {
                 if (collectors[tag]) {
                     collectors[tag].cancel()
                     delete collectors[tag]
                 }
-            }
-            
-            if (req.method === 'GET') {
                 res.end()
             }
     

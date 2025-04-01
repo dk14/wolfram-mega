@@ -84,14 +84,14 @@
         
         <label for="fact_req">Fact Request:</label>
         <input type="text" id="fact_req" name="fact_req" size="40" value='{ "capabilityPubKey": "", "arguments": {} }'>
+        <input id="get_commitment" type="button" value="Request Commitment">
         <br><br>
-        <label for="fact_req">Commitment:</label>
-        <input type="text" id="fact_req" name="fact_req" size="40" value=''>
-        <br><br>
-        <input id="get_endpoint" type="button" value="1:Get Endpoint">
-        <input id="get_commitment" type="button" value="2:Get Commitment">
+        <label for="commitment">Commitment:</label>
+        <input type="text" id="commitment" name="commitment" size="40" value=''>
+
+  
     
-        <input id="get_commitment" type="button" value="3:Get Fact">
+ 
         <pre>fact:</pre><pre id="fact"></pre>
 
         <hr>
@@ -110,10 +110,10 @@
         
 
         <h2>Trade</h2>
-        <h4>Helios-contract</h4>
 
 
-        <label for="terms"><h5>Terms:</h5></label>
+
+        <label for="terms"><h5>Offer Terms:</h5></label>
         <input type="text" id="terms" name="terms" size="80" value='{"question":{"capabilityPubKey":"MIGbMBAGByqGSM49AgEGBSuBBAAjA4GGAAQACueFRtmeL2wZF83Y5gDMjQFmcv2ovTjTQUfUbz5OEU3c3CVMLpxOFm/t/CoEA04qBXlROqY0BwmOF7R53ZodCd8ATqIqeEH1/bVZ66cO2IyS/UowYX/CfBMZEKbeMCn2LHJrfQEq29iXXtpZSecEZJBs1bDcT1zx8WGZ8tg8zbUxGGs=","arguments":{}},"partyBetsOn":[],"counterPartyBetsOn":[],"partyBetAmount":0,"counterpartyBetAmount":0}'>
 
         <h5>tx-in-addr:</h5>
@@ -122,7 +122,8 @@
         <label for="bob_in_addr">Bob:</label>
         <input type="text" id="bob_in_addr" name="bob_in_addr" size="20" value=''>
         <br><br>
-        <input id="opening_helios" type="button" value="Generate Opening Tx">
+        <input id="opening_helios" type="button" value="Gen Opening Tx (Helios)">
+        <input id="opening_btc" type="button" value="Gen Opening Tx (BTC)">
         <pre>opening tx: </pre><pre id="opening_tx"></pre>
         
         <h5>tx-out-addr:</h5>
@@ -132,10 +133,18 @@
         <input type="text" id="bob_in_addr" name="bob_in_addr" size="20" value=''>
  
         <br><br>
-        <input id="closing_helios" type="button" value="Generate Closing Tx">
+        <input id="closing_helios" type="button" value="Gen Closing Tx (Helios)">
+        <input id="closing_btc" type="button" value="Gen Closing Tx (Btc)">
         <pre>closing tx: </pre><pre id="opening_tx"></pre>
-
-        <h4>Btc-contract</h4>
+        <hr>
+        <h4>Sign and Broadcast</h4>
+        <label for="tx">Tx:</label>
+        <input type="text" id="bob_in_addr" name="bob_in_addr" size="40" value=''>
+        <input id="sign_helios" type="button" value="Sign (Helios)">
+        <input id="sign_btc" type="button" value="Sign (BTC)">
+        <pre>signed tx: </pre><pre id="signed_tx"></pre>
+        <input id="broadcast_helios" type="button" value="Broadcast (Helios, testnet)">
+        <input id="sign_btc" type="button" value="Broadcast (BTC, testnet)">
 
 
     </body>
@@ -225,7 +234,7 @@
 
         document.getElementById('cancel_collector').onclick = async () => {
             const tag = document.getElementById('tag').value
-                await fetch('./cancelCollector?tag=' + encodeURIComponent(tag))
+            await fetch('./cancelCollector?tag=' + encodeURIComponent(tag))
         }
 
         document.getElementById('delete').onclick = async () => {
@@ -241,6 +250,35 @@
             }
             await fetch(`./${endpoints[view]}?pubkey=${encodeURIComponent(hash)}`)
         }
+
+        document.getElementById('get_commitment').onclick = async () => {
+            const req = JSON.parse(document.getElementById('fact_req').value)
+            const endpoint = await (await fetch('./capabilityEndpoint?pubkey=' + encodeURIComponent(req.capabilityPubKey))).json()
+            if (endpoint === '') return
+            const commitment = (await fetch(endpoint + '/requestCommitment', {
+	            method: 'post',
+	            body: JSON.stringify(req),
+	            headers: {'Content-Type': 'application/json'}
+            })).json()
+            document.getElementById('commitment').value = JSON.stringify(commitment)
+
+        }
+
+        setInterval(async () => {
+            if (document.getElementById('update').checked) {
+                const req = JSON.parse(document.getElementById('fact_req').value)
+                const endpoint = await (await fetch('./capabilityEndpoint?pubkey=' + encodeURIComponent(req.capabilityPubKey))).json()
+                if (endpoint === '') return
+                document.getElementById('endpoint').innerHTML = endpoint
+                const commitment = document.getElementById('commitment').value
+                const fact = (await fetch(endpoint + '/requestFact', {
+                    method: 'post',
+                    body: commitment,
+                    headers: {'Content-Type': 'application/json'}
+                })).json()
+                document.getElementById('fact').innerHTML = JSON.stringify(fact)
+            }
+        }, 1000) 
 
         setInterval(async () => {
             if (document.getElementById('update').checked) {
@@ -270,7 +308,7 @@
                 const html = data.map(datum => {
                     const formats = {
                         "oracles": `pub=${datum.pubkey}`,
-                        "cps": `${datum.question} pub=${datum.capabilityPubKey}`,
+                        "cps": `${datum.question} pub=${datum.capabilityPubKey} endpoint=${(datum.endpoint ?? '')}`,
                         "reports": `oracle_pub=${datum.oraclePubKey}\n   content=${JSON.stringify(datum.content)}\n   pow=${JSON.stringify(datum.pow)}`,
                         "offers": `${JSON.stringify(datum.content)} pow=${JSON.stringify(datum.pow)}`,
                         "issued-reports": `oracle_pub=${datum.oraclePubKey}\n   content=${JSON.stringify(datum.content)}\n   pow=${JSON.stringify(datum.pow)}`,
