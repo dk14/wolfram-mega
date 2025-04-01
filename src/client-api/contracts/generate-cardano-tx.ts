@@ -1,20 +1,17 @@
-import helios, { Program } from "@hyperionbt/helios"
+import { Address, ByteArrayData, ConstrData, Datum, ListData, Program, Tx, TxId, TxInput, TxOutput, TxOutputId, Value } from "@hyperionbt/helios"
 import * as fs from 'fs'
 
+type Hex = string
 type CborHex = string
 type Bech32 = string
 type Base64 = string
 
 export interface InputId {
-    cbor: CborHex,
+    txid: Hex,
+    txout: number,
     amount: number,
     addr: Bech32
 } 
-
-export interface OpeningTransaction {
-    tx: CborHex,
-    asInput: InputId
-}
 
 interface Redemption {
     aliceRedemptionAddr: Bech32,
@@ -31,7 +28,7 @@ export interface OpeningInputs {
 }
 
 export interface ClosingInputs {
-    opening: OpeningTransaction, 
+    input: InputId,
     msg: Base64, 
     sig: Base64,
     r: Redemption
@@ -45,64 +42,69 @@ const stringToArray = (s: Base64): number[] => {
     return Array.from(Uint8Array.from(atob(s), c => c.charCodeAt(0)))
 }
 
-export const generateOpeningTransaction = (inputs: OpeningInputs): OpeningTransaction => {
-    const tx = new helios.Tx()
+export const generateOpeningTransaction = (inputs: OpeningInputs): CborHex => {
+    const tx = new Tx()
     const src = fs.readFileSync(__dirname + "/plutus-option.hl").toString()
-    const program = helios.Program.new(src)
+    const program = Program.new(src)
 
     const uplc = program.compile(false)
 
-    const utxo1 = new helios.TxInput(helios.TxOutputId.fromCbor(inputs.aliceInput.cbor))
-    const utxo2 = new helios.TxInput(helios.TxOutputId.fromCbor(inputs.bobInput.cbor))
+    
+    const utxo1 = new TxInput(TxOutputId.fromProps({
+        txId: TxId.fromHex(inputs.aliceInput.txid), 
+        utxoId: inputs.aliceInput.txout
+    }), new TxOutput(Address.fromBech32(inputs.aliceInput.addr), new Value(BigInt(inputs.aliceInput.amount))))
+
+    const utxo2 = new TxInput(TxOutputId.fromProps({
+        txId: TxId.fromHex(inputs.bobInput.txid), 
+        utxoId: inputs.bobInput.txout
+    }), new TxOutput(Address.fromBech32(inputs.bobInput.addr), new Value(BigInt(inputs.bobInput.amount))))
+
     tx.addInputs([utxo1, utxo2])
 
-    const alicePkh = helios.Address.fromBech32(inputs.aliceInput.addr).pubKeyHash
-    const BobPkh = helios.Address.fromBech32(inputs.aliceInput.addr).pubKeyHash
+    const alicePkh = Address.fromBech32(inputs.aliceInput.addr).pubKeyHash
+    const BobPkh = Address.fromBech32(inputs.bobInput.addr).pubKeyHash
 
-    const datum = new helios.ListData([new helios.ByteArrayData(alicePkh.bytes),
-        new helios.ByteArrayData(BobPkh.bytes),
-        new helios.ByteArrayData(stringToArray(inputs.oraclePubKey)),
-        new helios.ByteArrayData(stringToArray(inputs.r.aliceBetsOnMsg)),
-        new helios.ByteArrayData(stringToArray(inputs.r.bobBetsOnMsg))
+    const datum = new ListData([new ByteArrayData(alicePkh.bytes),
+        new ByteArrayData(BobPkh.bytes),
+        new ByteArrayData(stringToArray(inputs.oraclePubKey)),
+        new ByteArrayData(stringToArray(inputs.r.aliceBetsOnMsg)),
+        new ByteArrayData(stringToArray(inputs.r.bobBetsOnMsg))
     ])
 
     const collateral = inputs.aliceInput.amount + inputs.bobInput.amount
 
-    const utxo3 = new helios.TxOutput(
-        helios.Address.fromHash(uplc.validatorHash, true),
-        new helios.Value(BigInt(collateral)),
-        helios.Datum.inline(datum)
+    const utxo3 = new TxOutput(
+        Address.fromHash(uplc.validatorHash, true),
+        new Value(BigInt(collateral)),
+        Datum.inline(datum)
     )
 
     tx.addOutput(utxo3)
     
-    return {
-        tx: tx.toCborHex(), //helios.Tx.fromCbor()
-        asInput: {
-            cbor: utxo3.toCborHex(),
-            amount: collateral,
-            addr: helios.Address.fromHash(uplc.validatorHash, true).toBech32()
-        }
-    } 
+    return tx.toCborHex()
 
 }
 
 export const generateClosingTransaction = (inputs: ClosingInputs): CborHex => {
-    const tx = new helios.Tx()
-    const collateral = new helios.TxInput(helios.TxOutputId.fromCbor(inputs.opening.asInput.cbor))
-    const valRedeemer = new helios.ConstrData(1, [
-        new helios.ByteArrayData(stringToArray(inputs.msg)),
-        new helios.ByteArrayData(stringToArray(inputs.sig))
+    const tx = new Tx()
+    const collateral = new TxInput(TxOutputId.fromProps({
+        txId: TxId.fromHex(inputs.input.txid), 
+        utxoId: inputs.input.txout
+    }))
+    const valRedeemer = new ConstrData(1, [
+        new ByteArrayData(stringToArray(inputs.msg)),
+        new ByteArrayData(stringToArray(inputs.sig))
     ])
     tx.addInput(collateral, valRedeemer)
-    const value = new helios.Value(BigInt(inputs.opening.asInput.amount))
+    const value = new Value(BigInt(inputs.input.amount))
     if (inputs.msg === inputs.r.aliceBetsOnMsg) {
-        const addr = helios.Address.fromBech32(inputs.r.aliceRedemptionAddr)
-        const out = new helios.TxOutput(addr, value)
+        const addr = Address.fromBech32(inputs.r.aliceRedemptionAddr)
+        const out = new TxOutput(addr, value)
         tx.addOutput(out)
     } else if (inputs.msg === inputs.r.bobBetsOnMsg) {
-        const addr = helios.Address.fromBech32(inputs.r.bobRedemptionAddr)
-        const out = new helios.TxOutput(addr, value)
+        const addr = Address.fromBech32(inputs.r.bobRedemptionAddr)
+        const out = new TxOutput(addr, value)
         tx.addOutput(out)
     }
     return tx.toCborHex()

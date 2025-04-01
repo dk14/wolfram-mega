@@ -116,30 +116,30 @@
         <label for="terms"><h5>Offer Terms:</h5></label>
         <input type="text" id="terms" name="terms" size="80" value='{"question":{"capabilityPubKey":"MIGbMBAGByqGSM49AgEGBSuBBAAjA4GGAAQACueFRtmeL2wZF83Y5gDMjQFmcv2ovTjTQUfUbz5OEU3c3CVMLpxOFm/t/CoEA04qBXlROqY0BwmOF7R53ZodCd8ATqIqeEH1/bVZ66cO2IyS/UowYX/CfBMZEKbeMCn2LHJrfQEq29iXXtpZSecEZJBs1bDcT1zx8WGZ8tg8zbUxGGs=","arguments":{}},"partyBetsOn":[],"counterPartyBetsOn":[],"partyBetAmount":0,"counterpartyBetAmount":0}'>
 
-        <h5>tx-in-addr:</h5>
-        <label for="alice_in_addr">Alice:</label>
-        <input type="text" id="alice_in_addr" name="alice_in_addr" size="20" value=''>
-        <label for="bob_in_addr">Bob:</label>
-        <input type="text" id="bob_in_addr" name="bob_in_addr" size="20" value=''>
+        <h5>tx-in ("txid # out"):</h5>
+        <label for="alice_in_txout">Alice:</label>
+        <input type="text" id="alice_in_txout" name="alice_in_txout" size="20" value=''>
+        <label for="bob_in_txout">Bob:</label>
+        <input type="text" id="bob_in_txout" name="bob_in_txout" size="20" value=''>
         <br><br>
         <input id="opening_helios" type="button" value="Gen Opening Tx (Helios)">
         <input id="opening_btc" type="button" value="Gen Opening Tx (BTC)">
         <pre>opening tx: </pre><pre id="opening_tx"></pre>
         
-        <h5>tx-out-addr:</h5>
-        <label for="alice_in_addr">Alice:</label>
-        <input type="text" id="alice_in_addr" name="alice_in_addr" size="20" value=''>
-        <label for="bob_in_addr">Bob:</label>
-        <input type="text" id="bob_in_addr" name="bob_in_addr" size="20" value=''>
+        <h5>tx-out-addr (bech32 or btc-pubkey):</h5>
+        <label for="alice_out_addr">Alice:</label>
+        <input type="text" id="alice_out_addr" name="alice_out_addr" size="20" value=''>
+        <label for="bob_out_addr">Bob:</label>
+        <input type="text" id="bob_out_addr" name="bob_out_addr" size="20" value=''>
  
         <br><br>
         <input id="closing_helios" type="button" value="Gen Closing Tx (Helios)">
         <input id="closing_btc" type="button" value="Gen Closing Tx (Btc)">
-        <pre>closing tx: </pre><pre id="opening_tx"></pre>
+        <pre>closing tx: </pre><pre id="closing_tx"></pre>
         <hr>
         <h4>Sign and Broadcast</h4>
         <label for="tx">Tx:</label>
-        <input type="text" id="bob_in_addr" name="bob_in_addr" size="40" value=''>
+        <input type="text" id="bob_in_txout" name="bob_in_txout" size="40" value=''>
         <input id="sign_helios" type="button" value="Sign (Helios)">
         <input id="sign_btc" type="button" value="Sign (BTC)">
         <pre>signed tx: </pre><pre id="signed_tx"></pre>
@@ -261,6 +261,59 @@
 	            headers: {'Content-Type': 'application/json'}
             })).json()
             document.getElementById('commitment').value = JSON.stringify(commitment)
+
+        }
+
+        document.getElementById('opening_helios').onclick = async () => {
+            const terms = JSON.parse(document.getElementById('terms').value)
+            if (document.getElementById('alice_in_txout').value === "") {
+                document.getElementById('alice_in_txout').value = "a00fa40eb81720cf2bd58564d1625f8340d222eaa2fe4d87c26eca0793eb01dd # 0"
+            }
+
+            if (document.getElementById('bob_in_txout').value === "") {
+                document.getElementById('bob_in_txout').value = "a00fa40eb81720cf2bd58564d1625f8340d222eaa2fe4d87c26eca0793eb01dd # 1"
+            }
+
+            if (document.getElementById('alice_out_addr').value === "") {
+                document.getElementById('alice_out_addr').value = "addr_test1vp8cprhse9pnnv7f4l3n6pj0afq2hjm6f7r2205dz0583egagfjah"
+            }
+
+            if (document.getElementById('bob_out_addr').value === "") {
+                document.getElementById('bob_out_addr').value = "addr_test1vp8cprhse9pnnv7f4l3n6pj0afq2hjm6f7r2205dz0583egagfjah"
+            }
+
+            const alice_txin = document.getElementById('alice_in_txout').value
+            const bob_txin = document.getElementById('bob_in_txout').value
+            const alice_addr_out = document.getElementById('alice_out_addr').value
+            const bob_addr_out = document.getElementById('bob_out_addr').value
+
+            const inputs = {
+                aliceInput: {
+                    txid: alice_txin.split(" # ")[0],
+                    txout: parseInt(alice_txin.split(" # ")[1]),
+                    amount: terms.partyBetAmount,
+                    addr: alice_addr_out
+                }, 
+                bobInput: {
+                    txid: bob_txin.split(" # ")[0],
+                    txout: parseInt(bob_txin.split(" # ")[1]),
+                    amount: terms.counterpartyBetAmount,
+                    addr: bob_addr_out
+                },
+                oraclePubKey: terms.question.capabilityPubKey,
+                r: {
+                    aliceRedemptionAddr: alice_addr_out,
+                    aliceBetsOnMsg: terms.partyBetsOn,
+                    bobRedemptionAddr: bob_addr_out,
+                    bobBetsOnMsg: terms.counterPartyBetsOn
+                }
+            }
+            const tx = await (await fetch('./generateOpeningTransaction', {
+	            method: 'post',
+	            body: JSON.stringify(inputs),
+	            headers: {'Content-Type': 'application/json'}
+            })).json()
+            document.getElementById('opening_tx').innerHTML = tx
 
         }
 
