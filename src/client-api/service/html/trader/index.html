@@ -268,8 +268,9 @@
             if (document.getElementById('update').checked) {
                 const req = JSON.parse(document.getElementById('fact_req').value)
                 const endpoint = await (await fetch('./capabilityEndpoint?pubkey=' + encodeURIComponent(req.capabilityPubKey))).json()
-                if (endpoint === '') return
                 document.getElementById('endpoint').innerHTML = endpoint
+                if (endpoint === '') return
+ 
                 const commitment = document.getElementById('commitment').value
                 const fact = (await fetch(endpoint + '/requestFact', {
                     method: 'post',

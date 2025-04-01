@@ -61,7 +61,7 @@ export const startTraderService = (cfg: MempoolConfig<PeerAddr>) => {
                 if (found.length == 0) {
                     res.end(JSON.stringify(''))
                 } else {
-                    res.end(JSON.stringify(''))
+                    res.end(JSON.stringify(found[0]))
                 }
                 
             } else if(reqUrl.pathname == '/listReports') {
