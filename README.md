@@ -2,8 +2,9 @@ A p2p fact sharing network
 
 # Wolfram Mega
 
-Mega *(from מַגָע, contact, pornounced as maga/m'ga)* - is a lightweight infinitely scalable decentralized data marketplace, bringing authentic observers to blockchain.
+Mega *(from מַגָע, contact)* - is a lightweight infinitely scalable decentralized data marketplace, bringing authentic observers to blockchain.
 
+* Pronunciation: "mega" in Enlish (vowels are not that relevant, מגע), originally pornounced as m[short a as in must or e as in meg]g[A stressed].
 *Note: this is proof of concept*
 
 ---------
