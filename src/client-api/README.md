@@ -8,7 +8,7 @@
 ## How to use
 
 Example configuration:
-[cfg/mempool-trader.json](cfg/mempool-trader.json)
+[cfg/mempool-trader.json](../../cfg/mempool-trader.json)
  would start both oracle administration (http://localhost:9080/) and trader console (http://localhost:7080/).
 
 ## How to sign messages as oracle 
