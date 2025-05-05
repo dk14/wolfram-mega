@@ -139,7 +139,7 @@
         <hr>
         <h4>Sign and Broadcast</h4>
         <label for="tx">Tx:</label>
-        <input type="text" id="bob_in_txout" name="bob_in_txout" size="40" value=''>
+        <input type="text" id="unsigned_tx" name="bob_in_txout" size="40" value=''>
         <input id="sign_helios" type="button" value="Sign (Helios)">
         <input id="sign_btc" type="button" value="Sign (BTC)">
         <pre>signed tx: </pre><pre id="signed_tx"></pre>
@@ -149,6 +149,7 @@
 
 
     </body>
+    <script src="https://helios.hyperion-bt.org/0.16.7/helios.js" type="module" crossorigin></script>
     <script>
         fetch('./broadcastIssuedOffers')
         fetch('./broadcastIssuedReports')
@@ -384,6 +385,33 @@
 
         }
 
+
+        document.getElementById('sign_helios').onclick = async () => {
+            const handle = await window.cardano.eternl.enable()
+            const walletAPI = new Cip30Wallet(handle)
+            const walletHelper = new WalletHelper(walletAPI)
+            const changeAddr = await walletHelper.changeAddress
+            const txRaw = document.getElementById('unsigned_tx').value
+            const tx = Tx.fromCbor(txRaw)
+            const networkParams = new NetworkParams(
+                await fetch("https://d1t0d7c2nekuk0.cloudfront.net/preprod.json")
+                     .then(response => response.json())
+            )
+            await tx.finalize(networkParams, changeAddr)
+            const signatures = await walletAPI.signTx(tx)
+            tx.addSignatures(signatures)
+            document.getElementById('signed_tx').innerHTML = tx.toCborHex()
+            document.getElementById('signed_tx_id').innerHTML = tx.id().toCborHex()
+        }
+
+        document.getElementById('broadcast_helios').onclick = async () => {
+            const handle = await window.cardano.eternl.enable()
+            const walletAPI = new Cip30Wallet(handle)
+            const walletHelper = new WalletHelper(walletAPI)
+            const txRaw = document.getElementById('signed_tx').value
+            const tx = Tx.fromCbor(txRaw)
+            await walletAPI.submitTx(tx)
+        }
 
         setInterval(async () => {
             if (document.getElementById('update').checked) {
