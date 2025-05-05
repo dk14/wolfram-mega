@@ -1,5 +1,5 @@
 /* c8 ignore start */
-import {createVerify, generateKeyPairSync, createSign} from 'crypto'
+import {createVerify, generateKeyPairSync, createSign, sign, createPrivateKey, KeyObject} from 'crypto'
 import * as request from 'request'
 import * as fs from 'fs'
 import {hash} from './util'
@@ -27,8 +27,9 @@ export const createPemPk = (base64: string): string => {
     return '-----BEGIN EC PRIVATE KEY-----\n' + base64.replace(regexPem, '$&\n') + '\n-----END EC PRIVATE KEY-----\n'
 }
 
-export const createPemPkEd = (base64: string): string => {
-    return '-----BEGIN PRIVATE KEY-----\n' + base64.replace(regexPem, '$&\n') + '-----END PRIVATE KEY-----\n'
+export const createPemPkEd = (base64: string): KeyObject => {
+    const pem = '-----BEGIN PRIVATE KEY-----\n' + base64.replace(regexPem, '$&\n') + '-----END PRIVATE KEY-----\n'
+    return createPrivateKey({key: pem})
 }
 
 export const testOnlyGenerateKeyPair = (): KeyPair => {
@@ -52,7 +53,7 @@ export const testOnlySign = (msg: string, pk: string) => {
 }
 
 export const testOnlySignEd = (msg: string, pk: string) => {
-    return createSign('SHA256').update(msg).sign(createPemPkEd(pk), 'base64')
+    return sign(null, Buffer.from(msg), createPemPkEd(pk)).toString('base64')
 }
 
 //used for broadcast
