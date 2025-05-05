@@ -1,7 +1,7 @@
 import WebSocket, { createWebSocketStream } from 'ws';
 import * as readline from 'readline'
 import * as nd from '../../node'
-
+import * as fs from 'fs'
 
 interface SignerCfg {
     oraclePK: string
@@ -12,14 +12,20 @@ interface SignerCfg {
 
 (async () => {
 
-    console.log('Starting Oracle Auto-Signer...')
+    const path = process.argv[2] ?? "cfg/signer-test.json";
 
-    const cfg: SignerCfg = {
-        oraclePK: "",
-        capabilityPKs: {},
-        oracleWsPort: 1000,
-        oracleEndpointWsPort: 3000
+    const getcfg = (): SignerCfg => {
+        try {
+            return JSON.parse(fs.readFileSync(__dirname + '/' + path).toString())
+        } catch {
+            return JSON.parse(fs.readFileSync(path).toString())
+        }
+
     }
+
+    const cfg = getcfg()
+
+    console.log('Starting Oracle Auto-Signer...')
     
     const wsOracle = new WebSocket(`ws://localhost:${cfg.oracleWsPort}/signAd`)
     wsOracle.on('error', console.error)

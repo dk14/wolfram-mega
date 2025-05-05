@@ -1,0 +1,8 @@
+{
+    "oraclePK": "BKPAjkGBl1imrT1qddq8IZT/uZso1arZZD0obtBs1BqhVyROpiSVEqLN1SKshIscRc1XDfVdnU8utt43gI/ef7s=",
+    "capabilityPKs": {
+        "BKPAjkGBl1imrT1qddq8IZT/uZso1arZZD0obtBs1BqhVyROpiSVEqLN1SKshIscRc1XDfVdnU8utt43gI/ef7s=" : "UtQsBNuKgUOD19jXRQWMexNR6UN/IMErMshzaRQfkzk="
+    },
+    "oracleWsPort": 9081,
+    "oracleEndpointWsPort": 9590
+}

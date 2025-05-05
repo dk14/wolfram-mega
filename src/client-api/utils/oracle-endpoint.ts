@@ -4,6 +4,7 @@ import { OracleEndpointApi } from '../oracle-endpoint-api'
 import { OracleCapability, FactRequest, Commitment, Fact } from '../../node'
 import WebSocket, { WebSocketServer, createWebSocketStream } from 'ws';
 import * as readline from 'readline'
+import * as fs from 'fs'
 
 export interface LookUp {
     getFact: (fr: FactRequest) => Promise<string>
@@ -104,7 +105,6 @@ export const startHttp = (api: OracleEndpointApi, port: number, wsPort: number) 
 
     const wss = new WebSocketServer({ port: wsPort });
     
-
     wss.on('connection', function connection(ws, req) {
         ws.on('error', console.error);
 
@@ -120,21 +120,43 @@ export const startHttp = (api: OracleEndpointApi, port: number, wsPort: number) 
     })
 }
 
-
+interface EndpointCfg {
+    answers: {[pubkey: string]: string},
+    httpPort: number,
+    wsPort: number
+}
 
 if (require.main === module) {
+
+    const path = process.argv[2] ?? "cfg/endpoint-test.json";
+
+    const getcfg = (): EndpointCfg => {
+        try {
+            return JSON.parse(fs.readFileSync(__dirname + '/' + path).toString())
+        } catch {
+            return JSON.parse(fs.readFileSync(path).toString())
+        }
+
+    }
+
+    const cfg = getcfg()
+
     const lookup: LookUp = {
         getFact: async function (fr: FactRequest): Promise<string> {
-            return "001"
+            try {
+                return cfg.answers[fr.capabilityPubKey]
+            } catch {
+
+            }
+            return "YES"
         },
         checkCommitment: async function (c: FactRequest): Promise<boolean> {
             return true
         }
     }
     const api = endpointAPi(() => globalSigner, lookup)
-    const httpPort = 90999
-    const wsPort = 909997
 
-    console.log(`Starting Oracle Mocking Endpoint... HTTP=${httpPort}, WS=${wsPort}`)
+    console.log(`Starting Oracle Mocking Endpoint... HTTP=${cfg.httpPort}, WS=${cfg.wsPort}`)
+    startHttp(api, cfg.httpPort, cfg.wsPort)
     
 }

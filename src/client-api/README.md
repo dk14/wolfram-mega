@@ -18,4 +18,9 @@ After starting oracle administration service
 The best approach is to sign messages manually unless they only differ in `seqNo` field.
 
 ## Utils
-`utils\` folder contains examples of oracle endpoint and auto-signing services
+`utils/` folder contains examples of oracle endpoint and auto-signing services (configs are in `utils/cfg`):
+
+```
+npm run mock-oracle cfg/endpoint-test.json
+npm run auto-sign cfg/signer-test.json
+```
