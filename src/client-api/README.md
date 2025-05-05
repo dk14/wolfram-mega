@@ -24,3 +24,8 @@ The best approach is to sign messages manually unless they only differ in `seqNo
 npm run mock-oracle cfg/endpoint-test.json
 npm run auto-sign cfg/signer-test.json
 ```
+
+Run together for contract demo purposes:
+```
+npm run demo
+```
