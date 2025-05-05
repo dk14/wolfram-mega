@@ -267,7 +267,7 @@
 	            body: JSON.stringify(req),
 	            headers: {'Content-Type': 'application/json'}
             })).json()
-            document.getElementById('commitment').value = JSON.stringify(commitment)
+            document.getElementById('commitment').value = JSON.stringify(await commitment)
 
         }
 
@@ -436,12 +436,13 @@
                 if (endpoint === '') return
  
                 const commitment = document.getElementById('commitment').value
+                if (commitment === '') return
                 const fact = (await fetch(endpoint + '/requestFact', {
                     method: 'post',
                     body: commitment,
                     headers: {'Content-Type': 'application/json'}
                 })).json()
-                document.getElementById('fact').innerHTML = JSON.stringify(fact)
+                document.getElementById('fact').innerHTML = JSON.stringify(await fact)
             }
         }, 1000) 
 

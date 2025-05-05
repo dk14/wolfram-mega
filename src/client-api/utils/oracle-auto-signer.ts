@@ -49,12 +49,16 @@ interface SignerCfg {
     const rlCp = readline.createInterface(streamCp, streamCp)
 
     rlCp.on('line', (line) => {
-        console.log(line)
-        const cp: nd.OracleCapability = JSON.parse(line)
-        cp.oracleSignature = ""
-        cp.pow = undefined
-        cp.oracleSignature = nd.testOnlySign(JSON.stringify(cp), cfg.oraclePK)
-        streamCp.write(JSON.stringify(cp) + "\n")
+        try {
+            console.log(line)
+            const cp: nd.OracleCapability = JSON.parse(line)
+            cp.oracleSignature = ""
+            cp.pow = undefined
+            cp.oracleSignature = nd.testOnlySign(JSON.stringify(cp), cfg.oraclePK)
+            streamCp.write(JSON.stringify(cp) + "\n")
+        } catch (err) {
+            console.error(err)
+        }
 
     })
 
@@ -65,19 +69,24 @@ interface SignerCfg {
     const rlFact = readline.createInterface(streamFact, streamFact)
 
     rlFact.on('line', (line) => {
-        console.log(line)
-        const x: [nd.Commitment, string] = JSON.parse(line)
-        if (x[1] === '') {
-            const sig = (cfg.capabilityCrypto === 'ed') ? 
-                nd.testOnlySignEd(JSON.stringify(x[0]), cfg.capabilityPKs[x[0].req.capabilityPubKey])
-                : nd.testOnlySignEd(JSON.stringify(x[0]), cfg.capabilityPKs[x[0].req.capabilityPubKey])
-            streamFact.write(sig + "\n")
-        } else {
-            const sig = (cfg.capabilityCrypto === 'ed') ? 
-                nd.testOnlySignEd(x[1], cfg.capabilityPKs[x[0].req.capabilityPubKey])
-                : nd.testOnlySign(x[1], cfg.capabilityPKs[x[0].req.capabilityPubKey])
-            streamFact.write(sig + "\n")
-        }      
+        try {
+            console.log(line)
+            const x: [nd.Commitment, string] = JSON.parse(line)
+            if (x[1] === '') {
+                const sig = (cfg.capabilityCrypto === 'ed') ? 
+                    nd.testOnlySignEd(JSON.stringify(x[0]), cfg.capabilityPKs[x[0].req.capabilityPubKey])
+                    : nd.testOnlySignEd(JSON.stringify(x[0]), cfg.capabilityPKs[x[0].req.capabilityPubKey])
+                streamFact.write(sig + "\n")
+            } else {
+                const sig = (cfg.capabilityCrypto === 'ed') ? 
+                    nd.testOnlySignEd(x[1], cfg.capabilityPKs[x[0].req.capabilityPubKey])
+                    : nd.testOnlySign(x[1], cfg.capabilityPKs[x[0].req.capabilityPubKey])
+                streamFact.write(sig + "\n")
+            }   
+        } catch (err) {
+            console.error(err)
+        }
+           
     })
     
 })()

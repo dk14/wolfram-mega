@@ -28,7 +28,7 @@ export const createPemPk = (base64: string): string => {
 }
 
 export const createPemPkEd = (base64: string): string => {
-    return '-----BEGIN PRIVATE KEY-----\n' + base64.replace(regexPem, '$&\n') + '\n-----END PRIVATE KEY-----\n'
+    return '-----BEGIN PRIVATE KEY-----\n' + base64.replace(regexPem, '$&\n') + '-----END PRIVATE KEY-----\n'
 }
 
 export const testOnlyGenerateKeyPair = (): KeyPair => {

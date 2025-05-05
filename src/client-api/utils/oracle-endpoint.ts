@@ -17,7 +17,6 @@ type Signer = (msg: [Commitment, string]) => Promise<string>
 var globalSigner: Signer = null
 
 export const endpointAPi = (signerFactory: () => Signer, lookup: LookUp): OracleEndpointApi => {
-    const sign = signerFactory()
     const api: OracleEndpointApi = {
         requestNewCapability: async function (question: string): Promise<OracleCapability> {
             if (lookup.newCp) {
@@ -34,10 +33,12 @@ export const endpointAPi = (signerFactory: () => Signer, lookup: LookUp): Oracle
                 contract: lookup.genContract ? await lookup.genContract(req) : '',
                 oracleSig: ''
             }
+            const sign = signerFactory()
             commitment.oracleSig = await sign([commitment, ""])
             return commitment
         },
         requestFact: async function (req: Commitment): Promise<Fact> {
+            const sign = signerFactory()
             const factMsg = await lookup.getFact(req.req)
             const fact: Fact = {
                 factWithQuestion: factMsg,
@@ -128,7 +129,7 @@ export const startHttp = (api: OracleEndpointApi, port: number, wsPort: number) 
 
         globalSigner = (msg) => {  
             return new Promise(resolve => {
-                rl.question(JSON.stringify(msg) + "\n", a => resolve(JSON.parse(a)))
+                rl.question(JSON.stringify(msg) + "\n", a => resolve(a))
             })
         }    
 
@@ -159,7 +160,9 @@ if (require.main === module) {
     const lookup: LookUp = {
         getFact: async function (fr: FactRequest): Promise<string> {
             try {
-                return cfg.answers[fr.capabilityPubKey]
+                if (cfg.answers[fr.capabilityPubKey]) {
+                    return cfg.answers[fr.capabilityPubKey]
+                }
             } catch {
 
             }
