@@ -25,7 +25,8 @@ export interface OpeningInputs {
     bobInput: InputId,
     oraclePubKey: Base64,
     r: Redemption,
-    changeAddr: Bech32
+    changeAddr: Bech32,
+    txfee: number
 }
 
 export interface ClosingInputs {
@@ -36,7 +37,8 @@ export interface ClosingInputs {
     msg: Base64, 
     sig: Base64,
     r: Redemption,
-    changeAddr: Bech32
+    changeAddr: Bech32,
+    txfee: number
 }
 
 // https://github.com/lley154/helios-examples/blob/main/vesting/pages/index.tsx
@@ -44,8 +46,6 @@ export interface ClosingInputs {
 const stringToArray = (s: Base64): number[] => {
     return Array.from(Uint8Array.from(atob(s), c => c.charCodeAt(0)))
 }
-
-const maxTxFee: number = 7000000
 
 export const generateOpeningTransaction = async (inputs: OpeningInputs): Promise<CborHex> => {
     const tx = new Tx()
@@ -58,12 +58,12 @@ export const generateOpeningTransaction = async (inputs: OpeningInputs): Promise
     const utxo1 = new TxInput(TxOutputId.fromProps({
         txId: TxId.fromHex(inputs.aliceInput.txid), 
         utxoId: inputs.aliceInput.txout
-    }), new TxOutput(Address.fromBech32(inputs.aliceInput.addr), new Value(BigInt(inputs.aliceInput.amount + maxTxFee))))
+    }), new TxOutput(Address.fromBech32(inputs.aliceInput.addr), new Value(BigInt(inputs.aliceInput.amount))))
 
     const utxo2 = new TxInput(TxOutputId.fromProps({
         txId: TxId.fromHex(inputs.bobInput.txid), 
         utxoId: inputs.bobInput.txout
-    }), new TxOutput(Address.fromBech32(inputs.bobInput.addr), new Value(BigInt(inputs.bobInput.amount + maxTxFee))))
+    }), new TxOutput(Address.fromBech32(inputs.bobInput.addr), new Value(BigInt(inputs.bobInput.amount))))
 
     tx.addInputs([utxo1, utxo2])
 
@@ -77,7 +77,7 @@ export const generateOpeningTransaction = async (inputs: OpeningInputs): Promise
         new ByteArrayData(stringToArray(inputs.r.bobBetsOnMsg))
     ])
 
-    const collateral = inputs.aliceInput.amount + inputs.bobInput.amount
+    const collateral = inputs.aliceInput.amount + inputs.bobInput.amount - inputs.txfee
 
     const utxo3 = new TxOutput(
         Address.fromHash(uplc.validatorHash, true),
@@ -90,6 +90,7 @@ export const generateOpeningTransaction = async (inputs: OpeningInputs): Promise
         await fetch("https://d1t0d7c2nekuk0.cloudfront.net/preprod.json")
              .then(response => response.json())
     )
+    
     await tx.finalize(networkParams, Address.fromBech32(inputs.changeAddr))
     
     return tx.toCborHex()
@@ -117,14 +118,14 @@ export const generateClosingTransaction = async (inputs: ClosingInputs): Promise
     const collateral = new TxInput(TxOutputId.fromProps({
         txId: TxId.fromHex(inputs.input.txid), 
         utxoId: inputs.input.txout
-    }), new TxOutput(addr, new Value(BigInt(inputs.input.amount + maxTxFee)),  Datum.inline(datum)))
+    }), new TxOutput(addr, new Value(BigInt(inputs.input.amount)),  Datum.inline(datum)))
 
     const valRedeemer = new ConstrData(1, [
         new ByteArrayData(stringToArray(inputs.msg)),
         new ByteArrayData(stringToArray(inputs.sig))
     ])
     tx.addInput(collateral, valRedeemer)
-    const value = new Value(BigInt(inputs.input.amount))
+    const value = new Value(BigInt(inputs.input.amount - inputs.txfee))
 
     tx.attachScript(uplc)
 
@@ -142,6 +143,9 @@ export const generateClosingTransaction = async (inputs: ClosingInputs): Promise
         await fetch("https://d1t0d7c2nekuk0.cloudfront.net/preprod.json")
              .then(response => response.json())
     )
+
+    console.log(inputs)
+
     await tx.finalize(networkParams, Address.fromBech32(inputs.changeAddr))
 
     return tx.toCborHex()

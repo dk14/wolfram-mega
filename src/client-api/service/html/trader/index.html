@@ -114,7 +114,10 @@
 
 
         <label for="terms"><h5>Offer Terms:</h5></label>
-        <input type="text" id="terms" name="terms" size="80" value='{"question":{"capabilityPubKey":"MIGbMBAGByqGSM49AgEGBSuBBAAjA4GGAAQACueFRtmeL2wZF83Y5gDMjQFmcv2ovTjTQUfUbz5OEU3c3CVMLpxOFm/t/CoEA04qBXlROqY0BwmOF7R53ZodCd8ATqIqeEH1/bVZ66cO2IyS/UowYX/CfBMZEKbeMCn2LHJrfQEq29iXXtpZSecEZJBs1bDcT1zx8WGZ8tg8zbUxGGs=","arguments":{}},"partyBetsOn":["YES"],"counterPartyBetsOn":["NO"],"partyBetAmount":100,"counterpartyBetAmount":200}'>
+        <input type="text" id="terms" name="terms" size="80" value='{"question":{"capabilityPubKey":"MIGbMBAGByqGSM49AgEGBSuBBAAjA4GGAAQACueFRtmeL2wZF83Y5gDMjQFmcv2ovTjTQUfUbz5OEU3c3CVMLpxOFm/t/CoEA04qBXlROqY0BwmOF7R53ZodCd8ATqIqeEH1/bVZ66cO2IyS/UowYX/CfBMZEKbeMCn2LHJrfQEq29iXXtpZSecEZJBs1bDcT1zx8WGZ8tg8zbUxGGs=","arguments":{}},"partyBetsOn":["YES"],"counterPartyBetsOn":["NO"],"partyBetAmount":100000000,"counterpartyBetAmount":200000000}'>
+
+        <label for="txfee">TxFee:</label>
+        <input type="number" id="txfee" name="txfee" size="10" value='5000000'>
 
         <h5>tx-in ("txid # out"):</h5>
         <label for="alice_in_txout">Alice:</label>
@@ -272,6 +275,7 @@
             const walletAPI = new helios.Cip30Wallet(handle)
             const walletHelper = new helios.WalletHelper(walletAPI)
             const changeAddr = (await walletHelper.changeAddress).toBech32()
+            const txfee = parseInt(document.getElementById('txfee').value)
             //const utxos = await walletHelper.pickUtxos(minUTXOVal);
 
             const terms = JSON.parse(document.getElementById('terms').value)
@@ -316,7 +320,8 @@
                     bobRedemptionAddr: bob_addr_out,
                     bobBetsOnMsg: terms.counterPartyBetsOn
                 },
-                changeAddr
+                changeAddr,
+                txfee
             }
             const tx = await (await fetch('./generateOpeningTransaction', {
 	            method: 'post',
@@ -332,13 +337,13 @@
             const walletAPI = new helios.Cip30Wallet(handle)
             const walletHelper = new helios.WalletHelper(walletAPI)
             const changeAddr = (await walletHelper.changeAddress).toBech32()
+            const txfee = parseInt(document.getElementById('txfee').value)
 
             const terms = JSON.parse(document.getElementById('terms').value)
             const alice_txin = document.getElementById('alice_in_txout').value
             const bob_txin = document.getElementById('bob_in_txout').value
             const alice_addr_out = document.getElementById('alice_out_addr').value
             const bob_addr_out = document.getElementById('bob_out_addr').value
-            //TODO finalize opening tx
             const openingTxId = "a00fa40eb81720cf2bd58564d1625f8340d222eaa2fe4d87c26eca0793eb01dd" 
 
             const fact = (() => {
@@ -365,7 +370,7 @@
                 input: {
                     txid: openingTxId,
                     txout: 0,
-                    amount: terms.partyBetAmount + terms.counterpartyBetAmount,
+                    amount: terms.partyBetAmount + terms.counterpartyBetAmount - txfee,
                 }, 
                 aliceInput: {
                     txid: alice_txin.split(" # ")[0],
@@ -388,7 +393,8 @@
                     bobRedemptionAddr: bob_addr_out,
                     bobBetsOnMsg: terms.counterPartyBetsOn
                 },
-                changeAddr
+                changeAddr,
+                txfee
             }
             const tx = await (await fetch('./generateClosingTransaction', {
 	            method: 'post',
