@@ -25,7 +25,10 @@ export const createPemPub = (base64: string): string => {
 
 export const createPemPk = (base64: string): string => {
     return '-----BEGIN EC PRIVATE KEY-----\n' + base64.replace(regexPem, '$&\n') + '\n-----END EC PRIVATE KEY-----\n'
-    
+}
+
+export const createPemPkEd = (base64: string): string => {
+    return '-----BEGIN PRIVATE KEY-----\n' + base64.replace(regexPem, '$&\n') + '\n-----END PRIVATE KEY-----\n'
 }
 
 export const testOnlyGenerateKeyPair = (): KeyPair => {
@@ -36,8 +39,20 @@ export const testOnlyGenerateKeyPair = (): KeyPair => {
     }
 }
 
+export const testOnlyGenerateKeyPairEd = (): KeyPair => {
+    const { publicKey, privateKey } = generateKeyPairSync('ed25519');
+    return {
+        pub: publicKey.export({ type: 'spki', format: 'der' }).toString('base64'),
+        pk: privateKey.export({ type: 'pkcs8', format: 'der' }).toString('base64')
+    }
+}
+
 export const testOnlySign = (msg: string, pk: string) => {
     return createSign('SHA256').update(msg).sign(createPemPk(pk), 'base64')
+}
+
+export const testOnlySignEd = (msg: string, pk: string) => {
+    return createSign('SHA256').update(msg).sign(createPemPkEd(pk), 'base64')
 }
 
 //used for broadcast

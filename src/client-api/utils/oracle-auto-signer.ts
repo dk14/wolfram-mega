@@ -6,6 +6,7 @@ import * as fs from 'fs'
 interface SignerCfg {
     oraclePK: string
     capabilityPKs: {[pub: string]: string}
+    capabilityCrypto: string
     oracleWsPort: number
     oracleEndpointWsPort: number
 }
@@ -57,7 +58,7 @@ interface SignerCfg {
 
     })
 
-    const wsFact= new WebSocket(`ws://localhost:${cfg.oracleWsPort}/signCp`)
+    const wsFact= new WebSocket(`ws://localhost:${cfg.oracleEndpointWsPort}/`)
     await new Promise(resolve => wsFact.on('open', () => resolve(true)))
     const streamFact = createWebSocketStream(wsFact, { encoding: 'utf8' })
     streamFact.on('error', console.error);
@@ -67,10 +68,14 @@ interface SignerCfg {
         console.log(line)
         const x: [nd.Commitment, string] = JSON.parse(line)
         if (x[1] === '') {
-            const sig = nd.testOnlySign(JSON.stringify(x[0]), cfg.capabilityPKs[x[0].req.capabilityPubKey])
+            const sig = (cfg.capabilityCrypto === 'ed') ? 
+                nd.testOnlySignEd(JSON.stringify(x[0]), cfg.capabilityPKs[x[0].req.capabilityPubKey])
+                : nd.testOnlySignEd(JSON.stringify(x[0]), cfg.capabilityPKs[x[0].req.capabilityPubKey])
             streamFact.write(sig + "\n")
         } else {
-            const sig = nd.testOnlySign(x[1], cfg.capabilityPKs[x[0].req.capabilityPubKey])
+            const sig = (cfg.capabilityCrypto === 'ed') ? 
+                nd.testOnlySignEd(x[1], cfg.capabilityPKs[x[0].req.capabilityPubKey])
+                : nd.testOnlySign(x[1], cfg.capabilityPKs[x[0].req.capabilityPubKey])
             streamFact.write(sig + "\n")
         }      
     })

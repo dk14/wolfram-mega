@@ -209,7 +209,7 @@
             xhr.onreadystatechange = function() {
                 if (xhr.readyState == XMLHttpRequest.DONE) {
                     const capabilities = JSON.parse(xhr.responseText)
-                    capabilityTable.innerHTML = capabilities.map(x => x.question).join("<br>")
+                    capabilityTable.innerHTML = capabilities.map(x => x.question + " pub=" + x.capabilityPubKey).join("<br>")
                 }
             }
 

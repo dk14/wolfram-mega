@@ -83,7 +83,7 @@
         <pre>endpoint:</pre><pre id="endpoint"></pre>
         
         <label for="fact_req">Fact Request:</label>
-        <input type="text" id="fact_req" name="fact_req" size="40" value='{ "capabilityPubKey": "", "arguments": {} }'>
+        <input type="text" id="fact_req" name="fact_req" size="40" value='{ "capabilityPubKey": "MCowBQYDK2VwAyEAwyrSj1lRbfy9MHwp4CNYck02YuQTxCPuxPNmDFKD8Ps=", "arguments": {} }'>
         <input id="get_commitment" type="button" value="Request Commitment">
         <br><br>
         <label for="commitment">Commitment:</label>
@@ -114,7 +114,7 @@
 
 
         <label for="terms"><h5>Offer Terms:</h5></label>
-        <input type="text" id="terms" name="terms" size="80" value='{"question":{"capabilityPubKey":"MIGbMBAGByqGSM49AgEGBSuBBAAjA4GGAAQACueFRtmeL2wZF83Y5gDMjQFmcv2ovTjTQUfUbz5OEU3c3CVMLpxOFm/t/CoEA04qBXlROqY0BwmOF7R53ZodCd8ATqIqeEH1/bVZ66cO2IyS/UowYX/CfBMZEKbeMCn2LHJrfQEq29iXXtpZSecEZJBs1bDcT1zx8WGZ8tg8zbUxGGs=","arguments":{}},"partyBetsOn":["YES"],"counterPartyBetsOn":["NO"],"partyBetAmount":100000000,"counterpartyBetAmount":200000000}'>
+        <input type="text" id="terms" name="terms" size="80" value='{"question":{"capabilityPubKey":"MCowBQYDK2VwAyEAwyrSj1lRbfy9MHwp4CNYck02YuQTxCPuxPNmDFKD8Ps=","arguments":{}},"partyBetsOn":["YES"],"counterPartyBetsOn":["NO"],"partyBetAmount":100000000,"counterpartyBetAmount":200000000}'>
 
         <label for="txfee">TxFee:</label>
         <input type="number" id="txfee" name="txfee" size="10" value='5000000'>
@@ -263,6 +263,7 @@
             if (endpoint === '') return
             const commitment = (await fetch(endpoint + '/requestCommitment', {
 	            method: 'post',
+                mode: 'cors',
 	            body: JSON.stringify(req),
 	            headers: {'Content-Type': 'application/json'}
             })).json()

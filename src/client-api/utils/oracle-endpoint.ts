@@ -53,10 +53,25 @@ export const endpointAPi = (signerFactory: () => Signer, lookup: LookUp): Oracle
 export const startHttp = (api: OracleEndpointApi, port: number, wsPort: number) => {
     const server = http.createServer(async (req, res) => {
         res.statusCode = 200;
+        console.log('Request type: ' + req.method + ' Endpoint: ' + req.url);
 
         try {
             const reqUrl = url.parse(req.url!, true)
+
+            if (req.method === 'OPTIONS') {
+                // Handle OPTIONS request
+                res.writeHead(204, {
+                  'Access-Control-Allow-Origin': '*', // Adjust as needed for your use case
+                  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+                  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+                  'Access-Control-Max-Age': '86400', // Cache preflight response for 24 hours
+                });
+                res.end();
+                return
+            }
+            
             if (req.method === 'POST') {
+                res.setHeader('Access-Control-Allow-Origin', '*');
                 var body = ''
                 req.on('data',  function (chunk) {
                     body += chunk;

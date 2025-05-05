@@ -1,8 +1,9 @@
 {
-    "oraclePK": "BKPAjkGBl1imrT1qddq8IZT/uZso1arZZD0obtBs1BqhVyROpiSVEqLN1SKshIscRc1XDfVdnU8utt43gI/ef7s=",
+    "oraclePK": "MIHcAgEBBEIABi0SKKzdRhkoSx3s1ocSaBFTRA6Y3ZVm3+OXdcBKtzomLLtA8OHoyzx5VlBvfOCW20SFK73q+WoejX7lij2/cJOgBwYFK4EEACOhgYkDgYYABAAA1FZ+ITHIN/WAL2e/siiUhQa9NYPGYbvj7ogpklgYLenDRMhleJPSRodDHmk4QqS0m3WdYqNjyjlAuuyeaCPg5gB+9PaBJ046Vnh2lj5pF7u8ksgPKmPZZQI5X8LF+s0WuMlnt1gDWorpN08CWUah3YfqdZKlgkF/mpDKAWr5LB8icg==",
     "capabilityPKs": {
-        "BKPAjkGBl1imrT1qddq8IZT/uZso1arZZD0obtBs1BqhVyROpiSVEqLN1SKshIscRc1XDfVdnU8utt43gI/ef7s=" : "UtQsBNuKgUOD19jXRQWMexNR6UN/IMErMshzaRQfkzk="
+        "MCowBQYDK2VwAyEAwyrSj1lRbfy9MHwp4CNYck02YuQTxCPuxPNmDFKD8Ps=" : "MC4CAQAwBQYDK2VwBCIEID8D13A89zb2M6SWLoKoUQckuWNzZ0ycm1IZSmG11v0g"
     },
+    "capabilityCrypto": "ed",
     "oracleWsPort": 9081,
     "oracleEndpointWsPort": 9590
 }
