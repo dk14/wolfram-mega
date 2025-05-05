@@ -272,14 +272,15 @@
             const walletAPI = new helios.Cip30Wallet(handle)
             const walletHelper = new helios.WalletHelper(walletAPI)
             const changeAddr = (await walletHelper.changeAddress).toBech32()
+            //const utxos = await walletHelper.pickUtxos(minUTXOVal);
 
             const terms = JSON.parse(document.getElementById('terms').value)
             if (document.getElementById('alice_in_txout').value === "") {
-                document.getElementById('alice_in_txout').value = "a00fa40eb81720cf2bd58564d1625f8340d222eaa2fe4d87c26eca0793eb01dd # 0"
+                document.getElementById('alice_in_txout').value = "a90982f7c46ed960cae1e2d6ef3532ef55e987c4416a2483ac0a49cecabd6282 # 0"
             }
 
             if (document.getElementById('bob_in_txout').value === "") {
-                document.getElementById('bob_in_txout').value = "a00fa40eb81720cf2bd58564d1625f8340d222eaa2fe4d87c26eca0793eb01dd # 1"
+                document.getElementById('bob_in_txout').value = "a90982f7c46ed960cae1e2d6ef3532ef55e987c4416a2483ac0a49cecabd6282 # 1"
             }
 
             if (document.getElementById('alice_out_addr').value === "") {
@@ -322,7 +323,7 @@
 	            body: JSON.stringify(inputs),
 	            headers: {'Content-Type': 'application/json'}
             })).json()
-            document.getElementById('opening_tx').innerHTML = tx
+            document.getElementById('opening_tx').innerHTML = JSON.stringify(tx)
 
         }
 
@@ -394,7 +395,7 @@
 	            body: JSON.stringify(inputs),
 	            headers: {'Content-Type': 'application/json'}
             })).json()
-            document.getElementById('closing_tx').innerHTML = tx
+            document.getElementById('closing_tx').innerHTML = JSON.stringify(tx)
 
         }
 
