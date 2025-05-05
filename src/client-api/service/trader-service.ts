@@ -159,9 +159,9 @@ export const startTraderService = (cfg: MempoolConfig<PeerAddr>) => {
                         }
                         
                         if (reqUrl.pathname == '/generateOpeningTransaction') {
-                            res.end(JSON.stringify(generateOpeningTransaction(postBody)))
+                            res.end(JSON.stringify(await generateOpeningTransaction(postBody)))
                         } else if (reqUrl.pathname == '/generateClosingTransaction') {
-                            res.end(JSON.stringify(generateClosingTransaction(postBody)))
+                            res.end(JSON.stringify(await generateClosingTransaction(postBody)))
                         } else {
                             res.end("{}")
                         }

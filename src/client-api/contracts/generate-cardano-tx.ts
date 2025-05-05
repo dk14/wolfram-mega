@@ -1,4 +1,4 @@
-import { Address, ByteArrayData, ConstrData, Datum, ListData, Program, Tx, TxId, TxInput, TxOutput, TxOutputId, Value } from "@hyperionbt/helios"
+import { Address, ByteArrayData, ConstrData, Datum, ListData, NetworkParams, Program, Tx, TxId, TxInput, TxOutput, TxOutputId, Value } from "@hyperionbt/helios"
 import * as fs from 'fs'
 
 type Hex = string
@@ -24,7 +24,8 @@ export interface OpeningInputs {
     aliceInput: InputId, 
     bobInput: InputId,
     oraclePubKey: Base64,
-    r: Redemption
+    r: Redemption,
+    changeAddr: Bech32
 }
 
 export interface ClosingInputs {
@@ -34,7 +35,8 @@ export interface ClosingInputs {
     oraclePubKey: Base64,
     msg: Base64, 
     sig: Base64,
-    r: Redemption
+    r: Redemption,
+    changeAddr: Bech32
 }
 
 // https://github.com/lley154/helios-examples/blob/main/vesting/pages/index.tsx
@@ -43,7 +45,7 @@ const stringToArray = (s: Base64): number[] => {
     return Array.from(Uint8Array.from(atob(s), c => c.charCodeAt(0)))
 }
 
-export const generateOpeningTransaction = (inputs: OpeningInputs): CborHex => {
+export const generateOpeningTransaction = async (inputs: OpeningInputs): Promise<CborHex> => {
     const tx = new Tx()
     const src = fs.readFileSync(__dirname + "/plutus-option.hl").toString()
     const program = Program.new(src)
@@ -82,12 +84,17 @@ export const generateOpeningTransaction = (inputs: OpeningInputs): CborHex => {
     )
 
     tx.addOutput(utxo3)
+    const networkParams = new NetworkParams(
+        await fetch("https://d1t0d7c2nekuk0.cloudfront.net/preprod.json")
+             .then(response => response.json())
+    )
+    await tx.finalize(networkParams, Address.fromBech32(inputs.changeAddr))
     
     return tx.toCborHex()
 
 }
 
-export const generateClosingTransaction = (inputs: ClosingInputs): CborHex => {
+export const generateClosingTransaction = async (inputs: ClosingInputs): Promise<CborHex> => {
     const tx = new Tx()
     const src = fs.readFileSync(__dirname + "/plutus-option.hl").toString()
     const program = Program.new(src)
@@ -128,5 +135,12 @@ export const generateClosingTransaction = (inputs: ClosingInputs): CborHex => {
         const out = new TxOutput(addr, value)
         tx.addOutput(out)
     }
+
+    const networkParams = new NetworkParams(
+        await fetch("https://d1t0d7c2nekuk0.cloudfront.net/preprod.json")
+             .then(response => response.json())
+    )
+    await tx.finalize(networkParams, Address.fromBech32(inputs.changeAddr))
+
     return tx.toCborHex()
 }

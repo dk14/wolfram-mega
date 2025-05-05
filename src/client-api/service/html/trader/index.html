@@ -149,8 +149,9 @@
 
 
     </body>
-    <script src="https://helios.hyperion-bt.org/0.16.7/helios.js" type="module" crossorigin></script>
-    <script>
+    <script type="module">
+
+        import * as helios from "https://helios.hyperion-bt.org/0.16.7/helios.js"
         fetch('./broadcastIssuedOffers')
         fetch('./broadcastIssuedReports')
 
@@ -267,6 +268,11 @@
         }
 
         document.getElementById('opening_helios').onclick = async () => {
+            const handle = await window.cardano.eternl.enable()
+            const walletAPI = new helios.Cip30Wallet(handle)
+            const walletHelper = new helios.WalletHelper(walletAPI)
+            const changeAddr = (await walletHelper.changeAddress).toBech32()
+
             const terms = JSON.parse(document.getElementById('terms').value)
             if (document.getElementById('alice_in_txout').value === "") {
                 document.getElementById('alice_in_txout').value = "a00fa40eb81720cf2bd58564d1625f8340d222eaa2fe4d87c26eca0793eb01dd # 0"
@@ -308,7 +314,8 @@
                     aliceBetsOnMsg: terms.partyBetsOn,
                     bobRedemptionAddr: bob_addr_out,
                     bobBetsOnMsg: terms.counterPartyBetsOn
-                }
+                },
+                changeAddr
             }
             const tx = await (await fetch('./generateOpeningTransaction', {
 	            method: 'post',
@@ -320,6 +327,11 @@
         }
 
         document.getElementById('closing_helios').onclick = async () => {
+            const handle = await window.cardano.eternl.enable()
+            const walletAPI = new helios.Cip30Wallet(handle)
+            const walletHelper = new helios.WalletHelper(walletAPI)
+            const changeAddr = (await walletHelper.changeAddress).toBech32()
+
             const terms = JSON.parse(document.getElementById('terms').value)
             const alice_txin = document.getElementById('alice_in_txout').value
             const bob_txin = document.getElementById('bob_in_txout').value
@@ -374,7 +386,8 @@
                     aliceBetsOnMsg: terms.partyBetsOn,
                     bobRedemptionAddr: bob_addr_out,
                     bobBetsOnMsg: terms.counterPartyBetsOn
-                }
+                },
+                changeAddr
             }
             const tx = await (await fetch('./generateClosingTransaction', {
 	            method: 'post',
@@ -388,16 +401,10 @@
 
         document.getElementById('sign_helios').onclick = async () => {
             const handle = await window.cardano.eternl.enable()
-            const walletAPI = new Cip30Wallet(handle)
-            const walletHelper = new WalletHelper(walletAPI)
-            const changeAddr = await walletHelper.changeAddress
+            const walletAPI = new helios.Cip30Wallet(handle)
+            const walletHelper = new helios.WalletHelper(walletAPI)
             const txRaw = document.getElementById('unsigned_tx').value
-            const tx = Tx.fromCbor(txRaw)
-            const networkParams = new NetworkParams(
-                await fetch("https://d1t0d7c2nekuk0.cloudfront.net/preprod.json")
-                     .then(response => response.json())
-            )
-            await tx.finalize(networkParams, changeAddr)
+            const tx = helios.Tx.fromCbor(txRaw)
             const signatures = await walletAPI.signTx(tx)
             tx.addSignatures(signatures)
             document.getElementById('signed_tx').innerHTML = tx.toCborHex()
@@ -406,8 +413,8 @@
 
         document.getElementById('broadcast_helios').onclick = async () => {
             const handle = await window.cardano.eternl.enable()
-            const walletAPI = new Cip30Wallet(handle)
-            const walletHelper = new WalletHelper(walletAPI)
+            const walletAPI = new helios.Cip30Wallet(handle)
+            const walletHelper = new helios.WalletHelper(walletAPI)
             const txRaw = document.getElementById('signed_tx').value
             const tx = Tx.fromCbor(txRaw)
             await walletAPI.submitTx(tx)
