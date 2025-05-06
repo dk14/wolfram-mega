@@ -40,6 +40,8 @@ npm run peer cfg/mempool-trader.json
 - Oracle Administration: http://localhost:9080/
 - Trader Console: http://localhost:7080/
 
+[src/client-api](src/client-api)
+
 ## Install
 ```
 npm i https://github.com/dk14/wolfram-mega
