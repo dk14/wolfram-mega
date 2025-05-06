@@ -33,6 +33,8 @@ export interface ClosingInputs {
     input: InputId,
     aliceInput: InputId, 
     bobInput: InputId,
+    aliceCollateralInput: InputId, 
+    bobCollateralInput: InputId,
     oracleCpPubKey: Base64,
     msg: Base64, 
     sig: Base64,
@@ -144,11 +146,21 @@ export const generateClosingTransaction = async (inputs: ClosingInputs): Promise
         const addr = Address.fromBech32(inputs.r.aliceRedemptionAddr)
         const out = new TxOutput(addr, value)
         tx.addSigner(Address.fromBech32(inputs.r.aliceRedemptionAddr).pubKeyHash)
+        const collateralFee = new TxInput(TxOutputId.fromProps({
+            txId: TxId.fromHex(inputs.aliceCollateralInput.txid), 
+            utxoId: inputs.aliceCollateralInput.txout
+        }), new TxOutput(Address.fromBech32(inputs.aliceInput.addr), new Value(BigInt(inputs.aliceCollateralInput.amount))))
+        tx.addCollateral(collateralFee)
         tx.addOutput(out)
     } else if (inputs.msg === inputs.r.bobBetsOnMsg) {
         const addr = Address.fromBech32(inputs.r.bobRedemptionAddr)
         const out = new TxOutput(addr, value)
         tx.addSigner(Address.fromBech32(inputs.r.bobRedemptionAddr).pubKeyHash)
+        const collateralFee = new TxInput(TxOutputId.fromProps({
+            txId: TxId.fromHex(inputs.bobCollateralInput.txid), 
+            utxoId: inputs.bobCollateralInput.txout
+        }), new TxOutput(Address.fromBech32(inputs.bobInput.addr), new Value(BigInt(inputs.bobCollateralInput.amount))))
+        tx.addCollateral(collateralFee)
         tx.addOutput(out)
     }
 

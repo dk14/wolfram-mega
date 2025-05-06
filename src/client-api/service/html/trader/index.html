@@ -280,6 +280,7 @@
             //const utxos = await walletHelper.pickUtxos(minUTXOVal);
 
             const terms = JSON.parse(document.getElementById('terms').value)
+
             if (document.getElementById('alice_in_txout').value === "") {
                 document.getElementById('alice_in_txout').value = "a90982f7c46ed960cae1e2d6ef3532ef55e987c4416a2483ac0a49cecabd6282 # 0"
             }
@@ -374,8 +375,8 @@
                     amount: terms.partyBetAmount + terms.counterpartyBetAmount - txfee,
                 }, 
                 aliceInput: {
-                    txid: alice_txin.split(" # ")[0],
-                    txout: parseInt(alice_txin.split(" # ")[1]),
+                    txid: alice_txin.split(" # ")[0], 
+                    txout: parseInt(alice_txin.split(" # ")[1]), 
                     amount: terms.partyBetAmount,
                     addr: alice_addr_out
                 }, 
@@ -383,6 +384,18 @@
                     txid: bob_txin.split(" # ")[0],
                     txout: parseInt(bob_txin.split(" # ")[1]),
                     amount: terms.counterpartyBetAmount,
+                    addr: bob_addr_out
+                },
+                aliceCollateralInput: {
+                    txid: alice_txin.split(" # ")[0], //todo use collateral
+                    txout: parseInt(alice_txin.split(" # ")[1]), //todo use collateral
+                    amount: txfee,
+                    addr: alice_addr_out
+                }, 
+                bobCollateralInput: {
+                    txid: bob_txin.split(" # ")[0], //todo use collateral
+                    txout: parseInt(bob_txin.split(" # ")[1]), //todo use collateral
+                    amount: txfee,
                     addr: bob_addr_out
                 },
                 oracleCpPubKey: terms.question.capabilityPubKey,
