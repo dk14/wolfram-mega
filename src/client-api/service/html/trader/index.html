@@ -112,6 +112,21 @@
         <h2>Trade</h2>
 
         <pre>Note: requires Eternl browser plugin for Helios</pre>
+        <pre>Instructions: 
+    0) Prepare funds in webwallet: there should be several utxos available: 
+        Alice, Bob, Alice collateral fee (Helios), Bob collateral fee (Helios)
+        * send funds to yourself several times in order to create utxos
+        Faucet for Helios: https://docs.cardano.org/cardano-testnets/tools/faucet (PreProd testnet)
+        Faucet for BTC: https://bitcoinfaucet.uo1.net/
+    1a) Hit "Gen Opening Tx", it will autofill utxos from wallet if fields left empty
+    1b) Copy opening tx into Tx field ("Sign and Broadcast" subsection), hit "Sign", hit "Broadcast"
+    1c) Copy signed tx id into "Opening TxId" field
+
+    2) Hit "Request Commitment" ("Query Oracle" section) and wait for fact to arrive
+
+    3a) Hit "Gen Closing Tx"
+    3b) Copy closing tx into Tx field ("Sign and Broadcast" subsection), hit "Sign", hit "Broadcast" 
+        </pre>
 
         <label for="terms"><h5>Offer Terms:</h5></label>
         <input type="text" id="terms" name="terms" size="80" value='{"question":{"capabilityPubKey":"MCowBQYDK2VwAyEAwyrSj1lRbfy9MHwp4CNYck02YuQTxCPuxPNmDFKD8Ps=","arguments":{}},"partyBetsOn":["YES"],"counterPartyBetsOn":["NO"],"partyBetAmount":100000000,"counterpartyBetAmount":200000000}'>
@@ -347,6 +362,7 @@
 	            headers: {'Content-Type': 'application/json'}
             })).json()
             document.getElementById('opening_tx').innerHTML = JSON.stringify(tx)
+            document.getElementById('unsigned_tx').value = tx
             const txInstance = helios.Tx.fromCbor(tx)
             document.getElementById('otxid').value = txInstance.id().toCborHex().substring(4)
         }
@@ -373,7 +389,7 @@
             if (utxos.length >= 4) {
 
                 if (document.getElementById('alice_in_txout_col').value === "") {
-                    document.getElementById('alice_in_txout_col').value =utxos[2].outputId.txId.toCborHex().substring(4) + " # " + utxos[2].outputId.utxoIdx
+                    document.getElementById('alice_in_txout_col').value = utxos[2].outputId.txId.toCborHex().substring(4) + " # " + utxos[2].outputId.utxoIdx
                 }
 
                 if (document.getElementById('bob_in_txout_col').value === "") {
@@ -452,6 +468,7 @@
 	            headers: {'Content-Type': 'application/json'}
             })).json()
             document.getElementById('closing_tx').innerHTML = JSON.stringify(tx)
+            document.getElementById('unsigned_tx').value = tx
 
         }
 
@@ -465,7 +482,7 @@
             const signatures = await walletAPI.signTx(tx)
             tx.addSignatures(signatures)
             document.getElementById('signed_tx').innerHTML = tx.toCborHex()
-            document.getElementById('signed_tx_id').innerHTML = tx.id().toCborHex()
+            document.getElementById('signed_tx_id').innerHTML = tx.id().toCborHex().substring(4)
         }
 
         document.getElementById('broadcast_helios').onclick = async () => {
