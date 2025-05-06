@@ -314,12 +314,12 @@
                     amount: terms.counterpartyBetAmount,
                     addr: bob_addr_out
                 },
-                oraclePubKey: terms.question.capabilityPubKey,
+                oracleCpPubKey: terms.question.capabilityPubKey,
                 r: {
                     aliceRedemptionAddr: alice_addr_out,
-                    aliceBetsOnMsg: terms.partyBetsOn,
+                    aliceBetsOnMsg: terms.partyBetsOn[0],
                     bobRedemptionAddr: bob_addr_out,
-                    bobBetsOnMsg: terms.counterPartyBetsOn
+                    bobBetsOnMsg: terms.counterPartyBetsOn[0]
                 },
                 changeAddr,
                 txfee
@@ -385,14 +385,14 @@
                     amount: terms.counterpartyBetAmount,
                     addr: bob_addr_out
                 },
-                oraclePubKey: terms.question.capabilityPubKey,
+                oracleCpPubKey: terms.question.capabilityPubKey,
                 msg: fact.factWithQuestion,
                 sig: fact.signature,
                 r: {
                     aliceRedemptionAddr: alice_addr_out,
-                    aliceBetsOnMsg: terms.partyBetsOn,
+                    aliceBetsOnMsg: terms.partyBetsOn[0],
                     bobRedemptionAddr: bob_addr_out,
-                    bobBetsOnMsg: terms.counterPartyBetsOn
+                    bobBetsOnMsg: terms.counterPartyBetsOn[0]
                 },
                 changeAddr,
                 txfee

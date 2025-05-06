@@ -23,7 +23,7 @@ interface Redemption {
 export interface OpeningInputs {
     aliceInput: InputId, 
     bobInput: InputId,
-    oraclePubKey: Base64,
+    oracleCpPubKey: Base64,
     r: Redemption,
     changeAddr: Bech32,
     txfee: number
@@ -33,7 +33,7 @@ export interface ClosingInputs {
     input: InputId,
     aliceInput: InputId, 
     bobInput: InputId,
-    oraclePubKey: Base64,
+    oracleCpPubKey: Base64,
     msg: Base64, 
     sig: Base64,
     r: Redemption,
@@ -43,8 +43,17 @@ export interface ClosingInputs {
 
 // https://github.com/lley154/helios-examples/blob/main/vesting/pages/index.tsx
 
-const stringToArray = (s: Base64): number[] => {
-    return Array.from(Uint8Array.from(atob(s), c => c.charCodeAt(0)))
+const stringToArray = (s: string): number[] => {
+    console.log(s)
+    return s.split("").map(char => char.charCodeAt(0))
+}
+
+const extractRawPub = (pub: Base64): number[] => {
+    return Array.from(Buffer.from(pub, 'base64').subarray(44 - 32))
+}
+
+const extractRawSig = (sig: Base64): number[] => {
+    return Array.from(Buffer.from(sig, 'base64'))
 }
 
 export const generateOpeningTransaction = async (inputs: OpeningInputs): Promise<CborHex> => {
@@ -72,7 +81,7 @@ export const generateOpeningTransaction = async (inputs: OpeningInputs): Promise
 
     const datum = new ListData([new ByteArrayData(alicePkh.bytes),
         new ByteArrayData(BobPkh.bytes),
-        new ByteArrayData(stringToArray(inputs.oraclePubKey)),
+        new ByteArrayData(extractRawPub(inputs.oracleCpPubKey)),
         new ByteArrayData(stringToArray(inputs.r.aliceBetsOnMsg)),
         new ByteArrayData(stringToArray(inputs.r.bobBetsOnMsg))
     ])
@@ -110,7 +119,7 @@ export const generateClosingTransaction = async (inputs: ClosingInputs): Promise
 
     const datum = new ListData([new ByteArrayData(alicePkh.bytes),
         new ByteArrayData(BobPkh.bytes),
-        new ByteArrayData(stringToArray(inputs.oraclePubKey)),
+        new ByteArrayData(extractRawPub(inputs.oracleCpPubKey)),
         new ByteArrayData(stringToArray(inputs.r.aliceBetsOnMsg)),
         new ByteArrayData(stringToArray(inputs.r.bobBetsOnMsg))
     ])
@@ -120,10 +129,12 @@ export const generateClosingTransaction = async (inputs: ClosingInputs): Promise
         utxoId: inputs.input.txout
     }), new TxOutput(addr, new Value(BigInt(inputs.input.amount)),  Datum.inline(datum)))
 
-    const valRedeemer = new ConstrData(1, [
+    
+    const valRedeemer = new ListData([
         new ByteArrayData(stringToArray(inputs.msg)),
-        new ByteArrayData(stringToArray(inputs.sig))
+        new ByteArrayData(extractRawSig(inputs.sig))
     ])
+    
     tx.addInput(collateral, valRedeemer)
     const value = new Value(BigInt(inputs.input.amount - inputs.txfee))
 
@@ -132,10 +143,12 @@ export const generateClosingTransaction = async (inputs: ClosingInputs): Promise
     if (inputs.msg === inputs.r.aliceBetsOnMsg) {
         const addr = Address.fromBech32(inputs.r.aliceRedemptionAddr)
         const out = new TxOutput(addr, value)
+        tx.addSigner(Address.fromBech32(inputs.r.aliceRedemptionAddr).pubKeyHash)
         tx.addOutput(out)
     } else if (inputs.msg === inputs.r.bobBetsOnMsg) {
         const addr = Address.fromBech32(inputs.r.bobRedemptionAddr)
         const out = new TxOutput(addr, value)
+        tx.addSigner(Address.fromBech32(inputs.r.bobRedemptionAddr).pubKeyHash)
         tx.addOutput(out)
     }
 
@@ -143,8 +156,6 @@ export const generateClosingTransaction = async (inputs: ClosingInputs): Promise
         await fetch("https://d1t0d7c2nekuk0.cloudfront.net/preprod.json")
              .then(response => response.json())
     )
-
-    console.log(inputs)
 
     await tx.finalize(networkParams, Address.fromBech32(inputs.changeAddr))
 
