@@ -111,7 +111,7 @@
 
         <h2>Trade</h2>
 
-
+        <pre>Note: requires Eternl browser plugin for Helios</pre>
 
         <label for="terms"><h5>Offer Terms:</h5></label>
         <input type="text" id="terms" name="terms" size="80" value='{"question":{"capabilityPubKey":"MCowBQYDK2VwAyEAwyrSj1lRbfy9MHwp4CNYck02YuQTxCPuxPNmDFKD8Ps=","arguments":{}},"partyBetsOn":["YES"],"counterPartyBetsOn":["NO"],"partyBetAmount":100000000,"counterpartyBetAmount":200000000}'>
@@ -121,9 +121,10 @@
 
         <h5>tx-in ("txid # out"):</h5>
         <label for="alice_in_txout">Alice:</label>
-        <input type="text" id="alice_in_txout" name="alice_in_txout" size="20" value=''>
+        <input type="text" id="alice_in_txout" name="alice_in_txout" size="40" value=''>
+        <br><br>
         <label for="bob_in_txout">Bob:</label>
-        <input type="text" id="bob_in_txout" name="bob_in_txout" size="20" value=''>
+        <input type="text" id="bob_in_txout" name="bob_in_txout" size="40" value=''>
         <br><br>
         <label for="alice_in_txout_col">Alice Fee Collateral (Helios):</label>
         <input type="text" id="alice_in_txout_col" name="alice_in_txout_col" size="20" value=''>
@@ -139,6 +140,10 @@
         <input type="text" id="alice_out_addr" name="alice_out_addr" size="20" value=''>
         <label for="bob_out_addr">Bob:</label>
         <input type="text" id="bob_out_addr" name="bob_out_addr" size="20" value=''>
+
+        <br><br>
+        <label for="otxid">Opening TxId:</label>
+        <input type="text" id="otxid" name="otxid" size="40" value=''>
  
         <br><br>
         <input id="closing_helios" type="button" value="Gen Closing Tx (Helios)">
@@ -282,25 +287,30 @@
             const walletHelper = new helios.WalletHelper(walletAPI)
             const changeAddr = (await walletHelper.changeAddress).toBech32()
             const txfee = parseInt(document.getElementById('txfee').value)
-            //const utxos = await walletHelper.pickUtxos(minUTXOVal);
 
             const terms = JSON.parse(document.getElementById('terms').value)
+            const minUTXOVal = new helios.Value(BigInt(Math.max(terms.partyBetAmount, terms.counterpartyBetAmount) + txfee + txfee))
 
-            if (document.getElementById('alice_in_txout').value === "") {
-                document.getElementById('alice_in_txout').value = "a90982f7c46ed960cae1e2d6ef3532ef55e987c4416a2483ac0a49cecabd6282 # 0"
+            console.log(await walletHelper.pickUtxos(minUTXOVal))
+            const utxos = (await walletHelper.pickUtxos(minUTXOVal)).flat()
+
+            if (utxos.length >= 2) {
+                if (document.getElementById('alice_in_txout').value === "") {
+                    document.getElementById('alice_in_txout').value = utxos[0].outputId.txId.toCborHex().substring(4)  + " # " + utxos[0].outputId.utxoIdx
+                }
+
+                if (document.getElementById('bob_in_txout').value === "") {
+                    document.getElementById('bob_in_txout').value = utxos[1].outputId.txId.toCborHex().substring(4)  + " # " + utxos[1].outputId.utxoIdx
+                }
             }
-
-            if (document.getElementById('bob_in_txout').value === "") {
-                document.getElementById('bob_in_txout').value = "a90982f7c46ed960cae1e2d6ef3532ef55e987c4416a2483ac0a49cecabd6282 # 1"
-            }
-
+            
             if (document.getElementById('alice_out_addr').value === "") {
-                document.getElementById('alice_out_addr').value = "addr_test1vp8cprhse9pnnv7f4l3n6pj0afq2hjm6f7r2205dz0583egagfjah"
+                document.getElementById('alice_out_addr').value = changeAddr
             }
 
             if (document.getElementById('bob_out_addr').value === "") {
-                document.getElementById('bob_out_addr').value = "addr_test1vp8cprhse9pnnv7f4l3n6pj0afq2hjm6f7r2205dz0583egagfjah"
-            }
+                document.getElementById('bob_out_addr').value = changeAddr
+            }    
 
             const alice_txin = document.getElementById('alice_in_txout').value
             const bob_txin = document.getElementById('bob_in_txout').value
@@ -336,7 +346,8 @@
 	            headers: {'Content-Type': 'application/json'}
             })).json()
             document.getElementById('opening_tx').innerHTML = JSON.stringify(tx)
-
+            const txInstance = helios.Tx.fromCbor(tx)
+            document.getElementById('otxid').value = txInstance.id().toCborHex().substring(4)
         }
 
         document.getElementById('closing_helios').onclick = async () => {
@@ -346,19 +357,27 @@
             const changeAddr = (await walletHelper.changeAddress).toBech32()
             const txfee = parseInt(document.getElementById('txfee').value)
 
+            const openingTxId = document.getElementById('otxid').value
+
             const terms = JSON.parse(document.getElementById('terms').value)
+            const minUTXOVal = new helios.Value(BigInt(Math.max(terms.partyBetAmount, terms.counterpartyBetAmount) + txfee + txfee));
+
+            const utxos = (await walletHelper.pickUtxos(minUTXOVal)).flat()
+
             const alice_txin = document.getElementById('alice_in_txout').value
             const bob_txin = document.getElementById('bob_in_txout').value
             const alice_addr_out = document.getElementById('alice_out_addr').value
             const bob_addr_out = document.getElementById('bob_out_addr').value
-            const openingTxId = "a00fa40eb81720cf2bd58564d1625f8340d222eaa2fe4d87c26eca0793eb01dd" 
 
-            if (document.getElementById('alice_in_txout_col').value === "") {
-                document.getElementById('alice_in_txout_col').value = "a90982f7c46ed960cae1e2d6ef3532ef55e987c4416a2483ac0a49cecabd6282 # 0"
-            }
+            if (utxos.length >= 4) {
 
-            if (document.getElementById('bob_in_txout_col').value === "") {
-                document.getElementById('bob_in_txout_col').value = "a90982f7c46ed960cae1e2d6ef3532ef55e987c4416a2483ac0a49cecabd6282 # 1"
+                if (document.getElementById('alice_in_txout_col').value === "") {
+                    document.getElementById('alice_in_txout_col').value =utxos[2].outputId.txId.toCborHex().substring(4) + " # " + utxos[2].outputId.utxoIdx
+                }
+
+                if (document.getElementById('bob_in_txout_col').value === "") {
+                    document.getElementById('bob_in_txout_col').value = utxos[3].outputId.txId.toCborHex().substring(4)  + " # " + utxos[3].outputId.utxoIdx
+                }
             }
 
             const alice_txin_col = document.getElementById('alice_in_txout_col').value
