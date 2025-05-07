@@ -34,6 +34,7 @@ export const endpointAPi = (signerFactory: () => Signer, lookup: LookUp): Oracle
                 oracleSig: ''
             }
             const sign = signerFactory()
+            commitment.rValueSchnorrHex = await sign([commitment, "!RVALUE"])
             commitment.oracleSig = await sign([commitment, ""])
             return commitment
         },

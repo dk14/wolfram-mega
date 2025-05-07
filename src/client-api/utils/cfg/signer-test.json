@@ -3,7 +3,9 @@
     "capabilityPKs": {
         "MCowBQYDK2VwAyEAwyrSj1lRbfy9MHwp4CNYck02YuQTxCPuxPNmDFKD8Ps=" : "MC4CAQAwBQYDK2VwBCIEID8D13A89zb2M6SWLoKoUQckuWNzZ0ycm1IZSmG11v0g"
     },
-    "capabilityCrypto": "ed",
+    "crypto" : {
+        "MCowBQYDK2VwAyEAwyrSj1lRbfy9MHwp4CNYck02YuQTxCPuxPNmDFKD8Ps=" : "ed"
+    },
     "oracleWsPort": 9081,
     "oracleEndpointWsPort": 9590
 }
