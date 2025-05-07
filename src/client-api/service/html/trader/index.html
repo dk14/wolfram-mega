@@ -532,7 +532,7 @@
                 const txHash = await walletAPI.submitTx(tx)
                 document.getElementById('final_tx_id').innerHTML = txHash.hex
             } catch (err) {
-                document.getElementById('final_tx_id').innerHTML = "If you got cost model hash mismatch integrity check error, try to switch between preview/preprod https://www.hyperion-bt.org/helios-book/api/building/finalizing.html \n" + err
+                document.getElementById('final_tx_id').innerHTML = "If you got cost model hash mismatch integrity check error, try to switch between preview/preprod (use `heliosNetwork` param in cfg) https://www.hyperion-bt.org/helios-book/api/building/finalizing.html \n If you got balance error, create larger UTXOs by sending coins to yourself! \n" + err
             }
             
         }

@@ -36,6 +36,7 @@
         "maxOffersPages": 2,
         "maxCollectors": 2,
         "dbPath": "./db",
-        "httpPort": 7080
+        "httpPort": 7080,
+        "heliosNetwork": "https://d1t0d7c2nekuk0.cloudfront.net/preprod.json"
     }
 }

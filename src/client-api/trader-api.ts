@@ -77,7 +77,8 @@ export interface TraderCfg {
     maxCollectors: number,
     dbPath: string,
     httpPort: number,
-    autoUpgradePowLimit?: number
+    autoUpgradePowLimit?: number,
+    heliosNetwork?: string
 }
 
 export function traderApi<OracleQuery, CpQuery, RpQuery, MatchingQuery, MegaPeerT>(

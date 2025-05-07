@@ -159,9 +159,9 @@ export const startTraderService = (cfg: MempoolConfig<PeerAddr>) => {
                         }
                         
                         if (reqUrl.pathname == '/generateOpeningTransaction') {
-                            res.end(JSON.stringify(await generateOpeningTransaction(postBody)))
+                            res.end(JSON.stringify(await generateOpeningTransaction(cfg.trader.heliosNetwork ?? "https://d1t0d7c2nekuk0.cloudfront.net/preprod.json", postBody)))
                         } else if (reqUrl.pathname == '/generateClosingTransaction') {
-                            res.end(JSON.stringify(await generateClosingTransaction(postBody)))
+                            res.end(JSON.stringify(await generateClosingTransaction(cfg.trader.heliosNetwork ?? "https://d1t0d7c2nekuk0.cloudfront.net/preprod.json", postBody)))
                         } else {
                             res.end("{}")
                         }

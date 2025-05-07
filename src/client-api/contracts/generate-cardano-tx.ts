@@ -60,7 +60,7 @@ const extractRawSig = (sig: Base64): number[] => {
     return Array.from(Buffer.from(sig, 'base64'))
 }
 
-export const generateOpeningTransaction = async (inputs: OpeningInputs): Promise<CborHex> => {
+export const generateOpeningTransaction = async (network: string, inputs: OpeningInputs): Promise<CborHex> => {
     const tx = new Tx()
     const src = fs.readFileSync(__dirname + "/plutus-option.hl").toString()
     const program = Program.new(src)
@@ -117,7 +117,7 @@ export const generateOpeningTransaction = async (inputs: OpeningInputs): Promise
     }
 
     const networkParams = new NetworkParams(
-        await fetch("https://d1t0d7c2nekuk0.cloudfront.net/preprod.json")
+        await fetch(network)
              .then(response => response.json())
     )
     
@@ -127,7 +127,7 @@ export const generateOpeningTransaction = async (inputs: OpeningInputs): Promise
 
 }
 
-export const generateClosingTransaction = async (inputs: ClosingInputs): Promise<CborHex> => {
+export const generateClosingTransaction = async (network: string, inputs: ClosingInputs): Promise<CborHex> => {
     const tx = new Tx()
     const src = fs.readFileSync(__dirname + "/plutus-option.hl").toString()
     const program = Program.new(src)
@@ -187,7 +187,7 @@ export const generateClosingTransaction = async (inputs: ClosingInputs): Promise
     }
 
     const networkParams = new NetworkParams(
-        await fetch("https://d1t0d7c2nekuk0.cloudfront.net/preprod.json")
+        await fetch(network)
              .then(response => response.json())
     )
 
