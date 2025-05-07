@@ -10,7 +10,7 @@ const G = curve.G;
 const n = curve.n;
 
 export interface SchnorrApi {
-    getPk: (privHex: string) => string
+    getPub: (privHex: string) => string
     genNonce: (oraclePrivHex: string, questionHex: string, auxHex: string) => string
     signatureSValue: (privHex: string, nonce: string, msgHex: string) => string
     hashString: (str: string) => string
@@ -20,7 +20,7 @@ export interface SchnorrApi {
 
 export const schnorrApi: () => SchnorrApi = () => {
     return {
-        getPk: (privHex: string): string => {
+        getPub: (privHex: string): string => {
             return G.multiply(BigInteger.fromHex(privHex)).affineX.toString(16)
         },
         adaptorPublic: (oraclePbHex: string, msgHex: string, rHex: string): string => {
