@@ -26,7 +26,9 @@ export interface OpeningInputs {
     oracleCpPubKey: Base64,
     r: Redemption,
     changeAddr: Bech32,
-    txfee: number
+    txfee: number,
+    aliceActualAmount: string,
+    bobActualAmount: string
 }
 
 export interface ClosingInputs {
@@ -65,16 +67,15 @@ export const generateOpeningTransaction = async (inputs: OpeningInputs): Promise
 
     const uplc = program.compile(false)
 
-    
     const utxo1 = new TxInput(TxOutputId.fromProps({
         txId: TxId.fromHex(inputs.aliceInput.txid), 
         utxoId: inputs.aliceInput.txout
-    }), new TxOutput(Address.fromBech32(inputs.aliceInput.addr), new Value(BigInt(inputs.aliceInput.amount))))
+    }), new TxOutput(Address.fromBech32(inputs.aliceInput.addr), new Value(BigInt(inputs.aliceActualAmount))))
 
     const utxo2 = new TxInput(TxOutputId.fromProps({
         txId: TxId.fromHex(inputs.bobInput.txid), 
         utxoId: inputs.bobInput.txout
-    }), new TxOutput(Address.fromBech32(inputs.bobInput.addr), new Value(BigInt(inputs.bobInput.amount))))
+    }), new TxOutput(Address.fromBech32(inputs.bobInput.addr), new Value(BigInt(inputs.bobActualAmount))))
 
     tx.addInputs([utxo1, utxo2])
 
@@ -97,6 +98,24 @@ export const generateOpeningTransaction = async (inputs: OpeningInputs): Promise
     )
 
     tx.addOutput(utxo3)
+
+    console.log("opening script hash = " + uplc.validatorHash.hex + "\n" + datum.toCborHex())
+
+
+    if (BigInt(inputs.aliceInput.amount) < BigInt(inputs.aliceActualAmount)) {
+        tx.addOutput(
+            new TxOutput(
+                Address.fromBech32(inputs.r.aliceRedemptionAddr), 
+                new Value(BigInt(inputs.aliceActualAmount) - BigInt(inputs.aliceInput.amount))))
+    }
+
+    if (BigInt(inputs.bobInput.amount) < BigInt(inputs.bobActualAmount)) {
+        tx.addOutput(
+            new TxOutput(
+                Address.fromBech32(inputs.r.bobRedemptionAddr), 
+                new Value(BigInt(inputs.bobActualAmount) - BigInt(inputs.bobInput.amount))))
+    }
+
     const networkParams = new NetworkParams(
         await fetch("https://d1t0d7c2nekuk0.cloudfront.net/preprod.json")
              .then(response => response.json())
@@ -125,6 +144,9 @@ export const generateClosingTransaction = async (inputs: ClosingInputs): Promise
         new ByteArrayData(stringToArray(inputs.r.aliceBetsOnMsg)),
         new ByteArrayData(stringToArray(inputs.r.bobBetsOnMsg))
     ])
+
+    console.log("closing script hash = " + uplc.validatorHash.hex + "\n" + datum.toCborHex())
+
 
     const collateral = new TxInput(TxOutputId.fromProps({
         txId: TxId.fromHex(inputs.input.txid), 
