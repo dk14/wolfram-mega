@@ -63,7 +63,7 @@ interface SignerCfg {
 
     })
 
-    const wsFact= new WebSocket(`ws://localhost:${cfg.oracleEndpointWsPort}/`)
+    const wsFact = new WebSocket(`ws://localhost:${cfg.oracleEndpointWsPort}/`)
     await new Promise(resolve => wsFact.on('open', () => resolve(true)))
     const streamFact = createWebSocketStream(wsFact, { encoding: 'utf8' })
     streamFact.on('error', console.error);
