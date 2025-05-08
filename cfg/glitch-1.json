@@ -8,5 +8,7 @@
     "p2pPort": 3000,
     "isTest": true,
     "hostname": "localhost",
+    "hostnamePublic": "button-fair-mass.glitch.me",
+    "p2pPortPublic": 80,
     "p2pseed": []
 }

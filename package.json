@@ -10,7 +10,7 @@
   "scripts": {
     "test": "c8 npx tsx test/test.ts",
     "it": "npx tsx test/integration.ts",
-    "start": "npx tsx app.ts cfg/glitch.json",
+    "start": "npx tsx app.ts cfg/glitch-1.json",
     "peer": "npx tsx app.ts",
     "mock-oracle": "npx tsx src/client-api/utils/oracle-endpoint.ts",
     "auto-signer": "npx tsx src/client-api/utils/oracle-auto-signer.ts",

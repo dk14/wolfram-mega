@@ -28,5 +28,7 @@ export interface MempoolConfig<PeerAddrT> {
     p2pKeepAlive?: number
     ttlThreshold?: number
     peerAnnouncementQuota?: number
+    p2pPortPublic?: number
+    hostnamePublic?: string
 
 }

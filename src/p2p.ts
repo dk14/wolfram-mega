@@ -40,7 +40,7 @@ export const startP2P = (cfg: MempoolConfig<PeerAddr>) => {
         console.log("I'm connected! " + p.addr.server + ":" + p.addr.port);
 
         if (cfg.hostname !== undefined) {
-            broadcastPeer({server: cfg.hostname, port: cfg.p2pPort, seqNo: cfg.hostSeqNo ?? 0}, true)
+            broadcastPeer({server: cfg.hostnamePublic ?? cfg.hostname, port: cfg.p2pPortPublic ?? cfg.p2pPort, seqNo: cfg.hostSeqNo ?? 0}, true)
         }
 
         peers.forEach(peer => {
@@ -285,7 +285,7 @@ export const startP2P = (cfg: MempoolConfig<PeerAddr>) => {
         var seqNo = 0
         setInterval(() => {
             seqNo++
-            broadcastPeer({server: cfg.hostname, port: cfg.p2pPort, seqNo: (cfg.hostSeqNo ?? 0) + seqNo, httpPort: cfg.httpPort}, true)
+            broadcastPeer({server: cfg.hostnamePublic ?? cfg.hostname, port: cfg.p2pPortPublic ?? cfg.p2pPort, seqNo: (cfg.hostSeqNo ?? 0) + seqNo, httpPort: cfg.httpPort}, true)
         }, (cfg.p2pKeepAlive ?? 100000))
     }
     
