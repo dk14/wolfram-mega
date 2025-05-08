@@ -89,6 +89,7 @@ export const startP2P = (cfg: MempoolConfig<PeerAddr>) => {
         if (!skipDuplicateCheck && checkDuplicatePeer(peer)) {
             return
         }
+        discovered(peer)
         console.log("Discovered: " + peer.server + ":" + peer.port);
         console.log(peers.map(p => p.addr))
         peers.forEach(p => {
