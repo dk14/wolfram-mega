@@ -8,7 +8,7 @@
     "p2pPort": 3000,
     "isTest": true,
     "hostname": "localhost",
-    "hostnamePublic": "jeweled-plain-animantarx",
+    "hostnamePublic": "jeweled-plain-animantarx.glitch.me",
     "p2pPortPublic": 80,
     "p2pseed": [{"server": "button-fair-mass.glitch.me", "port" : 80}]
 }
