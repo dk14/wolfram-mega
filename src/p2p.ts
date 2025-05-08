@@ -58,6 +58,7 @@ export const startP2P = (cfg: MempoolConfig<PeerAddr>) => {
     const peers: Neighbor[] = []
 
     const ondisconnect = (ev) => {
+        console.log("Disconnected: " + ev.peer.server + ":" + ev.peer.port)
         connections--
         const index = peers.findIndex((x => ev.peer.server === x.peer.server && ev.peer.port === x.peer.port))
         if (index > -1) {
