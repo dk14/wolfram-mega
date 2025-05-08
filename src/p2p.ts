@@ -66,7 +66,10 @@ export const startP2P = (cfg: MempoolConfig<PeerAddr>) => {
         }
     }
     
-    cfg.p2pseed.forEach(x => discovered(x))
+    setInterval(() => {
+        cfg.p2pseed.forEach(x => discovered(x))
+    }, 5000)
+    
 
     function checkDuplicatePeer(addr: PeerAddr): boolean {
         const found = peers.findIndex(x => addr.server === x.addr.server && addr.port === x.addr.port)
