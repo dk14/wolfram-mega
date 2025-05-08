@@ -8,8 +8,10 @@ import { Collector, TraderApi, traderApi } from "../trader-api";
 import { traderStorage, TraderQuery} from "../client-storage/trader-storage";
 import * as fs from 'fs'
 import { generateClosingTransaction, generateOpeningTransaction } from "../contracts/generate-cardano-tx";
+import { WebSocketServer, createWebSocketStream } from "ws";
 
 export const startTraderService = (cfg: MempoolConfig<PeerAddr>) => {
+    global.cfg = cfg
     const storage = traderStorage(cfg.trader.dbPath, 1)
 
     const api: TraderApi<TraderQuery<OracleId>, TraderQuery<OracleCapability>> = traderApi(cfg.trader, cfg, ndapi, storage)
@@ -183,6 +185,4 @@ export const startTraderService = (cfg: MempoolConfig<PeerAddr>) => {
         }
     }).listen(cfg.trader.httpPort)
 
-    
-    
 }

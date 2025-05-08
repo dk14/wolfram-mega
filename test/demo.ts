@@ -19,6 +19,7 @@ import waitOn from 'wait-on'
     await waitFor([ 'tcp:localhost:' + 9590])
     const signer = spawn("npm", ["run", "auto-signer", "cfg/signer-test.json"]);
 
+    const btcSigner = spawn("npm", ["run", "btc-signer", "cfg/btc-signer-test.json"]);
 
     
     const cleanUp = async () => {
@@ -26,6 +27,7 @@ import waitOn from 'wait-on'
         peer.kill(9)
         endpoint.kill(9)
         signer.kill(9)
+        btcSigner.kill(9)
     }
     
     process.on('uncaughtException', async function (err) {
@@ -56,6 +58,13 @@ import waitOn from 'wait-on'
     });
     signer.stdout.on('data', async function(data){
         console.log("[SIGNER]" + data);
+    });
+
+    btcSigner.stderr.on('data', async function(data){
+        console.log("[BTC-SIGNER-ERROR]" + data);
+    });
+    btcSigner.stdout.on('data', async function(data){
+        console.log("[BTC-SIGNER]" + data);
     });
 
 })()

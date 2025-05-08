@@ -1,38 +1,33 @@
 import { schnorrApi } from "./btc/schnorr";
 import { txApi } from "./btc/tx";
 
+(async () => {
+
 const schnorr = schnorrApi()
 const tx = txApi(schnorr)
 
-const aliceSecret = ""
-const bobSecret = ""
-
-const alicePub = schnorr.getPub(aliceSecret)
-const bobPub = schnorr.getPub(bobSecret)
+const alicePub = ""
+const bobPub = ""
 
 const question = "??"
 
 let aliceIn = {
     "txid": "aliceTxId",
-    "vout": 0,
-    "secrets": [aliceSecret]
+    "vout": 0
 }
 
 let bobIn = {
     "txid": "bobTxId",
-    "vout": 0,
-    "secrets": [bobSecret]
+    "vout": 0
 }
-
 
 const aliceAmountIn = 10000
 const bobAmountIn = 20000
-const openingTx = tx.genOpeningTx(aliceIn, bobIn, alicePub, bobPub, aliceAmountIn, bobAmountIn)
+const openingTx = await tx.genOpeningTx(aliceIn, bobIn, alicePub, bobPub, aliceAmountIn, bobAmountIn)
 
 const multiIn = {
     "txid": openingTx.txid,
-    "vout": 0,
-    "secrets": [aliceSecret, bobSecret]
+    "vout": 0
 }
 
 const closingTx = tx.genClosingTx(multiIn, alicePub, bobPub, aliceAmountIn, bobAmountIn)
@@ -51,14 +46,16 @@ const rValue = schnorr.getPub(kValue)
 const answer = "NO"
 const twistedPk = schnorr.adaptorPublic(oraclePub, answer, rValue).padStart(64, "0")
 
-const cetTx = tx.genAliceCet(multiIn, alicePub, bobPub, twistedPk, aliceAmountIn, bobAmountIn)
+const cetTx = await tx.genAliceCet(multiIn, alicePub, bobPub, twistedPk, aliceAmountIn, bobAmountIn)
 
 //redeem CET
 
 const oracleSignature = schnorr.signatureSValue(oracleSecret, kValue, answer).padStart(64, "0")
 let redemptionIn = {
     "txid": cetTx.txid,
-    "vout": 0,
-    "secrets": [aliceSecret]
+    "vout": 0
 }
-const redemptionTx = tx.genAliceCetRedemption(redemptionIn, twistedPk, alicePub, oracleSignature, aliceAmountIn)
+const redemptionTx = await tx.genAliceCetRedemption(redemptionIn, twistedPk, alicePub, oracleSignature, aliceAmountIn)
+
+
+})()
