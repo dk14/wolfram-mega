@@ -1,0 +1,14 @@
+{
+    "maxOracles": 100,
+    "maxCapabilities": 100,
+    "maxReports": 100,
+    "maxConnections": 100,
+    "maxOffers": 100,
+    "httpPort": 80,
+    "p2pPort": 8082,
+    "hostname": "localhost",
+    "isTest": true,
+    "p2pseed": [
+        {"server": "wolfram-mega-1.onrender.com", "port" : 80}
+    ]
+}
