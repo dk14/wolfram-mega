@@ -103,7 +103,7 @@ export const startP2P = (cfg: MempoolConfig<PeerAddr>) => {
 
     function discovered(addr: PeerAddr, socket?: Socket): void {
         if (checkDuplicatePeer(addr)) {
-            console.log("ignore duplicate" + addr)
+            console.log("ignore duplicate:" + addr.server + ":" + addr.port)
             return
         }
         if (connections > cfg.maxConnections) {
