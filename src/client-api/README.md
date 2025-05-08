@@ -5,7 +5,7 @@
 - client-storage has reference implementation for client-side storages
 - service implements trader console and oracle admin on top of respective client APIs
 
-Note: client APIs should NOT be exposed to public network!
+Note: client APIs should NOT be exposed to public network! The system should run in something like `virsh` (VM) ideally.
 
 ## How to use
 
