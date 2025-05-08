@@ -7,5 +7,6 @@
     "httpPort": 8080,
     "p2pPort": 3000,
     "isTest": true,
+    "hostname": "localhost",
     "p2pseed": []
 }
