@@ -1,6 +1,7 @@
 /* c8 ignore start */
 import {createVerify, generateKeyPairSync, createSign, sign, createPrivateKey, KeyObject} from 'crypto'
-import * as request from 'request'
+import fetch from 'node-fetch'
+import https from 'https'
 import * as fs from 'fs'
 import {hash} from './util'
 import Enforcer from 'openapi-enforcer'
@@ -369,28 +370,26 @@ const validateBid = async (cfg: MempoolConfig<any>, bid: Bid): Promise<boolean> 
         return false
     }
     if (bid.paymentType === undefined || bid.paymentType === "lightning") {
-        let options = {
-            url: 'https://' + cfg.lnRestHost + '/v1/invoice/' + bid.proof,
-            rejectUnauthorized: false,
-            json: true,
-            headers: {
-              'Grpc-Metadata-macaroon': fs.readFileSync(cfg.lnMacaroonPath).toString('hex'),
-            },
-          }
+        try {
+            const headers = new Headers()
+            headers['Grpc-Metadata-macaroon'] = fs.readFileSync(cfg.lnMacaroonPath).toString('hex')
 
-        return new Promise<boolean>(function (resolve, reject) {
-            request.get(options, function(error, response, body) {
-                if (!error && response.statusCode === 200) {
-                    if (body.payment_addr === cfg.facilitatorId?.rewardAddress && body.amt_paid_msat === bid.amount && body.state === "SETTLED") {
-                        resolve(true)
-                    } else {
-                        resolve(false)
-                    }
-                } else {
-                    reject(error);
-                }
+            const httpsAgent = new https.Agent({
+                rejectUnauthorized: false
             })
-        })
+            
+            const body: any = await (await fetch(
+                'https://' + cfg.lnRestHost + '/v1/invoice/' + bid.proof,
+                {
+                    headers,
+                    agent: httpsAgent,
+                }
+            )).json()
+            return body.payment_addr === cfg.facilitatorId?.rewardAddress && body.amt_paid_msat === bid.amount && body.state === "SETTLED"
+        } catch (err) {
+            console.log(err)
+            return false
+        }
     }
     return false
     /* c8 ignore end */
