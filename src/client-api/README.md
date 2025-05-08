@@ -5,6 +5,8 @@
 - client-storage has reference implementation for client-side storages
 - service implements trader console and oracle admin on top of respective client APIs
 
+Note: client APIs should NOT be exposed to public network!
+
 ## How to use
 
 Example configuration:
