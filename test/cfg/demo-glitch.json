@@ -1,6 +1,0 @@
-{
-    "mempoolCfg": "cfg/mempool-trader-glitch.json",
-    "mockOracleCfg": "cfg/endpoint-test.json",
-    "signerCfg": "cfg/signer-test.json",
-    "btcSignerCfg" : "cfg/btc-signer-test.json"
- }
