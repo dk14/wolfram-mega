@@ -3,12 +3,18 @@ import { api as ndapi, Api, OracleId, PagingDescriptor, OracleCapability } from 
 import { PeerAddr } from "../../p2p";
 import * as http from 'http';
 import * as url from 'url';
-import safeEval from 'safe-eval'
 import { Collector, TraderApi, traderApi } from "../trader-api";
 import { traderStorage, TraderQuery} from "../client-storage/trader-storage";
 import * as fs from 'fs'
 import { generateClosingTransaction, generateOpeningTransaction } from "../contracts/generate-cardano-tx";
-import { WebSocketServer, createWebSocketStream } from "ws";
+import Sandbox from "@nyariv/sandboxjs";
+
+const safeEval = (expression: string, data: any): any => {
+    const sandbox = new Sandbox()
+    const exec = sandbox.compile("return " + expression)
+    const res = exec(data).run()
+    return res
+}
 
 export const startTraderService = (cfg: MempoolConfig<PeerAddr>) => {
     global.cfg = cfg

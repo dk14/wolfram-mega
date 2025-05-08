@@ -10,7 +10,14 @@ import * as url from 'url';
 import WebSocket, { WebSocketServer, createWebSocketStream } from 'ws';
 import * as readline from 'readline'
 import * as fs from 'fs'
-import safeEval from 'safe-eval'
+import Sandbox from "@nyariv/sandboxjs";
+
+const safeEval = (expression: string, data: any): any => {
+    const sandbox = new Sandbox()
+    const exec = sandbox.compile("return " + expression)
+    const res = exec(data).run()
+    return res
+}
 
 export const startOracleService = (cfg: MempoolConfig<PeerAddr>) => {
     const storage = capabilityStorage(cfg.oracle.dbPath, 1, 100)
