@@ -7,7 +7,7 @@
     "httpPort": 8080,
     "p2pPort": 80,
     "isTest": false,
-    "hostname": "localhost",
+    "hostname": "0.0.0.0",
     "hostnamePublic": "wolfram-mega-1.onrender.com",
     "p2pPortPublic": 80,
     "p2pseed": []

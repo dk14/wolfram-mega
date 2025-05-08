@@ -6,7 +6,7 @@
     "maxOffers": 100,
     "httpPort": 8081,
     "p2pPort": 80,
-    "hostname": "localhost",
+    "hostname": "0.0.0.0",
     "p2pPortPublic": 80,
     "hostnamePublic": "wolfram-mega-2.onrender.com",
     "isTest": true,
