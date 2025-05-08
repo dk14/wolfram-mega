@@ -100,13 +100,19 @@ export const startP2P = (cfg: MempoolConfig<PeerAddr>) => {
 
     function discovered(addr: PeerAddr, socket?: Socket): void {
         if (checkDuplicatePeer(addr)) {
+            console.log("ignore duplicate" + addr)
             return
         }
         if (connections > cfg.maxConnections) {
+            console.log("max connections")
             return
         }
         try {
             const p = new Peer(addr.server, addr.port)
+
+            if (socket === undefined) {
+                peers.push({peer : p, addr: addr})
+            }
             
             p.connect(socket)
             
@@ -114,9 +120,7 @@ export const startP2P = (cfg: MempoolConfig<PeerAddr>) => {
             p.on('connect', onconnect)
             p.on('end', ondisconnect)
 
-            if (socket === undefined) {
-                peers.push({peer : p, addr: addr})
-            }
+
             
 
             
