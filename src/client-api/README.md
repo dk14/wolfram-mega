@@ -19,9 +19,9 @@ The best approach is to sign messages manually unless they only differ in `seqNo
 
 ## Contracts demo
 
-Trader console contains demo of Helios and BTC DLC (WIP) contracts. Helios requires Webwallet (unsecure signing in browser), while BTC uses external signing http service (example: `utils/bts-signer.ts`).
+Trader console contains demo of Helios and BTC DLC (WIP) contracts. Helios requires Webwallet (unsecure signing in browser), while BTC uses external signing http service (example: `utils/bts-signer.ts`, can be delegated to harware wallet).
 
- The best approach for signing Bitcoin transaction is always manual approval.
+The best approach for signing Bitcoin transaction is always manual approval.
 
 ## Utils
 `utils/` folder contains examples of oracle endpoint and auto-signing services (configs are in `utils/cfg`):
