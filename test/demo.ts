@@ -1,6 +1,27 @@
 import { ChildProcessWithoutNullStreams, exec, spawn } from 'child_process'
 import waitOn from 'wait-on'
+import * as fs from 'fs'
 
+
+interface DemoCfg {
+   mempoolCfg: string,
+   mockOracleCfg: string,
+   signerCfg: string,
+   btcSignerCfg: string
+}
+
+
+
+const getcfg = (path: string): any => {
+    try {
+        return JSON.parse(fs.readFileSync(__dirname + '/' + path).toString())
+    } catch {
+        return JSON.parse(fs.readFileSync(path).toString())
+    }
+
+}
+
+const cfg: DemoCfg = getcfg(process.argv[2] ?? "cfg/demo.json");
 
 (async () => {
     const waitFor = (resources: string[]) => {
@@ -10,16 +31,16 @@ import waitOn from 'wait-on'
 
     }
 
-    const peer = spawn("npm", ["run", "peer", "cfg/mempool-trader.json"]);
+    const peer = spawn("npm", ["run", "peer", cfg.mempoolCfg]);
 
-    await waitFor(['http-get://localhost:' + 8081 + '/id'])
+    await waitFor(['http-get://localhost:' + getcfg(cfg.mempoolCfg).httpPort + '/id'])
 
-    const endpoint = spawn("npm", ["run", "mock-oracle", "cfg/endpoint-test.json"]);
+    const endpoint = spawn("npm", ["run", "mock-oracle", cfg.mockOracleCfg]);
 
-    await waitFor([ 'tcp:localhost:' + 9590])
-    const signer = spawn("npm", ["run", "auto-signer", "cfg/signer-test.json"]);
+    await waitFor([ 'tcp:localhost:' + getcfg("../src/client-api/utils/" + cfg.mockOracleCfg).wsPort])
+    const signer = spawn("npm", ["run", "auto-signer", cfg.signerCfg]);
 
-    const btcSigner = spawn("npm", ["run", "btc-signer", "cfg/btc-signer-test.json"]);
+    const btcSigner = spawn("npm", ["run", "btc-signer", cfg.btcSignerCfg]);
 
     
     const cleanUp = async () => {
