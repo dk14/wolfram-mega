@@ -19,7 +19,7 @@ The best approach is to sign messages manually unless they only differ in `seqNo
 
 ## Contracts demo
 
-Trader console contains demo of Helios and BTC DLC (WIP) contracts. Helios version requires webwallet nonsense (unsecure signing in browser), while BTC version relies external signing http service (example: `utils/bts-signer.ts`, can be delegated to harware wallet).
+Trader console contains demo of Helios and BTC DLC (WIP) contracts. Helios version signs through webwallet nonsense (unsecure signing in browser), while BTC version relies on external signing http service (example: `utils/bts-signer.ts`, can be delegated to harware wallet).
 
 The best approach for signing Bitcoin transaction is always manual approval.
 
