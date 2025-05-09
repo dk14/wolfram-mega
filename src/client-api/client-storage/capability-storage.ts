@@ -79,7 +79,7 @@ export const capabilityStorage = (path: string, pageSize: number, activeCpLimit:
         listActiveCapabilities: async function (): Promise<OracleCapability[]> {
             return fs.readdirSync(path + "/capabilities/").map(file => {
                 const page: CapabilityDict = JSON.parse(fs.readFileSync(path + "/capabilities/" + file).toString())
-                return Object.values(page).filter(x => (x.off === undefined) || (x.off === false))
+                return Object.values(page).filter(x => x.off !== true)
             }).flat().slice(0, activeCpLimit)
         },
         updateCapabilityPow: async function (capabilityPubKey: string, pow: HashCashPow): Promise<void> {

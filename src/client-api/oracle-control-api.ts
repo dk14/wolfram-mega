@@ -167,7 +167,7 @@ export function oracleControlApi<Query, MegaPeerT>(
                     
                     
                     await Promise.all((await storage.listActiveCapabilities()).map(async cp => {
-                        
+                        console.log("[advertise] CpPub = " + cp.capabilityPubKey)
                         if (cpsigner !== null) {
                             const signed = await signPowIncCp(cp)
                             storage.addCapability(signed)
