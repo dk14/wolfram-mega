@@ -37,11 +37,10 @@ exports.capabilityStorage = void 0;
 const fs = __importStar(require("fs"));
 //for demos; clients should build their own implementations (MySQL etc.)
 const capabilityStorage = (path, pageSize, activeCpLimit) => {
-    if (!fs.existsSync(path + "/")) {
-        fs.mkdirSync(path, { recursive: true });
-    }
+    fs.mkdirSync(path, { recursive: true });
+    fs.mkdirSync(path + "/capabilities/", { recursive: true });
     const getPage = async (pageNo) => {
-        const pagepath = path + "/" + encodeURIComponent(pageNo) + ".json";
+        const pagepath = path + "/capabilities/" + encodeURIComponent(pageNo) + ".json";
         if (fs.existsSync(pagepath)) {
             return JSON.parse(fs.readFileSync(pagepath).toString());
         }
@@ -51,12 +50,20 @@ const capabilityStorage = (path, pageSize, activeCpLimit) => {
     };
     const transformPage = async (pageNo, transformer) => {
         const page = await getPage(pageNo);
-        fs.writeFileSync(path + "/" + encodeURIComponent(pageNo) + ".json", JSON.stringify(transformer(page)));
+        fs.writeFileSync(path + "/capabilities/" + encodeURIComponent(pageNo) + ".json", JSON.stringify(transformer(page)));
     };
     const cps = {
         addCapability: async function (cp) {
             transformPage(cp.capabilityPubKey.slice(0, -pageSize * 4), page => {
-                page[cp.capabilityPubKey] = cp;
+                if (!page[cp.capabilityPubKey]) {
+                    page[cp.capabilityPubKey] = cp;
+                }
+                else {
+                    page[cp.capabilityPubKey].seqNo = cp.seqNo;
+                    page[cp.capabilityPubKey].pow = cp.pow;
+                    page[cp.capabilityPubKey].oracleSignature = cp.oracleSignature;
+                    page[cp.capabilityPubKey].off = cp.off;
+                }
                 return page;
             });
         },
@@ -89,15 +96,15 @@ const capabilityStorage = (path, pageSize, activeCpLimit) => {
             return page[capabilityPubKey];
         },
         listCapabilities: async function (query, paging) {
-            return fs.readdirSync(path + "/").map(file => {
-                const page = JSON.parse(fs.readFileSync(path + "/" + file).toString());
+            return fs.readdirSync(path + "/capabilities/").map(file => {
+                const page = JSON.parse(fs.readFileSync(path + "/capabilities/" + file).toString());
                 return Object.values(page).filter(async (x) => await query.where(x));
             }).flat().slice(paging.page * paging.chunkSize, (paging.page + 1) * paging.chunkSize);
         },
         listActiveCapabilities: async function () {
-            return fs.readdirSync(path + "/").map(file => {
-                const page = JSON.parse(fs.readFileSync(path + "/" + file).toString());
-                return Object.values(page).filter(x => (x.off === undefined) || (x.off === false));
+            return fs.readdirSync(path + "/capabilities/").map(file => {
+                const page = JSON.parse(fs.readFileSync(path + "/capabilities/" + file).toString());
+                return Object.values(page).filter(x => x.off !== true);
             }).flat().slice(0, activeCpLimit);
         },
         updateCapabilityPow: async function (capabilityPubKey, pow) {
@@ -107,6 +114,17 @@ const capabilityStorage = (path, pageSize, activeCpLimit) => {
                 }
                 return page;
             });
+        },
+        storeOracleAdSeqNo: async function (seqNo, pow) {
+            fs.writeFileSync(path + "/seqno.json", JSON.stringify([seqNo, pow]));
+        },
+        readOracleAdSeqNo: async function () {
+            if (fs.existsSync(path + "/seqno.json")) {
+                return JSON.parse(fs.readFileSync(path + "/seqno.json").toString());
+            }
+            else {
+                return [0, undefined];
+            }
         }
     };
     return cps;

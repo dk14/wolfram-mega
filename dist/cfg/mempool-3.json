@@ -2,6 +2,7 @@
     "maxOracles": 100,
     "maxCapabilities": 100,
     "maxReports": 100,
+    "maxOffers": 100,
     "maxConnections": 100,
     "httpPort": 8082,
     "p2pPort": 8335,

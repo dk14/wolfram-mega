@@ -38,9 +38,9 @@ const http = __importStar(require("http"));
 const url = __importStar(require("url"));
 const ws_1 = require("ws");
 const readline = __importStar(require("readline"));
+const fs = __importStar(require("fs"));
 var globalSigner = null;
 const endpointAPi = (signerFactory, lookup) => {
-    const sign = signerFactory();
     const api = {
         requestNewCapability: async function (question) {
             if (lookup.newCp) {
@@ -57,10 +57,13 @@ const endpointAPi = (signerFactory, lookup) => {
                 contract: lookup.genContract ? await lookup.genContract(req) : '',
                 oracleSig: ''
             };
+            const sign = signerFactory();
+            commitment.rValueSchnorrHex = await sign([commitment, "!RVALUE"]);
             commitment.oracleSig = await sign([commitment, ""]);
             return commitment;
         },
         requestFact: async function (req) {
+            const sign = signerFactory();
             const factMsg = await lookup.getFact(req.req);
             const fact = {
                 factWithQuestion: factMsg,
@@ -76,9 +79,22 @@ exports.endpointAPi = endpointAPi;
 const startHttp = (api, port, wsPort) => {
     const server = http.createServer(async (req, res) => {
         res.statusCode = 200;
+        console.log('Request type: ' + req.method + ' Endpoint: ' + req.url);
         try {
             const reqUrl = url.parse(req.url, true);
+            if (req.method === 'OPTIONS') {
+                // Handle OPTIONS request
+                res.writeHead(204, {
+                    'Access-Control-Allow-Origin': '*', // Adjust as needed for your use case
+                    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+                    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+                    'Access-Control-Max-Age': '86400', // Cache preflight response for 24 hours
+                });
+                res.end();
+                return;
+            }
             if (req.method === 'POST') {
+                res.setHeader('Access-Control-Allow-Origin', '*');
                 var body = '';
                 req.on('data', function (chunk) {
                     body += chunk;
@@ -126,24 +142,40 @@ const startHttp = (api, port, wsPort) => {
         const rl = readline.createInterface(stream, stream);
         globalSigner = (msg) => {
             return new Promise(resolve => {
-                rl.question(JSON.stringify(msg) + "\n", a => resolve(JSON.parse(a)));
+                rl.question(JSON.stringify(msg) + "\n", a => resolve(a));
             });
         };
     });
 };
 exports.startHttp = startHttp;
 if (require.main === module) {
+    const path = process.argv[2] ?? "cfg/endpoint-test.json";
+    const getcfg = () => {
+        try {
+            return JSON.parse(fs.readFileSync(__dirname + '/' + path).toString());
+        }
+        catch {
+            return JSON.parse(fs.readFileSync(path).toString());
+        }
+    };
+    const cfg = getcfg();
     const lookup = {
         getFact: async function (fr) {
-            return "001";
+            try {
+                if (cfg.answers[fr.capabilityPubKey]) {
+                    return cfg.answers[fr.capabilityPubKey];
+                }
+            }
+            catch {
+            }
+            return "YES";
         },
         checkCommitment: async function (c) {
             return true;
         }
     };
     const api = (0, exports.endpointAPi)(() => globalSigner, lookup);
-    const httpPort = 90999;
-    const wsPort = 909997;
-    console.log(`Starting Oracle Mocking Endpoint... HTTP=${httpPort}, WS=${wsPort}`);
+    console.log(`Starting Oracle Mocking Endpoint... HTTP=${cfg.httpPort}, WS=${cfg.wsPort}`);
+    (0, exports.startHttp)(api, cfg.httpPort, cfg.wsPort);
 }
 //# sourceMappingURL=oracle-endpoint.js.map

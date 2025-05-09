@@ -16,6 +16,8 @@ const safeEval = (expression: string, data: any): any => {
     return res
 }
 
+const HELIOS_PREPROD_PARAMS_URL = "https://network-status.helios-lang.io/preprod/config"
+
 export const startTraderService = (cfg: MempoolConfig<PeerAddr>) => {
     global.cfg = cfg
     const storage = traderStorage(cfg.trader.dbPath, 1)
@@ -166,10 +168,11 @@ export const startTraderService = (cfg: MempoolConfig<PeerAddr>) => {
                             }
                         }
                         
+                        const heliosNetwork = cfg.trader.heliosNetwork ?? HELIOS_PREPROD_PARAMS_URL
                         if (reqUrl.pathname == '/generateOpeningTransaction') {
-                            res.end(JSON.stringify(await generateOpeningTransaction(cfg.trader.heliosNetwork ?? "https://d1t0d7c2nekuk0.cloudfront.net/preprod.json", postBody)))
+                            res.end(JSON.stringify(await generateOpeningTransaction(heliosNetwork, postBody)))
                         } else if (reqUrl.pathname == '/generateClosingTransaction') {
-                            res.end(JSON.stringify(await generateClosingTransaction(cfg.trader.heliosNetwork ?? "https://d1t0d7c2nekuk0.cloudfront.net/preprod.json", postBody)))
+                            res.end(JSON.stringify(await generateClosingTransaction(heliosNetwork, postBody)))
                         } else {
                             res.end("{}")
                         }

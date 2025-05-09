@@ -1,5 +1,7 @@
 spending option
 
+import { tx } from ScriptContext
+
 struct Datum {
     alice: PubKeyHash
     bob: PubKeyHash
@@ -13,11 +15,8 @@ struct Redeemer {
     sig: ByteArray
 }
 
-func main(datum: Datum, input: Redeemer, context: ScriptContext) -> Bool {
-    tx: Tx = context.tx;
-
+func main(datum: Datum, input: Redeemer) -> Bool {
     datum.oracle.verify(input.msg, input.sig) &&
     (((input.msg == datum.msgAlice) && tx.is_signed_by(datum.alice)) 
     || ((input.msg == datum.msgBob) && tx.is_signed_by(datum.bob)))
-    
 }
