@@ -37,7 +37,7 @@
         "maxCollectors": 2,
         "dbPath": "./db",
         "httpPort": 7080,
-        "heliosNetwork": "https://d1t0d7c2nekuk0.cloudfront.net/preprod.json",
+        "heliosNetwork": "https://d1t0d7c2nekuk0.cloudfront.net/preview.json",
         "btcSignerEndpoint": "http://localhost:9093/sign"
     }
 }

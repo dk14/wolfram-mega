@@ -40,7 +40,7 @@ export const startP2P = (cfg: MempoolConfig<PeerAddr>) => {
         console.log("I'm connected! " + p.addr.server + ":" + p.addr.port);
 
         if (cfg.hostname !== undefined) {
-            broadcastPeer({server: cfg.hostnamePublic ?? cfg.hostname, port: cfg.p2pPortPublic ?? cfg.p2pPort, seqNo: cfg.hostSeqNo ?? 0}, true)
+            broadcastPeer({server: cfg.hostname, port: cfg.p2pPort, seqNo: cfg.hostSeqNo ?? 0}, true)
         }
 
         peers.forEach(peer => {
@@ -58,7 +58,6 @@ export const startP2P = (cfg: MempoolConfig<PeerAddr>) => {
     const peers: Neighbor[] = []
 
     const ondisconnect = (ev) => {
-        console.log("Disconnected: " + ev.peer.server + ":" + ev.peer.port)
         connections--
         const index = peers.findIndex((x => ev.peer.server === x.peer.server && ev.peer.port === x.peer.port))
         if (index > -1) {
@@ -66,10 +65,7 @@ export const startP2P = (cfg: MempoolConfig<PeerAddr>) => {
         }
     }
     
-    setInterval(() => {
-        cfg.p2pseed.forEach(x => discovered(x))
-    }, 5000)
-    
+    cfg.p2pseed.forEach(x => discovered(x))
 
     function checkDuplicatePeer(addr: PeerAddr): boolean {
         const found = peers.findIndex(x => addr.server === x.addr.server && addr.port === x.addr.port)
@@ -92,7 +88,6 @@ export const startP2P = (cfg: MempoolConfig<PeerAddr>) => {
         if (!skipDuplicateCheck && checkDuplicatePeer(peer)) {
             return
         }
-        discovered(peer)
         console.log("Discovered: " + peer.server + ":" + peer.port);
         console.log(peers.map(p => p.addr))
         peers.forEach(p => {
@@ -103,19 +98,13 @@ export const startP2P = (cfg: MempoolConfig<PeerAddr>) => {
 
     function discovered(addr: PeerAddr, socket?: Socket): void {
         if (checkDuplicatePeer(addr)) {
-            console.log("ignore duplicate:" + addr.server + ":" + addr.port)
             return
         }
         if (connections > cfg.maxConnections) {
-            console.log("max connections")
             return
         }
         try {
             const p = new Peer(addr.server, addr.port)
-
-            if (socket === undefined) {
-                peers.push({peer : p, addr: addr})
-            }
             
             p.connect(socket)
             
@@ -123,7 +112,9 @@ export const startP2P = (cfg: MempoolConfig<PeerAddr>) => {
             p.on('connect', onconnect)
             p.on('end', ondisconnect)
 
-
+            if (socket === undefined) {
+                peers.push({peer : p, addr: addr})
+            }
             
 
             
@@ -294,9 +285,8 @@ export const startP2P = (cfg: MempoolConfig<PeerAddr>) => {
         var seqNo = 0
         setInterval(() => {
             seqNo++
-            broadcastPeer({server: cfg.hostnamePublic ?? cfg.hostname, port: cfg.p2pPortPublic ?? cfg.p2pPort, seqNo: (cfg.hostSeqNo ?? 0) + seqNo, httpPort: cfg.httpPort}, true)
+            broadcastPeer({server: cfg.hostname, port: cfg.p2pPort, seqNo: (cfg.hostSeqNo ?? 0) + seqNo, httpPort: cfg.httpPort}, true)
         }, (cfg.p2pKeepAlive ?? 100000))
     }
     
 }
-
