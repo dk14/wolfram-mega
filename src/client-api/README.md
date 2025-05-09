@@ -33,7 +33,17 @@ npm run mock-oracle cfg/endpoint-test.json
 npm run auto-sign cfg/signer-test.json
 npm run btc-signer cfg/btc-signer-test.json
 ```
+## Demo
 Run together for contract demo purposes:
 ```
 npm run demo
 ```
+
+- http://localhost:8080/peer-monitor/
+- http://localhost:8080/oracle-admin/
+- http://localhost:8080/oracle-endpoint/
+- http://localhost:8080//trader-console/
+
+Free (unreliable) demo deployment: http://wolfram-mega-demo.onrender.com/trader-console/
+
+

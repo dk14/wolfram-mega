@@ -84,7 +84,7 @@
         <pre>endpoint:</pre><pre id="endpoint"></pre>
         
         <label for="fact_req">Fact Request:</label>
-        <input type="text" id="fact_req" name="fact_req" size="40" value='{ "capabilityPubKey": "MCowBQYDK2VwAyEAwyrSj1lRbfy9MHwp4CNYck02YuQTxCPuxPNmDFKD8Ps=", "arguments": {} }'>
+        <input type="text" id="fact_req" name="fact_req" size="40" value='{ "capabilityPubKey": "MCowBQYDK2VwAyEA4A3gTGN6FQz2iBkWPsbMNvYGtrmteU5A0R2r4nTc4IM=", "arguments": {} }'>
         <input id="get_commitment" type="button" value="Request Commitment">
         <br>
         <br>
@@ -125,14 +125,13 @@
     1c) Copy signed tx id into "Opening TxId" field
 
     2) Hit "Request Commitment" ("Query Oracle" section) and wait for fact to arrive
-    Note: Use capabilityPubKey MCowBQYDK2VwAyEA4A3gTGN6FQz2iBkWPsbMNvYGtrmteU5A0R2r4nTc4IM= (in "Oracle Query" AND "Offer Terms" sections) to test with wolfram-mega-oracle.onrender.com endpoint (note: slow free hosting, unreliable)
-
+ 
     3a) Hit "Gen Closing Tx"
     3b) Copy closing tx into Tx field ("Sign and Broadcast" subsection), hit "Sign", hit "Broadcast" 
         </pre>
 
         <label for="terms"><h5>Offer Terms:</h5></label>
-        <input type="text" id="terms" name="terms" size="80" value='{"question":{"capabilityPubKey":"MCowBQYDK2VwAyEAwyrSj1lRbfy9MHwp4CNYck02YuQTxCPuxPNmDFKD8Ps=","arguments":{}},"partyBetsOn":["YES"],"counterPartyBetsOn":["NO"],"partyBetAmount":100000000,"counterpartyBetAmount":200000000}'>
+        <input type="text" id="terms" name="terms" size="80" value='{"question":{"capabilityPubKey":"MCowBQYDK2VwAyEA4A3gTGN6FQz2iBkWPsbMNvYGtrmteU5A0R2r4nTc4IM=","arguments":{}},"partyBetsOn":["YES"],"counterPartyBetsOn":["NO"],"partyBetAmount":100000000,"counterpartyBetAmount":200000000}'>
 
         <label for="txfee">TxFee:</label>
         <input type="number" id="txfee" name="txfee" size="10" value='5000000'>

@@ -2,5 +2,6 @@
     "mempoolCfg": "cfg/mempool-trader.json",
     "mockOracleCfg": "cfg/endpoint-test.json",
     "signerCfg": "cfg/signer-test.json",
-    "btcSignerCfg" : "cfg/btc-signer-test.json"
+    "btcSignerCfg" : "cfg/btc-signer-test.json",
+    "httpPort": 8080
  }
