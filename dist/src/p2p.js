@@ -44,6 +44,7 @@ const node_fetch_1 = __importDefault(require("node-fetch"));
 exports.p2pNode = undefined;
 exports.connectionPool = undefined;
 const startP2P = (cfg) => {
+    var peersAnnounced = 0;
     var connections = 0;
     const onmessage = (ev) => {
         try {
@@ -94,6 +95,9 @@ const startP2P = (cfg) => {
         }
     }
     function broadcastPeer(peer, skipDuplicateCheck = false) {
+        peersAnnounced++;
+        if (peersAnnounced > (cfg.peerAnnouncementQuota ?? 10))
+            return;
         if (!skipDuplicateCheck && checkDuplicatePeer(peer)) {
             return;
         }
@@ -273,6 +277,9 @@ const startP2P = (cfg) => {
             }
         }
     };
+    setInterval(() => {
+        peersAnnounced = 0;
+    }, 1000);
     if (cfg.hostname !== undefined) {
         var seqNo = 0;
         setInterval(() => {

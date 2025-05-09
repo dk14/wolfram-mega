@@ -1,4 +1,8 @@
-import { Address, ByteArrayData, ConstrData, Datum, ListData, NetworkParams, Program, Tx, TxId, TxInput, TxOutput, TxOutputId, Value } from "@hyperionbt/helios"
+import { bytesToHex } from "@helios-lang/codec-utils"
+import { Program } from "@helios-lang/compiler"
+import { makeShelleyAddress, NetworkParams, Tx, makeTxId, makeTxInput, TxOutput, makeTxOutputId, Value, parseShelleyAddress, makeTxOutput, makeValue, ShelleyAddress, PubKeyHash, PubKey, makeValidatorHash, ValidatorHash, makeTxOutputDatum, makeInlineTxOutputDatum } from "@helios-lang/ledger"
+import { makeTxBuilder } from "@helios-lang/tx-utils"
+import { makeByteArrayData, makeConstrData, makeListData, UplcProgramV2 } from "@helios-lang/uplc"
 import * as fs from 'fs'
 
 type Hex = string
@@ -60,138 +64,157 @@ const extractRawSig = (sig: Base64): number[] => {
     return Array.from(Buffer.from(sig, 'base64'))
 }
 
-export const generateOpeningTransaction = async (network: string, inputs: OpeningInputs): Promise<CborHex> => {
-    const tx = new Tx()
+function makeValidator(): UplcProgramV2 {
     const src = fs.readFileSync(__dirname + "/plutus-option.hl").toString()
-    const program = Program.new(src)
+    const program = new Program(src)
 
-    const uplc = program.compile(false)
+    return program.compile(false)    
+}
 
-    const utxo1 = new TxInput(TxOutputId.fromProps({
-        txId: TxId.fromHex(inputs.aliceInput.txid), 
-        utxoId: inputs.aliceInput.txout
-    }), new TxOutput(Address.fromBech32(inputs.aliceInput.addr), new Value(BigInt(inputs.aliceActualAmount))))
+async function getNetworkParams(network: string): Promise<NetworkParams> {
+    return await fetch(network)
+         .then(response => response.json())
+}
 
-    const utxo2 = new TxInput(TxOutputId.fromProps({
-        txId: TxId.fromHex(inputs.bobInput.txid), 
-        utxoId: inputs.bobInput.txout
-    }), new TxOutput(Address.fromBech32(inputs.bobInput.addr), new Value(BigInt(inputs.bobActualAmount))))
+export const generateOpeningTransaction = async (network: string, inputs: OpeningInputs): Promise<CborHex> => {
+    const uplc = makeValidator()
+    const validatorHash = makeValidatorHash(uplc.hash())
+    
+    const address1 = parseShelleyAddress(inputs.aliceInput.addr) as ShelleyAddress<PubKeyHash>
 
-    tx.addInputs([utxo1, utxo2])
+    const isMainnet = address1.mainnet
+    const utxo1 = makeTxInput(makeTxOutputId({
+        txId: makeTxId(inputs.aliceInput.txid), 
+        utxoIdx: inputs.aliceInput.txout
+    }), makeTxOutput(address1, makeValue(BigInt(inputs.aliceActualAmount))))
 
-    const alicePkh = Address.fromBech32(inputs.aliceInput.addr).pubKeyHash
-    const BobPkh = Address.fromBech32(inputs.bobInput.addr).pubKeyHash
+    const address2 = parseShelleyAddress(inputs.bobInput.addr) as ShelleyAddress<PubKeyHash>
+    const utxo2 = makeTxInput(makeTxOutputId({
+        txId: makeTxId(inputs.bobInput.txid), 
+        utxoIdx: inputs.bobInput.txout
+    }), makeTxOutput(address2, makeValue(BigInt(inputs.bobActualAmount))))
 
-    const datum = new ListData([new ByteArrayData(alicePkh.bytes),
-        new ByteArrayData(BobPkh.bytes),
-        new ByteArrayData(extractRawPub(inputs.oracleCpPubKey)),
-        new ByteArrayData(stringToArray(inputs.r.aliceBetsOnMsg)),
-        new ByteArrayData(stringToArray(inputs.r.bobBetsOnMsg))
+    const txBuilder = makeTxBuilder({isMainnet})
+    txBuilder.spendUnsafe([utxo1, utxo2])
+
+    const alicePkh = address1.spendingCredential
+    const BobPkh = address2.spendingCredential
+
+    const datum = makeListData([makeByteArrayData(alicePkh.bytes),
+        makeByteArrayData(BobPkh.bytes),
+        makeByteArrayData(extractRawPub(inputs.oracleCpPubKey)),
+        makeByteArrayData(stringToArray(inputs.r.aliceBetsOnMsg)),
+        makeByteArrayData(stringToArray(inputs.r.bobBetsOnMsg))
     ])
 
     const collateral = inputs.aliceInput.amount + inputs.bobInput.amount - inputs.txfee
 
-    const utxo3 = new TxOutput(
-        Address.fromHash(uplc.validatorHash, true),
-        new Value(BigInt(collateral)),
-        Datum.inline(datum)
+    const validatorAddr = makeShelleyAddress(isMainnet, validatorHash) as ShelleyAddress<ValidatorHash> 
+    // XXX: I don't the ledger allows using collateral at validator addresses
+    const utxo3 = makeTxOutput(
+        validatorAddr,
+        makeValue(BigInt(collateral)),
+        makeInlineTxOutputDatum(datum)
     )
 
-    tx.addOutput(utxo3)
+    txBuilder.addOutput(utxo3)
 
-    console.log("opening script hash = " + uplc.validatorHash.hex + "\n" + datum.toCborHex())
+    console.log("opening script hash = " + validatorHash.toHex() + "\n" + bytesToHex(datum.toCbor()))
 
 
     if (BigInt(inputs.aliceInput.amount) < BigInt(inputs.aliceActualAmount)) {
-        tx.addOutput(
-            new TxOutput(
-                Address.fromBech32(inputs.r.aliceRedemptionAddr), 
-                new Value(BigInt(inputs.aliceActualAmount) - BigInt(inputs.aliceInput.amount))))
+        txBuilder.addOutput(
+            makeTxOutput(
+                parseShelleyAddress(inputs.r.aliceRedemptionAddr), 
+                makeValue(BigInt(inputs.aliceActualAmount) - BigInt(inputs.aliceInput.amount))))
     }
 
     if (BigInt(inputs.bobInput.amount) < BigInt(inputs.bobActualAmount)) {
-        tx.addOutput(
-            new TxOutput(
-                Address.fromBech32(inputs.r.bobRedemptionAddr), 
-                new Value(BigInt(inputs.bobActualAmount) - BigInt(inputs.bobInput.amount))))
+        txBuilder.addOutput(
+            makeTxOutput(
+                parseShelleyAddress(inputs.r.bobRedemptionAddr), 
+                makeValue(BigInt(inputs.bobActualAmount) - BigInt(inputs.bobInput.amount))))
     }
 
-    const networkParams = new NetworkParams(
-        await fetch(network)
-             .then(response => response.json())
-    )
+    const networkParams = await getNetworkParams(network)
     
-    await tx.finalize(networkParams, Address.fromBech32(inputs.changeAddr))
+    const tx = await txBuilder.build({
+        networkParams,
+        changeAddress: parseShelleyAddress(inputs.changeAddr),
+    })
     
-    return tx.toCborHex()
-
+    return bytesToHex(tx.toCbor())
 }
 
 export const generateClosingTransaction = async (network: string, inputs: ClosingInputs): Promise<CborHex> => {
-    const tx = new Tx()
-    const src = fs.readFileSync(__dirname + "/plutus-option.hl").toString()
-    const program = Program.new(src)
+    const uplc = makeValidator()
+    const validatorHash = makeValidatorHash(uplc.hash())
 
-    const uplc = program.compile(false)
-    const addr = Address.fromHash(uplc.validatorHash)
+    const aliceAddr = parseShelleyAddress(inputs.aliceInput.addr) as ShelleyAddress<PubKeyHash>
+    const isMainnet = aliceAddr.mainnet
+    const alicePkh = aliceAddr.spendingCredential
+    const bobAddr = parseShelleyAddress(inputs.bobInput.addr) as ShelleyAddress<PubKeyHash>
+    const BobPkh = bobAddr.spendingCredential
+    const validatorAddr = makeShelleyAddress(isMainnet, validatorHash)
 
-    const alicePkh = Address.fromBech32(inputs.aliceInput.addr).pubKeyHash
-    const BobPkh = Address.fromBech32(inputs.bobInput.addr).pubKeyHash
-
-    const datum = new ListData([new ByteArrayData(alicePkh.bytes),
-        new ByteArrayData(BobPkh.bytes),
-        new ByteArrayData(extractRawPub(inputs.oracleCpPubKey)),
-        new ByteArrayData(stringToArray(inputs.r.aliceBetsOnMsg)),
-        new ByteArrayData(stringToArray(inputs.r.bobBetsOnMsg))
+    const datum = makeListData([makeByteArrayData(alicePkh.bytes),
+        makeByteArrayData(BobPkh.bytes),
+        makeByteArrayData(extractRawPub(inputs.oracleCpPubKey)),
+        makeByteArrayData(stringToArray(inputs.r.aliceBetsOnMsg)),
+        makeByteArrayData(stringToArray(inputs.r.bobBetsOnMsg))
     ])
 
-    console.log("closing script hash = " + uplc.validatorHash.hex + "\n" + datum.toCborHex())
+    console.log("closing script hash = " + validatorHash.toHex() + "\n" + bytesToHex(datum.toCbor()))
 
-
-    const collateral = new TxInput(TxOutputId.fromProps({
-        txId: TxId.fromHex(inputs.input.txid), 
-        utxoId: inputs.input.txout
-    }), new TxOutput(addr, new Value(BigInt(inputs.input.amount)),  Datum.inline(datum)))
+    // XXX: I don't Cardano allows using collateral at validator addresses
+    const collateral = makeTxInput(makeTxOutputId({
+        txId: makeTxId(inputs.input.txid), 
+        utxoIdx: inputs.input.txout
+    }), makeTxOutput(validatorAddr, makeValue(BigInt(inputs.input.amount)),  makeInlineTxOutputDatum(datum)))
 
     
-    const valRedeemer = new ListData([
-        new ByteArrayData(stringToArray(inputs.msg)),
-        new ByteArrayData(extractRawSig(inputs.sig))
+    const valRedeemer = makeListData([
+        makeByteArrayData(stringToArray(inputs.msg)),
+        makeByteArrayData(extractRawSig(inputs.sig))
     ])
     
-    tx.addInput(collateral, valRedeemer)
-    const value = new Value(BigInt(inputs.input.amount - inputs.txfee))
+    const txBuilder = makeTxBuilder({isMainnet})
 
-    tx.attachScript(uplc)
+    txBuilder.spendUnsafe(collateral, valRedeemer)
+    const value = makeValue(BigInt(inputs.input.amount - inputs.txfee))
+
+    txBuilder.attachUplcProgram(uplc)
 
     if (inputs.msg === inputs.r.aliceBetsOnMsg) {
-        const addr = Address.fromBech32(inputs.r.aliceRedemptionAddr)
-        const out = new TxOutput(addr, value)
-        tx.addSigner(Address.fromBech32(inputs.r.aliceRedemptionAddr).pubKeyHash)
-        const collateralFee = new TxInput(TxOutputId.fromProps({
-            txId: TxId.fromHex(inputs.aliceCollateralInput.txid), 
-            utxoId: inputs.aliceCollateralInput.txout
-        }), new TxOutput(Address.fromBech32(inputs.aliceInput.addr), new Value(BigInt(inputs.aliceCollateralInput.amount))))
-        tx.addCollateral(collateralFee)
-        tx.addOutput(out)
+        const addr = parseShelleyAddress(inputs.r.aliceRedemptionAddr) as ShelleyAddress<PubKeyHash>
+        const out = makeTxOutput(addr, value)
+        txBuilder.addSigners(addr.spendingCredential)
+        const collateralFee = makeTxInput(makeTxOutputId({
+            txId: makeTxId(inputs.aliceCollateralInput.txid), 
+            utxoIdx: inputs.aliceCollateralInput.txout
+        }), makeTxOutput(aliceAddr, makeValue(BigInt(inputs.aliceCollateralInput.amount))))
+        txBuilder.addCollateral(collateralFee)
+        txBuilder.addOutput(out)
     } else if (inputs.msg === inputs.r.bobBetsOnMsg) {
-        const addr = Address.fromBech32(inputs.r.bobRedemptionAddr)
-        const out = new TxOutput(addr, value)
-        tx.addSigner(Address.fromBech32(inputs.r.bobRedemptionAddr).pubKeyHash)
-        const collateralFee = new TxInput(TxOutputId.fromProps({
-            txId: TxId.fromHex(inputs.bobCollateralInput.txid), 
-            utxoId: inputs.bobCollateralInput.txout
-        }), new TxOutput(Address.fromBech32(inputs.bobInput.addr), new Value(BigInt(inputs.bobCollateralInput.amount))))
-        tx.addCollateral(collateralFee)
-        tx.addOutput(out)
+        const addr = parseShelleyAddress(inputs.r.bobRedemptionAddr) as ShelleyAddress<PubKeyHash>
+        const out = makeTxOutput(addr, value)
+        txBuilder.addSigners(addr.spendingCredential)
+        const collateralFee = makeTxInput(makeTxOutputId({
+            txId: makeTxId(inputs.bobCollateralInput.txid), 
+            utxoIdx: inputs.bobCollateralInput.txout
+        }), makeTxOutput(bobAddr, makeValue(BigInt(inputs.bobCollateralInput.amount))))
+        txBuilder.addCollateral(collateralFee)
+        txBuilder.addOutput(out)
     }
 
-    const networkParams = new NetworkParams(
+    const networkParams = await getNetworkParams(network)
         await fetch(network)
              .then(response => response.json())
-    )
 
-    await tx.finalize(networkParams, Address.fromBech32(inputs.changeAddr))
+    const tx = await txBuilder.build({
+        networkParams,
+        changeAddress: parseShelleyAddress(inputs.changeAddr)       
+    })
 
-    return tx.toCborHex()
+    return bytesToHex(tx.toCbor())
 }

@@ -115,13 +115,17 @@ function traderApi(tradercfg, poolcfg, nodeApi, storage) {
                 storage.allIssuedOffers(async (o) => {
                     o.seqNo++;
                     var res = await node_1.api.publishOffer(poolcfg, o);
-                    while (res === 'low pow difficulty' || res === 'wrong pow') {
+                    if (res === 'low pow difficulty') {
+                        storage.removeIssuedOffers([o.pow.hash]);
+                    }
+                    while (res === 'low pow difficulty' && o.pow.difficulty < (tradercfg.autoUpgradePowLimit ?? 4)) {
+                        console.log('auto-upgrade pow');
                         const upgraded = await (0, pow_1.powOverOffer)(o, o.pow.difficulty + 1);
                         o.pow = upgraded;
                         res = await node_1.api.publishOffer(poolcfg, o);
                     }
                     if (p2p_1.p2pNode !== undefined) {
-                        p2p_1.p2pNode.broadcastMessage('report', JSON.stringify(structuredClone(o)));
+                        p2p_1.p2pNode.broadcastMessage('offer', JSON.stringify(structuredClone(o)));
                     }
                     storage.addIssuedOffer(o);
                 });
@@ -142,7 +146,10 @@ function traderApi(tradercfg, poolcfg, nodeApi, storage) {
                 storage.allIssuedReports(async (r) => {
                     r.seqNo++;
                     var res = await node_1.api.reportMalleability(poolcfg, r);
-                    while (res === 'low pow difficulty' || res === 'wrong pow') {
+                    if (res === 'low pow difficulty') {
+                        storage.removeIssuedReports([r.pow.hash]);
+                    }
+                    while (res === 'low pow difficulty' && r.pow.difficulty < (tradercfg.autoUpgradePowLimit ?? 4)) {
                         const upgraded = await (0, pow_1.powOverReport)(r, r.pow.difficulty + 1);
                         r.pow = upgraded;
                         res = await node_1.api.reportMalleability(poolcfg, r);
@@ -162,6 +169,8 @@ function traderApi(tradercfg, poolcfg, nodeApi, storage) {
             }
         }
     };
+    tapi.startBroadcastingIssuedOffers();
+    tapi.stopBroadcastingIssuedReports();
     return tapi;
 }
 //# sourceMappingURL=trader-api.js.map

@@ -36,7 +36,11 @@
     "typescript": "^5.8.2"
   },
   "dependencies": {
-    "@hyperionbt/helios": "^0.16.7",
+    "@helios-lang/codec-utils": "^0.3.4",
+    "@helios-lang/compiler": "^0.17.20",
+    "@helios-lang/ledger": "^0.7.8",
+    "@helios-lang/tx-utils": "^0.6.7",
+    "@helios-lang/uplc": "^0.7.15",
     "@nyariv/sandboxjs": "^0.8.24",
     "@types/node": "^22.13.9",
     "@types/ws": "^8.18.0",
