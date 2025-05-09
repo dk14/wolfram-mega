@@ -1,1 +1,1 @@
-{"777777777":{"oraclePubKey":"AAA","capabilityPubKey":"777777777","question":"?","endpoint":"hello","seqNo":949,"cTTL":0,"oracleSignature":"","oracleSignatureType":"SHA256","pow":{"difficulty":0,"algorithm":"SHA256","hash":"","magicNo":0}}}
+{"777777777":{"oraclePubKey":"AAA","capabilityPubKey":"777777777","question":"?","endpoint":"hello","seqNo":950,"cTTL":0,"oracleSignature":"","oracleSignatureType":"SHA256","pow":{"difficulty":0,"algorithm":"SHA256","hash":"","magicNo":0}}}

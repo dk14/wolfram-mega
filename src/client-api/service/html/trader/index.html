@@ -24,6 +24,7 @@
         <input type="number" id="page" name="page" min="0" max="100" value="0"/>
         <label for="update">Update:</label>
         <input type="checkbox" id="update" name="update" checked />
+        <pre>Note: uncheck Update on slow free hosting demos</pre>
         <hr>
         <div id="database"></div>
         <hr>
@@ -85,11 +86,12 @@
         <label for="fact_req">Fact Request:</label>
         <input type="text" id="fact_req" name="fact_req" size="40" value='{ "capabilityPubKey": "MCowBQYDK2VwAyEAwyrSj1lRbfy9MHwp4CNYck02YuQTxCPuxPNmDFKD8Ps=", "arguments": {} }'>
         <input id="get_commitment" type="button" value="Request Commitment">
-        <br><br>
+        <br>
+        <br>
+ 
         <label for="commitment">Commitment:</label>
         <input type="text" id="commitment" name="commitment" size="40" value=''>
 
-  
     
  
         <pre>fact:</pre><pre id="fact"></pre>
@@ -123,6 +125,7 @@
     1c) Copy signed tx id into "Opening TxId" field
 
     2) Hit "Request Commitment" ("Query Oracle" section) and wait for fact to arrive
+    Note: Use capabilityPubKey MCowBQYDK2VwAyEA4A3gTGN6FQz2iBkWPsbMNvYGtrmteU5A0R2r4nTc4IM= to test with wolfram-mega-oracle.onrender.com endpoint (note: slow free hosting)
 
     3a) Hit "Gen Closing Tx"
     3b) Copy closing tx into Tx field ("Sign and Broadcast" subsection), hit "Sign", hit "Broadcast" 

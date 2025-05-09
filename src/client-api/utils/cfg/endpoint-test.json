@@ -2,6 +2,7 @@
     "httpPort" : 9592,
     "wsPort" : 9590,
     "answers" : {
-        "MCowBQYDK2VwAyEAwyrSj1lRbfy9MHwp4CNYck02YuQTxCPuxPNmDFKD8Ps=" : "NO"
+        "MCowBQYDK2VwAyEAwyrSj1lRbfy9MHwp4CNYck02YuQTxCPuxPNmDFKD8Ps=" : "NO",
+        "MCowBQYDK2VwAyEA4A3gTGN6FQz2iBkWPsbMNvYGtrmteU5A0R2r4nTc4IM=" : "NO"
     }
 }
