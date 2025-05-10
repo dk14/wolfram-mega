@@ -34,13 +34,14 @@ npm run it
 - protocol implementation coverage should be 100% for `node.ts`
 
 Client APIs:
+[src/client-api](src/client-api)
 ```
 npm run peer cfg/mempool-trader.json
 ```
 - Oracle Administration: http://localhost:9080/
 - Trader Console: http://localhost:7080/
 
-[src/client-api](src/client-api)
+
 
 ## Install
 ```
