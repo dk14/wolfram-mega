@@ -22,8 +22,8 @@ export interface ClosingParams {
     lockedTxId: TxId,
     alicePub: PubKey,
     bobPub: PubKey,
-    aliceAmountIn: number,
-    bobAmountIn: number
+    aliceAmount: number,
+    bobAmount: number
 }
 
 export interface CetParams {
@@ -33,8 +33,8 @@ export interface CetParams {
     rValue: Hex,
     alicePub: PubKey,
     bobPub: PubKey,
-    aliceAmountIn: number,
-    bobAmountIn: number
+    aliceAmount: number,
+    bobAmount: number
 }
 
 export interface CetRedemptioParams {
@@ -45,7 +45,7 @@ export interface CetRedemptioParams {
     alicePub: PubKey, 
     bobPub: PubKey,
     oracleSignature: Hex, 
-    aliceAmountOut: number
+    amount: number
 }
 
 
@@ -68,8 +68,8 @@ export const generateClosingTransaction = async (params: ClosingParams): Promise
         multiIn, 
         params.alicePub, 
         params.bobPub,
-        params.aliceAmountIn, 
-        params.bobAmountIn)).hex
+        params.aliceAmount, 
+        params.bobAmount)).hex
 }
 
 export const generateCetTransaction = async (params: CetParams): Promise<Hex> => {
@@ -83,8 +83,8 @@ export const generateCetTransaction = async (params: CetParams): Promise<Hex> =>
         params.alicePub, 
         params.bobPub,
         twistedPk,
-        params.aliceAmountIn, 
-        params.bobAmountIn)).hex
+        params.aliceAmount, 
+        params.bobAmount)).hex
 }
 
 export const generateCetRedemptionTransaction = async (params: CetRedemptioParams): Promise<Hex> => {
@@ -98,5 +98,5 @@ export const generateCetRedemptionTransaction = async (params: CetRedemptioParam
         twistedPk, 
         params.alicePub,
         params.oracleSignature,
-        params.aliceAmountOut)).hex
+        params.amount)).hex
 }

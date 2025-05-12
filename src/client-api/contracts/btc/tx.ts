@@ -26,8 +26,8 @@ export interface TxApi {
     genAliceCetRedemption(aliceOracleIn: UTxO, adaptorPubKeyCombined: string, alicePub: string, oracleS: string, amount: number): Promise<Tx>
 }
 
-const p2pktr = (pk: string) => bitcoin.payments.p2tr({
-    pubkey: Buffer.from(pk, "hex"),
+const p2pktr = (pub: string) => bitcoin.payments.p2tr({
+    pubkey: Buffer.from(pub, "hex"),
     network: net
   })
 

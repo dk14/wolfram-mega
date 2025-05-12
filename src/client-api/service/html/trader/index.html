@@ -157,6 +157,15 @@
         <br><br>
         <label for="otxid">Opening TxId:</label>
         <input type="text" id="otxid" name="otxid" size="40" value=''>
+        <label for="cet_answer">Cet Answer (BTC):</label>
+        <input type="text" id="cet_answer" name="cet_answer" size="40" value=''>
+        <br><br>
+        <input id="cet_btc" type="button" value="Gen Cet Tx (Btc)">
+        <input id="cet_redeem_btc" type="button" value="Gen Cet-Redeem Tx (Btc)">
+        <br>
+        <br>
+        <label for="cetxid">Cet TxId (Btc):</label>
+        <input type="text" id="cetxid" name="cetxid" size="40" value=''>
         <br><br>
         <label for="alice_in_txout_col">Alice Fee Collateral (Helios):</label>
         <input type="text" id="alice_in_txout_col" name="alice_in_txout_col" size="20" value=''>
@@ -166,17 +175,17 @@
         <br><br>
         <input id="closing_helios" type="button" value="Gen Closing Tx (Helios)">
         <input id="closing_btc" type="button" value="Gen Closing Tx (Btc)">
-        <pre>closing tx: </pre><pre id="closing_tx"></pre>
+           <pre>closing tx: </pre><pre id="closing_tx"></pre>
         <hr>
         <h4>Sign and Broadcast</h4>
         <label for="tx">Tx:</label>
         <input type="text" id="unsigned_tx" name="bob_in_txout" size="40" value=''>
         <input id="sign_helios" type="button" value="Sign (Helios)">
-        <input id="sign_btc" type="button" value="Sign (BTC)">
+
         <pre>signed tx: </pre><pre id="signed_tx"></pre>
         <pre>signed tx id: </pre><pre id="signed_tx_id"></pre>
         <input id="broadcast_helios" type="button" value="Broadcast (Helios, testnet)">
-        <input id="sign_btc" type="button" value="Broadcast (BTC, testnet)">
+        <input id="broadcast_btc" type="button" value="Broadcast (BTC, testnet)">
         <pre>tx id: </pre><pre id="final_tx_id"></pre>
         <br>
         <pre> https://preprod.cexplorer.io/tx/ </pre>
@@ -397,6 +406,121 @@
             
 
             document.getElementById('otxid').value = txInstance.id().toCborHex().substring(4)
+        }
+
+        document.getElementById('opening_btc').onclick = async () => {
+            const terms = JSON.parse(document.getElementById('terms').value)
+
+            const alice_txin = document.getElementById('alice_in_txout').value
+            const bob_txin = document.getElementById('bob_in_txout').value
+
+            const inputs = {
+                aliceIn: {
+                    txid: alice_txin.split(" # ")[0],
+                    vout: alice_txin.split(" # ")[1]
+                },
+                bobIn: {
+                    txid: bob_txin.split(" # ")[0],
+                    vout: bob_txin.split(" # ")[1]
+                },
+                alicePub: document.getElementById('alice_out_addr').value,
+                bobPub: document.getElementById('bob_out_addr').value,
+                aliceAmountIn: terms.partyBetAmount,
+                bobAmountIn: terms.counterpartyBetAmount
+            }
+
+            const tx = await (await fetch('./btc/generateOpeningTransaction', {
+	            method: 'post',
+	            body: JSON.stringify(inputs),
+	            headers: {'Content-Type': 'application/json'}
+            })).json()
+            
+            document.getElementById('opening_tx').innerHTML = JSON.stringify(tx)
+            
+            document.getElementById('otxid').value = (await crypto.subtle.digest('SHA-256', Buffer.from(tx, "hex"))).toString("hex")
+
+            document.getElementById('signed_tx').innerHTML = tx
+            document.getElementById('signed_tx_id').innerHTML = document.getElementById('otxid').value
+        }
+
+        document.getElementById('closing_btc').onclick = async () => {
+            const terms = JSON.parse(document.getElementById('terms').value)
+            const txfee = parseInt(document.getElementById('txfee').value)
+
+
+            const inputs = {   
+                lockedTxId: document.getElementById('otxid').value,         
+                alicePub: document.getElementById('alice_out_addr').value,
+                bobPub: document.getElementById('bob_out_addr').value,
+                aliceAmount: terms.partyBetAmount - txfee / 2,
+                bobAmount: terms.counterpartyBetAmount - txfee / 2
+            }
+
+            const tx = await (await fetch('./btc/generateClosingTransaction', {
+	            method: 'post',
+	            body: JSON.stringify(inputs),
+	            headers: {'Content-Type': 'application/json'}
+            })).json()
+            
+            document.getElementById('closing_tx').innerHTML = JSON.stringify(tx)
+
+            document.getElementById('signed_tx').innerHTML = tx
+            document.getElementById('signed_tx_id').innerHTML = (await crypto.subtle.digest('SHA-256', Buffer.from(tx, "hex"))).toString("hex")
+            
+        }
+
+        document.getElementById('cet_btc').onclick = async () => {
+            const terms = JSON.parse(document.getElementById('terms').value)
+            const txfee = parseInt(document.getElementById('txfee').value)
+
+
+            const inputs = {   
+                lockedTxId: document.getElementById('otxid').value,         
+                oraclePub: terms.question.capabilityPubKey, 
+                answer: document.getElementById('cet_answer').value, 
+                rValue: JSON.parse(document.getElementById('commitment').value).rValueSchnorrHex,
+                alicePub: document.getElementById('alice_out_addr').value,
+                bobPub: document.getElementById('bob_out_addr').value,
+                aliceAmount: terms.partyBetAmount - txfee / 2,
+                bobAmount: terms.counterpartyBetAmount  - txfee / 2
+            }
+
+            const tx = await (await fetch('./btc/generateClosingTransaction', {
+	            method: 'post',
+	            body: JSON.stringify(inputs),
+	            headers: {'Content-Type': 'application/json'}
+            })).json()
+            
+            document.getElementById('signed_tx').innerHTML = tx
+            document.getElementById('signed_tx_id').innerHTML = (await crypto.subtle.digest('SHA-256', Buffer.from(tx, "hex"))).toString("hex")
+            document.getElementById('cet_tx_id').value = (await crypto.subtle.digest('SHA-256', Buffer.from(tx, "hex"))).toString("hex")
+        }
+
+        document.getElementById('cet_redeem_btc').onclick = async () => {
+            const terms = JSON.parse(document.getElementById('terms').value)
+            const txfee = parseInt(document.getElementById('txfee').value)
+            const fact = JSON.parse(document.getElementById('fact').innerHTML)
+
+            const inputs = {   
+                cetTxId: document.getElementById('cet_tx_id').value, 
+                oraclePub: terms.question.capabilityPubKey, 
+                answer: fact.factWithQuestion, 
+                rValue: JSON.parse(document.getElementById('commitment').value).rValueSchnorrHex,
+                alicePub: document.getElementById('alice_out_addr').value, 
+                bobPub: document.getElementById('bob_out_addr').value,
+                oracleSignature: fact.signature, 
+                amount: terms.partyBetAmount - txfee
+            }
+
+            const tx = await (await fetch('./btc/generateClosingTransaction', {
+	            method: 'post',
+	            body: JSON.stringify(inputs),
+	            headers: {'Content-Type': 'application/json'}
+            })).json()
+
+            document.getElementById('signed_tx').innerHTML = tx
+            document.getElementById('signed_tx_id').innerHTML = (await crypto.subtle.digest('SHA-256', Buffer.from(tx, "hex"))).toString("hex")
+            
         }
 
         // integrity: provided: 8ecb2ded53ecd23a6faa2696f1b73f812aa48ffd375287e20d904357a3853700
