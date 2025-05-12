@@ -1,7 +1,7 @@
 import * as bitcoin from "bitcoinjs-lib"
-import * as ecc from 'tiny-secp256k1';
+import ecc from 'tiny-secp256k1';
 
-(ecc as any).then(ec => bitcoin.initEccLib(ec))
+bitcoin.initEccLib(ecc)
 
 
 import {Signer, SignerAsync} from "bitcoinjs-lib/src/psbt.d"

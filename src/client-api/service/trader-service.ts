@@ -7,6 +7,7 @@ import { Collector, TraderApi, traderApi } from "../trader-api";
 import { traderStorage, TraderQuery} from "../client-storage/trader-storage";
 import * as fs from 'fs'
 import { generateClosingTransaction, generateOpeningTransaction } from "../contracts/generate-cardano-tx";
+import * as btc from "../contracts/generate-btc-tx";
 import Sandbox from "@nyariv/sandboxjs";
 
 const safeEval = (expression: string, data: any): any => {
@@ -170,6 +171,14 @@ export const startTraderService = (cfg: MempoolConfig<PeerAddr>) => {
                             res.end(JSON.stringify(await generateOpeningTransaction(cfg.trader.heliosNetwork ?? "https://d1t0d7c2nekuk0.cloudfront.net/preprod.json", postBody)))
                         } else if (reqUrl.pathname == '/generateClosingTransaction') {
                             res.end(JSON.stringify(await generateClosingTransaction(cfg.trader.heliosNetwork ?? "https://d1t0d7c2nekuk0.cloudfront.net/preprod.json", postBody)))
+                        } else if (reqUrl.pathname == '/btc/generateOpeningTransaction') {
+                            res.end(JSON.stringify(await btc.generateOpeningTransaction(postBody)))
+                        } else if (reqUrl.pathname == '/btc/generateClosingTransaction') {
+                            res.end(JSON.stringify(await btc.generateClosingTransaction(postBody)))
+                        } else if (reqUrl.pathname == '/btc/generateCetTransaction') {
+                            res.end(JSON.stringify(await btc.generateCetTransaction(postBody)))
+                        } else if (reqUrl.pathname == '/btc/generateCetRedemptionTransaction') {
+                            res.end(JSON.stringify(await btc.generateCetRedemptionTransaction(postBody)))
                         } else {
                             res.end("{}")
                         }
