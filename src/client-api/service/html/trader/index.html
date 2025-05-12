@@ -194,6 +194,7 @@
 
 
     </body>
+    <script src="https://mempool.space/mempool.js"></script>
     <script type="module">
 
         import * as helios from "https://helios.hyperion-bt.org/0.16.7/helios.js"
@@ -662,6 +663,19 @@
             }
             
         }
+
+        document.getElementById('broadcast_btc').onclick = async () => {
+            try {
+                document.getElementById('final_tx_id').innerHTML = ""
+                const txRaw = document.getElementById('signed_tx').innerHTML
+                document.getElementById('final_tx_id').innerHTML = await transactions.postTx({ txRaw })
+            } catch (err) {
+                document.getElementById('final_tx_id').innerHTML = err
+            }
+            
+        }
+
+        
 
         setInterval(async () => {
             if (document.getElementById('update').checked) {
