@@ -486,7 +486,7 @@
                 bobAmount: terms.counterpartyBetAmount  - txfee / 2
             }
 
-            const tx = await (await fetch('./btc/generateClosingTransaction', {
+            const tx = await (await fetch('./btc/generateCetTransaction', {
 	            method: 'post',
 	            body: JSON.stringify(inputs),
 	            headers: {'Content-Type': 'application/json'}
@@ -513,7 +513,7 @@
                 amount: terms.partyBetAmount - txfee
             }
 
-            const tx = await (await fetch('./btc/generateClosingTransaction', {
+            const tx = await (await fetch('./btc/generateCetRedemptionTransaction', {
 	            method: 'post',
 	            body: JSON.stringify(inputs),
 	            headers: {'Content-Type': 'application/json'}
@@ -668,14 +668,16 @@
             try {
                 document.getElementById('final_tx_id').innerHTML = ""
                 const txRaw = document.getElementById('signed_tx').innerHTML
+                const { bitcoin: { transactions } } = mempoolJS({
+                    hostname: 'mempool.space',
+                    network: 'testnet'
+                });
                 document.getElementById('final_tx_id').innerHTML = await transactions.postTx({ txRaw })
             } catch (err) {
                 document.getElementById('final_tx_id').innerHTML = err
             }
             
         }
-
-        
 
         setInterval(async () => {
             if (document.getElementById('update').checked) {
