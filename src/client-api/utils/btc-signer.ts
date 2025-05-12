@@ -7,6 +7,7 @@ const schnorr = require('bip-schnorr');
 const muSig = schnorr.muSig;
 const convert = schnorr.convert;
 import * as multisig from '../contracts/btc/mu-sig'
+import bs58 from 'bs58'
 
 interface BtcSignerCfg {
     secrets: {[pub: string]: string}
@@ -63,7 +64,9 @@ const server = http.createServer(async (req, res) => {
                             
                             res.end(muSignature)
                         } else {
-                            const signature: Buffer = schnorr.sign(convert.bufferToInt(Buffer.from(cfg.secrets[input.pubkeys[0]], "hex")), Buffer.from(input.msg, "hex"))
+                            //console.log(cfg.secrets[input.pubkeys[0]])
+                            console.log(Buffer.from(bs58.decode(cfg.secrets[input.pubkeys[0]])).toString("hex"))
+                            const signature: Buffer = schnorr.sign(Buffer.from(bs58.decode(cfg.secrets[input.pubkeys[0]])).toString("hex").substring(2, 64 + 2), Buffer.from(input.msg, "hex"))
                             res.end(signature.toString("hex"))
                         }
                         

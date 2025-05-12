@@ -121,6 +121,9 @@
         Faucet for Helios: https://docs.cardano.org/cardano-testnets/tools/faucet (PreProd testnet)
         Faucet for BTC: https://mempool.space/testnet4/faucet
         Gen BTC keys: https://bitcoin-tools-blond.vercel.app/
+        Default address for Alice: tb1pudlyenkk7426rvsx84j97qddf4tuc8l63suz62xeq4s6j3wmuylq0j54ex (tx example: 79c4675fe59af97893a2c771369fd8445d1ecd1a2c6c14ce5df2ade227d43a4e # 0)
+        Default address for Bob: tb1pudlyenkk7426rvsx84j97qddf4tuc8l63suz62xeq4s6j3wmuylq0j54ex (tx example: a2eb28aafa2ae6e833832e8761ba7afe142f40fc65c7100b45891fa3bb23d87d # 0)
+
     1a) Hit "Gen Opening Tx", it will autofill utxos from wallet if fields left empty
     1b) Copy opening tx into Tx field ("Sign and Broadcast" subsection), hit "Sign", hit "Broadcast"
     1c) Copy signed tx id into "Opening TxId" field
@@ -151,9 +154,9 @@
         
         <h5>tx-out-addr (bech32 or btc-pubkey):</h5>
         <label for="alice_out_addr">Alice:</label>
-        <input type="text" id="alice_out_addr" name="alice_out_addr" size="20" value='03e37e4cced6f555a1b2063d645f01ad4d57cc1ffa8c382d28d90561a945dbe13e='>
+        <input type="text" id="alice_out_addr" name="alice_out_addr" size="20" value='e37e4cced6f555a1b2063d645f01ad4d57cc1ffa8c382d28d90561a945dbe13e'>
         <label for="bob_out_addr">Bob:</label>
-        <input type="text" id="bob_out_addr" name="bob_out_addr" size="20" value='027fe828395f6143c295ae162d235c3c4b58c27fa1fd2019e88da55979bba5396e'>
+        <input type="text" id="bob_out_addr" name="bob_out_addr" size="20" value='7fe828395f6143c295ae162d235c3c4b58c27fa1fd2019e88da55979bba5396e'>
 
         <br><br>
         <label for="otxid">Opening TxId:</label>
@@ -336,11 +339,11 @@
             var aliceActualAmount = terms.partyBetAmount.toString()
             var bobActualAmount = terms.counterpartyBetAmount.toString()
 
-            if (document.getElementById('alice_out_addr').value === "" || document.getElementById('alice_out_addr').value === "03e37e4cced6f555a1b2063d645f01ad4d57cc1ffa8c382d28d90561a945dbe13e=") {
+            if (document.getElementById('alice_out_addr').value === "" || document.getElementById('alice_out_addr').value === "e37e4cced6f555a1b2063d645f01ad4d57cc1ffa8c382d28d90561a945dbe13e") {
                 document.getElementById('alice_out_addr').value = changeAddr
             }
 
-            if (document.getElementById('bob_out_addr').value === "" || document.getElementById('bob_out_addr').value === "027fe828395f6143c295ae162d235c3c4b58c27fa1fd2019e88da55979bba5396e") {
+            if (document.getElementById('bob_out_addr').value === "" || document.getElementById('bob_out_addr').value === "7fe828395f6143c295ae162d235c3c4b58c27fa1fd2019e88da55979bba5396e") {
                 document.getElementById('bob_out_addr').value = changeAddr
             }  
 
@@ -411,11 +414,11 @@
             const inputs = {
                 aliceIn: {
                     txid: alice_txin.split(" # ")[0],
-                    vout: alice_txin.split(" # ")[1]
+                    vout: parseInt(alice_txin.split(" # ")[1])
                 },
                 bobIn: {
                     txid: bob_txin.split(" # ")[0],
-                    vout: bob_txin.split(" # ")[1]
+                    vout: parseInt(bob_txin.split(" # ")[1])
                 },
                 alicePub: document.getElementById('alice_out_addr').value,
                 bobPub: document.getElementById('bob_out_addr').value,

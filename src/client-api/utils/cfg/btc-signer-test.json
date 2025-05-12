@@ -1,7 +1,7 @@
 {
     "secrets": {
-        "03e37e4cced6f555a1b2063d645f01ad4d57cc1ffa8c382d28d90561a945dbe13e=" : "cRFAdefAzpxzKduj3F9wf3qSTgA5johBBqPZZT72hh46dgCRr997",
-        "027fe828395f6143c295ae162d235c3c4b58c27fa1fd2019e88da55979bba5396e" : "cPCMiHyZQt7UWF9y49CaW7ckT9FaFQj5ChnEbXnF51WwEcp6Agkq"
+        "e37e4cced6f555a1b2063d645f01ad4d57cc1ffa8c382d28d90561a945dbe13e" : "cRFAdefAzpxzKduj3F9wf3qSTgA5johBBqPZZT72hh46dgCRr997",
+        "7fe828395f6143c295ae162d235c3c4b58c27fa1fd2019e88da55979bba5396e" : "cPCMiHyZQt7UWF9y49CaW7ckT9FaFQj5ChnEbXnF51WwEcp6Agkq"
     },
     "httpPort": 9593
 }

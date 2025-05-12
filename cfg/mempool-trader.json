@@ -38,6 +38,6 @@
         "dbPath": "./db",
         "httpPort": 7080,
         "heliosNetwork": "https://d1t0d7c2nekuk0.cloudfront.net/preview.json",
-        "btcSignerEndpoint": "http://localhost:9093/sign"
+        "btcSignerEndpoint": "http://localhost:9593/sign"
     }
 }

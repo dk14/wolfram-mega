@@ -1,5 +1,5 @@
 import * as bitcoin from "bitcoinjs-lib"
-import ecc from 'tiny-secp256k1';
+import * as ecc from 'tiny-secp256k1';
 
 bitcoin.initEccLib(ecc)
 
@@ -45,7 +45,7 @@ function schnorrSignerSingle(pub: string): SignerAsync {
             return null
         },
         async signSchnorr(hash: Buffer): Promise<Buffer> {
-            const response = await fetch(global.cfg.btcSignerEndpoint, {
+            const response = await fetch(global.cfg.trader.btcSignerEndpoint, {
                 method: 'post',
                 body: JSON.stringify({
                     pubkeys: [pub],
@@ -75,7 +75,7 @@ function schnorrSignerMulti(pub1: string, pub2: string, secrets: string[] = []):
             return null
         },
         async signSchnorr(hash: Buffer): Promise<Buffer> {
-            const response = await fetch(global.cfg.btcSignerEndpoint, {
+            const response = await fetch(global.cfg.trader.btcSignerEndpoint, {
                 method: 'post',
                 body: JSON.stringify({
                     pubkeys: [pub1, pub2],
@@ -98,8 +98,12 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
     return {
         genOpeningTx: async (aliceIn: UTxO, bobIn: UTxO, alicePub: string, bobPub: string, aliceAmount: number, bobAmount: number): Promise<Tx> => {
             const psbt = new bitcoin.Psbt({ network: net})
+            console.log(alicePub)
             let aliceP2TR = p2pktr(alicePub)
             let bobP2TR = p2pktr(bobPub)
+
+            console.log("alice_addr = " + aliceP2TR.address)
+            console.log("bob_addr = " + aliceP2TR.address)
             const pkCombined = muSig.pubKeyCombine([Buffer.from(alicePub, "hex"), Buffer.from(bobPub, "hex")]);
             let pubKeyCombined = convert.intToBuffer(pkCombined.affineX);
 
