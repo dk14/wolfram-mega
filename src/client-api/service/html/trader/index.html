@@ -120,6 +120,7 @@
         * send funds to yourself several times in order to create utxos
         Faucet for Helios: https://docs.cardano.org/cardano-testnets/tools/faucet (PreProd testnet)
         Faucet for BTC: https://mempool.space/testnet4/faucet
+        Gen BTC keys: https://bitcoin-tools-blond.vercel.app/
     1a) Hit "Gen Opening Tx", it will autofill utxos from wallet if fields left empty
     1b) Copy opening tx into Tx field ("Sign and Broadcast" subsection), hit "Sign", hit "Broadcast"
     1c) Copy signed tx id into "Opening TxId" field
@@ -150,21 +151,21 @@
         
         <h5>tx-out-addr (bech32 or btc-pubkey):</h5>
         <label for="alice_out_addr">Alice:</label>
-        <input type="text" id="alice_out_addr" name="alice_out_addr" size="20" value=''>
+        <input type="text" id="alice_out_addr" name="alice_out_addr" size="20" value='03e37e4cced6f555a1b2063d645f01ad4d57cc1ffa8c382d28d90561a945dbe13e='>
         <label for="bob_out_addr">Bob:</label>
-        <input type="text" id="bob_out_addr" name="bob_out_addr" size="20" value=''>
+        <input type="text" id="bob_out_addr" name="bob_out_addr" size="20" value='027fe828395f6143c295ae162d235c3c4b58c27fa1fd2019e88da55979bba5396e'>
 
         <br><br>
         <label for="otxid">Opening TxId:</label>
         <input type="text" id="otxid" name="otxid" size="40" value=''>
-        <label for="cet_answer">Cet Answer (BTC):</label>
+        <label for="cet_answer">CET Answer (BTC):</label>
         <input type="text" id="cet_answer" name="cet_answer" size="40" value=''>
         <br><br>
         <input id="cet_btc" type="button" value="Gen Cet Tx (Btc)">
         <input id="cet_redeem_btc" type="button" value="Gen Cet-Redeem Tx (Btc)">
         <br>
         <br>
-        <label for="cetxid">Cet TxId (Btc):</label>
+        <label for="cetxid">CET TxId (Btc):</label>
         <input type="text" id="cetxid" name="cetxid" size="40" value=''>
         <br><br>
         <label for="alice_in_txout_col">Alice Fee Collateral (Helios):</label>
@@ -335,11 +336,11 @@
             var aliceActualAmount = terms.partyBetAmount.toString()
             var bobActualAmount = terms.counterpartyBetAmount.toString()
 
-            if (document.getElementById('alice_out_addr').value === "") {
+            if (document.getElementById('alice_out_addr').value === "" || document.getElementById('alice_out_addr').value === "03e37e4cced6f555a1b2063d645f01ad4d57cc1ffa8c382d28d90561a945dbe13e=") {
                 document.getElementById('alice_out_addr').value = changeAddr
             }
 
-            if (document.getElementById('bob_out_addr').value === "") {
+            if (document.getElementById('bob_out_addr').value === "" || document.getElementById('bob_out_addr').value === "027fe828395f6143c295ae162d235c3c4b58c27fa1fd2019e88da55979bba5396e") {
                 document.getElementById('bob_out_addr').value = changeAddr
             }  
 
@@ -357,14 +358,6 @@
 
             console.log("bob_in = " + aliceActualAmount + " / " + terms.partyBetAmount + ", delta = " + (BigInt(aliceActualAmount) - BigInt(terms.partyBetAmount)))
             console.log("alice_in = " + bobActualAmount + " / " + terms.counterpartyBetAmount + ", delta = " + (BigInt(bobActualAmount) - BigInt(terms.counterpartyBetAmount)))
-
-            if (document.getElementById('bob_out_addr').value === "") {
-                document.getElementById('bob_out_addr').value = changeAddr
-            }    
-  
-            if (document.getElementById('bob_out_addr').value === "") {
-                document.getElementById('bob_out_addr').value = changeAddr
-            }    
 
             const alice_txin = document.getElementById('alice_in_txout').value
             const bob_txin = document.getElementById('bob_in_txout').value
