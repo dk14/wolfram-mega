@@ -3,6 +3,7 @@ import * as readline from 'readline'
 import * as nd from '../../node'
 import * as fs from 'fs'
 import { schnorrApi } from '../contracts/btc/schnorr';
+import bs58 from 'bs58'
 
 interface SignerCfg {
     oraclePK: string
@@ -78,7 +79,8 @@ interface SignerCfg {
 
             if (x[1] === '!RVALUE') {
                 if (crypto === 'schnorr') {
-                    const kValue = schnorrApi().genNonce(cfg.capabilityPKs[commitment.req.capabilityPubKey], commitment.req.capabilityPubKey, "C87AA53824B4D7AE2EB035A2B5BBBCCC080E76CDC6D1692C4B0B62D798E6D906")
+                    const secret = Buffer.from(bs58.decode(cfg.capabilityPKs[commitment.req.capabilityPubKey])).toString("hex").substring(2, 64 + 2)
+                    const kValue = schnorrApi().genNonce(secret, commitment.req.capabilityPubKey, "C87AA53824B4D7AE2EB035A2B5BBBCCC080E76CDC6D1692C4B0B62D798E6D906")
                     const rValue = schnorrApi().getPub(kValue)
                     streamFact.write(rValue + "\n")
                 }
@@ -86,9 +88,10 @@ interface SignerCfg {
                 
             } else if (x[1] === '') {
                 if (crypto === 'schnorr') {
-                    const kValue = schnorrApi().genNonce(cfg.capabilityPKs[commitment.req.capabilityPubKey], commitment.req.capabilityPubKey, "C87AA53824B4D7AE2EB035A2B5BBBCCC080E76CDC6D1692C4B0B62D798E6D906")
+                    const secret = Buffer.from(bs58.decode(cfg.capabilityPKs[commitment.req.capabilityPubKey])).toString("hex").substring(2, 64 + 2)
+                    const kValue = schnorrApi().genNonce(secret, commitment.req.capabilityPubKey, "C87AA53824B4D7AE2EB035A2B5BBBCCC080E76CDC6D1692C4B0B62D798E6D906")
                     const rValue = schnorrApi().getPub(kValue)
-                    const sValue = schnorrApi().signatureSValue(cfg.capabilityPKs[commitment.req.capabilityPubKey], kValue, JSON.stringify(commitment)).padStart(64, "0")
+                    const sValue = schnorrApi().signatureSValue(secret, kValue, JSON.stringify(commitment)).padStart(64, "0")
                     streamFact.write(rValue + sValue + "\n")
                 } else {
                     const sig = (crypto === 'ed') ? 
@@ -100,8 +103,9 @@ interface SignerCfg {
                 
             } else {
                 if (crypto === 'schnorr') {
-                    const kValue = schnorrApi().genNonce(cfg.capabilityPKs[commitment.req.capabilityPubKey], commitment.req.capabilityPubKey, "C87AA53824B4D7AE2EB035A2B5BBBCCC080E76CDC6D1692C4B0B62D798E6D906")
-                    const sValue = schnorrApi().signatureSValue(cfg.capabilityPKs[commitment.req.capabilityPubKey], kValue, x[1]).padStart(64, "0")
+                    const secret = Buffer.from(bs58.decode(cfg.capabilityPKs[commitment.req.capabilityPubKey])).toString("hex").substring(2, 64 + 2)
+                    const kValue = schnorrApi().genNonce(secret, commitment.req.capabilityPubKey, "C87AA53824B4D7AE2EB035A2B5BBBCCC080E76CDC6D1692C4B0B62D798E6D906")
+                    const sValue = schnorrApi().signatureSValue(secret, kValue, x[1]).padStart(64, "0")
                     streamFact.write(sValue + "\n")
                 } else {
                     const sig = (crypto === 'ed') ? 

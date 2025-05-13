@@ -57,24 +57,26 @@ const server = http.createServer(async (req, res) => {
         
                     if(reqUrl.pathname == '/sign') {
                         if (input.pubkeys.length > 1) {
+                            const secret1 = cfg.secrets[input.pubkeys[0]] ? 
+                                Buffer.from(bs58.decode(cfg.secrets[input.pubkeys[0]])).toString("hex").substring(2, 64 + 2)
+                                : input.s[0]
+                            const secret2 = cfg.secrets[input.pubkeys[1]] ? 
+                                Buffer.from(bs58.decode(cfg.secrets[input.pubkeys[0]])).toString("hex").substring(2, 64 + 2)
+                                : input.s[1]
                             const muSignature = multisig.sign(input.pubkeys[0], input.pubkeys[1], 
-                                cfg.secrets[input.pubkeys[0]] ?? input.s[0],
-                                cfg.secrets[input.pubkeys[1]] ?? input.s[1],
+                                secret1,
+                                secret2,
                                 Buffer.from(input.msg, "hex"))
                             
                             res.end(muSignature)
                         } else {
                             //console.log(cfg.secrets[input.pubkeys[0]])
-                            console.log(Buffer.from(bs58.decode(cfg.secrets[input.pubkeys[0]])).toString("hex"))
+                            //console.log(Buffer.from(bs58.decode(cfg.secrets[input.pubkeys[0]])).toString("hex"))
                             const signature: Buffer = schnorr.sign(Buffer.from(bs58.decode(cfg.secrets[input.pubkeys[0]])).toString("hex").substring(2, 64 + 2), Buffer.from(input.msg, "hex"))
                             res.end(signature.toString("hex"))
-                        }
-                        
+                        }    
                     }
-
-
-            
-                    
+                 
                     return
 
                 } catch(err) {
