@@ -79,12 +79,14 @@ function schnorrSignerMulti(pub1: string, pub2: string, secrets: string[] = []):
                 method: 'post',
                 body: JSON.stringify({
                     pubkeys: [pub1, pub2],
-                    secrets,
+                    s: secrets,
                     msg: hash.toString('hex')
                 }),
                 headers: {'Content-Type': 'application/json'}
             })
-            return Buffer.from(await response.text(), "hex")
+
+            const res = await response.text()
+            return Buffer.from(res, "hex")
             //let muSignature = multisig.sign(pub1, pub2, secret1, secret2, hash)
             //return Buffer.from(muSignature, "hex")
         },
@@ -222,7 +224,7 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
                 value: amount
             });
 
-            psbt.signInputAsync(0, schnorrSignerMulti(alicePub, adaptorPub, ["", oracleS]))
+            await psbt.signInputAsync(0, schnorrSignerMulti(alicePub, adaptorPub, ["", oracleS]))
 
             psbt.finalizeAllInputs()
 

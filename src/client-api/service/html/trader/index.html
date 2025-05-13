@@ -556,7 +556,7 @@
             
             document.getElementById('signed_tx').innerHTML = tx
             document.getElementById('signed_tx_id').innerHTML = buf2hex(await crypto.subtle.digest('SHA-256', hex2buf(tx)))
-            document.getElementById('cet_tx_id').value = buf2hex(await crypto.subtle.digest('SHA-256', hex2buf(tx)))
+            document.getElementById('cetxid').value = buf2hex(await crypto.subtle.digest('SHA-256', hex2buf(tx)))
         }
 
         document.getElementById('cet_redeem_btc').onclick = async () => {
@@ -568,7 +568,7 @@
             const fact = JSON.parse(document.getElementById('fact').innerHTML)
 
             const inputs = {   
-                cetTxId: document.getElementById('cet_tx_id').value, 
+                cetTxId: document.getElementById('cetxid').value, 
                 oraclePub: terms.question.capabilityPubKey, 
                 answer: fact.factWithQuestion, 
                 rValue: JSON.parse(document.getElementById('commitment').value).rValueSchnorrHex,
@@ -585,7 +585,7 @@
             })).json()
 
             document.getElementById('signed_tx').innerHTML = tx
-            document.getElementById('signed_tx_id').innerHTML = (await crypto.subtle.digest('SHA-256', Buffer.from(tx, "hex"))).toString("hex")
+            document.getElementById('signed_tx_id').innerHTML = buf2hex(await crypto.subtle.digest('SHA-256', hex2buf(tx)))
             
         }
 

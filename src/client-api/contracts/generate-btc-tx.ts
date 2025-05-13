@@ -92,7 +92,8 @@ export const generateCetRedemptionTransaction = async (params: CetRedemptioParam
     const cetOut = {
         txid:  params.cetTxId,
         vout: 0
-     }
+    }
+
     return (await tx.genAliceCetRedemption(
         cetOut, 
         twistedPk, 
