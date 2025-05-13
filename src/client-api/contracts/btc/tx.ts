@@ -105,7 +105,7 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
             let bobP2TR = p2pktr(bobPub)
 
             console.log("alice_addr = " + aliceP2TR.address)
-            console.log("bob_addr = " + aliceP2TR.address)
+            console.log("bob_addr = " + bobP2TR.address)
             const pkCombined = muSig.pubKeyCombine([Buffer.from(alicePub, "hex"), Buffer.from(bobPub, "hex")]);
             let pubKeyCombined = convert.intToBuffer(pkCombined.affineX);
 
