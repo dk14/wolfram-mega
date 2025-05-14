@@ -24,7 +24,7 @@
         <input type="number" id="page" name="page" min="0" max="100" value="0"/>
         <label for="update">Update:</label>
         <input type="checkbox" id="update" name="update" checked />
-        <pre>Note: uncheck Update on slow free hosting demos, only check it back (for few seconds) when need to update (incl. oracle query panel) </pre>
+        <label>(note: uncheck Update on slow free hosting demos, only check it back for few seconds when need to update, e.g. in query panel) </label>
         <hr>
         <div id="database"></div>
         <hr>
@@ -117,7 +117,7 @@
         <pre>Instructions: 
     0) Prepare funds in webwallet: there should be several utxos available: 
         Alice, Bob, Alice collateral fee (Helios), Bob collateral fee (Helios)
-        * send funds to yourself several times in order to create utxos
+        * send funds to yourself several times in order to create utxos for Helios, BTC version supports picking multi-UtXO per party
         Faucet for Helios: <a href = "https://docs.cardano.org/cardano-testnets/tools/faucet">https://docs.cardano.org/cardano-testnets/tools/faucet</a> (PreProd testnet)
         Faucet for BTC: <a href = "https://mempool.space/testnet4/faucet">https://mempool.space/testnet4/faucet</a> <a href = "https://cryptopump.info/send.php">https://cryptopump.info/send.php</a> <a href = "https://coinfaucet.eu/en/btc-testnet/">https://coinfaucet.eu/en/btc-testnet/</a>
         Gen BTC keys: <a href = "https://bitcoin-tools-blond.vercel.app">https://bitcoin-tools-blond.vercel.app</a>
@@ -129,12 +129,19 @@
 
     1a) Hit "Gen Opening Tx", it will autofill utxos from wallet if fields left empty (for Helios)
     1b) Copy opening tx into Tx field ("Sign and Broadcast" subsection), hit "Sign", hit "Broadcast"
+        * BTC version auto-signs afetr you hit "Gen Opening Tx", so only "Broadcast" is required
     1c) Copy signed tx id into "Opening TxId" field
 
     2) Hit "Request Commitment" ("Query Oracle" section) and wait for fact to arrive
  
     3a) Hit "Gen Closing Tx"
     3b) Copy closing tx into Tx field ("Sign and Broadcast" subsection), hit "Sign", hit "Broadcast" 
+        * BTC version auto-signs afetr you hit "Gen Opening Tx", so only "Broadcast" is required
+
+    BTC-DLC CET transactions (see <a href="https://dk14.github.io/marlowe-wolfram-webdoc/eurocall">webdoc</a>):
+        Hit "Gen CET", Hit "Broadcast"
+        Hit "Gen CET Redeem", Hit "Broadcast"
+    
         </pre>
 
         <label for="terms"><h5>Offer Terms:</h5></label>
@@ -146,6 +153,7 @@
         <h5>tx-in ("txid # out"):</h5>
         <input id="btc_defaults" type="button" value="Fill In BTC defaults">
         <input id="clear" type="button" value="Clear">
+        <label id="btc_balance"></label>
         <br><br>
         <label for="alice_in_txout">Alice:</label>
         <input type="text" id="alice_in_txout" name="alice_in_txout" size="40" value=''>
@@ -349,7 +357,7 @@
             const pub = "07508128697f7a1aca5c3e86292daa4b08f76e68b405e4b4ffe50d066ade55c3"
             const terms = JSON.parse(document.getElementById('terms').value)
             terms.question.capabilityPubKey = pub
-            terms.partyBetAmount = 194347 + 1000 //5000
+            terms.partyBetAmount = 5000 // 194347 + 1000
             terms.counterpartyBetAmount = 2000
             document.getElementById('terms').value = JSON.stringify(terms)
 
@@ -373,6 +381,8 @@
             
             const aliceUtxos = (await addresses.getAddressTxsUtxo({ address: addressAlice }))
             const bobUtxos = (await addresses.getAddressTxsUtxo({ address: addressBob }))
+
+            document.getElementById('btc_balance').innerText = `[balance] alice: ${aliceUtxos.map(x => x.value).reduce((a, b) => (a ?? 0) + (b ?? 0))}, bob: ${bobUtxos.map(x => x.value).reduce((a, b) => (a ?? 0) + (b ?? 0))}`
             
             const utxoAlice = aliceUtxos.find(a => a.value > terms.partyBetAmount + txfee / 2)
             const utxoBob = bobUtxos.find(a => a.value > terms.counterpartyBetAmount + txfee / 2)
@@ -409,6 +419,7 @@
         }
 
         document.getElementById('clear').onclick = async () => {
+            document.getElementById('btc_balance').innerText = ""
             document.getElementById('alice_out_addr').value = ""
             document.getElementById('bob_out_addr').value = ""
             document.getElementById('bob_in_txout').value = "" 
