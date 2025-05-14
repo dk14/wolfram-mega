@@ -21,7 +21,7 @@ The best approach is to sign messages manually unless they only differ in `seqNo
 
 ## Contracts demo
 
-Trader console contains demo of Helios and BTC DLC (WIP) contracts. Helios version signs through webwallet nonsense (unsecure signing in browser), while BTC version relies on external signing http service (example: `utils/btc-signer.ts`, can be delegated to harware wallet).
+Trader console contains demo of Helios and BTC DLC contracts. Helios version signs through webwallet nonsense (unsecure signing in browser), while BTC version relies on external signing http service (example: `utils/btc-signer.ts`, can be delegated to harware wallet).
 
 The best approach for signing Bitcoin transaction is always manual approval.
 
@@ -42,8 +42,6 @@ npm run demo
 - http://localhost:8080/peer-monitor/
 - http://localhost:8080/oracle-admin/
 - http://localhost:8080/oracle-endpoint/
-- http://localhost:8080//trader-console/
-
-Free (unreliable) demo deployment: http://wolfram-mega-demo.onrender.com/trader-console/
+- http://localhost:8080/trader-console/
 
 
