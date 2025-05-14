@@ -15,7 +15,10 @@ export interface OpeningParams {
     alicePub: PubKey,
     bobPub: PubKey,
     aliceAmountIn: number,
-    bobAmountIn: number
+    bobAmountIn: number,
+    changeAlice: number,
+    changeBob: number,
+    txfee: number
 }
 
 export interface ClosingParams {
@@ -23,7 +26,8 @@ export interface ClosingParams {
     alicePub: PubKey,
     bobPub: PubKey,
     aliceAmount: number,
-    bobAmount: number
+    bobAmount: number,
+    txfee: number
 }
 
 export interface CetParams {
@@ -34,7 +38,8 @@ export interface CetParams {
     alicePub: PubKey,
     bobPub: PubKey,
     aliceAmount: number,
-    bobAmount: number
+    bobAmount: number,
+    txfee: number
 }
 
 export interface CetRedemptioParams {
@@ -45,9 +50,9 @@ export interface CetRedemptioParams {
     alicePub: PubKey, 
     bobPub: PubKey,
     oracleSignature: Hex, 
-    amount: number
+    amount: number,
+    txfee: number
 }
-
 
 export const generateOpeningTransaction = async (params: OpeningParams): Promise<Hex> => {
     return (await tx.genOpeningTx(
@@ -56,7 +61,10 @@ export const generateOpeningTransaction = async (params: OpeningParams): Promise
         params.alicePub, 
         params.bobPub,
         params.aliceAmountIn, 
-        params.bobAmountIn)).hex
+        params.bobAmountIn,
+        params.changeAlice,
+        params.changeBob,
+        params.txfee)).hex
 }
 
 export const generateClosingTransaction = async (params: ClosingParams): Promise<Hex> => {
@@ -69,7 +77,8 @@ export const generateClosingTransaction = async (params: ClosingParams): Promise
         params.alicePub, 
         params.bobPub,
         params.aliceAmount, 
-        params.bobAmount)).hex
+        params.bobAmount,
+        params.txfee)).hex
 }
 
 export const generateCetTransaction = async (params: CetParams): Promise<Hex> => {
@@ -84,7 +93,8 @@ export const generateCetTransaction = async (params: CetParams): Promise<Hex> =>
         params.bobPub,
         twistedPk,
         params.aliceAmount, 
-        params.bobAmount)).hex
+        params.bobAmount,
+        params.txfee)).hex
 }
 
 export const generateCetRedemptionTransaction = async (params: CetRedemptioParams): Promise<Hex> => {
@@ -99,5 +109,6 @@ export const generateCetRedemptionTransaction = async (params: CetRedemptioParam
         twistedPk, 
         params.alicePub,
         params.oracleSignature,
-        params.amount)).hex
+        params.amount,
+        params.txfee)).hex
 }

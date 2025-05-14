@@ -495,25 +495,83 @@
         }
 
         document.getElementById('opening_btc').onclick = async () => {
+
             document.getElementById('opening_tx').innerHTML = ""
             const terms = JSON.parse(document.getElementById('terms').value)
 
             const alice_txin = document.getElementById('alice_in_txout').value
             const bob_txin = document.getElementById('bob_in_txout').value
 
+            const alice_txid = alice_txin.split(" # ")[0]
+            const alice_vout = parseInt(alice_txin.split(" # ")[1])
+
+            const bob_txid = bob_txin.split(" # ")[0]
+            const bob_vout = parseInt(bob_txin.split(" # ")[1])
+
+            const alicePub = document.getElementById('alice_out_addr').value
+            const bobPub = document.getElementById('bob_out_addr').value
+
+            let changeAlice = 0
+            let changeBob = 0
+
+            //try {
+                const { bitcoin: { addresses } } = mempoolJS({
+                    hostname: 'mempool.space',
+                    network: 'testnet'
+                 });
+
+                const txfee = parseInt(document.getElementById('txfee').value)
+
+                const addressAlice = await (await fetch('./btc/pub2addr', {
+	                method: 'post',
+	                body: JSON.stringify(alicePub),
+	                headers: {'Content-Type': 'application/json'}
+                })).json()
+
+                console.log("alice_addr = " + addressAlice)
+
+                const addressBob = await (await fetch('./btc/pub2addr', {
+	                method: 'post',
+	                body: JSON.stringify(bobPub),
+	                headers: {'Content-Type': 'application/json'}
+                })).json()
+
+                console.log("bob_addr = " + addressBob)
+
+                const amountAlice = (await addresses.getAddressTxsUtxo({ address: addressAlice }))
+                    .find(utxo => utxo.txid === alice_txid && utxo.vout === alice_vout)
+                    .value
+
+                changeAlice = amountAlice - terms.partyBetAmount - txfee / 2
+                console.log("alice_change = " + changeAlice)
+
+                const amountBob = (await addresses.getAddressTxsUtxo({ address: addressBob }))
+                    .find(utxo => utxo.txid === bob_txid && utxo.vout === bob_vout)
+                    .value
+
+                changeBob = amountBob - terms.counterpartyBetAmount - txfee / 2
+                console.log("bob_change = " + changeBob)
+
+            //} catch (err) {
+              //  console.error(err)
+            //}
+
             const inputs = {
                 aliceIn: {
-                    txid: alice_txin.split(" # ")[0],
-                    vout: parseInt(alice_txin.split(" # ")[1])
+                    txid: alice_txid,
+                    vout: alice_vout
                 },
                 bobIn: {
-                    txid: bob_txin.split(" # ")[0],
-                    vout: parseInt(bob_txin.split(" # ")[1])
+                    txid: bob_txid,
+                    vout: bob_vout
                 },
-                alicePub: document.getElementById('alice_out_addr').value,
-                bobPub: document.getElementById('bob_out_addr').value,
+                alicePub,
+                bobPub,
                 aliceAmountIn: terms.partyBetAmount,
-                bobAmountIn: terms.counterpartyBetAmount
+                bobAmountIn: terms.counterpartyBetAmount,
+                changeAlice,
+                changeBob,
+                txfee
             }
 
             const tx = await (await fetch('./btc/generateOpeningTransaction', {
@@ -543,7 +601,8 @@
                 alicePub: document.getElementById('alice_out_addr').value,
                 bobPub: document.getElementById('bob_out_addr').value,
                 aliceAmount: terms.partyBetAmount - txfee / 2,
-                bobAmount: terms.counterpartyBetAmount - txfee / 2
+                bobAmount: terms.counterpartyBetAmount - txfee / 2,
+                txfee
             }
 
             const tx = await (await fetch('./btc/generateClosingTransaction', {
@@ -576,7 +635,8 @@
                 alicePub: document.getElementById('alice_out_addr').value,
                 bobPub: document.getElementById('bob_out_addr').value,
                 aliceAmount: terms.partyBetAmount - txfee / 2,
-                bobAmount: terms.counterpartyBetAmount  - txfee / 2
+                bobAmount: terms.counterpartyBetAmount - txfee / 2,
+                txfee
             }
 
             const tx = await (await fetch('./btc/generateCetTransaction', {
@@ -606,7 +666,8 @@
                 alicePub: document.getElementById('alice_out_addr').value, 
                 bobPub: document.getElementById('bob_out_addr').value,
                 oracleSignature: fact.signature, 
-                amount: terms.partyBetAmount - txfee
+                amount: terms.partyBetAmount + terms.counterpartyBetAmount - 2 * txfee,
+                txfee
             }
 
             const tx = await (await fetch('./btc/generateCetRedemptionTransaction', {
