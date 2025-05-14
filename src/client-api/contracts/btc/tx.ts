@@ -131,7 +131,7 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
 
             psbt.addOutput({
                 address: p2pktr(pubKeyCombined).address!,
-                value: aliceAmount + bobAmount
+                value: aliceAmount + bobAmount - txfee
             });
 
             if (changeAlice !== 0) {
@@ -179,12 +179,12 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
 
             psbt.addOutput({
                 address: p2pktr(alicePub).address!, 
-                value: aliceAmount
+                value: aliceAmount - txfee / 2
             });
 
             psbt.addOutput({
                 address: p2pktr(bobPub).address!, 
-                value: bobAmount
+                value: bobAmount - txfee / 2
             });
 
             await psbt.signInputAsync(0, schnorrSignerMulti(alicePub, bobPub))
@@ -214,7 +214,7 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
 
             psbt.addOutput({
                 address: p2pktr(adaptorPubKeyCombined).address!, 
-                value: aliceAmount  + bobAmount - txfee
+                value: aliceAmount + bobAmount - txfee
             });
 
             await psbt.signInputAsync(0, schnorrSignerMulti(alicePub, bobPub))

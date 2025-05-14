@@ -542,6 +542,7 @@
 
             document.getElementById('opening_tx').innerHTML = ""
             const terms = JSON.parse(document.getElementById('terms').value)
+            const txfee = parseInt(document.getElementById('txfee').value)
 
             const alice_txins = document.getElementById('alice_in_txout').value.split(",")
             const bob_txins = document.getElementById('bob_in_txout').value.split(",")
@@ -566,8 +567,6 @@
                     hostname: 'mempool.space',
                     network: 'testnet'
                  });
-
-                const txfee = parseInt(document.getElementById('txfee').value)
 
                 const addressAlice = await (await fetch('./btc/pub2addr', {
 	                method: 'post',
@@ -690,8 +689,8 @@
                 rValue: JSON.parse(document.getElementById('commitment').value).rValueSchnorrHex,
                 alicePub: document.getElementById('alice_out_addr').value,
                 bobPub: document.getElementById('bob_out_addr').value,
-                aliceAmount: terms.partyBetAmount - txfee / 2,
-                bobAmount: terms.counterpartyBetAmount - txfee / 2,
+                aliceAmount: terms.partyBetAmount,
+                bobAmount: terms.counterpartyBetAmount,
                 txfee
             }
 
@@ -722,7 +721,7 @@
                 alicePub: document.getElementById('alice_out_addr').value, 
                 bobPub: document.getElementById('bob_out_addr').value,
                 oracleSignature: fact.signature, 
-                amount: terms.partyBetAmount + terms.counterpartyBetAmount - 2 * txfee,
+                amount: terms.partyBetAmount + terms.counterpartyBetAmount - txfee,
                 txfee
             }
 
@@ -880,6 +879,14 @@
         }
 
         document.getElementById('broadcast_btc').onclick = async () => {
+            document.getElementById('final_tx_id').innerHTML = ""
+            const txRaw = document.getElementById('signed_tx').innerHTML
+            navigator.clipboard.writeText(txRaw)
+            alert('TX is in clipboard!')
+            window.open("https://mempool.space/testnet/tx/push", '_blank').focus()
+        }
+
+        document.getElementById('broadcast_btc_mempool').onclick = async () => {
             try {
                 document.getElementById('final_tx_id').innerHTML = ""
                 const txRaw = document.getElementById('signed_tx').innerHTML
