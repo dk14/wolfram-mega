@@ -10,12 +10,12 @@ const schnorr = schnorrApi()
 const tx = txApi(schnorr)
 
 export interface OpeningParams {
-    aliceIn: UTxO,
-    bobIn: UTxO,
+    aliceIn: UTxO[],
+    bobIn: UTxO[],
     alicePub: PubKey,
     bobPub: PubKey,
-    aliceAmountIn: number,
-    bobAmountIn: number,
+    aliceAmountIn: number[],
+    bobAmountIn: number[],
     changeAlice: number,
     changeBob: number,
     txfee: number

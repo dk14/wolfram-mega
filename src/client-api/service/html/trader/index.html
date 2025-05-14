@@ -205,6 +205,15 @@
 
     </body>
     <script src="https://mempool.space/mempool.js"></script>
+    <script>
+        const scan = (arr, reducer, seed) => {
+            return arr.reduce(([acc, result], value, index) => {
+                acc = reducer(acc, value, index);
+                result.push(acc);
+                return [acc, result];
+            }, [seed, []])[1];
+        }
+    </script>
     <script type="module">
 
         import * as helios from "https://helios.hyperion-bt.org/0.16.7/helios.js"
@@ -340,7 +349,7 @@
             const pub = "07508128697f7a1aca5c3e86292daa4b08f76e68b405e4b4ffe50d066ade55c3"
             const terms = JSON.parse(document.getElementById('terms').value)
             terms.question.capabilityPubKey = pub
-            terms.partyBetAmount = 5000
+            terms.partyBetAmount = 194347 + 1000 //5000
             terms.counterpartyBetAmount = 2000
             document.getElementById('terms').value = JSON.stringify(terms)
 
@@ -361,17 +370,41 @@
 
             const addressAlice = 'tb1pudlyenkk7426rvsx84j97qddf4tuc8l63suz62xeq4s6j3wmuylq0j54ex'
             const addressBob = 'tb1p0l5zsw2lv9pu99dwzckjxhpufdvvylapl5spn6yd54vhnwa989hq20cvyv'
-            const utxoAlice = (await addresses.getAddressTxsUtxo({ address: addressAlice })).find(a => a.value > terms.partyBetAmount + txfee / 2)
-            const utxoBob = (await addresses.getAddressTxsUtxo({ address: addressBob })).find(a => a.value > terms.counterpartyBetAmount + txfee / 2)
+            
+            const aliceUtxos = (await addresses.getAddressTxsUtxo({ address: addressAlice }))
+            const bobUtxos = (await addresses.getAddressTxsUtxo({ address: addressBob }))
+            
+            const utxoAlice = aliceUtxos.find(a => a.value > terms.partyBetAmount + txfee / 2)
+            const utxoBob = bobUtxos.find(a => a.value > terms.counterpartyBetAmount + txfee / 2)
 
             if (utxoAlice) {
                 console.log("Found UTxO for Alice..." + utxoAlice.txid)
                 document.getElementById('alice_in_txout').value = utxoAlice.txid + " # " + utxoAlice.vout
+            } else if (aliceUtxos.length > 0) {
+                aliceUtxos.sort((a, b) => a.age - b.age)
+                console.log(aliceUtxos.map(x => x.value))
+                console.log(scan(aliceUtxos.map(x => x.value), (a, b) => a + b, 0))
+                const i = scan(aliceUtxos.map(x => x.value), (a, b) => a + b, 0).findIndex(x => x > terms.partyBetAmount + txfee / 2)
+
+                if (i !== -1) {
+                    console.log("Found multiple UTxOs for Alice..." + (i + 1))
+                    const txouts = aliceUtxos.slice(0, i + 1).map(utxo => utxo.txid + " # " + utxo.vout).join(",")
+                    document.getElementById('alice_in_txout').value = txouts
+                } 
             }
 
             if (utxoBob) {
                 console.log("Found UTxO for Bob..." + utxoBob.txid)
                 document.getElementById('bob_in_txout').value = utxoBob.txid + " # " + utxoBob.vout
+            } else if (bobUtxos.length > 0) {
+                bobUtxos.sort((a, b) => a.age - b.age)
+                const i = scan(bobUtxos.map(x => x.value), (a, b) => a + b, 0).findIndex(x => x > terms.counterPartyBetAmount + txfee / 2)
+                
+                if (i !== -1) {
+                    console.log("Found multiple UTxOs for Bob..." + (i + 1))
+                    const txouts = bobUtxos.slice(0, i + 1).map(utxo => utxo.txid + " # " + utxo.vout).join(",")
+                    document.getElementById('bob_in_txout').value = txouts
+                } 
             }
         }
 
@@ -499,14 +532,14 @@
             document.getElementById('opening_tx').innerHTML = ""
             const terms = JSON.parse(document.getElementById('terms').value)
 
-            const alice_txin = document.getElementById('alice_in_txout').value
-            const bob_txin = document.getElementById('bob_in_txout').value
+            const alice_txins = document.getElementById('alice_in_txout').value.split(",")
+            const bob_txins = document.getElementById('bob_in_txout').value.split(",")
 
-            const alice_txid = alice_txin.split(" # ")[0]
-            const alice_vout = parseInt(alice_txin.split(" # ")[1])
+            const alice_txids = alice_txins.map(x => x.split(" # ")[0])
+            const alice_vouts = alice_txins.map(x => parseInt(x.split(" # ")[1]))
 
-            const bob_txid = bob_txin.split(" # ")[0]
-            const bob_vout = parseInt(bob_txin.split(" # ")[1])
+            const bob_txids = bob_txins.map(x => x.split(" # ")[0])
+            const bob_vouts = bob_txins.map(x => parseInt(x.split(" # ")[1]))
 
             const alicePub = document.getElementById('alice_out_addr').value
             const bobPub = document.getElementById('bob_out_addr').value
@@ -514,7 +547,10 @@
             let changeAlice = 0
             let changeBob = 0
 
-            //try {
+            let aliceAmounts = [terms.partyBetAmount] + new Array(alice_txids.length - 1).fill(0)
+            let bobAmounts = [terms.counterPartyBetAmount] + new Array(bob_txids.length - 1).fill(0)
+
+            try {
                 const { bitcoin: { addresses } } = mempoolJS({
                     hostname: 'mempool.space',
                     network: 'testnet'
@@ -538,37 +574,46 @@
 
                 console.log("bob_addr = " + addressBob)
 
-                const amountAlice = (await addresses.getAddressTxsUtxo({ address: addressAlice }))
-                    .find(utxo => utxo.txid === alice_txid && utxo.vout === alice_vout)
-                    .value
+                const aliceUtxos = (await addresses.getAddressTxsUtxo({ address: addressAlice }))
+
+                aliceAmounts = alice_txids.map((alice_txid, i) => 
+                    aliceUtxos.find(utxo => utxo.txid === alice_txid && utxo.vout === alice_vouts[i]).value)
+
+                const amountAlice = aliceAmounts.reduce((a, b) => a + b)
 
                 changeAlice = amountAlice - terms.partyBetAmount - txfee / 2
                 console.log("alice_change = " + changeAlice)
 
-                const amountBob = (await addresses.getAddressTxsUtxo({ address: addressBob }))
-                    .find(utxo => utxo.txid === bob_txid && utxo.vout === bob_vout)
-                    .value
+                const bobUtxos = (await addresses.getAddressTxsUtxo({ address: addressBob }))
 
+                bobAmounts = bob_txids.map((bob_txid, i) => 
+                bobUtxos.find(utxo => utxo.txid === bob_txid && utxo.vout === bob_vouts[i]).value)
+
+                const amountBob = bobAmounts.reduce((a, b) => a + b)
                 changeBob = amountBob - terms.counterpartyBetAmount - txfee / 2
                 console.log("bob_change = " + changeBob)
 
-            //} catch (err) {
-              //  console.error(err)
-            //}
+            } catch (err) {
+              console.error(err)
+            }
 
             const inputs = {
-                aliceIn: {
-                    txid: alice_txid,
-                    vout: alice_vout
-                },
-                bobIn: {
-                    txid: bob_txid,
-                    vout: bob_vout
-                },
+                aliceIn: alice_txids.map((alice_txid, i) => {
+                    return {
+                        txid: alice_txid,
+                        vout: alice_vouts[i]
+                    }
+                }),
+                bobIn: bob_txids.map((bob_txid, i) => {
+                    return {
+                        txid: bob_txid,
+                        vout: bob_vouts[i]
+                    }
+                }),
                 alicePub,
                 bobPub,
-                aliceAmountIn: terms.partyBetAmount,
-                bobAmountIn: terms.counterpartyBetAmount,
+                aliceAmountIn: aliceAmounts,
+                bobAmountIn: bobAmounts,
                 changeAlice,
                 changeBob,
                 txfee

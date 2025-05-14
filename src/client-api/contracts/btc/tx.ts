@@ -20,7 +20,7 @@ export interface Tx {
 }
 
 export interface TxApi {
-    genOpeningTx(aliceIn: UTxO, bobIn: UTxO, alicePub: string, bobPub: string, aliceAmount: number, bobAmount: number, changeAlice: number, changeBob: number, txfee: number): Promise<Tx>
+    genOpeningTx(aliceIn: UTxO[], bobIn: UTxO[], alicePub: string, bobPub: string, aliceAmounts: number[], bobAmounts: number[], changeAlice: number, changeBob: number, txfee: number): Promise<Tx>
     genClosingTx(multiIn: UTxO, alicePub: string, bobPub: string, aliceAmount: number, bobAmount: number, txfee: number): Promise<Tx>
     genAliceCet(multiIn: UTxO, alicePub: string, bobPub: string, adaptorPub: string, aliceAmount: number, bobAmount: number, txfee: number): Promise<Tx>
     genAliceCetRedemption(aliceOracleIn: UTxO, adaptorPubKeyCombined: string, alicePub: string, oracleS: string, amount: number, txfee: number): Promise<Tx>
@@ -98,7 +98,7 @@ function schnorrSignerMulti(pub1: string, pub2: string, secrets: string[] = []):
 
 export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
     return {
-        genOpeningTx: async (aliceIn: UTxO, bobIn: UTxO, alicePub: string, bobPub: string, aliceAmount: number, bobAmount: number, changeAlice: number, changeBob: number, txfee: number): Promise<Tx> => {
+        genOpeningTx: async (aliceIn: UTxO[], bobIn: UTxO[], alicePub: string, bobPub: string, aliceAmounts: number[], bobAmounts: number[], changeAlice: number, changeBob: number, txfee: number): Promise<Tx> => {
             const psbt = new bitcoin.Psbt({ network: net})
             let aliceP2TR = p2pktr(alicePub)
             let bobP2TR = p2pktr(bobPub)
@@ -108,19 +108,26 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
             const pkCombined = muSig.pubKeyCombine([Buffer.from(alicePub, "hex"), Buffer.from(bobPub, "hex")]);
             let pubKeyCombined = convert.intToBuffer(pkCombined.affineX);
 
-            psbt.addInput({
-                hash: aliceIn.txid,
-                index: aliceIn.vout,
-                witnessUtxo: { value: aliceAmount + changeAlice, script: aliceP2TR.output! },
-                tapInternalKey: Buffer.from(alicePub, "hex")
-            });
+            const aliceAmount = aliceAmounts.reduce((a, b) => a + b) - changeAlice
+            const bobAmount = bobAmounts.reduce((a, b) => a + b) - changeBob
 
-            psbt.addInput({
-                hash: bobIn.txid,
-                index: bobIn.vout,
-                witnessUtxo: { value: bobAmount + changeBob, script: bobP2TR.output! },
-                tapInternalKey: Buffer.from(bobPub, "hex")
-            });
+            aliceIn.forEach((utxo, i) => {
+                psbt.addInput({
+                    hash: utxo.txid,
+                    index: utxo.vout,
+                    witnessUtxo: { value: aliceAmounts[i], script: aliceP2TR.output! },
+                    tapInternalKey: Buffer.from(alicePub, "hex")
+                })
+            })
+
+            bobIn.forEach((utxo, i) => {
+                psbt.addInput({
+                    hash: utxo.txid,
+                    index: utxo.vout,
+                    witnessUtxo: { value: bobAmounts[i], script: bobP2TR.output! },
+                    tapInternalKey: Buffer.from(bobPub, "hex")
+                })
+            })         
 
             psbt.addOutput({
                 address: p2pktr(pubKeyCombined).address!,
@@ -141,8 +148,14 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
                 });
             }
 
-            await psbt.signInputAsync(0, schnorrSignerSingle(alicePub))
-            await psbt.signInputAsync(1, schnorrSignerSingle(bobPub))
+            for (let i = 0; i <  aliceIn.length; i++) {
+                await psbt.signInputAsync(i, schnorrSignerSingle(alicePub))
+            }
+
+            for (let i = 0; i <  bobIn.length; i++) {
+                await psbt.signInputAsync(aliceIn.length + i, schnorrSignerSingle(bobPub))
+            }
+            
             psbt.finalizeAllInputs()
             
             return {
