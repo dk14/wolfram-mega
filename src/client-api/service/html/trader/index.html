@@ -119,7 +119,7 @@
         Alice, Bob, Alice collateral fee (Helios), Bob collateral fee (Helios)
         * send funds to yourself several times in order to create utxos
         Faucet for Helios: <a href = "https://docs.cardano.org/cardano-testnets/tools/faucet">https://docs.cardano.org/cardano-testnets/tools/faucet</a> (PreProd testnet)
-        Faucet for BTC: <a href = "https://mempool.space/testnet4/faucet">https://mempool.space/testnet4/faucet</a>
+        Faucet for BTC: <a href = "https://mempool.space/testnet4/faucet">https://mempool.space/testnet4/faucet</a> <a href = "https://cryptopump.info/send.php">https://cryptopump.info/send.php</a> <a href = "https://coinfaucet.eu/en/btc-testnet/">https://coinfaucet.eu/en/btc-testnet/</a>
         Gen BTC keys: <a href = "https://bitcoin-tools-blond.vercel.app">https://bitcoin-tools-blond.vercel.app</a>
         Default addresses (BTC)
             alice_addr = tb1pudlyenkk7426rvsx84j97qddf4tuc8l63suz62xeq4s6j3wmuylq0j54ex
@@ -333,11 +333,15 @@
         document.getElementById('btc_defaults').onclick = async () => {
             document.getElementById('alice_out_addr').value = "e37e4cced6f555a1b2063d645f01ad4d57cc1ffa8c382d28d90561a945dbe13e"
             document.getElementById('bob_out_addr').value = "7fe828395f6143c295ae162d235c3c4b58c27fa1fd2019e88da55979bba5396e"
+
+
             document.getElementById('bob_in_txout').value = "a2eb28aafa2ae6e833832e8761ba7afe142f40fc65c7100b45891fa3bb23d87d # 0" 
             document.getElementById('alice_in_txout').value = "79c4675fe59af97893a2c771369fd8445d1ecd1a2c6c14ce5df2ade227d43a4e # 0"
             const pub = "07508128697f7a1aca5c3e86292daa4b08f76e68b405e4b4ffe50d066ade55c3"
             const terms = JSON.parse(document.getElementById('terms').value)
             terms.question.capabilityPubKey = pub
+            terms.partyBetAmount = 5000
+            terms.counterpartyBetAmount = 2000
             document.getElementById('terms').value = JSON.stringify(terms)
 
             const req = JSON.parse(document.getElementById('fact_req').value)
@@ -345,6 +349,30 @@
             document.getElementById('fact_req').value = JSON.stringify(req)
 
             getCommitment()
+
+            const { bitcoin: { addresses } } = mempoolJS({
+                hostname: 'mempool.space',
+                network: 'testnet'
+            });
+
+            document.getElementById('txfee').value = 2000
+
+            const txfee = parseInt(document.getElementById('txfee').value)
+
+            const addressAlice = 'tb1pudlyenkk7426rvsx84j97qddf4tuc8l63suz62xeq4s6j3wmuylq0j54ex'
+            const addressBob = 'tb1p0l5zsw2lv9pu99dwzckjxhpufdvvylapl5spn6yd54vhnwa989hq20cvyv'
+            const utxoAlice = (await addresses.getAddressTxsUtxo({ address: addressAlice })).find(a => a.value > terms.partyBetAmount + txfee / 2)
+            const utxoBob = (await addresses.getAddressTxsUtxo({ address: addressBob })).find(a => a.value > terms.counterpartyBetAmount + txfee / 2)
+
+            if (utxoAlice) {
+                console.log("Found UTxO for Alice..." + utxoAlice.txid)
+                document.getElementById('alice_in_txout').value = utxoAlice.txid + " # " + utxoAlice.vout
+            }
+
+            if (utxoBob) {
+                console.log("Found UTxO for Bob..." + utxoBob.txid)
+                document.getElementById('bob_in_txout').value = utxoBob.txid + " # " + utxoBob.vout
+            }
         }
 
         document.getElementById('clear').onclick = async () => {
@@ -362,7 +390,10 @@
             const pub = "MCowBQYDK2VwAyEA4A3gTGN6FQz2iBkWPsbMNvYGtrmteU5A0R2r4nTc4IM="
             const terms = JSON.parse(document.getElementById('terms').value)
             terms.question.capabilityPubKey = pub
+            terms.partyBetAmount = 100000000
+            terms.counterpartyBetAmount = 200000000
             document.getElementById('terms').value = JSON.stringify(terms)
+            document.getElementById('txfee').value = 5000000
 
             const req = JSON.parse(document.getElementById('fact_req').value)
             req.capabilityPubKey = pub
