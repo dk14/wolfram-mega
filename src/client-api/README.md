@@ -7,6 +7,12 @@
 
 Note: client APIs should NOT be exposed to public network! The system should run in something like `virsh` (VM) ideally.
 
+## Architecture
+
+![client-api](https://github.com/user-attachments/assets/bc7daa77-21cf-4a5c-9c88-ae2191ee95dd)
+
+[link](https://drive.google.com/file/d/1vABqqvhWD02wjaIzPP_rvGsvGJ-zSSy6/view?usp=sharing)
+
 ## How to use
 
 Example configuration:
@@ -21,9 +27,24 @@ The best approach is to sign messages manually unless they only differ in `seqNo
 
 ## Contracts demo
 
-Trader console contains demo of Helios and BTC DLC contracts. Helios version signs through webwallet nonsense (unsecure signing in browser), while BTC version relies on external signing http service (example: `utils/btc-signer.ts`, can be delegated to harware wallet).
+Trader console contains demo of Helios and BTC DLC binary option contracts. Helios version signs through webwallet nonsense (unsecure signing in browser), while BTC version relies on external signing http service (example: `utils/btc-signer.ts`, can be delegated to harware wallet).
 
 The best approach for signing Bitcoin transaction is always manual approval.
+
+Sample of BTC transactions created with trader console:
+
+Opening: https://mempool.space/testnet/tx/4e06cc881ff74f2e14b1fad1ae6c77ab5487441af5dab49ebe07430eb3baa62b
+
+CET opening (bind to specific oracle fact through scriptless script):
+https://mempool.space/testnet/tx/c1f08eda003781550b76b7711db2f678baddedf37a325d2e7fdde706707347a5
+
+CET redemption (unlock funds with signed fact): https://mempool.space/testnet/tx/d816a61c588840463fb8b59eee2cae55c53b5e7d680315aba65d5138225ac710 
+
+BTC DLC Workflow: 
+
+<img src="https://github.com/user-attachments/assets/247c97e7-a945-4b37-9783-48fd85ccc847" alt="drawing" width="250"/>
+
+
 
 ## Utils
 `utils/` folder contains examples of oracle endpoint and auto-signing services (configs are in `utils/cfg`):
