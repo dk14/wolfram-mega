@@ -24,7 +24,7 @@
         <input type="number" id="page" name="page" min="0" max="100" value="0"/>
         <label for="update">Update:</label>
         <input type="checkbox" id="update" name="update" checked />
-        <pre>Note: uncheck Update on slow free hosting demos, only check it back (for few seconds) when need to update (incl. oracle query panel) </pre>
+        <label>(note: uncheck Update on slow free hosting demos, only check it back for few seconds when need to update, e.g. in query panel) </label>
         <hr>
         <div id="database"></div>
         <hr>
@@ -117,17 +117,31 @@
         <pre>Instructions: 
     0) Prepare funds in webwallet: there should be several utxos available: 
         Alice, Bob, Alice collateral fee (Helios), Bob collateral fee (Helios)
-        * send funds to yourself several times in order to create utxos
-        Faucet for Helios: https://docs.cardano.org/cardano-testnets/tools/faucet (PreProd testnet)
-        Faucet for BTC: https://bitcoinfaucet.uo1.net/
-    1a) Hit "Gen Opening Tx", it will autofill utxos from wallet if fields left empty
+        * send funds to yourself several times in order to create utxos for Helios, BTC version supports picking multi-UtXO per party
+        Faucet for Helios: <a href = "https://docs.cardano.org/cardano-testnets/tools/faucet">https://docs.cardano.org/cardano-testnets/tools/faucet</a> (PreProd testnet)
+        Faucet for BTC: <a href = "https://mempool.space/testnet4/faucet">https://mempool.space/testnet4/faucet</a> <a href = "https://cryptopump.info/send.php">https://cryptopump.info/send.php</a> <a href = "https://coinfaucet.eu/en/btc-testnet/">https://coinfaucet.eu/en/btc-testnet/</a>
+        Gen BTC keys: <a href = "https://bitcoin-tools-blond.vercel.app">https://bitcoin-tools-blond.vercel.app</a>
+        Default addresses (BTC)
+            alice_addr = tb1pudlyenkk7426rvsx84j97qddf4tuc8l63suz62xeq4s6j3wmuylq0j54ex
+            bob_addr = tb1p0l5zsw2lv9pu99dwzckjxhpufdvvylapl5spn6yd54vhnwa989hq20cvyv
+
+        Hit "Fill In BTC" to fill in default fields. Hit "Clear" to clear.
+
+    1a) Hit "Gen Opening Tx", it will autofill utxos from wallet if fields left empty (for Helios)
     1b) Copy opening tx into Tx field ("Sign and Broadcast" subsection), hit "Sign", hit "Broadcast"
+        * BTC version auto-signs afetr you hit "Gen Opening Tx", so only "Broadcast" is required
     1c) Copy signed tx id into "Opening TxId" field
 
     2) Hit "Request Commitment" ("Query Oracle" section) and wait for fact to arrive
  
     3a) Hit "Gen Closing Tx"
     3b) Copy closing tx into Tx field ("Sign and Broadcast" subsection), hit "Sign", hit "Broadcast" 
+        * BTC version auto-signs afetr you hit "Gen Opening Tx", so only "Broadcast" is required
+
+    BTC-DLC CET transactions (see <a href="https://dk14.github.io/marlowe-wolfram-webdoc/eurocall">webdoc</a>):
+        Hit "Gen CET", Hit "Broadcast"
+        Hit "Gen CET Redeem", Hit "Broadcast"
+    
         </pre>
 
         <label for="terms"><h5>Offer Terms:</h5></label>
@@ -137,6 +151,10 @@
         <input type="number" id="txfee" name="txfee" size="10" value='5000000'>
 
         <h5>tx-in ("txid # out"):</h5>
+        <input id="btc_defaults" type="button" value="Fill In BTC defaults">
+        <input id="clear" type="button" value="Clear">
+        <label id="btc_balance"></label>
+        <br><br>
         <label for="alice_in_txout">Alice:</label>
         <input type="text" id="alice_in_txout" name="alice_in_txout" size="40" value=''>
         <br><br>
@@ -157,6 +175,15 @@
         <br><br>
         <label for="otxid">Opening TxId:</label>
         <input type="text" id="otxid" name="otxid" size="40" value=''>
+        <label for="cet_answer">CET Answer (BTC):</label>
+        <input type="text" id="cet_answer" name="cet_answer" size="40" value='NO'>
+        <br><br>
+        <input id="cet_btc" type="button" value="Gen Cet Tx (Btc)">
+        <input id="cet_redeem_btc" type="button" value="Gen Cet-Redeem Tx (Btc)">
+        <br>
+        <br>
+        <label for="cetxid">CET TxId (Btc):</label>
+        <input type="text" id="cetxid" name="cetxid" size="40" value=''>
         <br><br>
         <label for="alice_in_txout_col">Alice Fee Collateral (Helios):</label>
         <input type="text" id="alice_in_txout_col" name="alice_in_txout_col" size="20" value=''>
@@ -166,25 +193,35 @@
         <br><br>
         <input id="closing_helios" type="button" value="Gen Closing Tx (Helios)">
         <input id="closing_btc" type="button" value="Gen Closing Tx (Btc)">
-        <pre>closing tx: </pre><pre id="closing_tx"></pre>
+           <pre>closing tx: </pre><pre id="closing_tx"></pre>
         <hr>
         <h4>Sign and Broadcast</h4>
         <label for="tx">Tx:</label>
         <input type="text" id="unsigned_tx" name="bob_in_txout" size="40" value=''>
         <input id="sign_helios" type="button" value="Sign (Helios)">
-        <input id="sign_btc" type="button" value="Sign (BTC)">
+
         <pre>signed tx: </pre><pre id="signed_tx"></pre>
         <pre>signed tx id: </pre><pre id="signed_tx_id"></pre>
         <input id="broadcast_helios" type="button" value="Broadcast (Helios, testnet)">
-        <input id="sign_btc" type="button" value="Broadcast (BTC, testnet)">
+        <input id="broadcast_btc" type="button" value="Broadcast (BTC, testnet)">
         <pre>tx id: </pre><pre id="final_tx_id"></pre>
         <br>
-        <pre> https://preprod.cexplorer.io/tx/ </pre>
+        <pre> <a href="https://preprod.cexplorer.io/tx/">https://preprod.cexplorer.io/tx/ </a> </pre>
         <br>
         
 
 
     </body>
+    <script src="https://mempool.space/mempool.js"></script>
+    <script>
+        const scan = (arr, reducer, seed) => {
+            return arr.reduce(([acc, result], value, index) => {
+                acc = reducer(acc, value, index);
+                result.push(acc);
+                return [acc, result];
+            }, [seed, []])[1];
+        }
+    </script>
     <script type="module">
 
         import * as helios from "https://helios.hyperion-bt.org/0.16.7/helios.js"
@@ -291,6 +328,8 @@
         }
 
         const getCommitment = async () => {
+            document.getElementById('commitment').value = ""
+            document.getElementById('fact').innerHTML = ""
             const req = JSON.parse(document.getElementById('fact_req').value)
             const endpoint = await (await fetch('./capabilityEndpoint?pubkey=' + encodeURIComponent(req.capabilityPubKey))).json()
             if (endpoint === '') return
@@ -308,7 +347,107 @@
 
         document.getElementById('get_commitment').onclick = getCommitment
 
+        document.getElementById('btc_defaults').onclick = async () => {
+            document.getElementById('alice_out_addr').value = "e37e4cced6f555a1b2063d645f01ad4d57cc1ffa8c382d28d90561a945dbe13e"
+            document.getElementById('bob_out_addr').value = "7fe828395f6143c295ae162d235c3c4b58c27fa1fd2019e88da55979bba5396e"
+
+
+            document.getElementById('bob_in_txout').value = "a2eb28aafa2ae6e833832e8761ba7afe142f40fc65c7100b45891fa3bb23d87d # 0" 
+            document.getElementById('alice_in_txout').value = "79c4675fe59af97893a2c771369fd8445d1ecd1a2c6c14ce5df2ade227d43a4e # 0"
+            const pub = "07508128697f7a1aca5c3e86292daa4b08f76e68b405e4b4ffe50d066ade55c3"
+            const terms = JSON.parse(document.getElementById('terms').value)
+            terms.question.capabilityPubKey = pub
+            terms.partyBetAmount = 5000 // 194347 + 1000
+            terms.counterpartyBetAmount = 2000
+            document.getElementById('terms').value = JSON.stringify(terms)
+
+            const req = JSON.parse(document.getElementById('fact_req').value)
+            req.capabilityPubKey = pub
+            document.getElementById('fact_req').value = JSON.stringify(req)
+
+            getCommitment()
+
+            const { bitcoin: { addresses } } = mempoolJS({
+                hostname: 'mempool.space',
+                network: 'testnet'
+            });
+
+            document.getElementById('txfee').value = 2000
+
+            const txfee = parseInt(document.getElementById('txfee').value)
+
+            const addressAlice = 'tb1pudlyenkk7426rvsx84j97qddf4tuc8l63suz62xeq4s6j3wmuylq0j54ex'
+            const addressBob = 'tb1p0l5zsw2lv9pu99dwzckjxhpufdvvylapl5spn6yd54vhnwa989hq20cvyv'
+            
+            const aliceUtxos = (await addresses.getAddressTxsUtxo({ address: addressAlice }))
+            const bobUtxos = (await addresses.getAddressTxsUtxo({ address: addressBob }))
+
+            document.getElementById('btc_balance').innerText = `[balance] alice: ${aliceUtxos.map(x => x.value).reduce((a, b) => (a ?? 0) + (b ?? 0))}, bob: ${bobUtxos.map(x => x.value).reduce((a, b) => (a ?? 0) + (b ?? 0))}`
+            
+            const utxoAlice = aliceUtxos.find(a => a.value > terms.partyBetAmount + txfee / 2)
+            const utxoBob = bobUtxos.find(a => a.value > terms.counterpartyBetAmount + txfee / 2)
+
+            if (utxoAlice) {
+                console.log("Found UTxO for Alice..." + utxoAlice.txid)
+                document.getElementById('alice_in_txout').value = utxoAlice.txid + " # " + utxoAlice.vout
+            } else if (aliceUtxos.length > 0) {
+                aliceUtxos.sort((a, b) => a.age - b.age)
+                console.log(aliceUtxos.map(x => x.value))
+                console.log(scan(aliceUtxos.map(x => x.value), (a, b) => a + b, 0))
+                const i = scan(aliceUtxos.map(x => x.value), (a, b) => a + b, 0).findIndex(x => x > terms.partyBetAmount + txfee / 2)
+
+                if (i !== -1) {
+                    console.log("Found multiple UTxOs for Alice..." + (i + 1))
+                    const txouts = aliceUtxos.slice(0, i + 1).map(utxo => utxo.txid + " # " + utxo.vout).join(",")
+                    document.getElementById('alice_in_txout').value = txouts
+                } 
+            }
+
+            if (utxoBob) {
+                console.log("Found UTxO for Bob..." + utxoBob.txid)
+                document.getElementById('bob_in_txout').value = utxoBob.txid + " # " + utxoBob.vout
+            } else if (bobUtxos.length > 0) {
+                bobUtxos.sort((a, b) => a.age - b.age)
+                const i = scan(bobUtxos.map(x => x.value), (a, b) => a + b, 0).findIndex(x => x > terms.counterPartyBetAmount + txfee / 2)
+                
+                if (i !== -1) {
+                    console.log("Found multiple UTxOs for Bob..." + (i + 1))
+                    const txouts = bobUtxos.slice(0, i + 1).map(utxo => utxo.txid + " # " + utxo.vout).join(",")
+                    document.getElementById('bob_in_txout').value = txouts
+                } 
+            }
+        }
+
+        document.getElementById('clear').onclick = async () => {
+            document.getElementById('btc_balance').innerText = ""
+            document.getElementById('alice_out_addr').value = ""
+            document.getElementById('bob_out_addr').value = ""
+            document.getElementById('bob_in_txout').value = "" 
+            document.getElementById('alice_in_txout').value = ""
+            document.getElementById('opening_tx').innerHTML = ""
+            document.getElementById('otxid').value = ""
+            document.getElementById('closing_tx').innerHTML = ""
+            document.getElementById('unsigned_tx').innerHTML = ""
+            document.getElementById('signed_tx').innerHTML = ""
+            document.getElementById('signed_tx_id').innerHTML = ""
+            document.getElementById('final_tx_id').innerHTML = ""
+            const pub = "MCowBQYDK2VwAyEA4A3gTGN6FQz2iBkWPsbMNvYGtrmteU5A0R2r4nTc4IM="
+            const terms = JSON.parse(document.getElementById('terms').value)
+            terms.question.capabilityPubKey = pub
+            terms.partyBetAmount = 100000000
+            terms.counterpartyBetAmount = 200000000
+            document.getElementById('terms').value = JSON.stringify(terms)
+            document.getElementById('txfee').value = 5000000
+
+            const req = JSON.parse(document.getElementById('fact_req').value)
+            req.capabilityPubKey = pub
+            document.getElementById('fact_req').value = JSON.stringify(req)
+
+            getCommitment()
+        }
+
         document.getElementById('opening_helios').onclick = async () => {
+            document.getElementById('opening_tx').innerHTML = ""
             const handle = await window.cardano.eternl.enable()
             const walletAPI = new helios.Cip30Wallet(handle)
             const walletHelper = new helios.WalletHelper(walletAPI)
@@ -347,14 +486,6 @@
 
             console.log("bob_in = " + aliceActualAmount + " / " + terms.partyBetAmount + ", delta = " + (BigInt(aliceActualAmount) - BigInt(terms.partyBetAmount)))
             console.log("alice_in = " + bobActualAmount + " / " + terms.counterpartyBetAmount + ", delta = " + (BigInt(bobActualAmount) - BigInt(terms.counterpartyBetAmount)))
-
-            if (document.getElementById('bob_out_addr').value === "") {
-                document.getElementById('bob_out_addr').value = changeAddr
-            }    
-  
-            if (document.getElementById('bob_out_addr').value === "") {
-                document.getElementById('bob_out_addr').value = changeAddr
-            }    
 
             const alice_txin = document.getElementById('alice_in_txout').value
             const bob_txin = document.getElementById('bob_in_txout').value
@@ -399,10 +530,218 @@
             document.getElementById('otxid').value = txInstance.id().toCborHex().substring(4)
         }
 
+        const hex2buf = (s) => new Uint8Array(s.match(/../g).map(h=>parseInt(h,16))).buffer
+
+        function buf2hex(buffer) { // buffer is an ArrayBuffer
+            return [...new Uint8Array(buffer)]
+                .map(x => x.toString(16).padStart(2, '0'))
+                .join('');
+        }
+
+        document.getElementById('opening_btc').onclick = async () => {
+
+            document.getElementById('opening_tx').innerHTML = ""
+            const terms = JSON.parse(document.getElementById('terms').value)
+            const txfee = parseInt(document.getElementById('txfee').value)
+
+            const alice_txins = document.getElementById('alice_in_txout').value.split(",")
+            const bob_txins = document.getElementById('bob_in_txout').value.split(",")
+
+            const alice_txids = alice_txins.map(x => x.split(" # ")[0])
+            const alice_vouts = alice_txins.map(x => parseInt(x.split(" # ")[1]))
+
+            const bob_txids = bob_txins.map(x => x.split(" # ")[0])
+            const bob_vouts = bob_txins.map(x => parseInt(x.split(" # ")[1]))
+
+            const alicePub = document.getElementById('alice_out_addr').value
+            const bobPub = document.getElementById('bob_out_addr').value
+
+            let changeAlice = 0
+            let changeBob = 0
+
+            let aliceAmounts = [terms.partyBetAmount] + new Array(alice_txids.length - 1).fill(0)
+            let bobAmounts = [terms.counterPartyBetAmount] + new Array(bob_txids.length - 1).fill(0)
+
+            try {
+                const { bitcoin: { addresses } } = mempoolJS({
+                    hostname: 'mempool.space',
+                    network: 'testnet'
+                 });
+
+                const addressAlice = await (await fetch('./btc/pub2addr', {
+	                method: 'post',
+	                body: JSON.stringify(alicePub),
+	                headers: {'Content-Type': 'application/json'}
+                })).json()
+
+                console.log("alice_addr = " + addressAlice)
+
+                const addressBob = await (await fetch('./btc/pub2addr', {
+	                method: 'post',
+	                body: JSON.stringify(bobPub),
+	                headers: {'Content-Type': 'application/json'}
+                })).json()
+
+                console.log("bob_addr = " + addressBob)
+
+                const aliceUtxos = (await addresses.getAddressTxsUtxo({ address: addressAlice }))
+
+                aliceAmounts = alice_txids.map((alice_txid, i) => 
+                    aliceUtxos.find(utxo => utxo.txid === alice_txid && utxo.vout === alice_vouts[i]).value)
+
+                const amountAlice = aliceAmounts.reduce((a, b) => a + b)
+
+                changeAlice = amountAlice - terms.partyBetAmount - txfee / 2
+                console.log("alice_change = " + changeAlice)
+
+                const bobUtxos = (await addresses.getAddressTxsUtxo({ address: addressBob }))
+
+                bobAmounts = bob_txids.map((bob_txid, i) => 
+                bobUtxos.find(utxo => utxo.txid === bob_txid && utxo.vout === bob_vouts[i]).value)
+
+                const amountBob = bobAmounts.reduce((a, b) => a + b)
+                changeBob = amountBob - terms.counterpartyBetAmount - txfee / 2
+                console.log("bob_change = " + changeBob)
+
+            } catch (err) {
+              console.error(err)
+            }
+
+            const inputs = {
+                aliceIn: alice_txids.map((alice_txid, i) => {
+                    return {
+                        txid: alice_txid,
+                        vout: alice_vouts[i]
+                    }
+                }),
+                bobIn: bob_txids.map((bob_txid, i) => {
+                    return {
+                        txid: bob_txid,
+                        vout: bob_vouts[i]
+                    }
+                }),
+                alicePub,
+                bobPub,
+                aliceAmountIn: aliceAmounts,
+                bobAmountIn: bobAmounts,
+                changeAlice,
+                changeBob,
+                txfee
+            }
+
+            const tx = await (await fetch('./btc/generateOpeningTransaction', {
+	            method: 'post',
+	            body: JSON.stringify(inputs),
+	            headers: {'Content-Type': 'application/json'}
+            })).json()
+            
+            document.getElementById('opening_tx').innerHTML = JSON.stringify(tx)
+            
+            document.getElementById('otxid').value = buf2hex(await crypto.subtle.digest('SHA-256', hex2buf(tx)))
+
+            document.getElementById('signed_tx').innerHTML = tx
+            document.getElementById('signed_tx_id').innerHTML = document.getElementById('otxid').value
+        }
+
+        document.getElementById('closing_btc').onclick = async () => {
+            document.getElementById('closing_tx').innerHTML = ""
+            document.getElementById('signed_tx').innerHTML = ""
+            document.getElementById('signed_tx_id').innerHTML = ""
+            const terms = JSON.parse(document.getElementById('terms').value)
+            const txfee = parseInt(document.getElementById('txfee').value)
+
+
+            const inputs = {   
+                lockedTxId: document.getElementById('otxid').value,         
+                alicePub: document.getElementById('alice_out_addr').value,
+                bobPub: document.getElementById('bob_out_addr').value,
+                aliceAmount: terms.partyBetAmount - txfee / 2,
+                bobAmount: terms.counterpartyBetAmount - txfee / 2,
+                txfee
+            }
+
+            const tx = await (await fetch('./btc/generateClosingTransaction', {
+	            method: 'post',
+	            body: JSON.stringify(inputs),
+	            headers: {'Content-Type': 'application/json'}
+            })).json()
+            
+            document.getElementById('closing_tx').innerHTML = JSON.stringify(tx)
+
+            document.getElementById('signed_tx').innerHTML = tx
+            document.getElementById('signed_tx_id').innerHTML = buf2hex(await crypto.subtle.digest('SHA-256', hex2buf(tx)))
+            
+        }
+
+        document.getElementById('cet_btc').onclick = async () => {
+            document.getElementById('signed_tx').innerHTML = ""
+            document.getElementById('signed_tx_id').innerHTML = ""
+            document.getElementById('cetxid').innerHTML = ""
+
+            const terms = JSON.parse(document.getElementById('terms').value)
+            const txfee = parseInt(document.getElementById('txfee').value)
+
+
+            const inputs = {   
+                lockedTxId: document.getElementById('otxid').value,         
+                oraclePub: terms.question.capabilityPubKey, 
+                answer: document.getElementById('cet_answer').value, 
+                rValue: JSON.parse(document.getElementById('commitment').value).rValueSchnorrHex,
+                alicePub: document.getElementById('alice_out_addr').value,
+                bobPub: document.getElementById('bob_out_addr').value,
+                aliceAmount: terms.partyBetAmount,
+                bobAmount: terms.counterpartyBetAmount,
+                txfee
+            }
+
+            const tx = await (await fetch('./btc/generateCetTransaction', {
+	            method: 'post',
+	            body: JSON.stringify(inputs),
+	            headers: {'Content-Type': 'application/json'}
+            })).json()
+            
+            document.getElementById('signed_tx').innerHTML = tx
+            document.getElementById('signed_tx_id').innerHTML = buf2hex(await crypto.subtle.digest('SHA-256', hex2buf(tx)))
+            document.getElementById('cetxid').value = buf2hex(await crypto.subtle.digest('SHA-256', hex2buf(tx)))
+        }
+
+        document.getElementById('cet_redeem_btc').onclick = async () => {
+            document.getElementById('signed_tx').innerHTML = ""
+            document.getElementById('signed_tx_id').innerHTML = ""
+
+            const terms = JSON.parse(document.getElementById('terms').value)
+            const txfee = parseInt(document.getElementById('txfee').value)
+            const fact = JSON.parse(document.getElementById('fact').innerHTML)
+
+            const inputs = {   
+                cetTxId: document.getElementById('cetxid').value, 
+                oraclePub: terms.question.capabilityPubKey, 
+                answer: fact.factWithQuestion, 
+                rValue: JSON.parse(document.getElementById('commitment').value).rValueSchnorrHex,
+                alicePub: document.getElementById('alice_out_addr').value, 
+                bobPub: document.getElementById('bob_out_addr').value,
+                oracleSignature: fact.signature, 
+                amount: terms.partyBetAmount + terms.counterpartyBetAmount - txfee,
+                txfee
+            }
+
+            const tx = await (await fetch('./btc/generateCetRedemptionTransaction', {
+	            method: 'post',
+	            body: JSON.stringify(inputs),
+	            headers: {'Content-Type': 'application/json'}
+            })).json()
+
+            document.getElementById('signed_tx').innerHTML = tx
+            document.getElementById('signed_tx_id').innerHTML = buf2hex(await crypto.subtle.digest('SHA-256', hex2buf(tx)))
+            
+        }
+
         // integrity: provided: 8ecb2ded53ecd23a6faa2696f1b73f812aa48ffd375287e20d904357a3853700
         // expected: e8d87d9d423c65292dba977d72e2af2118561b397e20f0a633440c5a99eb0511
         // https://cardano.stackexchange.com/questions/9855/transaction-submit-error-while-trying-to-unlock-funds-from-script-address-usin
         document.getElementById('closing_helios').onclick = async () => {
+            document.getElementById('closing_tx').innerHTML = ""
+
             const handle = await window.cardano.eternl.enable()
             const walletAPI = new helios.Cip30Wallet(handle)
             const walletHelper = new helios.WalletHelper(walletAPI)
@@ -535,6 +874,29 @@
                 document.getElementById('final_tx_id').innerHTML = txHash.hex
             } catch (err) {
                 document.getElementById('final_tx_id').innerHTML = "If you got cost model hash mismatch integrity check error, try to switch between preview/preprod (use `heliosNetwork` param in cfg) https://www.hyperion-bt.org/helios-book/api/building/finalizing.html. \n Cost model changes are also a known issue often reoccuring on Cardano: https://cardano.stackexchange.com/questions/9855/transaction-submit-error-while-trying-to-unlock-funds-from-script-address-usin, see also Helios Discord \n If you got balance error, create larger UTXOs by sending coins to yourself! \n" + err
+            }
+            
+        }
+
+        document.getElementById('broadcast_btc').onclick = async () => {
+            document.getElementById('final_tx_id').innerHTML = ""
+            const txRaw = document.getElementById('signed_tx').innerHTML
+            navigator.clipboard.writeText(txRaw)
+            alert('TX is in clipboard!')
+            window.open("https://mempool.space/testnet/tx/push", '_blank').focus()
+        }
+
+        document.getElementById('broadcast_btc_mempool').onclick = async () => {
+            try {
+                document.getElementById('final_tx_id').innerHTML = ""
+                const txRaw = document.getElementById('signed_tx').innerHTML
+                const { bitcoin: { transactions } } = mempoolJS({
+                    hostname: 'mempool.space',
+                    network: 'testnet'
+                });
+                document.getElementById('final_tx_id').innerHTML = await transactions.postTx({ txRaw })
+            } catch (err) {
+                document.getElementById('final_tx_id').innerHTML = err
             }
             
         }
