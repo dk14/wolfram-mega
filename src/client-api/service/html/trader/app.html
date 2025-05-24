@@ -22,12 +22,28 @@
 
             }
 
-            const offerPreview = (terms, capability, oracle) => {
+            const renderOfferPreview = (terms, capability, oracle) => {
+                const upArrowSvg = document.createElement("svg")
+                const yesSvg = document.createElement("svg")
+                const noSvg = document.createElement("svg")
+
+                const offerDetails = document.createElement("details")
+
+                const panel = document.createElement("div")
+                panel.appendChild(upArrowSvg)
+                panel.appendChild(yesSvg)
+                panel.appendChild(noSvg)
+                panel.appendChild(offerDetails)
+
 
             }
 
-            const termsDetails = (terms) => {
+            const renderOfferDetails = (terms, capability, oracle, reports) => {
 
+            }
+
+            const renderContractPreview = (terms, capability, oracle, reports) => {
+                
             }
 
             const saveProfile = () => {
@@ -35,7 +51,7 @@
             }
 
             const loadProfile = () => {
-                
+
             }
 
         </script>
