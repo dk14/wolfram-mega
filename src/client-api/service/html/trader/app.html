@@ -1,12 +1,49 @@
 <html>
     <head>
         <style>
-            .panel, .profile, .box{
+            .panel, .profile, .box {
                 border: 2px solid rgb(96 139 168);
                 background: rgb(96 139 168);
                 display: flex;
                 align-items: center;
                 justify-content: center
+            }
+
+            .profile {
+                border: none;
+            }
+
+            .profile-group {
+                border: none;
+                padding: 10px
+            }
+
+            .scrollable {
+                overflow-y: scroll;
+                height: 360px;
+                -ms-overflow-style: none;  /* Internet Explorer 10+ */
+                scrollbar-width: none;  /* Firefox */
+            }
+
+            .scrollable::-webkit-scrollbar { 
+                display: none;  /* Safari and Chrome */
+            }
+
+            .wide-panel {
+                border: 2px solid black;
+                width: 100%;
+                justify-content:space-between
+            }
+
+            .offer-info {
+                width: 100%;
+            }
+
+            .contract-info {
+                
+                margin-left: 10px;
+                width: 100%;
+                justify-content:left
             }
 
             .button, .offer-button {
@@ -21,7 +58,16 @@
                 height: 10rem;
             }
 
-            .tag-button {
+            hr {
+                border: 2px solid black;
+            }
+
+            .copy-button {
+                width: 2rem;
+                height: 2rem;
+            }
+
+            .tag-button, .add-interest-button {
                 border-radius: 12px;
                 background-color: #04AA6D;
                 border: none;
@@ -32,6 +78,12 @@
                 display: inline-block;
                 font-size: 16px;
                 margin: 4px 2px;
+            }
+
+            .add-interest-button {
+                border-radius: 1px;
+                margin: 0px 0px;
+                padding: 5px 10px;
             }
 
             .offer-button {
@@ -52,7 +104,7 @@
                 background: #fff;
                 font-family: Open Sans,Verdana;
                 padding: 5px 15px;
-                margin: 30px 0px;
+                margin: 0px 0px;
                 -webkit-transition: all 0.1s ease-in-out;
                 -moz-transition: all 0.1s ease-in-out;
                 -ms-transition: all 0.1s ease-in-out;
@@ -106,23 +158,34 @@
     </head>
     <body style="background-color:black;">
 
-        <pre class="box">Balance: 10000 sat</pre>
-        <div id="matching"></div>
-        <div id="contracts" style="display:none"></div>
-        <div id="profile" style="display:none" class="profile">
+        <pre class="box">
+Balance: 10000 sat
+Address: n3W8YyK59F6vQe34uQ8n835L627k2J <img src="./assets/copy.svg" class="copy-button" onclick="alert('copy!')"></pre>
 
-            <pre>Interests: <input class="add-interest"></pre>
-            <div>
-                <button class="tag-button">sports</button>
-                <button class="tag-button">world</button>
+        <div id="matching"class="scrollable" ></div>
+        <div id="contracts" class="scrollable" style="display:none"></div>
+        <div id="profile" class="scrollable profile" style="display:none" class="profile">
+            <div class="profile-group">
+                <pre>Oracle strength: </pre>
+                <div class="slidecontainer">
+                    <input type="range" min="1" max="100" value="50" class="slider-color" id="oracle-strength">
+                </div>
+                <pre>Oracle reputation: </pre>
+                <div class="slidecontainer">
+                    <input type="range" min="1" max="100" value="50" class="slider-color" id="oracle-reputation">
+                </div>
             </div>
-            <pre>Oracle strength: </pre>
-            <div class="slidecontainer">
-                <input type="range" min="1" max="100" value="50" class="slider-color" id="myRange">
-            </div>
-            <pre>
+            <hr>
+            <div class="profile-group">
+                <pre>Interests: <input class="add-interest"><button class="add-interest-button">+</button></pre>
+                <div>
+                    <button class="tag-button">sports</button>
+                    <button class="tag-button">world</button>
+                </div>
+                <pre>
 
-            </pre>
+                </pre>
+            </div>
         </div>
 
         <pre></pre>
@@ -164,33 +227,89 @@
                 offers: [{
                     id: "",
                     bet: "100:1 sat",
-                    betOn: true,
+                    oracles: [wolfram],
+                    question: "is humanity gonna extinct \n within 20 years?",
+                    accepted: false,
+                    txid: "",
+
+                },
+                {
+                    id: "",
+                    bet: "100:1 sat",
+                    oracles: [wolfram],
+                    question: "is humanity gonna extinct \n within 20 years?",
+                    accepted: false,
+                    txid: "",
+
+                },
+                {
+                    id: "",
+                    bet: "100:1 sat",
                     oracles: [wolfram],
                     question: "is humanity gonna extinct \n within 20 years?",
                     accepted: false,
                     txid: "",
 
                 }],
-                issuedOffers: [{
-                    id: "",
-                    bet: "100:1 sat",
-                    betOn: true,
-                    oracles: [wolfram],
-                    question: "am i gonna win?",
-                    accepted: false,
-                    txid: "",
-
-                }],
                 contracts: [{
-                    id: "",
-                    bet: "100:1 sat",
-                    betOn: true,
-                    oracles: [wolfram],
-                    question: "am i gonna win???",
-                    accepted: false,
-                    txid: "",
+                        id: "",
+                        bet: "100:1 sat",
+                        betOn: true,
+                        oracles: [wolfram],
+                        question: "am i gonna win???",
+                        accepted: false,
+                        txid: "",
+                        status: "MATCHING"
 
-                }]
+                    },
+            
+                    {
+                        id: "",
+                        bet: "100:1 sat",
+                        betOn: true,
+                        oracles: [wolfram],
+                        question: "am i gonna win???",
+                        accepted: false,
+                        txid: "",
+                        status: "TX_READY",
+                        tx: ""
+
+                    },
+                    {
+                        id: "",
+                        bet: "100:1 sat",
+                        betOn: true,
+                        oracles: [wolfram],
+                        question: "am i gonna win???",
+                        accepted: false,
+                        txid: "",
+                        status: "SUBMIT"
+
+                    },
+                    {
+                        id: "",
+                        bet: "100:1 sat",
+                        betOn: true,
+                        oracles: [wolfram],
+                        question: "am i gonna win???",
+                        accepted: false,
+                        txid: "",
+                        status: "WIN"
+
+                    },
+                    {
+                        id: "",
+                        bet: "100:1 sat",
+                        betOn: true,
+                        oracles: [wolfram],
+                        question: "am i gonna win???",
+                        accepted: false,
+                        txid: "",
+                        status: "LOST"
+
+                    }
+            
+                ]
             }
 
             const fetchOffers = () => {
@@ -199,6 +318,29 @@
 
             const readContracts = () => {
 
+            }
+
+            const createOfferInfo = (offer) => {
+                const offerInfo = document.createElement("div")
+                const offerQuestion = document.createElement("pre")
+                offerQuestion.innerText = offer.question
+
+                const offerBet = document.createElement("pre")
+                offerBet.innerText = offer.bet
+
+                const oracle = document.createElement("pre")
+                oracle.innerText = "oracle: " + offer.oracles[0].name + (offer.oracles.length > 1 ? "+" : "")
+
+                offerInfo.appendChild(offerQuestion)
+                offerInfo.appendChild(offerBet)
+                offerInfo.appendChild(oracle)
+
+                if (offer.status) {
+                    const offerStatus = document.createElement("pre")
+                    offerStatus.innerText = "status: " + offer.status
+                    offerInfo.appendChild(offerStatus)
+                }
+                return offerInfo
             }
 
             const renderOfferPreview = (where, offer) => {
@@ -219,20 +361,10 @@
                 removeSvg.src = "./assets/remove.svg"
                 removeSvg.className = "offer-button"
 
-                const offerInfo = document.createElement("div")
-
-                const offerQuestion = document.createElement("pre")
-                offerQuestion.innerText = offer.question
-
-                const offerBet = document.createElement("pre")
-                offerBet.innerText = offer.bet
-
-                const oracle = document.createElement("pre")
-                oracle.innerText = "oracle: " + offer.oracles[0].name + (offer.oracles.length > 1 ? "+" : "")
-
-                offerInfo.appendChild(offerQuestion)
-                offerInfo.appendChild(offerBet)
-                offerInfo.appendChild(oracle)
+                
+                const offerInfo = createOfferInfo(offer)
+                offerInfo.className = "offer-info"
+               
 
                 const panel = document.createElement("div")
                 panel.className = "panel"
@@ -253,13 +385,39 @@
             renderOfferPreview(document.getElementById("matching"), model.offers[0])
             renderOfferPreview(document.getElementById("matching"), model.offers[0])
             renderOfferPreview(document.getElementById("matching"), model.offers[0])
-            const renderOfferDetails = (terms, capability, oracle, reports) => {
+            
+            
+            const renderOfferDetails = (terms, offer) => {
 
             }
 
-            const renderContractPreview = (terms, capability, oracle, reports) => {
+            const renderContractPreview = (where, contract) => {
+                const downArrowSvg = document.createElement("img")
+                downArrowSvg.src = "./assets/down.svg"
+                downArrowSvg.className = "offer-button"
 
+                const removeSvg = document.createElement("img")
+                removeSvg.src = "./assets/remove.svg"
+                removeSvg.className = "offer-button"
+
+
+                const offerInfo = createOfferInfo(contract)
+                offerInfo.className = "contract-info"
+                const panel = document.createElement("div")
+                panel.className = "panel wide-panel"
+
+                panel.appendChild(offerInfo)
+
+                panel.appendChild(removeSvg)
+
+                panel.appendChild(downArrowSvg)
+                where.appendChild(panel)
             }
+
+            model.contracts.forEach(contract => {
+                renderContractPreview(document.getElementById("contracts"), contract)
+            })
+            
 
             const renderProfile = () => {
                 
