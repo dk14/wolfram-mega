@@ -226,7 +226,7 @@ export interface OfferTerms {
 export interface AccepOffer {
     chain: 'bitcoin-testnet'
     tx: string
-    ooferRef: HashCashPow
+    offerRef: HashCashPow
 }
 
 export interface FinalizeOffer {
