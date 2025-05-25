@@ -16,6 +16,12 @@
                 justify-content: center;
             }
 
+            .menu {
+                position: fixed; 
+                width: 98%;
+                bottom:1%;
+            }
+
             .profile, .offer-view {
                 border: none;
             }
@@ -257,7 +263,7 @@ Address: n3W8YyK59F6vQe34uQ8n835L627k2J <img src="./assets/copy.svg" class="copy
         <pre></pre>
        
 
-        <div id="panel" class="panel">
+        <div id="panel" class="panel menu">
             <img src="./assets/trades.svg" class="button" onclick="switchTab('contracts')">
             <img src="./assets/trade.svg"  class="button"  onclick="switchTab('matching')">
             <img src="./assets/profile.svg"  class="button"  onclick="switchTab('profile')">
