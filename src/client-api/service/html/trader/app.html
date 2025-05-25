@@ -1,7 +1,7 @@
 <html>
     <head>
         <style>
-            .panel {
+            .panel, .profile, .box{
                 border: 2px solid rgb(96 139 168);
                 background: rgb(96 139 168);
                 display: flex;
@@ -21,21 +21,111 @@
                 height: 10rem;
             }
 
+            .tag-button {
+                border-radius: 12px;
+                background-color: #04AA6D;
+                border: none;
+                color: white;
+                padding: 10px;
+                text-align: center;
+                text-decoration: none;
+                display: inline-block;
+                font-size: 16px;
+                margin: 4px 2px;
+            }
+
             .offer-button {
                 width: 5rem;
                 height: 5rem;
             }
-              
+
+            .add-interest {
+                font-weight:300;
+                font-size: 16px;
+                border:0px;
+                outline: none;
+                width: 50%;
+                -webkit-box-sizing: border-box;
+                -moz-box-sizing: border-box;
+                box-sizing: border-box;
+                color: #4b545f;
+                background: #fff;
+                font-family: Open Sans,Verdana;
+                padding: 5px 15px;
+                margin: 30px 0px;
+                -webkit-transition: all 0.1s ease-in-out;
+                -moz-transition: all 0.1s ease-in-out;
+                -ms-transition: all 0.1s ease-in-out;
+                -o-transition: all 0.1s ease-in-out;
+                transition: all 0.1s ease-in-out;
+                background-color: grey
+            }
+
+
+            .slidecontainer {
+                width: 100%; /* Width of the outside container */
+            }
+
+
+            .slider-color {
+                width: 100%;
+                height: 15px;
+                border-radius: 5px;
+                background: #d3d3d3;
+                outline: none;
+                opacity:0.7;
+                -webkit-transition: opacity .15s ease-in-out;
+                transition: opacity .15s ease-in-out;
+            }
+            
+            .slider-color:hover {
+                opacity:1;
+            }
+            
+            .slider-color::-webkit-slider-thumb {
+                -webkit-appearance: none;
+                appearance: none;
+                width: 25px;
+                height: 25px;
+                border-radius: 50%;
+                background: #04AA6D;
+                cursor: pointer;
+            }
+                
+            .slider-color::-moz-range-thumb {
+                width: 25px;
+                height: 25px;
+                border: 0;
+                border-radius: 50%;
+                background: #04AA6D;
+                cursor: pointer;
+            }
+                            
               
         </style>
     </head>
     <body style="background-color:black;">
 
-
+        <pre class="box">Balance: 10000 sat</pre>
         <div id="matching"></div>
         <div id="contracts" style="display:none"></div>
-        <div id="profile" style="display:none"></div>
+        <div id="profile" style="display:none" class="profile">
 
+            <pre>Interests: <input class="add-interest"></pre>
+            <div>
+                <button class="tag-button">sports</button>
+                <button class="tag-button">world</button>
+            </div>
+            <pre>Oracle strength: </pre>
+            <div class="slidecontainer">
+                <input type="range" min="1" max="100" value="50" class="slider-color" id="myRange">
+            </div>
+            <pre>
+
+            </pre>
+        </div>
+
+        <pre></pre>
         <div id="offer">
             <div id="terms"></div>
             <div id="oracle"></div>
