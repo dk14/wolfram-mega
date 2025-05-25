@@ -117,7 +117,13 @@ export const startHttp = (cfg: MempoolConfig<any>) => {
             if (req.method === 'POST') {
                 var body = ''
                 req.on('data',  function (chunk) {
-                    body += chunk;
+                    if (body.length < cfg.maxMsgLength) {
+                        body += chunk;
+                    } else {
+                        res.end("input too large")
+                        throw "input too large"
+                    }
+
                 });
                 req.on('end', async function () {
 

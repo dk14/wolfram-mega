@@ -886,7 +886,7 @@
             window.open("https://mempool.space/testnet/tx/push", '_blank').focus()
         }
 
-        document.getElementById('broadcast_btc_mempool').onclick = async () => {
+        /* document.getElementById('broadcast_btc_mempool').onclick = async () => {
             try {
                 document.getElementById('final_tx_id').innerHTML = ""
                 const txRaw = document.getElementById('signed_tx').innerHTML
@@ -899,7 +899,7 @@
                 document.getElementById('final_tx_id').innerHTML = err
             }
             
-        }
+        }*/
 
         setInterval(async () => {
             if (document.getElementById('update').checked) {

@@ -9,6 +9,7 @@ interface FacilitatorId {
 }
 
 export interface MempoolConfig<PeerAddrT> {
+    maxMsgLength: number
     maxOracles: number
     maxCapabilities: number
     maxReports: number

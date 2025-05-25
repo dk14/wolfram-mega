@@ -4,6 +4,7 @@
     "maxReports": 100,
     "maxOffers": 100,
     "maxConnections": 100,
+    "maxMsgLength": 1000000,
     "httpPort": 8082,
     "p2pPort": 8335,
     "hostname": "localhost",

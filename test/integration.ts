@@ -48,6 +48,7 @@ const start = async (portP2P: number, portHttp: number, seed: number[], oraclePo
         "maxReports": 2,
         "maxOffers": 2,
         "maxConnections": 100,
+        "maxMsgLength": 1000000,
         "httpPort": portHttp,
         "p2pPort": portP2P,
         "hostname": "localhost",

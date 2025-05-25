@@ -139,6 +139,9 @@ export const startP2P = (cfg: MempoolConfig<PeerAddr>) => {
 
     async function processApiRequest(command: string, content: string): Promise<void> {
         console.log("[receive][cmd: " + command + "] " + content)
+        if (content.length > cfg.maxMsgLength) {
+            throw "Content too large"
+        }
         switch(command) {
             case 'peer': { 
                 discovered(JSON.parse(content))
