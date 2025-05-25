@@ -223,6 +223,17 @@ export interface OfferTerms {
     counterpartyBetAmount: number
 }
 
+export interface AccepOffer {
+    chain: 'bitcoin-testnet'
+    tx: string
+    ooferRef: HashCashPow
+}
+
+export interface FinalizeOffer {
+    txid: string
+    acceptRef: HashCashPow
+}
+
 export interface Offer {
     message: string
     customContract: string
@@ -231,6 +242,9 @@ export interface Offer {
     transactionToBeCoSigned: string //counterparty pays fees, can broadcast as a confirmation
     signaturesToAggregate?: string[]
     contact: string
+    accept?: AccepOffer
+    finalize?: FinalizeOffer 
+    
 }
 
 
