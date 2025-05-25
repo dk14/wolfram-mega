@@ -7,14 +7,23 @@
                 align-items: center;
             }
 
-            .button {
+            .button, .offer-button {
                 background: none;
                 border: 1px solid lightgrey;
                 padding: 0;
                 display: flex;
+
+            }
+
+            .button {
                 width: 10rem;
                 height: 10rem;
-              }
+            }
+
+            .offer-button {
+                width: 5rem;
+                height: 5rem;
+            }
               
               
         </style>
@@ -54,9 +63,8 @@
                 },
                 offers: [{
                     id: "",
-                    bet: 100,
+                    bet: "100:1 sat",
                     betOn: true,
-                    ratio: 5,
                     oracles: [wolfram],
                     question: "am i gonna win?",
                     accepted: false,
@@ -65,9 +73,8 @@
                 }],
                 issuedOffers: [{
                     id: "",
-                    bet: 100,
+                    bet: "100:1 sat",
                     betOn: true,
-                    ratio: 5,
                     oracles: [wolfram],
                     question: "am i gonna win?",
                     accepted: false,
@@ -76,9 +83,8 @@
                 }],
                 contracts: [{
                     id: "",
-                    bet: 100,
+                    bet: "100:1 sat",
                     betOn: true,
-                    ratio: 5,
                     oracles: [wolfram],
                     question: "am i gonna win???",
                     accepted: false,
@@ -95,21 +101,53 @@
 
             }
 
-            const renderOfferPreview = (terms, capability, oracle) => {
-                const downArrowSvg = document.createElement("img", {src: "./assets/down.svg"})
-                const yesSvg = document.createElement("img", {src: "./assets/yes.svg"})
-                const noSvg = document.createElement("img", {src: "./assets/no.svg"})
+            const renderOfferPreview = (where, offer) => {
+                const downArrowSvg = document.createElement("img")
+                downArrowSvg.src = "./assets/down.svg"
+                downArrowSvg.className = "offer-button"
 
-                const offerInfo = document.createElement("details")
+                const yesSvg = document.createElement("img")
+                yesSvg.src = "./assets/yes.svg"
+                yesSvg.className = "offer-button"
+
+
+                const noSvg = document.createElement("img")
+                noSvg.src = "./assets/no.svg"
+                noSvg.className = "offer-button"
+
+                const removeSvg = document.createElement("img")
+                removeSvg.src = "./assets/remove.svg"
+                removeSvg.className = "offer-button"
+
+                const offerInfo = document.createElement("div")
+
+                const offerQuestion = document.createElement("pre")
+                offerQuestion.innerText = offer.question
+
+                const offerBet = document.createElement("pre")
+                offerBet.innerText = offer.bet
+
+                offerInfo.appendChild(offerQuestion)
+                offerInfo.appendChild(offerBet)
 
                 const panel = document.createElement("div")
+                panel.className = "panel"
+                panel.appendChild(removeSvg)
+                panel.appendChild(offerInfo)
+
                 panel.appendChild(downArrowSvg)
                 panel.appendChild(yesSvg)
                 panel.appendChild(noSvg)
-                panel.appendChild(offerInfo)
+                
+                
+
+                where.appendChild(panel)
 
 
             }
+
+            renderOfferPreview(document.getElementById("matching"), model.offers[0])
+            renderOfferPreview(document.getElementById("matching"), model.offers[0])
 
             const renderOfferDetails = (terms, capability, oracle, reports) => {
 
