@@ -16,6 +16,14 @@
                 justify-content: center;
             }
 
+            .wallet {
+                border: 2px solid rgb(96 139 168);
+                background: rgb(96 139 168);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
             .menu {
                 position: fixed; 
                 width: 97%;
@@ -105,7 +113,7 @@
 
             .copy-button {
                 width: 2rem;
-                height: 2rem;
+                height: 1.5rem;
             }
 
             .tag-button, .add-interest-button, .send-funds-button {
@@ -207,9 +215,9 @@
     </head>
     <body style="background-color:black;">
 
-        <pre class="box">
-Balance: 10000 sat
-Address: n3W8YyK59F6vQe34uQ8n835L627k2J <img src="./assets/copy.svg" class="copy-button" onclick="alert('copy!')"></pre>
+        <pre class="wallet">
+<div>Balance: <font color="cyan">10,000 sat</font>
+Address: <font color="blue">n3W8YyK59F6vQe34uQ8n835L627k2J</font> <img src="./assets/copy.svg" class="copy-button" onclick="alert('copy!')"></div></pre>
 
         <div id="matching"class="scrollable" ></div>
         <div id="contracts" class="scrollable" style="display:none"></div>
@@ -432,13 +440,13 @@ Address: n3W8YyK59F6vQe34uQ8n835L627k2J <img src="./assets/copy.svg" class="copy
             const createOfferInfo = (offer) => {
                 const offerInfo = document.createElement("div")
                 const offerQuestion = document.createElement("pre")
-                offerQuestion.innerText = offer.question
+                offerQuestion.innerHTML = `<font color="purple">${offer.question}</font>`
 
                 const offerBet = document.createElement("pre")
-                offerBet.innerText = offer.bet
+                offerBet.innerHTML = `<font color = "grene">${offer.bet}</font>`
 
                 const oracle = document.createElement("pre")
-                oracle.innerText = "oracle: " + offer.oracles[0].name + (offer.oracles.length > 1 ? "+" : "")
+                oracle.innerHTML = `<font color="brown">${offer.oracles[0].name + (offer.oracles.length > 1 ? "+" : "")}</font>`
 
                 offerInfo.appendChild(offerQuestion)
                 offerInfo.appendChild(offerBet)
@@ -446,7 +454,7 @@ Address: n3W8YyK59F6vQe34uQ8n835L627k2J <img src="./assets/copy.svg" class="copy
 
                 if (offer.status) {
                     const offerStatus = document.createElement("pre")
-                    offerStatus.innerText = "status: " + offer.status
+                    offerStatus.innerHTML = `<font color="white">${offer.status}</font>`
                     offerInfo.appendChild(offerStatus)
                 }
                 return offerInfo
