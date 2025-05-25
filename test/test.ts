@@ -11,6 +11,7 @@ import * as pow from '../src/pow'
         "maxReports": 2,
         "maxOffers": 2,
         "maxConnections": 100,
+        "maxMsgLength": 1000000,
         "httpPort": 8080,
         "p2pPort": 8333,
         "isTest": true,
