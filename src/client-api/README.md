@@ -67,6 +67,6 @@ npm run demo
 
 ## Trader app demo
 
-WIP:
+WIP.
 
 Design: https://dk14.github.io/wolfram-mega/src/client-api/service/html/trader/app.html
