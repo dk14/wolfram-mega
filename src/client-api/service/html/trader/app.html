@@ -334,7 +334,7 @@ Address: <font color="blue">n3W8YyK59F6vQe34uQ8n835L627k2J</font> <img src="./as
                 },
                 offers: [{
                     id: "",
-                    bet: "100:1 sat",
+                    bet: [100, 1],
                     oracles: [wolfram],
                     question: "human  extinct \n in 20 years?",
                     accepted: false,
@@ -343,7 +343,7 @@ Address: <font color="blue">n3W8YyK59F6vQe34uQ8n835L627k2J</font> <img src="./as
                 },
                 {
                     id: "",
-                    bet: "50:1 sat",
+                    bet: [50, 1],
                     oracles: [wolfram],
                     question: "human extinct \n in 10 years?",
                     accepted: false,
@@ -352,7 +352,7 @@ Address: <font color="blue">n3W8YyK59F6vQe34uQ8n835L627k2J</font> <img src="./as
                 },
                 {
                     id: "",
-                    bet: "20:1 sat",
+                    bet: [20, 1],
                     oracles: [wolfram],
                     question: "human extinct \n in 5 years?",
                     accepted: false,
@@ -361,7 +361,7 @@ Address: <font color="blue">n3W8YyK59F6vQe34uQ8n835L627k2J</font> <img src="./as
                 },
                 {
                     id: "",
-                    bet: "5:1 sat",
+                    bet: [5, 1],
                     oracles: [wolfram],
                     question: "human extinct \n in 1 year?",
                     accepted: false,
@@ -370,7 +370,7 @@ Address: <font color="blue">n3W8YyK59F6vQe34uQ8n835L627k2J</font> <img src="./as
                 }],
                 contracts: [{
                         id: "",
-                        bet: "100:1 sat",
+                        bet: [100, 1],
                         betOn: true,
                         oracles: [wolfram],
                         question: "am i gonna win???",
@@ -382,7 +382,7 @@ Address: <font color="blue">n3W8YyK59F6vQe34uQ8n835L627k2J</font> <img src="./as
             
                     {
                         id: "",
-                        bet: "100:1 sat",
+                        bet: [100, 1],
                         betOn: true,
                         oracles: [wolfram],
                         question: "am i gonna win???",
@@ -394,7 +394,7 @@ Address: <font color="blue">n3W8YyK59F6vQe34uQ8n835L627k2J</font> <img src="./as
                     },
                     {
                         id: "",
-                        bet: "100:1 sat",
+                        bet: [100, 1],
                         betOn: true,
                         oracles: [wolfram],
                         question: "am i gonna win???",
@@ -405,7 +405,7 @@ Address: <font color="blue">n3W8YyK59F6vQe34uQ8n835L627k2J</font> <img src="./as
                     },
                     {
                         id: "",
-                        bet: "50:1 sat",
+                        bet: [50, 1],
                         betOn: true,
                         oracles: [wolfram],
                         question: "am i gonna win???",
@@ -416,7 +416,7 @@ Address: <font color="blue">n3W8YyK59F6vQe34uQ8n835L627k2J</font> <img src="./as
                     },
                     {
                         id: "",
-                        bet: "20:1 sat",
+                        bet: [20, 1],
                         betOn: true,
                         oracles: [wolfram],
                         question: "am i gonna win???",
@@ -443,7 +443,7 @@ Address: <font color="blue">n3W8YyK59F6vQe34uQ8n835L627k2J</font> <img src="./as
                 offerQuestion.innerHTML = `<font color="purple">${offer.question}</font>`
 
                 const offerBet = document.createElement("pre")
-                offerBet.innerHTML = `<font color = "grene">${offer.bet}</font>`
+                offerBet.innerHTML = `<font color = "grene">${offer.bet[0]}:${offer.bet[1]} sat</font>`
 
                 const oracle = document.createElement("pre")
                 oracle.innerHTML = `<font color="brown">${offer.oracles[0].name + (offer.oracles.length > 1 ? "+" : "")}</font>`
@@ -471,11 +471,17 @@ Address: <font color="blue">n3W8YyK59F6vQe34uQ8n835L627k2J</font> <img src="./as
                 const yesSvg = document.createElement("img")
                 yesSvg.src = "./assets/yes.svg"
                 yesSvg.className = "offer-button"
+                yesSvg.onclick = () => {
+                    confirm("Bet " + offer.bet[0] + " sat on '" + offer.question + "'")
+                }
 
 
                 const noSvg = document.createElement("img")
                 noSvg.src = "./assets/no.svg"
                 noSvg.className = "offer-button"
+                noSvg.onclick = () => {
+                    confirm("Bet " + offer.bet[1] + " sat against '" + offer.question + "'")
+                }
 
                 const removeSvg = document.createElement("img")
                 removeSvg.src = "./assets/remove.svg"
