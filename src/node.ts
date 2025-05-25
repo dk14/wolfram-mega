@@ -96,6 +96,8 @@ export interface OracleCapability extends MsgLike {
     oracleSignature: string //sign this OracleCapability JSON record (with empty string signature field)
     oracleSignatureType: string
     pow: HashCashPow
+
+    tags?: string[]
     off?: boolean
     
     params?: Param[] //possible params
@@ -132,6 +134,7 @@ export interface OracleId extends MsgLike, WithPow {
 
     oracleSignature: string
     oracleSignatureType: string
+    tags?: string[]
     previousId?: OracleId //in case oracle has to change pubkey
     previousIdSignatureToNewPubkey?: string
 }

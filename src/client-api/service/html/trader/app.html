@@ -41,7 +41,51 @@
 
         <script>
 
-            const model = []
+            const wolfram = {
+                id: "",
+                name: "Wolfram",
+                strength: 1000,
+                reports: []
+            }
+
+            const model = {
+                profile: {
+                    tags: ["sports", "politics"]
+                },
+                offers: [{
+                    id: "",
+                    bet: 100,
+                    betOn: true,
+                    ratio: 5,
+                    oracles: [wolfram],
+                    question: "am i gonna win?",
+                    accepted: false,
+                    txid: "",
+
+                }],
+                issuedOffers: [{
+                    id: "",
+                    bet: 100,
+                    betOn: true,
+                    ratio: 5,
+                    oracles: [wolfram],
+                    question: "am i gonna win?",
+                    accepted: false,
+                    txid: "",
+
+                }],
+                contracts: [{
+                    id: "",
+                    bet: 100,
+                    betOn: true,
+                    ratio: 5,
+                    oracles: [wolfram],
+                    question: "am i gonna win???",
+                    accepted: false,
+                    txid: "",
+
+                }]
+            }
 
             const fetchOffers = () => {
 
