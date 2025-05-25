@@ -2,14 +2,15 @@
     <head>
         <style>
             .panel {
-                border: 2px dotted rgb(96 139 168);
+                border: 2px solid rgb(96 139 168);
+                background: rgb(96 139 168);
                 display: flex;
                 align-items: center;
+                justify-content: center
             }
 
             .button, .offer-button {
                 background: none;
-                border: 1px solid lightgrey;
                 padding: 0;
                 display: flex;
 
@@ -28,12 +29,12 @@
               
         </style>
     </head>
-    <body>
+    <body style="background-color:black;">
 
 
         <div id="matching"></div>
-        <div id="contracts"></div>
-        <div id="profile"></div>
+        <div id="contracts" style="display:none"></div>
+        <div id="profile" style="display:none"></div>
 
         <div id="offer">
             <div id="terms"></div>
@@ -43,12 +44,21 @@
         </div>
 
         <div id="panel" class="panel">
-            <img src="./assets/trades.svg" class="button">
-            <img src="./assets/trade.svg"  class="button">
-            <img src="./assets/profile.svg"  class="button">
+            <img src="./assets/trades.svg" class="button" onclick="switchTab('contracts')">
+            <img src="./assets/trade.svg"  class="button"  onclick="switchTab('matching')">
+            <img src="./assets/profile.svg"  class="button"  onclick="switchTab('profile')">
         </div>
 
         <script>
+
+            const switchTab = (tabname) => {
+                document.getElementById("matching").style.display = "none"
+                document.getElementById("contracts").style.display = "none"
+                document.getElementById("profile").style.display = "none"
+
+                document.getElementById(tabname).style.display = "block"
+
+            }
 
             const wolfram = {
                 id: "",
@@ -66,7 +76,7 @@
                     bet: "100:1 sat",
                     betOn: true,
                     oracles: [wolfram],
-                    question: "am i gonna win?",
+                    question: "is humanity gonna extinct \n within 20 years?",
                     accepted: false,
                     txid: "",
 
@@ -127,8 +137,12 @@
                 const offerBet = document.createElement("pre")
                 offerBet.innerText = offer.bet
 
+                const oracle = document.createElement("pre")
+                oracle.innerText = "oracle: " + offer.oracles[0].name + (offer.oracles.length > 1 ? "+" : "")
+
                 offerInfo.appendChild(offerQuestion)
                 offerInfo.appendChild(offerBet)
+                offerInfo.appendChild(oracle)
 
                 const panel = document.createElement("div")
                 panel.className = "panel"
@@ -148,7 +162,7 @@
 
             renderOfferPreview(document.getElementById("matching"), model.offers[0])
             renderOfferPreview(document.getElementById("matching"), model.offers[0])
-
+            renderOfferPreview(document.getElementById("matching"), model.offers[0])
             const renderOfferDetails = (terms, capability, oracle, reports) => {
 
             }
