@@ -14,7 +14,6 @@
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                width: 99%;
             }
 
             .profile, .offer-view {
@@ -48,10 +47,13 @@
                 width: 98%;
             }
 
+            .offer-preview {
+                width: 99%;
+            }
+
             .contract-info {
-                
                 margin-left: 10px;
-                width: 100%;
+                width: 99%;
                 justify-content:left
             }
 
@@ -418,7 +420,7 @@ Address: n3W8YyK59F6vQe34uQ8n835L627k2J <img src="./assets/copy.svg" class="copy
                
 
                 const panel = document.createElement("div")
-                panel.className = "panel"
+                panel.className = "panel offer-preview"
                 panel.appendChild(removeSvg)
                 panel.appendChild(offerInfo)
 
