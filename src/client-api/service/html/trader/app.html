@@ -13,7 +13,7 @@
                 border: none;
             }
 
-            .profile-group {
+            .profile-group, .offer-info-group {
                 border: none;
                 padding: 10px
             }
@@ -67,7 +67,7 @@
                 height: 2rem;
             }
 
-            .tag-button, .add-interest-button {
+            .tag-button, .add-interest-button, .send-funds-button {
                 border-radius: 12px;
                 background-color: #04AA6D;
                 border: none;
@@ -80,7 +80,7 @@
                 margin: 4px 2px;
             }
 
-            .add-interest-button {
+            .add-interest-button, .send-funds-button {
                 border-radius: 1px;
                 margin: 0px 0px;
                 padding: 5px 10px;
@@ -91,7 +91,7 @@
                 height: 5rem;
             }
 
-            .add-interest {
+            .add-interest, .send-funds-amount, .send-funds-address {
                 font-weight:300;
                 font-size: 16px;
                 border:0px;
@@ -111,6 +111,10 @@
                 -o-transition: all 0.1s ease-in-out;
                 transition: all 0.1s ease-in-out;
                 background-color: grey
+            }
+
+            .send-funds-amount {
+                width: 80px 
             }
 
 
@@ -166,46 +170,49 @@ Address: n3W8YyK59F6vQe34uQ8n835L627k2J <img src="./assets/copy.svg" class="copy
         <div id="contracts" class="scrollable" style="display:none"></div>
         <div id="profile" class="scrollable profile" style="display:none" class="profile">
             <div class="profile-group">
-                <pre>Oracle strength: </pre>
+                <pre><h3>Oracle Filter</h3></pre>
+                <pre>Strength: </pre>
                 <div class="slidecontainer">
                     <input type="range" min="1" max="100" value="50" class="slider-color" id="oracle-strength">
                 </div>
-                <pre>Oracle reputation: </pre>
+                <pre>Reputation: </pre>
                 <div class="slidecontainer">
                     <input type="range" min="1" max="100" value="50" class="slider-color" id="oracle-reputation">
                 </div>
             </div>
             <hr>
             <div class="profile-group">
-                <pre>Interests: <input class="add-interest"><button class="add-interest-button">+</button></pre>
+                <pre><h3>Interests:</h3> <input class="add-interest"> <button class="add-interest-button">+</button></pre>
                 <div>
                     <button class="tag-button">sports</button>
                     <button class="tag-button">world</button>
                 </div>
-                <pre>
 
-                </pre>
+            </div>
+            <hr>
+            <div class="profile-group">
+                <pre><h3>Send funds:</h3> amount: <input class="send-funds-amount" type="number" value="0"><br><br> address: <input class="send-funds-address" value="n3W8YyK59F6vQe34uQ8n835L627k2J"> <button class="send-funds-button">Send</button></pre>
             </div>
         </div>
 
         <div id="offer" class="scrollable offer-view" style="display:none">
-            <div class="profile-group">
+            <div class="offer-info-group">
                 <h4>Offer Terms: </h4>
                 <div id="terms"></div>
             </div>
             <hr>
-            <div class="profile-group">
+            <div class="offer-info-group">
                 <h4>Oracle Details:</h4>
                 <div id="oracle">PubKey: ABCDEF<br>Name: Wolfram</div>
             </div>
             <hr>
-            <div class="profile-group">
+            <div class="offer-info-group">
             <h4>Capabilities Info:</h4>
             <div id="capability">PubKey: ABCDEF</div>
             </div>
             <hr>
 
-            <div class="profile-group">
+            <div class="offer-info-group">
                 <h4>Malleability Reports:</h4>
                 <div id="reports">NONE</div>
             </div>
