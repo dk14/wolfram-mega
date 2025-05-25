@@ -44,6 +44,11 @@
                 display: none;  /* Safari and Chrome */
             }
 
+            object {
+                width: 100%;
+                pointer-events: none;
+            }
+
             .wide-panel {
                 border: 2px solid black;
                 width: 99%;
@@ -265,21 +270,47 @@ Address: n3W8YyK59F6vQe34uQ8n835L627k2J <img src="./assets/copy.svg" class="copy
        
 
         <div id="panel" class="panel menu">
-            <img src="./assets/trades.svg" class="button" onclick="switchTab('contracts')">
-            <img src="./assets/trade.svg"  class="button"  onclick="switchTab('matching')">
-            <img src="./assets/profile.svg"  class="button"  onclick="switchTab('profile')">
+            <div onclick="switchTab('contracts')">
+                <object id="contracts_obj" data="./assets/trades.svg" class="button" type="image/svg+xml"></object>
+            </div>
+
+            <div onclick="switchTab('matching')">
+                <object id="matching_obj" data="./assets/trade.svg" class="button" type="image/svg+xml"></object>
+            </div>
+
+            <div onclick="switchTab('profile')">
+                <object id="profile_obj" data="./assets/profile.svg" class="button" type="image/svg+xml"></object>
+            </div>
         </div>
 
         <script>
 
+
+            document.getElementById("matching_obj").addEventListener("load", () => {
+                document.getElementById("matching_obj").getSVGDocument().getElementById("matching_svg").setAttribute("fill", "brown")
+            })
+            
             const switchTab = (tabname) => {
                 document.getElementById("matching").style.display = "none"
                 document.getElementById("contracts").style.display = "none"
                 document.getElementById("profile").style.display = "none"
                 document.getElementById("offer").style.display = "none"
 
-                document.getElementById(tabname).style.display = "block"
+                try {
 
+                    document.getElementById("contracts_obj").getSVGDocument().getElementById("contracts_svg").setAttribute("fill", "black")
+                    document.getElementById("matching_obj").getSVGDocument().getElementById("matching_svg").setAttribute("fill", "black")
+                    
+                    document.getElementById("profile_obj").getSVGDocument().getElementById("profile_svg").setAttribute("fill", "black")
+                    
+                    document.getElementById(tabname + "_obj").getSVGDocument().getElementById(tabname+"_svg").setAttribute("fill", "brown")
+                } catch (e) {
+                    console.log(e)
+                }
+                  
+
+                document.getElementById(tabname).style.display = "block"
+                
             }
 
             const wolfram = {
