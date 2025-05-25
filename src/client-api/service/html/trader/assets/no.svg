@@ -1,10 +1,2 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
-<svg fill="#000000" width="800px" height="800px" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-  <g id="Circle_Minus" data-name="Circle Minus">
-    <g>
-      <path d="M15,11.5h0a.5.5,0,0,1,0,1H9a.5.5,0,0,1,0-1Z"/>
-      <path d="M12,21.934A9.933,9.933,0,1,1,21.932,12,9.945,9.945,0,0,1,12,21.934ZM12,3.068A8.933,8.933,0,1,0,20.932,12,8.944,8.944,0,0,0,12,3.068Z"/>
-    </g>
-  </g>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-5 -5 69 69" enable-background="new 0 0 64 64"><path d="M32,2C15.432,2,2,15.432,2,32s13.432,30,30,30s30-13.432,30-30S48.568,2,32,2z M43.762,46.508h-6.061L25.889,25.92v20.588
+	h-5.65V17.492h6.357l11.518,20.231V17.492h5.648V46.508z"  stroke-width="3" stroke="black" fill-opacity="0.0"/></svg>

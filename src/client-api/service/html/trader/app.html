@@ -44,7 +44,7 @@
             }
 
             .offer-info {
-                width: 98%;
+                width: 99%;
             }
 
             .offer-preview {
@@ -61,7 +61,7 @@
 
             .button, .offer-button {
                 background: none;
-                padding: 0;
+                padding: 2;
                 display: flex;
 
             }
@@ -84,6 +84,10 @@
                 position: relative;
                 overflow-y: hidden;
                 max-height: 98%;
+            }
+
+            pre {
+                font-size: large;
             }
 
             .copy-button {
@@ -280,25 +284,34 @@ Address: n3W8YyK59F6vQe34uQ8n835L627k2J <img src="./assets/copy.svg" class="copy
                     id: "",
                     bet: "100:1 sat",
                     oracles: [wolfram],
-                    question: "is humanity gonna extinct \n within 20 years?",
+                    question: "human  extinct \n in 20 years?",
                     accepted: false,
                     txid: "",
 
                 },
                 {
                     id: "",
-                    bet: "100:1 sat",
+                    bet: "50:1 sat",
                     oracles: [wolfram],
-                    question: "is humanity gonna extinct \n within 20 years?",
+                    question: "human extinct \n in 10 years?",
                     accepted: false,
                     txid: "",
 
                 },
                 {
                     id: "",
-                    bet: "100:1 sat",
+                    bet: "20:1 sat",
                     oracles: [wolfram],
-                    question: "is humanity gonna extinct \n within 20 years?",
+                    question: "human extinct \n in 5 years?",
+                    accepted: false,
+                    txid: "",
+
+                },
+                {
+                    id: "",
+                    bet: "5:1 sat",
+                    oracles: [wolfram],
+                    question: "human extinct \n in 1 year?",
                     accepted: false,
                     txid: "",
 
@@ -340,7 +353,7 @@ Address: n3W8YyK59F6vQe34uQ8n835L627k2J <img src="./assets/copy.svg" class="copy
                     },
                     {
                         id: "",
-                        bet: "100:1 sat",
+                        bet: "50:1 sat",
                         betOn: true,
                         oracles: [wolfram],
                         question: "am i gonna win???",
@@ -351,7 +364,7 @@ Address: n3W8YyK59F6vQe34uQ8n835L627k2J <img src="./assets/copy.svg" class="copy
                     },
                     {
                         id: "",
-                        bet: "100:1 sat",
+                        bet: "20:1 sat",
                         betOn: true,
                         oracles: [wolfram],
                         question: "am i gonna win???",
@@ -426,9 +439,10 @@ Address: n3W8YyK59F6vQe34uQ8n835L627k2J <img src="./assets/copy.svg" class="copy
                 panel.appendChild(removeSvg)
                 panel.appendChild(offerInfo)
 
-                panel.appendChild(downArrowSvg)
+                
                 panel.appendChild(yesSvg)
                 panel.appendChild(noSvg)
+                panel.appendChild(downArrowSvg)
                 
                 
 
@@ -437,10 +451,11 @@ Address: n3W8YyK59F6vQe34uQ8n835L627k2J <img src="./assets/copy.svg" class="copy
 
             }
 
-            renderOfferPreview(document.getElementById("matching"), model.offers[0])
-            renderOfferPreview(document.getElementById("matching"), model.offers[0])
-            renderOfferPreview(document.getElementById("matching"), model.offers[0])
+            model.offers.forEach(offer => {
+                renderOfferPreview(document.getElementById("matching"), offer)
+            })
             
+             
             
             const renderOfferDetails = (offer) => {
                 switchTab("offer")
@@ -468,10 +483,11 @@ Address: n3W8YyK59F6vQe34uQ8n835L627k2J <img src="./assets/copy.svg" class="copy
                 offerInfo.className = "contract-info"
                 const panel = document.createElement("div")
                 panel.className = "panel wide-panel"
+                panel.appendChild(removeSvg)
 
                 panel.appendChild(offerInfo)
 
-                panel.appendChild(removeSvg)
+                
 
                 panel.appendChild(downArrowSvg)
                 where.appendChild(panel)
