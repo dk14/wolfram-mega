@@ -1,7 +1,26 @@
 <html>
-    <head></head>
+    <head>
+        <style>
+            .panel {
+                border: 2px dotted rgb(96 139 168);
+                display: flex;
+                align-items: center;
+            }
+
+            .button {
+                background: none;
+                border: 1px solid lightgrey;
+                padding: 0;
+                display: flex;
+                width: 10rem;
+                height: 10rem;
+              }
+              
+              
+        </style>
+    </head>
     <body>
-        <div id="panel"></div>
+
 
         <div id="matching"></div>
         <div id="contracts"></div>
@@ -12,6 +31,12 @@
             <div id="oracle"></div>
             <div id="capability"></div>
             <div id="reports"></div>
+        </div>
+
+        <div id="panel" class="panel">
+            <img src="./assets/trades.svg" class="button">
+            <img src="./assets/trade.svg"  class="button">
+            <img src="./assets/profile.svg"  class="button">
         </div>
 
         <script>
@@ -27,17 +52,17 @@
             }
 
             const renderOfferPreview = (terms, capability, oracle) => {
-                const upArrowSvg = document.createElement("svg")
-                const yesSvg = document.createElement("svg")
-                const noSvg = document.createElement("svg")
+                const downArrowSvg = document.createElement("img", {src: "./assets/down.svg"})
+                const yesSvg = document.createElement("img", {src: "./assets/yes.svg"})
+                const noSvg = document.createElement("img", {src: "./assets/no.svg"})
 
-                const offerDetails = document.createElement("details")
+                const offerInfo = document.createElement("details")
 
                 const panel = document.createElement("div")
-                panel.appendChild(upArrowSvg)
+                panel.appendChild(downArrowSvg)
                 panel.appendChild(yesSvg)
                 panel.appendChild(noSvg)
-                panel.appendChild(offerDetails)
+                panel.appendChild(offerInfo)
 
 
             }
