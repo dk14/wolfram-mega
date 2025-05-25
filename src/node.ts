@@ -223,13 +223,18 @@ export interface OfferTerms {
     counterpartyBetAmount: number
 }
 
-export interface AccepOffer {
-    chain: 'bitcoin-testnet'
+export interface PartiallySignedTx {
     tx: string
-    offerRef: HashCashPow
     pubCombined: string
     sessionNonce: string
     sesionCommitment: string
+}
+
+export interface AccepOffer {
+    chain: 'bitcoin-testnet'
+    openingTx: PartiallySignedTx
+    offerRef: HashCashPow
+    cetTxSet: PartiallySignedTx[]
 }
 
 export interface FinalizeOffer {
