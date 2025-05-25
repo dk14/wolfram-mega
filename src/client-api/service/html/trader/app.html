@@ -1,7 +1,7 @@
 <html>
     <head>
         <style>
-            .panel, .profile, .box {
+            .panel, .profile, .offer-view, .box {
                 border: 2px solid rgb(96 139 168);
                 background: rgb(96 139 168);
                 display: flex;
@@ -9,7 +9,7 @@
                 justify-content: center
             }
 
-            .profile {
+            .profile, .offer-view {
                 border: none;
             }
 
@@ -188,13 +188,33 @@ Address: n3W8YyK59F6vQe34uQ8n835L627k2J <img src="./assets/copy.svg" class="copy
             </div>
         </div>
 
-        <pre></pre>
-        <div id="offer">
-            <div id="terms"></div>
-            <div id="oracle"></div>
-            <div id="capability"></div>
-            <div id="reports"></div>
+        <div id="offer" class="scrollable offer-view" style="display:none">
+            <div class="profile-group">
+                <h4>Offer Terms: </h4>
+                <div id="terms"></div>
+            </div>
+            <hr>
+            <div class="profile-group">
+                <h4>Oracle Details:</h4>
+                <div id="oracle">PubKey: ABCDEF<br>Name: Wolfram</div>
+            </div>
+            <hr>
+            <div class="profile-group">
+            <h4>Capabilities Info:</h4>
+            <div id="capability">PubKey: ABCDEF</div>
+            </div>
+            <hr>
+
+            <div class="profile-group">
+                <h4>Malleability Reports:</h4>
+                <div id="reports">NONE</div>
+            </div>
+            <hr>
+            
         </div>
+
+        <pre></pre>
+       
 
         <div id="panel" class="panel">
             <img src="./assets/trades.svg" class="button" onclick="switchTab('contracts')">
@@ -208,6 +228,7 @@ Address: n3W8YyK59F6vQe34uQ8n835L627k2J <img src="./assets/copy.svg" class="copy
                 document.getElementById("matching").style.display = "none"
                 document.getElementById("contracts").style.display = "none"
                 document.getElementById("profile").style.display = "none"
+                document.getElementById("offer").style.display = "none"
 
                 document.getElementById(tabname).style.display = "block"
 
@@ -347,6 +368,9 @@ Address: n3W8YyK59F6vQe34uQ8n835L627k2J <img src="./assets/copy.svg" class="copy
                 const downArrowSvg = document.createElement("img")
                 downArrowSvg.src = "./assets/down.svg"
                 downArrowSvg.className = "offer-button"
+                downArrowSvg.onclick = () => {
+                    renderOfferDetails(offer)
+                }
 
                 const yesSvg = document.createElement("img")
                 yesSvg.src = "./assets/yes.svg"
@@ -387,14 +411,22 @@ Address: n3W8YyK59F6vQe34uQ8n835L627k2J <img src="./assets/copy.svg" class="copy
             renderOfferPreview(document.getElementById("matching"), model.offers[0])
             
             
-            const renderOfferDetails = (terms, offer) => {
-
+            const renderOfferDetails = (offer) => {
+                switchTab("offer")
+                const offerInfo = createOfferInfo(offer)
+                offerInfo.className = "offer-info"
+                const terms = document.getElementById("terms")
+                terms.innerHTML = ""
+                terms.appendChild(offerInfo)
             }
 
             const renderContractPreview = (where, contract) => {
                 const downArrowSvg = document.createElement("img")
                 downArrowSvg.src = "./assets/down.svg"
                 downArrowSvg.className = "offer-button"
+                downArrowSvg.onclick = () => {
+                    renderOfferDetails(contract)
+                }
 
                 const removeSvg = document.createElement("img")
                 removeSvg.src = "./assets/remove.svg"
