@@ -65,4 +65,8 @@ npm run demo
 - http://localhost:8080/oracle-endpoint/
 - http://localhost:8080/trader-console/
 
+## Trader app demo
 
+WIP:
+
+Design: https://dk14.github.io/wolfram-mega/src/client-api/service/html/trader/app.html
