@@ -1,0 +1,10 @@
+{
+    "configurations": [
+        {
+            "type": "chrome",
+            "name": "http://0.0.0.0:3000/src/client-api/service/html/trader/app.html",
+            "request": "launch",
+            "url": "http://0.0.0.0:3000/src/client-api/service/html/trader/app.html"
+        }
+    ]
+}
