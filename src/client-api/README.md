@@ -46,6 +46,8 @@ BTC DLC Workflow:
 
 Security note on DLC atomicity during interactive signing. Do not sign opening (funding) DLC transaction until all CET transactions are co-signed.
 
+Security note on interactive sign: precommitments are skipped. One-off pk is assumed.
+
 ## Utils
 `utils/` folder contains examples of oracle endpoint and auto-signing services (configs are in `utils/cfg`):
 
