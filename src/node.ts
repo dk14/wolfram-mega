@@ -229,6 +229,7 @@ export interface OfferTerms {
 export interface PartiallySignedTx {
     tx: string
     pubCombined: string
+    sessionIds: string[]
     sessionNonces: string[]
     sesionCommitments: string[]
     partialSigs: string[]
@@ -253,7 +254,7 @@ export interface Offer {
     terms: OfferTerms
     blockchain: 'bitcoin-testnet' | 'bitcoin-mainnet' | 'plutus-testnet'
     contact: string
-    transactionToBeCoSigned?: PartiallySignedTx //note for interactive sign: can be used to share precommitment (ideally) and/or nonce. Only skip commitment when secret is one-off
+    transactionToBeCoSigned?: PartiallySignedTx //note for interactive sign: can be used to share precommitment
     txfee?: string
     accept?: AccepOffer //note for interactive sign: counterparty returns its commitment through this first time and party replies with its nonce; second time: it returns its nonce and partial sig
     finalize?: FinalizeOffer //here after final signature is put; txid is reported
