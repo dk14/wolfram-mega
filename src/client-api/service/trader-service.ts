@@ -190,7 +190,11 @@ export const startTraderService = (cfg: MempoolConfig<PeerAddr>) => {
                         console.error(err)
                         if (!res.writableEnded){
                             try {
-                                res.end(JSON.stringify({error: err.message}))
+                                if (err.message !== undefined) {
+                                    res.end(JSON.stringify({error: err.message}))
+                                } else {
+                                    res.end(JSON.stringify(err))
+                                }    
                             } catch (msg) {
                                 res.end(JSON.stringify(msg))
                             }
