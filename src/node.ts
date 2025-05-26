@@ -258,7 +258,7 @@ export interface Offer {
     txfee?: string
     accept?: AccepOffer //note for interactive sign: counterparty returns its commitment through this first time and party replies with its nonce; second time: it returns its nonce and partial sig
     finalize?: FinalizeOffer //here after final signature is put; txid is reported
-    
+    encryptedDetails?: string //to make matching private - can encrypt actual `Offer` here 
 }
 
 
