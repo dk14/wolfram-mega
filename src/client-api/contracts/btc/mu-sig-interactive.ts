@@ -110,11 +110,11 @@ export const sign1 = (pk1, pk2, commitment1, nonce1, secret2, msg, sessionId2) =
   const partSig2 = session2.partialSignature
 
   return {
-    nonce2, nonceCombined, partSig2, combinedNonceParity
+    nonce2, partSig2, combinedNonceParity
   }
 }
     
-export const sign2 = (pk1, pk2, nonceCombined, partSig2, combinedNonceParity, nonce2, commitment2, secret1, msg, sessionId1) => {
+export const sign2 = (pk1, pk2, partSig2, combinedNonceParity, nonce2, commitment2, secret1, msg, sessionId1) => {
 
   const pubKeys = [
     Buffer.from(pk1, 'hex'),
@@ -130,6 +130,7 @@ export const sign2 = (pk1, pk2, nonceCombined, partSig2, combinedNonceParity, no
   const pubKeyParity = math.isEven(pkCombined);
   
   const privateKey1 = BigInteger.fromHex(secret1)
+  
 
   const session1 = muSig.sessionInitialize(
     sessionId1,
@@ -142,6 +143,9 @@ export const sign2 = (pk1, pk2, nonceCombined, partSig2, combinedNonceParity, no
   );
 
   session1.combinedNonceParity = combinedNonceParity
+  const nonceCombined = muSig.sessionNonceCombine(session1, [session1.nonce, nonce2])
+  session1.combinedNonceParity = combinedNonceParity
+  
   session1.partialSignature = muSig.partialSign(session1, msg, nonceCombined, pubKeyCombined)
 
   muSig.partialSigVerify(

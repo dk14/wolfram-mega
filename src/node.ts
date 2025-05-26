@@ -228,8 +228,8 @@ export interface OfferTerms {
 
 export interface PartiallySignedTx {
     tx: string
-    pubCombined: string
     sessionIds: string[]
+    nonceParity: string[]
     sessionNonces: string[]
     sesionCommitments: string[]
     partialSigs: string[]
