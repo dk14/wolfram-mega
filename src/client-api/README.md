@@ -52,15 +52,8 @@ Security note on interactive sign: if no precommitments implemented, rogue keys 
 `client-storage` provides simple implementation of a database holding collected broadcasts.
 It is only indexed by key. Custom storage implementation can be specified in [`app.ts`](../../app.ts) script for `startOracleService`, `startTraderService`
 
-Use `cleanup.sh` to remove outdated data from collections:
+Delete oldest entries in `../../db/reports`, `../../db/capabilities`, `../../db/offers`, `../../db/reports` in order to manage storage.
 
-```
-./cleanup.sh ../../db/oracles <max_percentage_of_disk_space> <how many files to delete per iteration>
-./cleanup.sh ../../db/capabilities <max_percentage_of_disk_space> <how many files to delete per iteration>
-./cleanup.sh ../../db/offers <max_percentage_of_disk_space> <how many files to delete per iteration>
-./cleanup.sh ../../db/reports <max_percentage_of_disk_space> <how many files to delete per iteration>
-
-```
 
 
 ## Utils
