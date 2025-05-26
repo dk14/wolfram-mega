@@ -52,7 +52,7 @@ Security note on interactive sign: if no precommitments implemented, rogue keys 
 `client-storage` provides simple implementation of a database holding collected broadcasts.
 It is only indexed by key. Custom storage implementation can be specified in [`app.ts`](../../app.ts) script for `startOracleService`, `startTraderService`
 
-Delete oldest entries in `../../db/reports`, `../../db/capabilities`, `../../db/offers`, `../../db/reports` in order to manage storage.
+Delete oldest entries in `../../db/reports`, `../../db/capabilities`, `../../db/offers`, `../../db/oracles` in order to manage storage.
 
 
 
