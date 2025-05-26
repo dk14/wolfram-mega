@@ -1,6 +1,6 @@
 import * as fs from 'fs'
 import { TraderStorage } from '../trader-api'
-import { OfferMsg, OracleCapability, OracleId, PagingDescriptor, Report } from '../../node'
+import { OfferMsg, OracleCapability, OracleId, PagingDescriptor, Report } from '../../protocol'
 
 export interface TraderQuery<T> {
     where: (cp: T) => Promise<boolean>

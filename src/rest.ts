@@ -1,7 +1,9 @@
-import * as nd from './node';
-import * as http from 'http';
-import * as url from 'url';
-import {p2pNode} from "./p2p";
+import * as nd from './node'
+import * as mega from './protocol'
+import { testOnlySign, testOnlyGenerateKeyPair} from './util'
+import * as http from 'http'
+import * as url from 'url'
+import { p2pNode } from "./p2p"
 import { MempoolConfig } from "./config"
 import * as fs from 'fs'
 
@@ -19,7 +21,7 @@ export const startHttp = (cfg: MempoolConfig<any>) => {
             const pageNo: number = typeof reqUrl.query.pageNo === "string" ? parseInt(reqUrl.query.pageNo as string) : 0
             const pageSize: number = typeof reqUrl.query.pageSize === "string" ? parseInt(reqUrl.query.pageSize as string) : 10
     
-            const paging: nd.PagingDescriptor = {
+            const paging: mega.PagingDescriptor = {
                 page: pageNo,
                 chunkSize: pageSize
             }
@@ -56,7 +58,7 @@ export const startHttp = (cfg: MempoolConfig<any>) => {
                 const pk: string = typeof reqUrl.query.pubkey === "string" ? reqUrl.query.pubkey : ""
                 const msg: string = typeof reqUrl.query.pubkey === "string" ? reqUrl.query.pubkey : ""
                 
-                res.end(JSON.stringify(nd.testOnlySign(msg, pk)))
+                res.end(JSON.stringify(testOnlySign(msg, pk)))
                 return
             }
 
@@ -64,7 +66,7 @@ export const startHttp = (cfg: MempoolConfig<any>) => {
 
             if(cfg.isTest && req.method === 'GET' && reqUrl.pathname == '/testOnlyGenKeyPair') {
                 
-                res.end(JSON.stringify(nd.testOnlyGenerateKeyPair()))
+                res.end(JSON.stringify(testOnlyGenerateKeyPair()))
                 return
             }
 

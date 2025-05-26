@@ -1,6 +1,6 @@
 import { OracleCfg } from "./client-api/oracle-control-api"
 import { TraderCfg } from "./client-api/trader-api"
-import { HashCashPow } from "./node"
+import { HashCashPow } from "./protocol"
 
 interface FacilitatorId {
     websiteManifestUri?: string

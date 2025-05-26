@@ -1,4 +1,4 @@
-import { FactRequest, Commitment, Fact, OracleCapability } from "../node";
+import { FactRequest, Commitment, Fact, OracleCapability } from "../protocol";
 
 export interface OracleEndpointApi {
     requestNewCapability (question: string): Promise<OracleCapability | undefined>

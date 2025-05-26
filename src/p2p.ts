@@ -1,4 +1,5 @@
 import * as nd from './node';
+import * as mega from './protocol';
 import * as net from 'net';
 import { Socket } from 'net';
 import { Peer } from 'p2p-node'
@@ -125,7 +126,7 @@ export const startP2P = (cfg: MempoolConfig<PeerAddr>) => {
 
 
     function reduceCTTL(content: string): [string, boolean] {
-        const msg: nd.MsgLike = JSON.parse(content)
+        const msg: mega.MsgLike = JSON.parse(content)
         if (msg.cTTL > (cfg.ttlThreshold ?? 7)) {
             return [JSON.stringify(msg), false]
         }
@@ -239,36 +240,36 @@ export const startP2P = (cfg: MempoolConfig<PeerAddr>) => {
         },
         getapi: function (peer: PeerAddr): nd.Api {
             const prefix = `http://${peer.server}:${peer.httpPort ?? 8080}/`
-            const suffix = (paging: nd.PagingDescriptor) => {
+            const suffix = (paging: mega.PagingDescriptor) => {
                 return `pageNo=${paging.page}&pageSize=${paging.chunkSize}`
             }
             return {
-                announceOracle: function (cfg: MempoolConfig<any>, id: nd.OracleId): Promise<('success' | 'duplicate') | ('low pow difficulty' | 'wrong signature' | 'wrong pow' | 'no oracle found' | ['invalid request', string])> {
+                announceOracle: function (cfg: MempoolConfig<any>, id: mega.OracleId): Promise<('success' | 'duplicate') | ('low pow difficulty' | 'wrong signature' | 'wrong pow' | 'no oracle found' | ['invalid request', string])> {
                     throw new Error('Function not implemented.');
                 },
-                announceCapability: function (cfg: MempoolConfig<any>, cp: nd.OracleCapability): Promise<('success' | 'duplicate') | ('low pow difficulty' | 'wrong signature' | 'wrong pow' | 'no oracle found' | ['invalid request', string])> {
+                announceCapability: function (cfg: MempoolConfig<any>, cp: mega.OracleCapability): Promise<('success' | 'duplicate') | ('low pow difficulty' | 'wrong signature' | 'wrong pow' | 'no oracle found' | ['invalid request', string])> {
                     throw new Error('Function not implemented.');
                 },
-                reportMalleability: function (cfg: MempoolConfig<any>, report: nd.Report): Promise<('success' | 'duplicate') | ('low pow difficulty' | 'wrong signature' | 'wrong pow' | 'no oracle found' | ['invalid request', string])> {
+                reportMalleability: function (cfg: MempoolConfig<any>, report: mega.Report): Promise<('success' | 'duplicate') | ('low pow difficulty' | 'wrong signature' | 'wrong pow' | 'no oracle found' | ['invalid request', string])> {
                     throw new Error('Function not implemented.');
                 },
-                disputeMissingfactClaim: function (dispute: nd.Dispute): Promise<('success' | 'duplicate') | (('low pow difficulty' | 'wrong signature' | 'wrong pow' | 'no oracle found' | ['invalid request', string]) | 'invalid fact' | 'report not found' | 'unknown')> {
+                disputeMissingfactClaim: function (dispute: mega.Dispute): Promise<('success' | 'duplicate') | (('low pow difficulty' | 'wrong signature' | 'wrong pow' | 'no oracle found' | ['invalid request', string]) | 'invalid fact' | 'report not found' | 'unknown')> {
                     throw new Error('Function not implemented.');
                 },
-                publishOffer: function (cfg: MempoolConfig<any>, offer: nd.OfferMsg): Promise<('success' | 'duplicate') | ('low pow difficulty' | 'wrong signature' | 'wrong pow' | 'no oracle found' | ['invalid request', string])> {
+                publishOffer: function (cfg: MempoolConfig<any>, offer: mega.OfferMsg): Promise<('success' | 'duplicate') | ('low pow difficulty' | 'wrong signature' | 'wrong pow' | 'no oracle found' | ['invalid request', string])> {
                     throw new Error('Function not implemented.');
                 },
-                lookupOracles: async function (paging: nd.PagingDescriptor): Promise<nd.OracleId[]> {
-                    return (await (await fetch(prefix + "oracles?" + suffix(paging))).json()) as nd.OracleId[]
+                lookupOracles: async function (paging: mega.PagingDescriptor): Promise<mega.OracleId[]> {
+                    return (await (await fetch(prefix + "oracles?" + suffix(paging))).json()) as mega.OracleId[]
                 },
-                lookupCapabilities: async function (paging: nd.PagingDescriptor, oraclePub: string): Promise<nd.OracleCapability[]> {
-                    return (await (await fetch(prefix + `capabilities?pubkey=${encodeURIComponent(oraclePub)}&` + suffix(paging))).json()) as nd.OracleCapability[]
+                lookupCapabilities: async function (paging: mega.PagingDescriptor, oraclePub: string): Promise<mega.OracleCapability[]> {
+                    return (await (await fetch(prefix + `capabilities?pubkey=${encodeURIComponent(oraclePub)}&` + suffix(paging))).json()) as mega.OracleCapability[]
                 },
-                lookupReports: async function (paging: nd.PagingDescriptor, oraclePub: string): Promise<nd.Report[]> {
-                    return (await (await fetch(prefix + `reports?pubkey=${encodeURIComponent(oraclePub)}&` + suffix(paging))).json()) as nd.Report[]
+                lookupReports: async function (paging: mega.PagingDescriptor, oraclePub: string): Promise<mega.Report[]> {
+                    return (await (await fetch(prefix + `reports?pubkey=${encodeURIComponent(oraclePub)}&` + suffix(paging))).json()) as mega.Report[]
                 },
-                lookupOffers: async function (paging: nd.PagingDescriptor, capabilityPubKey: string): Promise<nd.OfferMsg[]> {
-                    return (await (await fetch(prefix + `offers?pubkey=${encodeURIComponent(capabilityPubKey)}&` + suffix(paging))).json()) as nd.OfferMsg[]
+                lookupOffers: async function (paging: mega.PagingDescriptor, capabilityPubKey: string): Promise<mega.OfferMsg[]> {
+                    return (await (await fetch(prefix + `offers?pubkey=${encodeURIComponent(capabilityPubKey)}&` + suffix(paging))).json()) as mega.OfferMsg[]
                 }
             }
         },

@@ -1,4 +1,5 @@
-import { OracleCapability, OracleId, Param, Answer, HashCashPow, Api, PagingDescriptor, checkCapabilitySignature } from "../node"
+import { Api, checkCapabilitySignature } from "../node"
+import { OracleCapability, OracleId, Param, Answer, HashCashPow, PagingDescriptor } from "../protocol"
 import { MempoolConfig } from "../config"
 import { powOverOracleCapability, powOverOracleId } from "../pow"
 import { ConnectionPool, ConnectionPoolCfg } from './connection-pool'

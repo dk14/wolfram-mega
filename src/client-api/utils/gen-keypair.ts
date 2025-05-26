@@ -1,4 +1,4 @@
-import { testOnlyGenerateKeyPair, testOnlyGenerateKeyPairEd } from "../../node";
+import { testOnlyGenerateKeyPair, testOnlyGenerateKeyPairEd } from "../../util";
 
 console.log("\nEd25519")
 console.log(testOnlyGenerateKeyPairEd())

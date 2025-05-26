@@ -1,7 +1,7 @@
 import * as http from 'http'
 import * as url from 'url';
 import { OracleEndpointApi } from '../oracle-endpoint-api'
-import { OracleCapability, FactRequest, Commitment, Fact } from '../../node'
+import { OracleCapability, FactRequest, Commitment, Fact } from '../../protocol'
 import WebSocket, { WebSocketServer, createWebSocketStream } from 'ws';
 import * as readline from 'readline'
 import * as fs from 'fs'

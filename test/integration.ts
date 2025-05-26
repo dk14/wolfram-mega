@@ -2,7 +2,8 @@ import { ChildProcessWithoutNullStreams, exec, spawn } from 'child_process'
 import waitOn from 'wait-on'
 import * as fs from 'fs'
 import {promisify} from 'util'
-import * as nd from '../src/node'
+import * as nd from '../src/protocol'
+import { testOnlyGenerateKeyPair, testOnlySign} from '../src/util'
 import * as pow from '../src/pow'
 import fetch from 'node-fetch'
 import * as assert from 'assert'
@@ -125,7 +126,7 @@ interface OracleIdWithPk {
 }
 
 const genOracle = async (): Promise<OracleIdWithPk> => {
-    const keypair = nd.testOnlyGenerateKeyPair()
+    const keypair = testOnlyGenerateKeyPair()
     const oracle: nd.OracleId = {
         pubkey: keypair.pub,
         oracleSignature: undefined,
@@ -140,7 +141,7 @@ const genOracle = async (): Promise<OracleIdWithPk> => {
     }
     oracle.pow = await pow.powOverOracleId(oracle, 2)
     oracle.oracleSignature = ""
-    oracle.oracleSignature = nd.testOnlySign(JSON.stringify(oracle), keypair.pk)
+    oracle.oracleSignature = testOnlySign(JSON.stringify(oracle), keypair.pk)
     return {
         body: oracle,
         pk: keypair.pk
@@ -150,7 +151,7 @@ const genOracle = async (): Promise<OracleIdWithPk> => {
 const genCp = async (pubkey: string, pk: string): Promise<nd.OracleCapability> => {
     const cp: nd.OracleCapability = {
         oraclePubKey: pubkey,
-        capabilityPubKey: nd.testOnlyGenerateKeyPair().pub,
+        capabilityPubKey: testOnlyGenerateKeyPair().pub,
         question: 'What?',
         seqNo: 0,
         cTTL: 0,
@@ -159,7 +160,7 @@ const genCp = async (pubkey: string, pk: string): Promise<nd.OracleCapability> =
         pow: undefined
     }
 
-    cp.oracleSignature = nd.testOnlySign(JSON.stringify(cp), pk)
+    cp.oracleSignature = testOnlySign(JSON.stringify(cp), pk)
     cp.pow = await pow.powOverOracleCapability(cp, 2)
     return cp
 }
@@ -365,7 +366,7 @@ console.log("")
 console.log("--------------------------")
 console.log("Client API tests...\n")
 
-const oracleKeypair = nd.testOnlyGenerateKeyPair()
+const oracleKeypair = testOnlyGenerateKeyPair()
 const traderPort = 19997
 const oraclePort = 19999
 const oracleWsPort = 19998
@@ -392,7 +393,7 @@ await new Promise(resolve => {
     rlOracle.on('line', (line) => {
         //console.log(line)
         const oracleId: nd.OracleId = JSON.parse(line)
-        oracleId.oracleSignature = nd.testOnlySign(JSON.stringify(oracleId), oracleKeypair.pk)
+        oracleId.oracleSignature = testOnlySign(JSON.stringify(oracleId), oracleKeypair.pk)
         streamOracle.write(JSON.stringify(oracleId) + "\n")
         resolve(true)
     })
@@ -407,7 +408,7 @@ const rlCp = readline.createInterface(streamCp, streamCp);
 
 console.log(" b) create, broadcast and auto-sign new capability")
 
-const cpKeyPair = nd.testOnlyGenerateKeyPair()
+const cpKeyPair = testOnlyGenerateKeyPair()
 const capabilityPubKey = cpKeyPair.pub
 const question = "[it] what?"
 const body = { capabilityPubKey, question }
@@ -424,7 +425,7 @@ await new Promise(resolve => {
         cp.oracleSignature = ""
         cp.pow = undefined
         assert.strictEqual(cp.oraclePubKey, oracleKeypair.pub)
-        cp.oracleSignature = nd.testOnlySign(JSON.stringify(cp), oracleKeypair.pk)
+        cp.oracleSignature = testOnlySign(JSON.stringify(cp), oracleKeypair.pk)
         streamCp.write(JSON.stringify(cp) + "\n")
         resolve(true)
     })

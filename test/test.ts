@@ -1,6 +1,8 @@
 import * as nd from '../src/node';
+import * as mega from '../src/protocol';
 import * as assert from 'assert'
 import * as pow from '../src/pow'
+import { testOnlyGenerateKeyPair, testOnlySign} from '../src/util'
 
 
 (async () => {
@@ -23,30 +25,30 @@ import * as pow from '../src/pow'
     const capability1Pub = "BBB"
     const capability2Pub = "MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAEKWN+hSgqzb2rE7ft4fXBrIyXeRwfHHa3IMD7XDiZq/KnVRQrY47lmCwIScqOE+PAqtbovxPCRK5C6euYYRv7lg=="
     
-    const keypairOracle2 = nd.testOnlyGenerateKeyPair()
-    const keypairOracle3 = nd.testOnlyGenerateKeyPair()
+    const keypairOracle2 = testOnlyGenerateKeyPair()
+    const keypairOracle3 = testOnlyGenerateKeyPair()
     
     
-    const pow1: nd.HashCashPow = { //pow is only checked when pow difficulty higher than 0
+    const pow1: mega.HashCashPow = { //pow is only checked when pow difficulty higher than 0
         difficulty: 0,
         algorithm: 'SHA256',
         hash: '',
         magicNo: 0
     }
     
-    const pow2: nd.HashCashPow = { //pow is only checked when pow difficulty higher than 0
+    const pow2: mega.HashCashPow = { //pow is only checked when pow difficulty higher than 0
         difficulty: 0,
         algorithm: 'SHA256',
         hash: '2222222',
         magicNo: 0
     }
     
-    const bid1: nd.Bid = {
+    const bid1: mega.Bid = {
         amount: 0,
         proof: ''
     }
     
-    const oracle1: nd.OracleId = {
+    const oracle1: mega.OracleId = {
         pubkey: oracle1Pub,
         oracleSignature: "MEUCIEhiQz9Ki/ySbtMQAHCF8CA9D8GCGYcaLPTFdCqNDcCSAiEAtdy4O7yYNJFB57qk5glZDYAO0njeC0GHc++YXcc8KGU=",
         seqNo: 0,
@@ -56,7 +58,7 @@ import * as pow from '../src/pow'
         oracleSignatureType: 'SHA256'
     }
     
-    const oracle2: nd.OracleId = {
+    const oracle2: mega.OracleId = {
         pubkey: undefined,
         oracleSignature:undefined,
         seqNo: 0,
@@ -66,7 +68,7 @@ import * as pow from '../src/pow'
         oracleSignatureType: 'SHA256'
     }
     
-    const capability1: nd.OracleCapability = {
+    const capability1: mega.OracleCapability = {
         oraclePubKey: keypairOracle3.pub,
         capabilityPubKey: capability1Pub,
         question: 'What?',
@@ -77,7 +79,7 @@ import * as pow from '../src/pow'
         pow: pow1
     }
     
-    const capability3: nd.OracleCapability = {
+    const capability3: mega.OracleCapability = {
         oraclePubKey: undefined,
         capabilityPubKey: undefined,
         question: 'What?',
@@ -92,43 +94,43 @@ import * as pow from '../src/pow'
     const capability4 = structuredClone(capability1)
     capability4.pow = undefined
     capability4.question = "hello?"
-    capability4.capabilityPubKey = nd.testOnlyGenerateKeyPair().pub
+    capability4.capabilityPubKey = testOnlyGenerateKeyPair().pub
     capability4.oracleSignature = ""
-    capability4.oracleSignature = nd.testOnlySign(JSON.stringify(capability4), keypairOracle3.pk)
+    capability4.oracleSignature = testOnlySign(JSON.stringify(capability4), keypairOracle3.pk)
     capability4.pow = await pow.powOverOracleCapability(capability4, 2)
     
     const capability5 = structuredClone(capability1)
     capability5.pow = undefined
     capability5.question = "hellooo?"
-    capability5.capabilityPubKey = nd.testOnlyGenerateKeyPair().pub
+    capability5.capabilityPubKey = testOnlyGenerateKeyPair().pub
     capability5.oracleSignature = ""
-    capability5.oracleSignature = nd.testOnlySign(JSON.stringify(capability5), keypairOracle3.pk)
+    capability5.oracleSignature = testOnlySign(JSON.stringify(capability5), keypairOracle3.pk)
     capability5.pow = await pow.powOverOracleCapability(capability5, 2)
     
     const capability6 = structuredClone(capability1)
     capability6.pow = undefined
     capability6.question = "hellooo???"
-    capability6.capabilityPubKey = nd.testOnlyGenerateKeyPair().pub
+    capability6.capabilityPubKey = testOnlyGenerateKeyPair().pub
     capability6.oracleSignature = ""
-    capability6.oracleSignature = nd.testOnlySign(JSON.stringify(capability6), keypairOracle3.pk)
+    capability6.oracleSignature = testOnlySign(JSON.stringify(capability6), keypairOracle3.pk)
     capability6.pow = await pow.powOverOracleCapability(capability6, 1)
     
-    const factreq1: nd.FactRequest = {
+    const factreq1: mega.FactRequest = {
         capabilityPubKey: capability4.capabilityPubKey, 
         arguments: {}
     }
     
-    const factreq2: nd.FactRequest = {
+    const factreq2: mega.FactRequest = {
         capabilityPubKey: capability2Pub, 
         arguments: {}
     }
     
-    const malleability1: nd.FactDisagreesWithPublic = {
+    const malleability1: mega.FactDisagreesWithPublic = {
         type: 'fact-disagreees-with-public',
         request: factreq1
     }
     
-    const report1: nd.Report = {
+    const report1: mega.Report = {
         seqNo: 0,
         cTTL: 0,
         pow: pow1,
@@ -136,14 +138,14 @@ import * as pow from '../src/pow'
         content: malleability1
     }
     
-    const malleability2: nd.FactMissing = {
+    const malleability2: mega.FactMissing = {
         type: 'fact-missing',
         request: factreq2,
         capabilitySignatureOverRequest: ''
     }
     
     
-    const report2: nd.Report = {
+    const report2: mega.Report = {
         seqNo: 0,
         cTTL: 0,
         pow: pow2,
@@ -151,7 +153,7 @@ import * as pow from '../src/pow'
         content: malleability2
     }
     
-    const report3: nd.Report = {
+    const report3: mega.Report = {
         seqNo: 0,
         cTTL: 0,
         pow: undefined,
@@ -159,13 +161,13 @@ import * as pow from '../src/pow'
         content: malleability2
     }
     
-    const fact1: nd.Fact = {
+    const fact1: mega.Fact = {
         factWithQuestion: 'Who? You!',
         signatureType: 'SHA256',
         signature: 'MEUCIEhiQz9Ki/ySbtMQAHCF8CA9D8GCGYcaLPTFdCqNDcCSAiEAtdy4O7yYNJFB57qk5glZDYAO0njeC0GHc++YXcc8KGU='
     }
     
-    const fact1wrongsig: nd.Fact = {
+    const fact1wrongsig: mega.Fact = {
         factWithQuestion: 'Who? You!',
         signatureType: 'SHA256',
         signature: 'MEUCIQDARG92FNR9WVyNnQQuCQz0drTz5qyv78OtWGI6U1za1gIgMPYSTpcjVQwCZaetX/35vt4lKZFkMGAX9tqWrDrUIsI='
@@ -173,21 +175,21 @@ import * as pow from '../src/pow'
     
     
     
-    const dispute1: nd.Dispute = {
+    const dispute1: mega.Dispute = {
         claim: malleability2,
         reportPow: pow2,
         oraclePubKey: keypairOracle3.pub,
         fact: fact1
     }
     
-    const dispute1wrongreport: nd.Dispute = {
+    const dispute1wrongreport: mega.Dispute = {
         claim: malleability2,
         reportPow: pow1,
         oraclePubKey: keypairOracle3.pub,
         fact: fact1
     }
     
-    const dispute1wrongfactsig: nd.Dispute = {
+    const dispute1wrongfactsig: mega.Dispute = {
         claim: malleability2,
         reportPow: pow2,
         oraclePubKey: keypairOracle3.pub,
@@ -195,7 +197,7 @@ import * as pow from '../src/pow'
     }
     
     
-    const offerTerms1: nd.OfferTerms = {
+    const offerTerms1: mega.OfferTerms = {
         question: factreq1,
         partyBetsOn: ["me"],
         counterPartyBetsOn: ["you"],
@@ -203,7 +205,7 @@ import * as pow from '../src/pow'
         counterpartyBetAmount: 200
     }
     
-    const offer1: nd.Offer = {
+    const offer1: mega.Offer = {
         message: '',
         customContract: 'extra terms',
         terms: offerTerms1,
@@ -211,7 +213,7 @@ import * as pow from '../src/pow'
         contact: ''
     }
     
-    const offerTermsWrongOracle: nd.OfferTerms = {
+    const offerTermsWrongOracle: mega.OfferTerms = {
         question: factreq2,
         partyBetsOn: ["me"],
         counterPartyBetsOn: ["you"],
@@ -219,7 +221,7 @@ import * as pow from '../src/pow'
         counterpartyBetAmount: 200
     }
     
-    const offerWrongOracle: nd.Offer = {
+    const offerWrongOracle: mega.Offer = {
         message: '',
         customContract: 'extra terms',
         terms: offerTermsWrongOracle,
@@ -227,28 +229,28 @@ import * as pow from '../src/pow'
         contact: ''
     }
     
-    const offerMsg1: nd.OfferMsg = {
+    const offerMsg1: mega.OfferMsg = {
         seqNo: 0,
         cTTL: 0,
         pow: pow1,
         content: offer1
     }
     
-    const offerMsgWrongOracle: nd.OfferMsg = {
+    const offerMsgWrongOracle: mega.OfferMsg = {
         seqNo: 0,
         cTTL: 0,
         pow: pow1,
         content: offerWrongOracle
     }
     
-    const offerMsg2: nd.OfferMsg = {
+    const offerMsg2: mega.OfferMsg = {
         seqNo: 0,
         cTTL: 0,
         pow: undefined,
         content: offer1
     }
     
-    const paging: nd.PagingDescriptor = {
+    const paging: mega.PagingDescriptor = {
         page: 0,
         chunkSize: 100
     }
@@ -262,7 +264,7 @@ import * as pow from '../src/pow'
         const oracles0 = await nd.api.lookupOracles(paging)
         assert.deepStrictEqual(oracles0, [])
     
-        const [error, _] = await nd.api.announceOracle(cfg, {} as nd.OracleId)
+        const [error, _] = await nd.api.announceOracle(cfg, {} as mega.OracleId)
         assert.strictEqual(error, "invalid request")
     
         const res = await nd.api.announceOracle(cfg, oracle1)
@@ -284,7 +286,7 @@ import * as pow from '../src/pow'
         oracle2.pubkey = keypairOracle2.pub
         oracle2.pow = await pow.powOverOracleId(oracle2, 2)
         oracle2.oracleSignature = ""
-        oracle2.oracleSignature = nd.testOnlySign(JSON.stringify(oracle2), keypairOracle2.pk)
+        oracle2.oracleSignature = testOnlySign(JSON.stringify(oracle2), keypairOracle2.pk)
     
         const res3 = await nd.api.announceOracle(cfg, oracle2)
         assert.strictEqual(res3, "success", "pow or signature check failed")
@@ -294,11 +296,11 @@ import * as pow from '../src/pow'
         assert.strictEqual(err, "wrong signature")
     
         oracle2.pow.difficulty = 100
-        oracle2.oracleSignature = nd.testOnlySign(JSON.stringify(oracle2), keypairOracle2.pk)
+        oracle2.oracleSignature = testOnlySign(JSON.stringify(oracle2), keypairOracle2.pk)
         const err2 = await nd.api.announceOracle(cfg, oracle2)
         assert.strictEqual(err2, "wrong pow")
         oracle2.pow.difficulty = 2
-        oracle2.oracleSignature = nd.testOnlySign(JSON.stringify(oracle2), keypairOracle2.pk)
+        oracle2.oracleSignature = testOnlySign(JSON.stringify(oracle2), keypairOracle2.pk)
     
         //-----rejections/evictions-----
         const oracles2 = await nd.api.lookupOracles(paging)
@@ -309,7 +311,7 @@ import * as pow from '../src/pow'
         oracle3.pubkey = keypairOracle3.pub
         oracle3.pow = await pow.powOverOracleId(oracle3, 2)
         oracle3.oracleSignature = ""
-        oracle3.oracleSignature = nd.testOnlySign(JSON.stringify(oracle3), keypairOracle3.pk)
+        oracle3.oracleSignature = testOnlySign(JSON.stringify(oracle3), keypairOracle3.pk)
         const res4 = await nd.api.announceOracle(cfg, oracle3)
         assert.strictEqual(res4, "success")
     
@@ -317,12 +319,12 @@ import * as pow from '../src/pow'
         assert.deepStrictEqual(oracles3, [oracle2, oracle3])
     
     
-        const keypairOracle4 = nd.testOnlyGenerateKeyPair()
+        const keypairOracle4 = testOnlyGenerateKeyPair()
         const oracle4 = structuredClone(oracle2)
         oracle4.pubkey = keypairOracle4.pub
         oracle4.pow = await pow.powOverOracleId(oracle4, 1)
         oracle4.oracleSignature = ""
-        oracle4.oracleSignature = nd.testOnlySign(JSON.stringify(oracle4), keypairOracle4.pk)
+        oracle4.oracleSignature = testOnlySign(JSON.stringify(oracle4), keypairOracle4.pk)
         const err3 = await nd.api.announceOracle(cfg, oracle4)
         assert.strictEqual(err3, "low pow difficulty")
         assert.deepStrictEqual(await nd.api.lookupOracles(paging), [oracle2, oracle3])
@@ -336,7 +338,7 @@ import * as pow from '../src/pow'
         const capabilities0 = await nd.api.lookupCapabilities(paging, keypairOracle3.pub)
         assert.deepStrictEqual(capabilities0, [])
     
-        const [error, _] = await nd.api.announceCapability(cfg, {} as nd.OracleCapability)
+        const [error, _] = await nd.api.announceCapability(cfg, {} as mega.OracleCapability)
         assert.strictEqual(error, "invalid request")
     
         const res = await nd.api.announceCapability(cfg, capability1)
@@ -360,10 +362,10 @@ import * as pow from '../src/pow'
         //----crypto-----
         
         capability3.oraclePubKey = keypairOracle2.pub
-        capability3.capabilityPubKey = nd.testOnlyGenerateKeyPair().pub
+        capability3.capabilityPubKey = testOnlyGenerateKeyPair().pub
     
         capability3.oracleSignature = ""
-        capability3.oracleSignature = nd.testOnlySign(JSON.stringify(capability3), keypairOracle2.pk)
+        capability3.oracleSignature = testOnlySign(JSON.stringify(capability3), keypairOracle2.pk)
         capability3.pow = await pow.powOverOracleCapability(capability3, 1)
     
         const res3 = await nd.api.announceCapability(cfg, capability3)
@@ -380,7 +382,7 @@ import * as pow from '../src/pow'
         const err2 = await nd.api.announceCapability(cfg, capability3)
         assert.strictEqual(err2, "wrong pow")
         capability3.pow.difficulty = 1
-        capability3.oracleSignature = nd.testOnlySign(JSON.stringify(oracle2), keypairOracle2.pk)
+        capability3.oracleSignature = testOnlySign(JSON.stringify(oracle2), keypairOracle2.pk)
     
         //-----rejections/evictions-----
         assert.deepStrictEqual(await nd.api.lookupCapabilities(paging, keypairOracle3.pub), [capability1])
@@ -403,7 +405,7 @@ import * as pow from '../src/pow'
         const reports0 = await nd.api.lookupReports(paging, keypairOracle3.pub)
         assert.deepStrictEqual(reports0, [])
     
-        const [error, _] = await nd.api.reportMalleability(cfg, {} as nd.Report)
+        const [error, _] = await nd.api.reportMalleability(cfg, {} as mega.Report)
         assert.strictEqual(error, "invalid request")
     
         const res = await nd.api.reportMalleability(cfg, report1)
@@ -491,7 +493,7 @@ import * as pow from '../src/pow'
         const offers0 = await nd.api.lookupOffers(paging, "")
         assert.deepStrictEqual(offers0, [])
     
-        const [error0, _] = await nd.api.publishOffer(cfg, {} as nd.OfferMsg)
+        const [error0, _] = await nd.api.publishOffer(cfg, {} as mega.OfferMsg)
         assert.strictEqual(error0, "invalid request")
     
         const error = await nd.api.publishOffer(cfg, offerMsgWrongOracle)
