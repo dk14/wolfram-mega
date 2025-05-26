@@ -20,8 +20,8 @@ const safeEval = (expression: string, data: any): any => {
     return res
 }
 
-export const startOracleService = (cfg: MempoolConfig<PeerAddr>) => {
-    const storage = capabilityStorage(cfg.oracle.dbPath, 1, 100)
+export const startOracleService = (cfg: MempoolConfig<PeerAddr>, storage = capabilityStorage(cfg.oracle.dbPath, 1, 100)) => {
+
     const concfg: ConnectionPoolCfg = {
         maxConnections: cfg.maxConnections
     }

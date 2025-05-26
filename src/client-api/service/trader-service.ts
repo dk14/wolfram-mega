@@ -19,9 +19,9 @@ const safeEval = (expression: string, data: any): any => {
     return res
 }
 
-export const startTraderService = (cfg: MempoolConfig<PeerAddr>) => {
+export const startTraderService = (cfg: MempoolConfig<PeerAddr>, storage = traderStorage(cfg.trader.dbPath, 1)) => {
     global.cfg = cfg
-    const storage = traderStorage(cfg.trader.dbPath, 1)
+    
 
     const api: TraderApi<TraderQuery<OracleId>, TraderQuery<OracleCapability>> = traderApi(cfg.trader, cfg, ndapi, storage)
     const collectors: { [id: string] : Collector<any> } = {}

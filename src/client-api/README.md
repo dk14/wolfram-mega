@@ -48,6 +48,21 @@ Security note on DLC atomicity during interactive signing. Do not sign opening (
 
 Security note on interactive sign: if no precommitments implemented, rogue keys are welcome. 
 
+## Persistence
+`client-storage` provides simple implementation of a database holding collected broadcasts.
+It is only indexed by key. Custom storage implementation can be specified in [`app.ts`](../../app.ts) script for `startOracleService`, `startTraderService`
+
+Use `cleanup.sh` to remove outdated data from collections:
+
+```
+./cleanup.sh ../../db/oracles <max_percentage_of_disk_space> <how many files to delete per iteration>
+./cleanup.sh ../../db/capabilities <max_percentage_of_disk_space> <how many files to delete per iteration>
+./cleanup.sh ../../db/offers <max_percentage_of_disk_space> <how many files to delete per iteration>
+./cleanup.sh ../../db/reports <max_percentage_of_disk_space> <how many files to delete per iteration>
+
+```
+
+
 ## Utils
 `utils/` folder contains examples of oracle endpoint and auto-signing services (configs are in `utils/cfg`):
 
