@@ -144,6 +144,12 @@ const sign3Alice = (pk1, pk2, nonceCombined, partSig1, combinedNonceParity, nonc
         }
       }
     
+
+//Note - can remove this stage
+//Issue Offer - share nonce1
+//Accept - nonce 2, partialSig
+//Finalize - full signature
+//later can add commitment stage
 export interface Stage4Sign {
   pk1
   pk2
