@@ -44,7 +44,7 @@ BTC DLC Workflow:
 
 <img src="https://github.com/user-attachments/assets/247c97e7-a945-4b37-9783-48fd85ccc847" alt="drawing" width="250"/>
 
-
+Security note on DLC atomicity during interactive signing. Do not sign opening (funding) DLC transaction until all CET transactions are co-signed.
 
 ## Utils
 `utils/` folder contains examples of oracle endpoint and auto-signing services (configs are in `utils/cfg`):
