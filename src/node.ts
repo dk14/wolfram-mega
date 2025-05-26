@@ -251,9 +251,9 @@ export interface Offer {
     customContract: string
     terms: OfferTerms
     blockchain: 'bitcoin-testnet' | 'bitcoin-mainnet' | 'plutus-testnet'
-    transactionToBeCoSigned: string //counterparty pays fees, can broadcast as a confirmation
-    signaturesToAggregate?: string[]
     contact: string
+    transactionToBeCoSigned?: string
+    txfee?: string
     accept?: AccepOffer
     finalize?: FinalizeOffer 
     
