@@ -1,3 +1,5 @@
+//SECURITY NOTE: DOES NOT USE COMMITMENTS
+
 export const sign = (pk1, pk2, secret1, secret2, msg) => {
     const Buffer = require('safe-buffer').Buffer;
     const BigInteger = require('bigi');

@@ -1,3 +1,5 @@
+//SECURITY NOTE: DOES NOT USE COMMITMENTS
+
 const Buffer = require('safe-buffer').Buffer;
 const BigInteger = require('bigi');
 const convert = require('bip-schnorr').convert
@@ -33,14 +35,20 @@ export const sign1Alice = (pk1, pk2, secret1, msg, sessionId1 = randomBuffer(32)
       0
     );
 
-    const commitment1 = session1.commitment
   
     const nonce1 = session1.nonce
 
-    return {commitment1, nonce1}
+    return {nonce1, sessionId1}
 }
 
-const sign2Bob = (pk1, pk2, commitment1, nonce1, secret2, msg, sessionId2 = randomBuffer(32)) => {
+export interface Stage2Sign {
+  pk1
+  pk2
+  sessionId1
+  nonce1
+}
+
+const sign2Bob = (pk1, pk2, nonce1, secret2, msg, sessionId2 = randomBuffer(32)) => {
       const pubKeys = [
         Buffer.from(pk1, 'hex'),
         Buffer.from(pk2, 'hex')
@@ -82,8 +90,20 @@ const sign2Bob = (pk1, pk2, commitment1, nonce1, secret2, msg, sessionId2 = rand
 
 }
     
+export interface Stage3Sign {
+  pk1
+  pk2
+  partSig1
+  sessionId1
+  sessionId2
+  nonce1
+  nonce2
+  nonceCombined
+  combinedNonceParity
+}
 
-const sign3Alice = (pk1, pk2, commitment1, commitment2, nonceCombined, partSig1, combinedNonceParity, nonce1, nonce2, secret1, msg, sessionId1) => {
+
+const sign3Alice = (pk1, pk2, nonceCombined, partSig1, combinedNonceParity, nonce1, secret1, msg, sessionId1) => {
 
         const pubKeys = [
           Buffer.from(pk1, 'hex'),
@@ -124,6 +144,19 @@ const sign3Alice = (pk1, pk2, commitment1, commitment2, nonceCombined, partSig1,
         }
       }
     
+export interface Stage4Sign {
+  pk1
+  pk2
+  partSig1
+  partSig2
+  sessionId1
+  sessionId2
+  nonce1
+  nonce2
+  nonceCombined
+  combinedNonceParity
+}
+
 const sign4Bob = (pk1, pk2, secret2, partSig2, nonce2, nonceCombined, combinedNonceParity, msg, sessionId2) => {
 
       const pubKeys = [
