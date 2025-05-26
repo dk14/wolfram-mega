@@ -74,6 +74,12 @@ Optional `mempool-cfg` config parameters:
 
 [Presentation](https://docs.google.com/document/d/e/2PACX-1vRQcR311NiVjCxc2Q3cdXWjoKGSNYf7rKrgqkeiEmv8LF3uGBqODSEzujR-XuTyHsMAf0hhGl6B1Anj/pub)
 
+## Docs
+
+WIP
+
+https://dk14.github.io/wolfram-mega/docs/
+
 ## Aims
 Unlike mainstream solutions (e.g. chainlink), Mega is not concerned with speculative stakes made by resellers of original data. It is not concerned with illusion of security provided by voting with questionable coins that have no other value than the one assigned by stakers themselves.
 
