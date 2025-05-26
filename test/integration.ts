@@ -202,7 +202,6 @@ const genOffer = async (cppubkey: string): Promise<nd.OfferMsg> => {
         customContract: '',
         terms,
         blockchain: 'bitcoin-testnet',
-        transactionToBeCoSigned: '',
         contact: ''
     }
     const msg: nd.OfferMsg = {

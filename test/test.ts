@@ -208,7 +208,6 @@ import * as pow from '../src/pow'
         customContract: 'extra terms',
         terms: offerTerms1,
         blockchain: 'bitcoin-testnet', //will be used in clientApi
-        transactionToBeCoSigned: 'transactionBase64', //will be used in clientApi
         contact: ''
     }
     
@@ -225,7 +224,6 @@ import * as pow from '../src/pow'
         customContract: 'extra terms',
         terms: offerTermsWrongOracle,
         blockchain: 'bitcoin-testnet', //will be used in clientApi
-        transactionToBeCoSigned: 'transactionBase64', //will be used in clientApi
         contact: ''
     }
     

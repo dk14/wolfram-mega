@@ -1,4 +1,4 @@
-import { assert } from "console";
+import * as assert from 'assert'
 
 const Buffer = require('safe-buffer').Buffer;
 const BigInteger = require('bigi');
@@ -80,8 +80,8 @@ export const sign1 = (pk1, pk2, commitment1, nonce1, secret2, msg, sessionId2) =
     Buffer.from(pk2, 'hex')
   ]
   
-  const nonce1Hash = muSig.computeEll(nonce1)
-  assert(nonce1Hash === commitment1)
+  const nonce1Hash = convert.hash(nonce1)
+  assert.strictEqual(convert.intToBuffer(nonce1Hash).toString('hex'), convert.intToBuffer(commitment1).toString('hex'))
 
   const pubKeyHash = muSig.computeEll(pubKeys);
   const pkCombined = muSig.pubKeyCombine(pubKeys, pubKeyHash);
@@ -121,8 +121,8 @@ export const sign2 = (pk1, pk2, nonceCombined, partSig2, combinedNonceParity, no
     Buffer.from(pk2, 'hex')
   ]
 
-  const nonce2Hash = muSig.computeEll(nonce2)
-  assert(nonce2Hash === commitment2)
+  const nonce2Hash = convert.hash(nonce2)
+  assert.strictEqual(convert.intToBuffer(nonce2Hash).toString('hex'), convert.intToBuffer(commitment2).toString('hex'))
   
   const pubKeyHash = muSig.computeEll(pubKeys);
   const pkCombined = muSig.pubKeyCombine(pubKeys, pubKeyHash);
