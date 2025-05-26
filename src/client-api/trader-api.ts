@@ -79,7 +79,8 @@ export interface TraderCfg {
     httpPort: number,
     autoUpgradePowLimit?: number,
     heliosNetwork?: string,
-    btcSignerEndpoint?: string
+    btcSignerEndpoint?: string,
+    btcInteractiveSignerEndpoint?: string
 }
 
 export function traderApi<OracleQuery, CpQuery, RpQuery, MatchingQuery, MegaPeerT>(

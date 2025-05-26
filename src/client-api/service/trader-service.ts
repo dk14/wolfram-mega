@@ -182,14 +182,19 @@ export const startTraderService = (cfg: MempoolConfig<PeerAddr>) => {
                             res.end(JSON.stringify(await btc.generateCetRedemptionTransaction(postBody)))
                         } else if (reqUrl.pathname == '/btc/pub2addr') {
                             res.end(JSON.stringify(p2pktr(postBody).address))
-                        }else {
+                        } else {
                             res.end("{}")
                         }
 
                     } catch (err) {
                         console.error(err)
                         if (!res.writableEnded){
-                            res.end(JSON.stringify({error: err.message}))
+                            try {
+                                res.end(JSON.stringify({error: err.message}))
+                            } catch (msg) {
+                                res.end(JSON.stringify(msg))
+                            }
+                            
                         }
                     }
                 })

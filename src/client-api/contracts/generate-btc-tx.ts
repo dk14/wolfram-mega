@@ -1,5 +1,5 @@
 import { schnorrApi } from "./btc/schnorr";
-import { txApi, UTxO } from "./btc/tx";
+import { PublicSession, txApi, UTxO } from "./btc/tx";
 
 type PubKey = string
 type Hex = string
@@ -39,7 +39,8 @@ export interface CetParams {
     bobPub: PubKey,
     aliceAmount: number,
     bobAmount: number,
-    txfee: number
+    txfee: number,
+    session?: PublicSession
 }
 
 export interface CetRedemptioParams {
@@ -94,7 +95,8 @@ export const generateCetTransaction = async (params: CetParams): Promise<Hex> =>
         twistedPk,
         params.aliceAmount, 
         params.bobAmount,
-        params.txfee)).hex
+        params.txfee,
+        params.session)).hex
 }
 
 export const generateCetRedemptionTransaction = async (params: CetRedemptioParams): Promise<Hex> => {

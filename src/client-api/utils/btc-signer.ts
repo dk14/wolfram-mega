@@ -7,6 +7,7 @@ const schnorr = require('bip-schnorr');
 const muSig = schnorr.muSig;
 const convert = schnorr.convert;
 import * as multisig from '../contracts/btc/mu-sig'
+import * as multisigInteractive from '../contracts/btc/mu-sig-interactive'
 import bs58 from 'bs58'
 
 interface BtcSignerCfg {
@@ -78,6 +79,49 @@ const server = http.createServer(async (req, res) => {
                             const signature: Buffer = schnorr.sign(Buffer.from(bs58.decode(cfg.secrets[input.pubkeys[0]])).toString("hex").substring(2, 64 + 2), Buffer.from(input.msg, "hex"))
                             res.end(signature.toString("hex"))
                         }    
+                    } else if (reqUrl.pathname == '/muSigNonce1') {
+                        const input = JSON.parse(body);
+                        multisigInteractive.muSigNonce1(
+                            input.pk1,
+                            input.pk2,
+                            Buffer.from(bs58.decode(cfg.secrets[input.pk1])).toString("hex").substring(2, 64 + 2),
+                            Buffer.from(input.msg, "hex")
+                        )
+                    } else if (reqUrl.pathname == '/muSigCommitment2') {
+                        const input = JSON.parse(body);
+                        multisigInteractive.muSigCommitment2(
+                            input.pk1,
+                            input.pk2,
+                            Buffer.from(bs58.decode(cfg.secrets[input.pk2])).toString("hex").substring(2, 64 + 2),
+                            Buffer.from(input.msg, "hex")
+                        )
+
+                    } else if (reqUrl.pathname == '/sign1') {
+                        const input = JSON.parse(body);
+                        multisigInteractive.sign1(
+                            input.pk1,
+                            input.pk2,
+                            input.commitment1,
+                            input.nonce1,
+                            Buffer.from(bs58.decode(cfg.secrets[input.pk2])).toString("hex").substring(2, 64 + 2),
+                            Buffer.from(input.msg, "hex"),
+                            input.sessionId2
+                        )
+
+                    } else if (reqUrl.pathname == '/sign2') {
+                        const input = JSON.parse(body);
+                        multisigInteractive.sign2(
+                            input.pk1,
+                            input.pk2,
+                            input.partSig2,
+                            input.combinedNonceParity,
+                            input.nonce2,
+                            input.commitment2,
+                            Buffer.from(bs58.decode(cfg.secrets[input.pk1])).toString("hex").substring(2, 64 + 2),
+                            Buffer.from(input.msg, "hex"),
+                            input.sessionId1
+                        )
+
                     }
                  
                     return

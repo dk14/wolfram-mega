@@ -45,10 +45,15 @@ export const muSigNonce1 = (pk1, pk2, secret1, msg, sessionId1 = randomBuffer(32
   const nonce1 = session1.nonce
   const commitment1 = session1.commitment
 
-  return {nonce1, commitment1, sessionId1}
+  return {
+    nonce1: convert.intToBuffer(nonce1).toString("hex"), 
+    commitment1: convert.intToBuffer(commitment1).toString("hex"), 
+    sessionId1: sessionId1.toString("hex")
+  }
 }
 
 export const muSigCommitment2 = (pk1, pk2, secret2, msg, sessionId2 = randomBuffer(32)) => {
+  
   const pubKeys = [
     Buffer.from(pk1, 'hex'),
     Buffer.from(pk2, 'hex')
@@ -68,13 +73,20 @@ export const muSigCommitment2 = (pk1, pk2, secret2, msg, sessionId2 = randomBuff
     pubKeyCombined,
     pubKeyParity,
     pubKeyHash,
-    0
+    1
   )
   const commitment2 = session2.commitment
-  return {commitment2, sessionId2}
+  return {
+    commitment2: convert.intToBuffer(commitment2).toString("hex"), 
+    sessionId2: sessionId2.toString("hex")
+  }
 }
 
-export const sign1 = (pk1, pk2, commitment1, nonce1, secret2, msg, sessionId2) => {
+export const sign1 = (pk1, pk2, commitment1hex, nonce1hex, secret2, msg, sessionId2Hex) => {
+  const sessionId2 = Buffer.from(sessionId2Hex, "hex")
+  const nonce1 = Buffer.from(nonce1hex, "hex")
+  const commitment1 = Buffer.from(commitment1hex, "hex")
+
   const pubKeys = [
     Buffer.from(pk1, 'hex'),
     Buffer.from(pk2, 'hex')
@@ -97,7 +109,7 @@ export const sign1 = (pk1, pk2, commitment1, nonce1, secret2, msg, sessionId2) =
     pubKeyCombined,
     pubKeyParity,
     pubKeyHash,
-    0
+    1
   )
 
   const nonce2 = session2.nonce
@@ -110,11 +122,18 @@ export const sign1 = (pk1, pk2, commitment1, nonce1, secret2, msg, sessionId2) =
   const partSig2 = session2.partialSignature
 
   return {
-    nonce2, partSig2, combinedNonceParity
+    nonce2: nonce2.toString("hex"), 
+    partSig2: partSig2.toString("hex"), 
+    combinedNonceParity: convert.intToBuffer(combinedNonceParity).toString('hex')
   }
 }
     
-export const sign2 = (pk1, pk2, partSig2, combinedNonceParity, nonce2, commitment2, secret1, msg, sessionId1) => {
+export const sign2 = (pk1, pk2, partSig2Hex, combinedNonceParityHex, nonce2hex, commitment2hex, secret1, msg, sessionId1Hex) => {
+  const partSig2 = Buffer.from(partSig2Hex, "hex")
+  const combinedNonceParity = convert.bufferToInt(Buffer.from(combinedNonceParityHex, "hex"))
+  const nonce2 = Buffer.from(nonce2hex, "hex")
+  const commitment2 = Buffer.from(commitment2hex, "hex")
+  const sessionId1 = Buffer.from(sessionId1Hex, "hex")
 
   const pubKeys = [
     Buffer.from(pk1, 'hex'),
@@ -131,7 +150,6 @@ export const sign2 = (pk1, pk2, partSig2, combinedNonceParity, nonce2, commitmen
   
   const privateKey1 = BigInteger.fromHex(secret1)
   
-
   const session1 = muSig.sessionInitialize(
     sessionId1,
     privateKey1,

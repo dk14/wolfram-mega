@@ -22,7 +22,7 @@ export interface Tx {
 export interface TxApi {
     genOpeningTx(aliceIn: UTxO[], bobIn: UTxO[], alicePub: string, bobPub: string, aliceAmounts: number[], bobAmounts: number[], changeAlice: number, changeBob: number, txfee: number): Promise<Tx>
     genClosingTx(multiIn: UTxO, alicePub: string, bobPub: string, aliceAmount: number, bobAmount: number, txfee: number): Promise<Tx>
-    genAliceCet(multiIn: UTxO, alicePub: string, bobPub: string, adaptorPub: string, aliceAmount: number, bobAmount: number, txfee: number): Promise<Tx>
+    genAliceCet(multiIn: UTxO, alicePub: string, bobPub: string, adaptorPub: string, aliceAmount: number, bobAmount: number, txfee: number, session?: PublicSession): Promise<Tx>
     genAliceCetRedemption(aliceOracleIn: UTxO, adaptorPubKeyCombined: string, alicePub: string, oracleS: string, amount: number, txfee: number): Promise<Tx>
 }
 
@@ -89,6 +89,93 @@ function schnorrSignerMulti(pub1: string, pub2: string, secrets: string[] = []):
             return Buffer.from(res, "hex")
             //let muSignature = multisig.sign(pub1, pub2, secret1, secret2, hash)
             //return Buffer.from(muSignature, "hex")
+        },
+        getPublicKey(): Buffer {
+            return pubKeyCombined
+        }
+    }
+}
+
+export interface PublicSession {
+    sessionId1?: string,
+    sessionId2?: string,
+    commitment1?: string,
+    commitment2?:string,
+    nonce1?:string,
+    nonce2?:string,
+    partSig2?:string,
+    combinedNonceParity?:string
+}
+
+function schnorrSignerInteractive(pub1: string, pub2: string, session: PublicSession): SignerAsync {
+    
+    const pkCombined = muSig.pubKeyCombine([Buffer.from(pub1, "hex"), Buffer.from(pub2, "hex")]);
+    let pubKeyCombined = convert.intToBuffer(pkCombined.affineX);
+    return {
+        publicKey: pubKeyCombined,
+        network: net,
+        async sign(hash: Buffer, lowR?: boolean): Promise<Buffer> {
+            return null
+        },
+        async signSchnorr(hash: Buffer): Promise<Buffer> {
+            if (!session.sessionId1) {
+                throw await (await fetch(global.cfg.trader.btcInteractiveSignerEndpoint + "/muSigNonce1", {
+                    method: 'post',
+                    body: JSON.stringify({
+                        pk1: pub1,
+                        pk2: pub2,
+                        
+                        msg: hash.toString('hex')
+                    }),
+                    headers: {'Content-Type': 'application/json'}
+                })).json()
+            }
+            
+            if (!session.commitment2) {
+                throw await (await fetch(global.cfg.trader.btcInteractiveSignerEndpoint + "/muSigCommitment2", {
+                    method: 'post',
+                    body: JSON.stringify({
+                        pk1: pub1,
+                        pk2: pub2,
+                        
+                        msg: hash.toString('hex')
+                    }),
+                    headers: {'Content-Type': 'application/json'}
+                })).json()
+            }
+            
+            if (!session.nonce2) {
+                throw await (await fetch(global.cfg.trader.btcInteractiveSignerEndpoint + "/sign1", {
+                    method: 'post',
+                    body: JSON.stringify({
+                        pk1: pub1,
+                        pk2: pub2,
+                        commitment1: session.commitment1,
+                        nonce1: session.nonce1,
+                        sessionId2: session.sessionId2,
+                        msg: hash.toString('hex')
+                    }),
+                    headers: {'Content-Type': 'application/json'}
+                })).json()
+            }
+            
+            const response = await fetch(global.cfg.trader.btcInteractiveSignerEndpoint + "/sign2", {
+                method: 'post',
+                body: JSON.stringify({
+                    pk1: pub1,
+                    pk2: pub2,
+                    partSig2: session.partSig2,
+                    combinedNonceParity: session.combinedNonceParity,
+                    nonce2: session.nonce2,
+                    commitment2: session.commitment2,
+                    sessionId1: session.sessionId1,
+                    msg: hash.toString('hex')
+                }),
+                headers: {'Content-Type': 'application/json'}
+            })
+
+            const res = await response.text()
+            return Buffer.from(res, "hex")
         },
         getPublicKey(): Buffer {
             return pubKeyCombined
@@ -195,7 +282,7 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
                 hex: psbt.extractTransaction().toHex()
             }
         },
-        genAliceCet: async (multiIn: UTxO, alicePub: string, bobPub: string, adaptorPub: string, aliceAmount: number, bobAmount: number, txfee: number): Promise<Tx> => {
+        genAliceCet: async (multiIn: UTxO, alicePub: string, bobPub: string, adaptorPub: string, aliceAmount: number, bobAmount: number, txfee: number, session: PublicSession = null): Promise<Tx> => {
             const psbt = new bitcoin.Psbt({ network: net})
             const pkCombined = muSig.pubKeyCombine([Buffer.from(alicePub, "hex"), Buffer.from(bobPub, "hex")]);
             let pubKeyCombined = convert.intToBuffer(pkCombined.affineX);
@@ -217,7 +304,12 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
                 value: aliceAmount + bobAmount - txfee
             });
 
-            await psbt.signInputAsync(0, schnorrSignerMulti(alicePub, bobPub))
+            if (session === null || session === undefined) {
+                await psbt.signInputAsync(0, schnorrSignerMulti(alicePub, bobPub))
+            } else {
+                await psbt.signInputAsync(0, schnorrSignerInteractive(alicePub, bobPub, session))
+            }
+            
             psbt.finalizeAllInputs()
             
             return {
