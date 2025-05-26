@@ -73,6 +73,8 @@ await fetch('./collectReports?tag=' + encodeURIComponent(tag), {
 
 ## Issue offer
 
+Note: reports have unique pow hash.
+
 ```ts
 const content = {
     "message":"",
@@ -133,6 +135,8 @@ await fetch('./collectOffers?tag=' + encodeURIComponent(tag), {
 ## Malleability Reports
 
 ### Submit report
+
+Note: reports have unique pow hash.
 
 ```ts
 const content = { 

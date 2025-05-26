@@ -40,41 +40,59 @@ export const traderStorage = (path: string, pageSize: number): TraderStorageT =>
     }
 
     const storage: TraderStorageT = {
-        addOracle: async function (o: OracleId): Promise<void> {
-            transformPage<OracleId>("oracles", o.pubkey.slice(0, -pageSize * 4), page => {
+        addOracle: async function (o: OracleId): Promise<boolean> {
+            var created = false
+            await transformPage<OracleId>("oracles", o.pubkey.slice(0, -pageSize * 4), page => {
+                created = page[o.pubkey] === undefined
                 page[o.pubkey] = o
                 return page
             })
+            return created
         },
-        addCp: async function (cp: OracleCapability): Promise<void> {
-            transformPage<OracleCapability>("capabilities", cp.capabilityPubKey.slice(0, -pageSize * 4), page => {
+        addCp: async function (cp: OracleCapability): Promise<boolean> {
+            var created = false
+            await transformPage<OracleCapability>("capabilities", cp.capabilityPubKey.slice(0, -pageSize * 4), page => {
+                created = page[cp.capabilityPubKey] === undefined
                 page[cp.capabilityPubKey] = cp
                 return page
             })
+            return created
         },
-        addReport: async function (r: Report): Promise<void> {
-            transformPage<Report>("reports", r.pow.hash.slice(0, -pageSize * 4), page => {
+        addReport: async function (r: Report): Promise<boolean> {
+            var created = false
+            await transformPage<Report>("reports", r.pow.hash.slice(0, -pageSize * 4), page => {
+                created = page[r.pow.hash] === undefined
                 page[r.pow.hash] = r
                 return page
             })
+            return created
         },
-        addIssuedReport: async function (r: Report): Promise<void> {
-            transformPage<Report>("issued-reports", r.pow.hash.slice(0, -pageSize * 4), page => {
+        addIssuedReport: async function (r: Report): Promise<boolean> {
+            var created = false
+            await transformPage<Report>("issued-reports", r.pow.hash.slice(0, -pageSize * 4), page => {
+                created = page[r.pow.hash] === undefined
                 page[r.pow.hash] = r
                 return page
             })
+            return created
         },
-        addOffer: async function (o: OfferMsg): Promise<void> {
-            transformPage<OfferMsg>("offers", o.pow.hash.slice(0, -pageSize * 4), page => {
+        addOffer: async function (o: OfferMsg): Promise<boolean> {
+            var created = false
+            await transformPage<OfferMsg>("offers", o.pow.hash.slice(0, -pageSize * 4), page => {
+                created = page[o.pow.hash] === undefined
                 page[o.pow.hash] = o
                 return page
             })
+            return created
         },
-        addIssuedOffer: async function (o: OfferMsg): Promise<void> {
-            transformPage<OfferMsg>("issued-offers", o.pow.hash.slice(0, -pageSize * 4), page => {
+        addIssuedOffer: async function (o: OfferMsg): Promise<boolean> {
+            var created = false
+            await transformPage<OfferMsg>("issued-offers", o.pow.hash.slice(0, -pageSize * 4), page => {
+                created = page[o.pow.hash] === undefined
                 page[o.pow.hash] = o
                 return page
             })
+            return created
         },
         removeOracles: async function (pubkeys: string[]): Promise<void> {
             pubkeys.forEach(pub => {

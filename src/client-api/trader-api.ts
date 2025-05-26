@@ -6,12 +6,12 @@ import { p2pNode } from "../p2p";
 
 
 export interface TraderStorage<OracleQuery, CpQuery, RpQuery, MatchingQuery> {
-    addOracle: (o: OracleId) => Promise<void>
-    addCp: (cp: OracleCapability) => Promise<void>
-    addReport: (r: Report) => Promise<void>
-    addIssuedReport: (r: Report) => Promise<void>
-    addOffer: (o: OfferMsg) => Promise<void>
-    addIssuedOffer: (o: OfferMsg) => Promise<void>
+    addOracle: (o: OracleId) => Promise<boolean>
+    addCp: (cp: OracleCapability) => Promise<boolean>
+    addReport: (r: Report) => Promise<boolean>
+    addIssuedReport: (r: Report) => Promise<boolean>
+    addOffer: (o: OfferMsg) => Promise<boolean>
+    addIssuedOffer: (o: OfferMsg) => Promise<boolean>
 
     removeOracles: (pubkeys: string[]) => Promise<void>
     removeCps: (pubkeys: string[]) => Promise<void>
@@ -42,14 +42,16 @@ export interface Collector<T> {
     active: boolean
     predicate: (cp: T) => Promise<boolean>
     cancel: () => Promise<void>
+    limit: number
+    count: () => number
 }
 
 export interface TraderApi<OracleQuery, CpQuery> {
 
-    collectOracles: (tag: string, predicate: (cp: OracleId) => Promise<boolean>) => Promise<Collector<OracleId>>
-    collectCapabilities: (tag: string, q: OracleQuery, opredicate: (cp: OracleId) => Promise<boolean>,  predicate: (cp: OracleCapability) => Promise<boolean>) => Promise<Collector<OracleCapability>>
-    collectReports: (tag: string, q: OracleQuery, opredicate: (cp: OracleId) => Promise<boolean>, predicate: (cp: Report) => Promise<boolean>) => Promise<Collector<Report>>
-    collectOffers: (tag: string, q: CpQuery, cppredicate: (cp: OracleCapability) => Promise<boolean>, matchingPredicate: (cp: OfferMsg) => Promise<boolean>) => Promise<Collector<OfferMsg>>
+    collectOracles: (tag: string, predicate: (cp: OracleId) => Promise<boolean>, limit: number) => Promise<Collector<OracleId>>
+    collectCapabilities: (tag: string, q: OracleQuery, opredicate: (cp: OracleId) => Promise<boolean>,  predicate: (cp: OracleCapability) => Promise<boolean>, limit: number) => Promise<Collector<OracleCapability>>
+    collectReports: (tag: string, q: OracleQuery, opredicate: (cp: OracleId) => Promise<boolean>, predicate: (cp: Report) => Promise<boolean>, limit: number) => Promise<Collector<Report>>
+    collectOffers: (tag: string, q: CpQuery, cppredicate: (cp: OracleCapability) => Promise<boolean>, matchingPredicate: (cp: OfferMsg) => Promise<boolean>, limit: number) => Promise<Collector<OfferMsg>>
 
     issueReport: (r: Report) => Promise<void>
 
@@ -98,14 +100,20 @@ export function traderApi<OracleQuery, CpQuery, RpQuery, MatchingQuery, MegaPeer
     var rbroadcaster = null
 
     const tapi: TraderApi<OracleQuery, CpQuery> = {
-        collectOracles: async function (tag: string, predicate: (cp: OracleId) => Promise<boolean>): Promise<Collector<OracleId>> {
+        collectOracles: async function (tag: string, predicate: (cp: OracleId) => Promise<boolean>, limit: number): Promise<Collector<OracleId>> {
+            var counter = 0
             const timeout = setInterval(async () => {
                 const oracles = await nodeApi.lookupOracles({
                     page: getRandomInt(tradercfg.maxOraclesPages),
                     chunkSize: tradercfg.pageSize
                 })
                 const picked = (await Promise.all(oracles.map(async o => {return {o, p: await predicate(o)}}))).filter(x => x.p).map(x => x.o)
-                picked.forEach(async id => await storage.addOracle(id))
+                picked.forEach(async id => {
+                    if (counter < limit) {
+                        await storage.addOracle(id) && counter++
+                    }
+                    
+                })
             }, tradercfg.collectOracleAdsCycle)
             const cl: Collector<OracleId> = {
                 type: "OracleId",
@@ -115,11 +123,14 @@ export function traderApi<OracleQuery, CpQuery, RpQuery, MatchingQuery, MegaPeer
                 cancel: async function (): Promise<void> {
                     clearInterval(timeout)
                     cl.active = false
-                }
+                },
+                count: () => counter,
+                limit
             }
             return cl
         },
-        collectCapabilities: async function (tag: string, q: OracleQuery, opredicate: (cp: OracleId) => Promise<boolean>, predicate: (cp: OracleCapability) => Promise<boolean>): Promise<Collector<OracleCapability>> {
+        collectCapabilities: async function (tag: string, q: OracleQuery, opredicate: (cp: OracleId) => Promise<boolean>, predicate: (cp: OracleCapability) => Promise<boolean>, limit: number): Promise<Collector<OracleCapability>> {
+            var counter = 0
             const timeout = setInterval(async () => {
                 storage.allOracles(q, opredicate, async oracleid => {
                     const cps = await nodeApi.lookupCapabilities({
@@ -127,7 +138,11 @@ export function traderApi<OracleQuery, CpQuery, RpQuery, MatchingQuery, MegaPeer
                         chunkSize: tradercfg.pageSize
                     }, oracleid.pubkey)
                     const picked = (await Promise.all(cps.map(async cp => {return {cp, p: await predicate(cp)}}))).filter(x => x.p).map(x => x.cp)
-                    picked.forEach(async cp => await storage.addCp(cp))
+                    picked.forEach(async cp => {
+                        if (counter < limit) {
+                            await storage.addCp(cp) && counter++
+                        }
+                    })
                 })
                 
             }, tradercfg.collectOracleAdsCycle)
@@ -139,11 +154,14 @@ export function traderApi<OracleQuery, CpQuery, RpQuery, MatchingQuery, MegaPeer
                 cancel: async function (): Promise<void> {
                     clearInterval(timeout)
                     cl.active = false
-                }
+                },
+                count: () => counter,
+                limit
             }
             return cl
         },
-        collectReports: async function (tag: string,  q: OracleQuery, opredicate: (cp: OracleId) => Promise<boolean>, predicate: (cp: Report) => Promise<boolean>): Promise<Collector<Report>> {
+        collectReports: async function (tag: string,  q: OracleQuery, opredicate: (cp: OracleId) => Promise<boolean>, predicate: (cp: Report) => Promise<boolean>, limit: number): Promise<Collector<Report>> {
+            var counter = 0
             const timeout = setInterval(async () => {
                 storage.allOracles(q, opredicate, async oracleid => {     
                     const rps = await nodeApi.lookupReports({
@@ -151,7 +169,11 @@ export function traderApi<OracleQuery, CpQuery, RpQuery, MatchingQuery, MegaPeer
                         chunkSize: tradercfg.pageSize
                     }, oracleid.pubkey)
                     const picked = (await Promise.all(rps.map(async cp => {return {cp, p: await predicate(cp)}}))).filter(x => x.p).map(x => x.cp)
-                    picked.forEach(async rp => await storage.addReport(rp))
+                    picked.forEach(async rp => {
+                        if (counter < limit) {
+                            await storage.addReport(rp) && counter++
+                        }
+                    })
                 })
                 
             }, tradercfg.collectOracleAdsCycle)
@@ -163,11 +185,14 @@ export function traderApi<OracleQuery, CpQuery, RpQuery, MatchingQuery, MegaPeer
                 cancel: async function (): Promise<void> {
                     clearInterval(timeout)
                     cl.active = false
-                }
+                },
+                count: () => counter,
+                limit
             }
             return cl
         },
-        collectOffers: async function (tag: string,  q: CpQuery, cppredicate: (o: OracleCapability) => Promise<boolean>, matchingPredicate: (cp: OfferMsg) => Promise<boolean>): Promise<Collector<OfferMsg>> {
+        collectOffers: async function (tag: string,  q: CpQuery, cppredicate: (o: OracleCapability) => Promise<boolean>, matchingPredicate: (cp: OfferMsg) => Promise<boolean>, limit: number): Promise<Collector<OfferMsg>> {
+            var counter = 0
             const timeout = setInterval(async () => {
                 storage.allCps(q, cppredicate, async cp => {
                     const ofs = await nodeApi.lookupOffers({
@@ -175,7 +200,11 @@ export function traderApi<OracleQuery, CpQuery, RpQuery, MatchingQuery, MegaPeer
                         chunkSize: tradercfg.pageSize
                     }, cp.capabilityPubKey)
                     const picked = (await Promise.all(ofs.map(async of => {return {of, p: await matchingPredicate(of)}}))).filter(x => x.p).map(x => x.of)
-                    picked.forEach(async of => await storage.addOffer(of))
+                    picked.forEach(async of => {
+                        if (counter < limit) {
+                            await storage.addOffer(of) && counter++
+                        }
+                    })
                 })
                 
             }, tradercfg.collectOracleAdsCycle)
@@ -187,7 +216,9 @@ export function traderApi<OracleQuery, CpQuery, RpQuery, MatchingQuery, MegaPeer
                 cancel: async function (): Promise<void> {
                     clearInterval(timeout)
                     cl.active = false
-                }
+                },
+                count: () => counter,
+                limit
             }
             return cl
         },

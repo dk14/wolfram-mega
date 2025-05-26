@@ -61,7 +61,7 @@ export const startTraderService = (cfg: MempoolConfig<PeerAddr>, storage = trade
             } else if(reqUrl.pathname == '/pauseBroadcastIssuedReports') {
                 api.stopBroadcastingIssuedReports()
             } else if(reqUrl.pathname == '/listCollectors') {
-                res.end(JSON.stringify(Object.keys(collectors).map(tag => `${collectors[tag].type}:${tag}`)))
+                res.end(JSON.stringify(Object.keys(collectors).map(tag => `${collectors[tag].type}:${tag}(${collectors[tag].count()})`)))
             } else if(reqUrl.pathname == '/listOracles') {
                 res.end(JSON.stringify(await storage.queryOracles(q, paging)))
             } else if(reqUrl.pathname == '/listCapabilities') {
@@ -127,7 +127,8 @@ export const startTraderService = (cfg: MempoolConfig<PeerAddr>, storage = trade
                             const collector = await api.collectCapabilities(tag, 
                                 {where: async x => {return safeEval(postBody.oquery, x)}}, 
                                 async x => {return safeEval(postBody.opredicate, x)}, 
-                                async x => {return safeEval(postBody.predicate, x)}
+                                async x => {return safeEval(postBody.predicate, x)},
+                                postBody.limit ?? 10000
                             )
                             if (Object.values(collectors).length < cfg.trader!.maxCollectors) {
                                 if (collectors[collector.tag]) {
@@ -139,7 +140,8 @@ export const startTraderService = (cfg: MempoolConfig<PeerAddr>, storage = trade
                             const collector = await api.collectOffers(tag, 
                                 {where: async x => {return safeEval(postBody.cpquery, x)}}, 
                                 async x => {return safeEval(postBody.cppredicate, x)}, 
-                                async x => {return safeEval(postBody.predicate, x)}
+                                async x => {return safeEval(postBody.predicate, x)},
+                                postBody.limit ?? 10000
                             )
                             if (Object.values(collectors).length < cfg.trader!.maxCollectors) {
                                 if (collectors[collector.tag]) {
@@ -151,7 +153,8 @@ export const startTraderService = (cfg: MempoolConfig<PeerAddr>, storage = trade
                             const collector = await api.collectReports(tag, 
                                 {where: async x => {return safeEval(postBody.oquery, x)}}, 
                                 async x => {return safeEval(postBody.opredicate, x)}, 
-                                async x => {return safeEval(postBody.predicate, x)}
+                                async x => {return safeEval(postBody.predicate, x)},
+                                postBody.limit ?? 10000
                             )
                             if (Object.values(collectors).length < cfg.trader!.maxCollectors) {
                                 if (collectors[collector.tag]) {
@@ -160,7 +163,7 @@ export const startTraderService = (cfg: MempoolConfig<PeerAddr>, storage = trade
                                 collectors[collector.tag] = collector
                             }
                         } else if (reqUrl.pathname == '/collectOracles') {
-                            const collector = await api.collectOracles(tag, async x => {return safeEval(postBody.predicate, x)})
+                            const collector = await api.collectOracles(tag, async x => {return safeEval(postBody.predicate, x)}, postBody.limit ?? 10000)
                             if (Object.values(collectors).length < cfg.trader!.maxCollectors) {
                                 if (collectors[collector.tag]) {
                                     collectors[collector.tag].cancel()
