@@ -239,6 +239,7 @@ export interface AccepOffer {
     openingTx: PartiallySignedTx
     offerRef: HashCashPow
     cetTxSet: PartiallySignedTx[]
+    previousAcceptRef?: HashCashPow //for sharing precommitments in interactive sign
 }
 
 export interface FinalizeOffer {
@@ -252,10 +253,10 @@ export interface Offer {
     terms: OfferTerms
     blockchain: 'bitcoin-testnet' | 'bitcoin-mainnet' | 'plutus-testnet'
     contact: string
-    transactionToBeCoSigned?: string
+    transactionToBeCoSigned?: PartiallySignedTx //note for interactive sign: can be used to share precommitment (ideally) and/or nonce. Only skip commitment when secret is one-off
     txfee?: string
-    accept?: AccepOffer
-    finalize?: FinalizeOffer 
+    accept?: AccepOffer //note for interactive sign: counterparty returns its commitment through this first time and party replies with its nonce; second time: it returns its nonce and partial sig
+    finalize?: FinalizeOffer //here after final signature is put; txid is reported
     
 }
 
