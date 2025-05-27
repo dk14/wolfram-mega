@@ -45,12 +45,33 @@ export interface Collector<T> {
     count: () => number
 }
 
-export interface TraderApi<OracleQuery, CpQuery> {
+// a trick to allow higher kind types in typescript
+export type Placeholder = {'aUniqueKey': unknown};
 
-    collectOracles: (tag: string, predicate: (cp: OracleId) => Promise<boolean>, limit: number) => Promise<Collector<OracleId>>
-    collectCapabilities: (tag: string, q: OracleQuery, opredicate: (cp: OracleId) => Promise<boolean>,  predicate: (cp: OracleCapability) => Promise<boolean>, limit: number) => Promise<Collector<OracleCapability>>
-    collectReports: (tag: string, q: OracleQuery, opredicate: (cp: OracleId) => Promise<boolean>, predicate: (cp: Report) => Promise<boolean>, limit: number) => Promise<Collector<Report>>
-    collectOffers: (tag: string, q: CpQuery, cppredicate: (cp: OracleCapability) => Promise<boolean>, matchingPredicate: (cp: OfferMsg) => Promise<boolean>, limit: number) => Promise<Collector<OfferMsg>>
+type Replace<T, X, Y> = {
+  [k in keyof T]: T[k] extends X ? Y : T[k];
+};
+
+ // In 'Of' we require M to be higher kind; aka M<?> 
+ // e.g. PredicateF_ means PredicateF<?>
+ // e.g Of<PredicateF, OracleId> means PredicateF<OracleId> 
+type Of<M, T> = Replace<M, Placeholder, T>
+
+// Recommended instances:
+export type Predicate<T> = (cp: T) => Promise<boolean>
+export type JsPredicate<T> = string
+
+// Shortcuts
+export type Predicate_ = Predicate<Placeholder>
+export type JsPredicate_ = JsPredicate<Placeholder>
+
+
+export interface TraderApi<OracleQuery, CpQuery, PredicateF> {
+
+    collectOracles: (tag: string, predicate: Of<PredicateF, OracleId>, limit: number) => Promise<Collector<OracleId>>
+    collectCapabilities: (tag: string, q: OracleQuery, opredicate: Of<PredicateF, OracleId>, predicate: Of<PredicateF, OracleCapability>, limit: number) => Promise<Collector<OracleCapability>>
+    collectReports: (tag: string, q: OracleQuery, opredicate: Of<PredicateF, OracleId>, predicate:Of<PredicateF, Report>, limit: number) => Promise<Collector<Report>>
+    collectOffers: (tag: string, q: CpQuery, cppredicate: Of<PredicateF, OracleCapability>, matchingPredicate: Of<PredicateF, OfferMsg>, limit: number) => Promise<Collector<OfferMsg>>
 
     issueReport: (r: Report) => Promise<void>
 
@@ -90,7 +111,7 @@ export function traderApi<OracleQuery, CpQuery, RpQuery, MatchingQuery, MegaPeer
     poolcfg: MempoolConfig<MegaPeerT>, 
     nodeApi: Api, 
     storage: TraderStorage<OracleQuery, CpQuery, RpQuery, MatchingQuery>,
-    p2pNode: FacilitatorNode<Neighbor>): TraderApi<OracleQuery, CpQuery> {
+    p2pNode: FacilitatorNode<Neighbor>): TraderApi<OracleQuery, CpQuery, Predicate<Placeholder>> {
 
     function getRandomInt(max) {
         return Math.floor(Math.random() * max);
@@ -99,7 +120,7 @@ export function traderApi<OracleQuery, CpQuery, RpQuery, MatchingQuery, MegaPeer
     var obroadcaster = null
     var rbroadcaster = null
 
-    const tapi: TraderApi<OracleQuery, CpQuery> = {
+    const tapi: TraderApi<OracleQuery, CpQuery, Predicate_> = {
         collectOracles: async function (tag: string, predicate: (cp: OracleId) => Promise<boolean>, limit: number): Promise<Collector<OracleId>> {
             var counter = 0
             const timeout = setInterval(async () => {

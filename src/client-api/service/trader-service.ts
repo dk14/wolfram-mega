@@ -4,7 +4,7 @@ import { OracleId, PagingDescriptor, OracleCapability } from "../../protocol"
 import { PeerAddr } from "../../p2p";
 import * as http from 'http';
 import * as url from 'url';
-import { Collector, TraderApi, traderApi } from "../trader-api";
+import { Collector, Predicate_, TraderApi, traderApi } from "../trader-api";
 import { traderStorage, TraderQuery} from "../client-storage/trader-storage";
 import * as fs from 'fs'
 import { generateClosingTransaction, generateOpeningTransaction } from "../contracts/generate-cardano-tx";
@@ -25,7 +25,7 @@ export const startTraderService = (cfg: MempoolConfig<PeerAddr>, storage = trade
     global.cfg = cfg
     
 
-    const api: TraderApi<TraderQuery<OracleId>, TraderQuery<OracleCapability>> = traderApi(cfg.trader, cfg, ndapi, storage, p2pNode)
+    const api: TraderApi<TraderQuery<OracleId>, TraderQuery<OracleCapability>, Predicate_> = traderApi(cfg.trader, cfg, ndapi, storage, p2pNode)
     const collectors: { [id: string] : Collector<any> } = {}
 
     http.createServer(async (req, res) => {

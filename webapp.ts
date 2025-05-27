@@ -1,9 +1,18 @@
-import { TraderApi, traderApi } from './src/client-api/trader-api';
+import { Collector, JsPredicate_, Predicate_, TraderApi, traderApi } from './src/client-api/trader-api';
 import { MempoolConfig } from './src/config';
 import { startP2P } from './src/p2p';
-import { OracleId, OracleCapability } from './src/protocol';
+import { OracleId, OracleCapability, OfferMsg, Report } from './src/protocol';
 import { api as ndapi} from './src/node';
 import * as btc from "./src/client-api/contracts/generate-btc-tx";
+import Sandbox from "@nyariv/sandboxjs";
+
+
+const safeEval = (expression: string, data: any): any => {
+    const sandbox = new Sandbox()
+    const exec = sandbox.compile("return " + expression)
+    const res = exec(data).run()
+    return res
+}
 
 export interface TraderQuery<T> {
     where: (cp: T) => Promise<boolean>
@@ -68,9 +77,44 @@ interface BtcApi {
 
 declare global {
     interface Window {
-        traderApi: TraderApi<TraderQuery<OracleId>, TraderQuery<OracleCapability>>;
+        traderApi: TraderApi<TraderQuery<OracleId>, TraderQuery<OracleCapability>, Predicate_>;
         btc: BtcApi;
         myOtherVar: number;
+    }
+}
+
+const adaptjs = (js: string) => async x => {return safeEval(js, x)}
+
+const traderApiRemote: TraderApi<string, string, JsPredicate_> = {
+    collectOracles: function (tag: string, predicate: string, limit: number): Promise<Collector<OracleId>> {
+        throw new Error('Function not implemented.');
+    },
+    collectCapabilities: function (tag: string, q: string, opredicate: string, predicate: string, limit: number): Promise<Collector<OracleCapability>> {
+        throw new Error('Function not implemented.');
+    },
+    collectReports: function (tag: string, q: string, opredicate: string, predicate: string, limit: number): Promise<Collector<Report>> {
+        throw new Error('Function not implemented.');
+    },
+    collectOffers: function (tag: string, q: string, cppredicate: string, matchingPredicate: string, limit: number): Promise<Collector<OfferMsg>> {
+        throw new Error('Function not implemented.');
+    },
+    issueReport: function (r: Report): Promise<void> {
+        throw new Error('Function not implemented.');
+    },
+    issueOffer: function (o: OfferMsg): Promise<void> {
+        throw new Error('Function not implemented.');
+    },
+    startBroadcastingIssuedOffers: function (): void {
+        throw new Error('Function not implemented.');
+    },
+    stopBroadcastingIssuedOffers: function (): void {
+        throw new Error('Function not implemented.');
+    },
+    startBroadcastingIssuedReports: function (): void {
+        throw new Error('Function not implemented.');
+    },
+    stopBroadcastingIssuedReports: function (): void {
+        throw new Error('Function not implemented.');
     }
 }
 
