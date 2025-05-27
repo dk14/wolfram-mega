@@ -29,7 +29,8 @@
     "crypto": false,
     "inspector": false,
     "events": false,
-    "tiny-secp256k1": false
+    "tiny-secp256k1": false,
+    "buffer": false
   },
   "bin": {
     "wf-mega-peer": "./bin/wf-mega-peer"
