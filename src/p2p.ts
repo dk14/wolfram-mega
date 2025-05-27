@@ -1,11 +1,101 @@
 import * as nd from './node';
 import * as mega from './protocol';
 import * as net from 'net';
-import { Socket } from 'net';
-import { Peer } from 'p2p-node'
+import * as p2pn from 'p2p-node'
+import * as p2pjs from "peerjs";
 import { MempoolConfig } from "./config"
 import { ConnectionPool, ConnectionPoolCfg } from './client-api/connection-pool';
 import fetch from 'node-fetch'
+
+
+type Socket = {
+    remoteAddress?: string,
+    remotePort?: number
+}
+
+interface Event {
+    command?: string,
+    data?: Buffer,
+    peer?: Peer
+}
+
+interface Peer {
+    on: (ev: "message" | "connect" | "end", handler: (ev: Event) => void) => void
+    send: (cmd: string, msg: Buffer) => void
+    server: string
+    port: number
+    disconnect: () => void
+    connect: (addr: Socket) => void
+}
+
+interface PeerApi {
+    createPeer: (server: string, port?: number) => Peer
+    createServer: (cfg: MempoolConfig<PeerAddr>, discovered: (addr: PeerAddr, socket?: Socket) => void) => void
+}
+
+export const serverPeerAPI: PeerApi = {
+    createPeer: (server: string, port?: number): Peer => {
+       return  new p2pn.Peer(server, port)
+    },
+    createServer: (cfg: MempoolConfig<PeerAddr>, discovered: (addr: PeerAddr, socket?: Socket) => void): void => {
+        const server = net.createServer(function(socket: Socket) {
+            console.log("Remote connection")
+            discovered({server: socket.remoteAddress!, port: socket.remotePort!, seqNo: 0}, socket)
+        });
+        server.listen(cfg.p2pPort, cfg.hostname);
+    }
+
+}
+
+export const browserPeerAPI: PeerApi = {
+    createPeer: (server: string, port?: number): Peer => {
+       const jspeer = new p2pjs.Peer(server)
+       var connection: p2pjs.DataConnection = null
+
+       jspeer.on("connection", (c) => {
+            connection = c
+       })
+
+       const adaptor = {
+            on: (ev: "message" | "connect" | "end", handler: (ev: Event) => void): void => {
+                if (ev === "connect") {
+                    jspeer.on("connection", (c) => {
+                        handler({peer: adaptor})
+                    })
+                } else if (ev === "message") {
+                    connection.on("data", (data: {cmd: string, msg: string}) => {
+                        handler({
+                            command: data.cmd,
+                            data: Buffer.from(data.msg, "base64") 
+                        })
+                    })
+                } else if (ev === "end") {
+                    connection.on("close", () => handler({}))
+                }
+               
+            },
+            send: (cmd: string, msg: Buffer): void => {
+                connection.send({
+                    cmd, msg: msg.toString("base64")
+                })
+            },
+            server,
+            port,
+            disconnect: (): void => {
+                jspeer.disconnect()
+            },
+            connect: (addr: Socket): void => {
+                jspeer.connect(addr.remoteAddress)
+            }
+        }
+        return adaptor
+    },
+    createServer: (cfg: MempoolConfig<PeerAddr>, discovered: (addr: PeerAddr, socket?: Socket) => void): void => {
+    
+    }
+
+}
+
 
 export interface PeerAddr {
     server: string,
@@ -23,11 +113,11 @@ export var p2pNode: nd.FacilitatorNode<Neighbor> | undefined = undefined
 
 export var connectionPool: ConnectionPool<PeerAddr> | undefined = undefined
 
-export const startP2P = (cfg: MempoolConfig<PeerAddr>) => {
+export const startP2P = (cfg: MempoolConfig<PeerAddr>, peerApi = serverPeerAPI) => {
     var peersAnnounced = 0
 
     var connections = 0
-    const onmessage = (ev) => {
+    const onmessage = (ev: Event) => {
         try {
             node.processApiRequest(ev.command, ev.data.toString('utf8'))
         } catch (err) {
@@ -35,7 +125,7 @@ export const startP2P = (cfg: MempoolConfig<PeerAddr>) => {
         }
     }
     
-    const onconnect = (ev) => {
+    const onconnect = (ev: Event) => {
         connections++
         const p = peers.find(x => ev.peer === x.peer)!
         console.log("I'm connected! " + p.addr.server + ":" + p.addr.port);
@@ -58,7 +148,7 @@ export const startP2P = (cfg: MempoolConfig<PeerAddr>) => {
 
     const peers: Neighbor[] = []
 
-    const ondisconnect = (ev) => {
+    const ondisconnect = (ev: Event) => {
         connections--
         const index = peers.findIndex((x => ev.peer.server === x.peer.server && ev.peer.port === x.peer.port))
         if (index > -1) {
@@ -105,7 +195,7 @@ export const startP2P = (cfg: MempoolConfig<PeerAddr>) => {
             return
         }
         try {
-            const p = new Peer(addr.server, addr.port)
+            const p : Peer = peerApi.createPeer(addr.server, addr.port)
             
             p.connect(socket)
             
@@ -225,12 +315,7 @@ export const startP2P = (cfg: MempoolConfig<PeerAddr>) => {
         peers, discovered, broadcastPeer, processApiRequest, broadcastMessage
     }
     
-    const server = net.createServer(function(socket) {
-        console.log("Remote connection")
-        discovered({server: socket.remoteAddress!, port: socket.remotePort!, seqNo: 0}, socket)
-    });
-
-    server.listen(cfg.p2pPort, cfg.hostname);
+    peerApi.createServer(cfg, discovered)
     
     p2pNode = node
     connectionPool = {

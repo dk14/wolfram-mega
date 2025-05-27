@@ -21,7 +21,7 @@ const cfg: MempoolConfig<any> = {
     "hostname": "localhost",
     "isTest": true,
     "p2pseed": [
-        
+        {"server": "dk14-peerjs-1586786454", "port" : 0}
     ],
     "oracle": {
         "id": {

@@ -71,6 +71,7 @@
     "node-fetch": "^3.3.2",
     "openapi-enforcer": "^1.23.0",
     "p2p-node": "^0.1.1",
+    "peerjs": "^1.5.4",
     "random-bytes": "^1.0.0",
     "safe-buffer": "^5.2.1",
     "schnorr-adaptor-points": "^0.1.0",
