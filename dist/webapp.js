@@ -42,6 +42,7 @@ const node_1 = require("./src/node");
 const btc = __importStar(require("./src/client-api/contracts/generate-btc-tx"));
 const sandboxjs_1 = __importDefault(require("@nyariv/sandboxjs"));
 const idb_1 = require("idb");
+const matching_1 = require("./src-web/matching");
 (async () => {
     const safeEval = (expression, data) => {
         const sandbox = new sandboxjs_1.default();
@@ -97,14 +98,14 @@ const idb_1 = require("idb");
     console.log("Start P2P service...   " + cfg.p2pPort);
     (0, p2p_1.startP2P)(cfg);
     const adaptjs = (js) => async (x) => { return safeEval(js, x); };
-    const adaptPred = (p) => p.toString();
-    const adaptQuery = (q) => q.where.toString();
+    const adaptPred = (p) => "(" + p.toString() + ")(this)";
+    const adaptQuery = (q) => "(" + q.where.toString() + ")(this)";
     const traderApiRemote = {
         collectOracles: async function (tag, predicate, limit) {
             await fetch('./collectOracles?tag=' + encodeURIComponent(tag), {
                 method: 'post',
                 body: JSON.stringify({
-                    predicate: 'true',
+                    predicate,
                     limit
                 }),
                 headers: { 'Content-Type': 'application/json' }
@@ -536,4 +537,5 @@ const idb_1 = require("idb");
         generateCetRedemptionTransaction: btc.generateCetRedemptionTransaction
     };
 })();
+window.matching = matching_1.matchingEngine;
 //# sourceMappingURL=webapp.js.map
