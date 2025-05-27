@@ -2,10 +2,36 @@ import { Collector, JsPredicate_, Predicate, Predicate_, TraderApi, TraderStorag
 import { MempoolConfig } from './src/config';
 import { startP2P } from './src/p2p';
 import { OracleId, OracleCapability, OfferMsg, Report, PagingDescriptor } from './src/protocol';
-import { api as ndapi} from './src/node';
+import { FacilitatorNode, api as ndapi} from './src/node';
 import * as btc from "./src/client-api/contracts/generate-btc-tx";
 import Sandbox from "@nyariv/sandboxjs";
+import { openDB } from 'idb';
 
+type Storage = TraderStorage<TraderQuery<OracleId>, TraderQuery<OracleCapability>, TraderQuery<Report>, TraderQuery<OfferMsg>>
+
+
+export interface TraderQuery<T> {
+    where: (cp: T) => Promise<boolean>
+}
+
+export interface BtcApi {
+    generateOpeningTransaction: (p: btc.OpeningParams) => Promise<btc.Hex>
+    generateClosingTransaction: (P: btc.ClosingParams) => Promise<btc.Hex>
+    generateCetTransaction: (p: btc.CetParams) => Promise<btc.Hex>
+    generateCetRedemptionTransaction: (p: btc.CetRedemptioParams) => Promise<btc.Hex>
+}
+
+declare global {
+    interface Window {
+        traderApi: TraderApi<TraderQuery<OracleId>, TraderQuery<OracleCapability>, Predicate_>
+        storage: Storage
+        btc: BtcApi
+    }
+}
+
+
+
+(async () => {
 
 const safeEval = (expression: string, data: any): any => {
     const sandbox = new Sandbox()
@@ -14,9 +40,6 @@ const safeEval = (expression: string, data: any): any => {
     return res
 }
 
-export interface TraderQuery<T> {
-    where: (cp: T) => Promise<boolean>
-}
 
 const cfg: MempoolConfig<any> = {
     "maxOracles": 100,
@@ -68,20 +91,7 @@ console.log("Start P2P service...   " + cfg.p2pPort)
 startP2P(cfg)
 
 
-interface BtcApi {
-    generateOpeningTransaction: (OpeningParams) => Promise<btc.Hex>
-    generateClosingTransaction: (ClosingParams) => Promise<btc.Hex>
-    generateCetTransaction: (CetParams) => Promise<btc.Hex>
-    generateCetRedemptionTransaction: (CetRedemptioParams) => Promise<btc.Hex>
-}
 
-declare global {
-    interface Window {
-        traderApi: TraderApi<TraderQuery<OracleId>, TraderQuery<OracleCapability>, Predicate_>;
-        btc: BtcApi;
-        myOtherVar: number;
-    }
-}
 
 const adaptjs = (js: string) => async x => {return safeEval(js, x)}
 const adaptPred = <T>(p: Predicate<T>) => p.toString()
@@ -198,44 +208,66 @@ const traderApiRemoteAdapted: TraderApi<TraderQuery<OracleId>, TraderQuery<Oracl
     }
 }
 
-type Storage = TraderStorage<TraderQuery<OracleId>, TraderQuery<OracleCapability>, TraderQuery<Report>, TraderQuery<OfferMsg>>
+
+const db = await openDB('store', 1, {
+    upgrade(db) {
+      db.createObjectStore('oracles');
+      db.createObjectStore('cps');
+      db.createObjectStore('reports');
+      db.createObjectStore('offers');
+      db.createObjectStore('issued-reports');
+      db.createObjectStore('issued-offers');
+    },
+  });
 
 const indexDBstorage: Storage = {
-    addOracle: function (o: OracleId): Promise<boolean> {
-        throw new Error('Function not implemented.');
+    addOracle: async function (o: OracleId): Promise<boolean> {
+        const found = await db.get("oracles", o.pubkey)
+        db.put("oracles", o, o.pubkey)
+        return found === undefined
     },
-    addCp: function (cp: OracleCapability): Promise<boolean> {
-        throw new Error('Function not implemented.');
+    addCp: async function (cp: OracleCapability): Promise<boolean> {
+        const found = await db.get("oracles", cp.capabilityPubKey)
+        db.put("cps", cp, cp.capabilityPubKey)
+        return found === undefined
     },
-    addReport: function (r: Report): Promise<boolean> {
-        throw new Error('Function not implemented.');
+    addReport: async function (r: Report): Promise<boolean> {
+        const found = await db.get("reports", r.pow.hash)
+        db.put("cps", r, r.pow.hash)
+        return found === undefined
     },
-    addIssuedReport: function (r: Report): Promise<boolean> {
-        throw new Error('Function not implemented.');
+    addIssuedReport: async function (r: Report): Promise<boolean> {
+        const found = await db.get("issued-reports", r.pow.hash)
+        db.put("cps", r, r.pow.hash)
+        return found === undefined
     },
-    addOffer: function (o: OfferMsg): Promise<boolean> {
-        throw new Error('Function not implemented.');
+    addOffer: async function (o: OfferMsg): Promise<boolean> {
+        const found = await db.get("offers", o.pow.hash)
+        db.put("cps", o, o.pow.hash)
+        return found === undefined
     },
-    addIssuedOffer: function (o: OfferMsg): Promise<boolean> {
-        throw new Error('Function not implemented.');
+    addIssuedOffer: async function (o: OfferMsg): Promise<boolean> {
+        const found = await db.get("issued-offers", o.pow.hash)
+        db.put("cps", o, o.pow.hash)
+        return found === undefined
     },
-    removeOracles: function (pubkeys: string[]): Promise<void> {
-        throw new Error('Function not implemented.');
+    removeOracles: async function (pubkeys: string[]): Promise<void> {
+        Promise.all(pubkeys.map(pub => db.delete("oracles", pub)))
     },
-    removeCps: function (pubkeys: string[]): Promise<void> {
-        throw new Error('Function not implemented.');
+    removeCps: async function (pubkeys: string[]): Promise<void> {
+        await Promise.all(pubkeys.map(pub => db.delete("cps", pub)))
     },
-    removeReports: function (pubkeys: string[]): Promise<void> {
-        throw new Error('Function not implemented.');
+    removeReports: async function (pubkeys: string[]): Promise<void> {
+        await Promise.all(pubkeys.map(pub => db.delete("reports", pub)))
     },
-    removeOffers: function (pubkeys: string[]): Promise<void> {
-        throw new Error('Function not implemented.');
+    removeOffers: async function (pubkeys: string[]): Promise<void> {
+        await Promise.all(pubkeys.map(pub => db.delete("offers", pub)))
     },
-    removeIssuedOffers: function (pubkeys: string[]): Promise<void> {
-        throw new Error('Function not implemented.');
+    removeIssuedOffers: async function (pubkeys: string[]): Promise<void> {
+        await Promise.all(pubkeys.map(pub => db.delete("issued-offers", pub)))
     },
-    removeIssuedReports: function (pubkeys: string[]): Promise<void> {
-        throw new Error('Function not implemented.');
+    removeIssuedReports: async function (pubkeys: string[]): Promise<void> {
+        await Promise.all(pubkeys.map(pub => db.delete("issued-reports", pub)))
     },
     allOracles: function (q: TraderQuery<OracleId>, opredicate: (cp: OracleId) => Promise<boolean>, handler: (id: OracleId) => Promise<void>): Promise<void> {
         throw new Error('Function not implemented.');
@@ -243,23 +275,107 @@ const indexDBstorage: Storage = {
     allCps: function (q: TraderQuery<OracleCapability>, cppredicate: (cp: OracleCapability) => Promise<boolean>, handler: (id: OracleCapability) => Promise<void>): Promise<void> {
         throw new Error('Function not implemented.');
     },
-    queryOracles: function (q: TraderQuery<OracleId>, paging: PagingDescriptor): Promise<OracleId[]> {
-        throw new Error('Function not implemented.');
+    queryOracles: async function (q: TraderQuery<OracleId>, paging: PagingDescriptor): Promise<OracleId[]> {
+        const oracles = db.transaction('oracles').store
+        const result = []
+        var i = 0
+        for await (const cursor of oracles) {
+            if (q.where(cursor.value)) {
+                i++
+                if (i > paging.chunkSize * (paging.page + 1)) {
+                    break
+                }
+                if (i > paging.chunkSize * paging.page) {
+                    result.push(cursor.value)
+                }
+            }    
+        }
+        return result
     },
-    queryCapabilities: function (q: TraderQuery<OracleCapability>, paging: PagingDescriptor): Promise<OracleCapability[]> {
-        throw new Error('Function not implemented.');
+    queryCapabilities: async function (q: TraderQuery<OracleCapability>, paging: PagingDescriptor): Promise<OracleCapability[]> {
+        const cps = db.transaction('cps').store
+        const result = []
+        var i = 0
+        for await (const cursor of cps) {
+            if (q.where(cursor.value)) {
+                i++
+                if (i > paging.chunkSize * (paging.page + 1)) {
+                    break
+                }
+                if (i > paging.chunkSize * paging.page) {
+                    result.push(cursor.value)
+                }
+            }    
+        }
+        return result
     },
-    queryOffers: function (q: TraderQuery<OfferMsg>, paging: PagingDescriptor): Promise<OfferMsg[]> {
-        throw new Error('Function not implemented.');
+    queryOffers: async function (q: TraderQuery<OfferMsg>, paging: PagingDescriptor): Promise<OfferMsg[]> {
+        const offers = db.transaction('offers').store
+        const result = []
+        var i = 0
+        for await (const cursor of offers) {
+            if (q.where(cursor.value)) {
+                i++
+                if (i > paging.chunkSize * (paging.page + 1)) {
+                    break
+                }
+                if (i > paging.chunkSize * paging.page) {
+                    result.push(cursor.value)
+                }
+            }    
+        }
+        return result
     },
-    queryReports: function (q: TraderQuery<Report>, paging: PagingDescriptor): Promise<Report[]> {
-        throw new Error('Function not implemented.');
+    queryReports: async function (q: TraderQuery<Report>, paging: PagingDescriptor): Promise<Report[]> {
+        const reports = db.transaction('reports').store
+        const result = []
+        var i = 0
+        for await (const cursor of reports) {
+            if (q.where(cursor.value)) {
+                i++
+                if (i > paging.chunkSize * (paging.page + 1)) {
+                    break
+                }
+                if (i > paging.chunkSize * paging.page) {
+                    result.push(cursor.value)
+                }
+            }    
+        }
+        return result
     },
-    queryIssuedOffers: function (q: TraderQuery<OfferMsg>, paging: PagingDescriptor): Promise<OfferMsg[]> {
-        throw new Error('Function not implemented.');
+    queryIssuedOffers: async function (q: TraderQuery<OfferMsg>, paging: PagingDescriptor): Promise<OfferMsg[]> {
+        const offers = db.transaction('issued-offers').store
+        const result = []
+        var i = 0
+        for await (const cursor of offers) {
+            if (q.where(cursor.value)) {
+                i++
+                if (i > paging.chunkSize * (paging.page + 1)) {
+                    break
+                }
+                if (i > paging.chunkSize * paging.page) {
+                    result.push(cursor.value)
+                }
+            }    
+        }
+        return result
     },
-    queryIssuedReports: function (q: TraderQuery<Report>, paging: PagingDescriptor): Promise<Report[]> {
-        throw new Error('Function not implemented.');
+    queryIssuedReports: async function (q: TraderQuery<Report>, paging: PagingDescriptor): Promise<Report[]> {
+        const reports = db.transaction('issued-reports').store
+        const result = []
+        var i = 0
+        for await (const cursor of reports) {
+            if (q.where(cursor.value)) {
+                i++
+                if (i > paging.chunkSize * (paging.page + 1)) {
+                    break
+                }
+                if (i > paging.chunkSize * paging.page) {
+                    result.push(cursor.value)
+                }
+            }    
+        }
+        return result
     },
     allIssuedOffers: function (handler: (o: OfferMsg) => Promise<void>): Promise<void> {
         throw new Error('Function not implemented.');
@@ -409,8 +525,24 @@ const adaptedStorage: Storage = {
     }
 }
 
+const node: FacilitatorNode<string> = {
+    peers: [],
+    discovered: function (peer: string): void {
+        
+    },
+    broadcastPeer: function (peer: string): void {
+        
+    },
+    processApiRequest: async function (command: string, content: string): Promise<void> {
+        
+    },
+    broadcastMessage: function (command: string, content: string): void {
+       
+    }
+}
 
-window.traderApi = traderApi(cfg.trader, cfg, ndapi, null, null)
+window.traderApi = traderApi(cfg.trader, cfg, ndapi, indexDBstorage, node)
+window.storage = indexDBstorage
 
 window.btc = { 
     generateOpeningTransaction: btc.generateOpeningTransaction, 
@@ -419,4 +551,4 @@ window.btc = {
     generateCetRedemptionTransaction: btc.generateCetRedemptionTransaction
 }
 
-
+})()

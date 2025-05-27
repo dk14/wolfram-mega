@@ -19909,8 +19909,8 @@
     o.oracleSignature = signature;
     return res;
   };
-  var checkOracleRank = (cfg2, oracle, mempool2) => {
-    if (Object.keys(mempool2.oracles).length >= cfg2.maxOracles) {
+  var checkOracleRank = (cfg, oracle, mempool2) => {
+    if (Object.keys(mempool2.oracles).length >= cfg.maxOracles) {
       const evict = Object.values(mempool2.oracles).find((o) => o.id.bid.amount <= oracle.bid.amount && o.id.pow.difficulty <= oracle.pow.difficulty);
       if (evict !== void 0) {
         delete mempool2.oracles[evict.id.pubkey];
@@ -19920,8 +19920,8 @@
     }
     return true;
   };
-  var checkCapabilityRank = (cfg2, cp, o) => {
-    if (o.capabilies.length >= cfg2.maxCapabilities) {
+  var checkCapabilityRank = (cfg, cp, o) => {
+    if (o.capabilies.length >= cfg.maxCapabilities) {
       const index = o.capabilies.findIndex((c) => c.pow.difficulty <= cp.pow.difficulty);
       if (index > -1) {
         o.capabilies.splice(index, 1);
@@ -19931,8 +19931,8 @@
     }
     return true;
   };
-  var checkReportRank = (cfg2, report, o) => {
-    if (o.reports.length >= cfg2.maxReports) {
+  var checkReportRank = (cfg, report, o) => {
+    if (o.reports.length >= cfg.maxReports) {
       const index = o.reports.findIndex((r) => r.pow.difficulty <= report.pow.difficulty);
       if (index > -1) {
         o.reports.splice(index, 1);
@@ -19942,8 +19942,8 @@
     }
     return true;
   };
-  var checkOfferRank = (cfg2, offer, m) => {
-    if (m.offers.length >= (cfg2.maxOffers ?? 0)) {
+  var checkOfferRank = (cfg, offer, m) => {
+    if (m.offers.length >= (cfg.maxOffers ?? 0)) {
       const index = m.offers.findIndex((r) => r.pow.difficulty <= offer.pow.difficulty);
       if (index > -1) {
         m.offers.splice(index, 1);
@@ -19953,25 +19953,25 @@
     }
     return true;
   };
-  var validateBid = async (cfg2, bid) => {
-    if (cfg2.lnRestHost === void 0 || cfg2.lnMacaroonPath === void 0 || cfg2.facilitatorId === void 0 || cfg2.facilitatorId.rewardAddress === void 0) {
+  var validateBid = async (cfg, bid) => {
+    if (cfg.lnRestHost === void 0 || cfg.lnMacaroonPath === void 0 || cfg.facilitatorId === void 0 || cfg.facilitatorId.rewardAddress === void 0) {
       return false;
     }
     if (bid.paymentType === void 0 || bid.paymentType === "lightning") {
       try {
         const headers = new Headers();
-        headers["Grpc-Metadata-macaroon"] = (void 0)(cfg2.lnMacaroonPath).toString("hex");
+        headers["Grpc-Metadata-macaroon"] = (void 0)(cfg.lnMacaroonPath).toString("hex");
         const httpsAgent = new import_https.default.Agent({
           rejectUnauthorized: false
         });
         const body = await (await (0, import_node_fetch.default)(
-          "https://" + cfg2.lnRestHost + "/v1/invoice/" + bid.proof,
+          "https://" + cfg.lnRestHost + "/v1/invoice/" + bid.proof,
           {
             headers,
             agent: httpsAgent
           }
         )).json();
-        return body.payment_addr === cfg2.facilitatorId?.rewardAddress && body.amt_paid_msat === bid.amount && body.state === "SETTLED";
+        return body.payment_addr === cfg.facilitatorId?.rewardAddress && body.amt_paid_msat === bid.amount && body.state === "SETTLED";
       } catch (err) {
         (void 0).log(err);
         return false;
@@ -19987,7 +19987,7 @@
     offers: []
   };
   var api = {
-    announceOracle: async (cfg2, id) => {
+    announceOracle: async (cfg, id) => {
       const [_, error] = (await openapi).request({ method: "POST", path: "/oracle", body: id });
       if (error !== void 0) {
         return ["invalid request", error.toString()];
@@ -19996,10 +19996,10 @@
         return "wrong signature";
       }
       if (checkPow(id.pow, id.pubkey) || id.pow.difficulty == 0) {
-        if (!(id.bid.amount == 0 || await validateBid(cfg2, id.bid))) {
+        if (!(id.bid.amount == 0 || await validateBid(cfg, id.bid))) {
           id.bid.amount = 0;
         }
-        if (checkOracleRank(cfg2, id, mempool)) {
+        if (checkOracleRank(cfg, id, mempool)) {
           if (mempool.oracles[id.pubkey] === void 0) {
             mempool.oracles[id.pubkey] = {
               id,
@@ -20023,7 +20023,7 @@
         return "wrong pow";
       }
     },
-    announceCapability: async (cfg2, cp) => {
+    announceCapability: async (cfg, cp) => {
       const [_, error] = (await openapi).request({ method: "POST", path: "/capability", body: cp });
       if (error !== void 0) {
         return ["invalid request", error.toString()];
@@ -20033,7 +20033,7 @@
       }
       if (cp.pow.difficulty == 0 || checkCapabilitySignature(cp)) {
         if (cp.pow.difficulty == 0 || checkPow(cp.pow, cp.oracleSignature)) {
-          if (checkCapabilityRank(cfg2, cp, mempool.oracles[cp.oraclePubKey])) {
+          if (checkCapabilityRank(cfg, cp, mempool.oracles[cp.oraclePubKey])) {
             const found = mempool.oracles[cp.oraclePubKey].capabilies.find((x) => x.capabilityPubKey == cp.capabilityPubKey);
             if (found !== void 0) {
               if (found.seqNo < cp.seqNo && found.pow.difficulty <= cp.pow.difficulty) {
@@ -20057,7 +20057,7 @@
         return "wrong signature";
       }
     },
-    reportMalleability: async (cfg2, report) => {
+    reportMalleability: async (cfg, report) => {
       const [_, error] = (await openapi).request({ method: "POST", path: "/report", body: report });
       if (error !== void 0) {
         return ["invalid request", error.toString()];
@@ -20068,7 +20068,7 @@
       if (!checkPow(report.pow, JSON.stringify(report.content)) && !(report.pow.difficulty == 0)) {
         return "wrong pow";
       }
-      if (!checkReportRank(cfg2, report, mempool.oracles[report.oraclePubKey])) {
+      if (!checkReportRank(cfg, report, mempool.oracles[report.oraclePubKey])) {
         return "low pow difficulty";
       }
       const found = mempool.oracles[report.oraclePubKey].reports.find((x) => x.pow.hash == report.pow.hash);
@@ -20124,7 +20124,7 @@
       }
       return mempool.oracles[oraclePub].reports.slice(paging.page * paging.chunkSize, (paging.page + 1) * paging.chunkSize);
     },
-    publishOffer: async function(cfg2, offer) {
+    publishOffer: async function(cfg, offer) {
       const [_, error] = (await openapi).request({ method: "POST", path: "/offer", body: offer });
       if (error !== void 0) {
         return ["invalid request", error.toString()];
@@ -20132,7 +20132,7 @@
       if (!checkPow(offer.pow, JSON.stringify(offer.content)) && !(offer.pow.difficulty == 0)) {
         return "wrong pow";
       }
-      if (!checkOfferRank(cfg2, offer, mempool)) {
+      if (!checkOfferRank(cfg, offer, mempool)) {
         return "low pow difficulty";
       }
       const found = mempool.offers.find((x) => x.pow.hash === offer.pow.hash);
@@ -20397,17 +20397,17 @@
     createPeer: (server, port) => {
       return new p2pn.Peer(server, port);
     },
-    createServer: (cfg2, discovered) => {
+    createServer: (cfg, discovered) => {
       const server = (void 0)(function(socket) {
         console.log("Remote connection");
         discovered({ server: socket.remoteAddress, port: socket.remotePort, seqNo: 0 }, socket);
       });
-      server.listen(cfg2.p2pPort, cfg2.hostname);
+      server.listen(cfg.p2pPort, cfg.hostname);
     }
   };
   var p2pNode = void 0;
   var connectionPool = void 0;
-  var startP2P = (cfg2, peerApi = serverPeerAPI) => {
+  var startP2P = (cfg, peerApi = serverPeerAPI) => {
     var peersAnnounced = 0;
     var connections = 0;
     const onmessage = (ev) => {
@@ -20421,8 +20421,8 @@
       connections++;
       const p = peers.find((x) => ev.peer === x.peer);
       console.log("I'm connected! " + p.addr.server + ":" + p.addr.port);
-      if (cfg2.hostname !== void 0) {
-        broadcastPeer({ server: cfg2.hostname, port: cfg2.p2pPort, seqNo: cfg2.hostSeqNo ?? 0 }, true);
+      if (cfg.hostname !== void 0) {
+        broadcastPeer({ server: cfg.hostname, port: cfg.p2pPort, seqNo: cfg.hostSeqNo ?? 0 }, true);
       }
       peers.forEach((peer) => {
         console.log("[send][peer]" + JSON.stringify(peer.addr) + "  ==> " + JSON.stringify(p.addr));
@@ -20441,7 +20441,7 @@
         peers.splice(index, 1);
       }
     };
-    cfg2.p2pseed.forEach((x) => discovered(x));
+    cfg.p2pseed.forEach((x) => discovered(x));
     function checkDuplicatePeer(addr) {
       const found = peers.findIndex((x) => addr.server === x.addr.server && addr.port === x.addr.port);
       if (found > -1) {
@@ -20458,7 +20458,7 @@
     }
     function broadcastPeer(peer, skipDuplicateCheck = false) {
       peersAnnounced++;
-      if (peersAnnounced > (cfg2.peerAnnouncementQuota ?? 10)) return;
+      if (peersAnnounced > (cfg.peerAnnouncementQuota ?? 10)) return;
       if (!skipDuplicateCheck && checkDuplicatePeer(peer)) {
         return;
       }
@@ -20473,7 +20473,7 @@
       if (checkDuplicatePeer(addr)) {
         return;
       }
-      if (connections > cfg2.maxConnections) {
+      if (connections > cfg.maxConnections) {
         return;
       }
       try {
@@ -20491,7 +20491,7 @@
     }
     function reduceCTTL(content) {
       const msg = JSON.parse(content);
-      if (msg.cTTL > (cfg2.ttlThreshold ?? 7)) {
+      if (msg.cTTL > (cfg.ttlThreshold ?? 7)) {
         return [JSON.stringify(msg), false];
       }
       if (msg.cTTL <= 0) {
@@ -20503,7 +20503,7 @@
     }
     async function processApiRequest(command, content) {
       console.log("[receive][cmd: " + command + "] " + content);
-      if (content.length > cfg2.maxMsgLength) {
+      if (content.length > cfg.maxMsgLength) {
         throw "Content too large";
       }
       switch (command) {
@@ -20512,7 +20512,7 @@
           break;
         }
         case "oracle": {
-          const result = await api.announceOracle(cfg2, JSON.parse(content));
+          const result = await api.announceOracle(cfg, JSON.parse(content));
           if (result == "success") {
             broadcastMessage(command, content);
           } else if (result == "duplicate") {
@@ -20524,7 +20524,7 @@
           break;
         }
         case "capability": {
-          const result = await api.announceCapability(cfg2, JSON.parse(content));
+          const result = await api.announceCapability(cfg, JSON.parse(content));
           if (result == "success") {
             broadcastMessage(command, content);
           } else if (result == "duplicate") {
@@ -20536,7 +20536,7 @@
           break;
         }
         case "report": {
-          const result = await api.reportMalleability(cfg2, JSON.parse(content));
+          const result = await api.reportMalleability(cfg, JSON.parse(content));
           if (result == "success") {
             broadcastMessage(command, content);
           } else if (result == "duplicate") {
@@ -20560,7 +20560,7 @@
           break;
         }
         case "offer": {
-          const result = await api.publishOffer(cfg2, JSON.parse(content));
+          const result = await api.publishOffer(cfg, JSON.parse(content));
           if (result == "success") {
             broadcastMessage(command, content);
           } else if (result == "duplicate") {
@@ -20586,10 +20586,10 @@
       processApiRequest,
       broadcastMessage
     };
-    peerApi.createServer(cfg2, discovered);
+    peerApi.createServer(cfg, discovered);
     p2pNode = node;
     connectionPool = {
-      list: function(cfg3) {
+      list: function(cfg2) {
         return peers.map((x) => x.addr);
       },
       getapi: function(peer) {
@@ -20598,19 +20598,19 @@
           return `pageNo=${paging.page}&pageSize=${paging.chunkSize}`;
         };
         return {
-          announceOracle: function(cfg3, id) {
+          announceOracle: function(cfg2, id) {
             throw new Error("Function not implemented.");
           },
-          announceCapability: function(cfg3, cp) {
+          announceCapability: function(cfg2, cp) {
             throw new Error("Function not implemented.");
           },
-          reportMalleability: function(cfg3, report) {
+          reportMalleability: function(cfg2, report) {
             throw new Error("Function not implemented.");
           },
           disputeMissingfactClaim: function(dispute) {
             throw new Error("Function not implemented.");
           },
-          publishOffer: function(cfg3, offer) {
+          publishOffer: function(cfg2, offer) {
             throw new Error("Function not implemented.");
           },
           lookupOracles: async function(paging) {
@@ -20627,7 +20627,7 @@
           }
         };
       },
-      drop: function(cfg3, peer) {
+      drop: function(cfg2, peer) {
         const neighbor = peers.find((x) => x.addr === peer);
         if (neighbor) {
           neighbor.peer.disconnect();
@@ -20637,12 +20637,12 @@
     setInterval(() => {
       peersAnnounced = 0;
     }, 1e3);
-    if (cfg2.hostname !== void 0) {
+    if (cfg.hostname !== void 0) {
       var seqNo = 0;
       setInterval(() => {
         seqNo++;
-        broadcastPeer({ server: cfg2.hostname, port: cfg2.p2pPort, seqNo: (cfg2.hostSeqNo ?? 0) + seqNo, httpPort: cfg2.httpPort }, true);
-      }, cfg2.p2pKeepAlive ?? 1e5);
+        broadcastPeer({ server: cfg.hostname, port: cfg.p2pPort, seqNo: (cfg.hostSeqNo ?? 0) + seqNo, httpPort: cfg.httpPort }, true);
+      }, cfg.p2pKeepAlive ?? 1e5);
     }
   };
 
@@ -21022,6 +21022,27 @@
   };
 
   // node_modules/@nyariv/sandboxjs/dist/Sandbox.min.js
+  var SandboxGlobal = function(e) {
+    if (e === globalThis) return globalThis;
+    for (const t in e) this[t] = e[t];
+  };
+  var ExecContext = class {
+    constructor(e, t, n2, r, s, i, o, a, c, p, l, d) {
+      this.ctx = e, this.constants = t, this.tree = n2, this.getSubscriptions = r, this.setSubscriptions = s, this.changeSubscriptions = i, this.setSubscriptionsGlobal = o, this.changeSubscriptionsGlobal = a, this.evals = c, this.registerSandboxFunction = p, this.allowJit = l, this.evalContext = d;
+    }
+  };
+  function createContext(e, t) {
+    const n2 = new SandboxGlobal(t.globals), r = { sandbox: e, globalsWhitelist: new Set(Object.values(t.globals)), prototypeWhitelist: new Map([...t.prototypeWhitelist].map((e2) => [e2[0].prototype, e2[1]])), options: t, globalScope: new Scope(null, t.globals, n2), sandboxGlobal: n2 };
+    return r.prototypeWhitelist.set(Object.getPrototypeOf([][Symbol.iterator]()), /* @__PURE__ */ new Set()), r;
+  }
+  function createExecContext(sandbox, executionTree, evalContext) {
+    const evals = /* @__PURE__ */ new Map(), execContext = new ExecContext(sandbox.context, executionTree.constants, executionTree.tree, /* @__PURE__ */ new Set(), /* @__PURE__ */ new WeakMap(), /* @__PURE__ */ new WeakMap(), sandbox.setSubscriptions, sandbox.changeSubscriptions, evals, (e) => sandbox.sandboxFunctions.set(e, execContext), !!evalContext, evalContext);
+    if (evalContext) {
+      const func = evalContext.sandboxFunction(execContext);
+      evals.set(Function, func), evals.set(eval, evalContext.sandboxedEval(func)), evals.set(setTimeout, evalContext.sandboxedSetTimeout(func)), evals.set(setInterval, evalContext.sandboxedSetInterval(func));
+    }
+    return execContext;
+  }
   var CodeString = class _CodeString {
     constructor(e) {
       this.ref = { str: "" }, e instanceof _CodeString ? (this.ref = e.ref, this.start = e.start, this.end = e.end) : (this.ref.str = e, this.start = 0, this.end = e.length);
@@ -21680,6 +21701,56 @@
     }
     e(void 0, new ExecReturn(n2.ctx.auditReport, void 0, false));
   }
+  function parseHexToInt(e) {
+    return !e.match(/[^a-f0-9]/i) ? parseInt(e, 16) : NaN;
+  }
+  function validateAndParseHex(e, t, n2) {
+    const r = parseHexToInt(e);
+    if (Number.isNaN(r) || void 0 !== n2 && n2 !== e.length) throw new SyntaxError(t + ": " + e);
+    return r;
+  }
+  function parseHexadecimalCode(e) {
+    const t = validateAndParseHex(e, "Malformed Hexadecimal", 2);
+    return String.fromCharCode(t);
+  }
+  function parseUnicodeCode(e, t) {
+    const n2 = validateAndParseHex(e, "Malformed Unicode", 4);
+    if (void 0 !== t) {
+      const e2 = validateAndParseHex(t, "Malformed Unicode", 4);
+      return String.fromCharCode(n2, e2);
+    }
+    return String.fromCharCode(n2);
+  }
+  function isCurlyBraced(e) {
+    return "{" === e.charAt(0) && "}" === e.charAt(e.length - 1);
+  }
+  function parseUnicodeCodePointCode(e) {
+    if (!isCurlyBraced(e)) throw new SyntaxError("Malformed Unicode: +" + e);
+    const t = validateAndParseHex(e.slice(1, -1), "Malformed Unicode");
+    try {
+      return String.fromCodePoint(t);
+    } catch (e2) {
+      throw e2 instanceof RangeError ? new SyntaxError("Code Point Limit:" + t) : e2;
+    }
+  }
+  var singleCharacterEscapes = /* @__PURE__ */ new Map([["b", "\b"], ["f", "\f"], ["n", "\n"], ["r", "\r"], ["t", "	"], ["v", "\v"], ["0", "\0"]]);
+  function parseSingleCharacterCode(e) {
+    return singleCharacterEscapes.get(e) || e;
+  }
+  var escapeMatch = /\\(?:(\\)|x([\s\S]{0,2})|u(\{[^}]*\}?)|u([\s\S]{4})\\u([^{][\s\S]{0,3})|u([\s\S]{0,4})|([0-3]?[0-7]{1,2})|([\s\S])|$)/g;
+  function unraw(e) {
+    return e.replace(escapeMatch, function(e2, t, n2, r, s, i, o, a, c) {
+      if (void 0 !== t) return "\\";
+      if (void 0 !== n2) return parseHexadecimalCode(n2);
+      if (void 0 !== r) return parseUnicodeCodePointCode(r);
+      if (void 0 !== s) return parseUnicodeCode(s, i);
+      if (void 0 !== o) return parseUnicodeCode(o);
+      if ("0" === a) return "\0";
+      if (void 0 !== a) throw new SyntaxError("Octal Deprecation: " + a);
+      if (void 0 !== c) return parseSingleCharacterCode(c);
+      throw new SyntaxError("End of string");
+    });
+  }
   function createLisp(e) {
     return [e.op, e.a, e.b];
   }
@@ -21694,6 +21765,7 @@
   var inlineIfElse = /^:/;
   var elseIf = /^else(?![\w$])/;
   var ifElse = /^if(?![\w$])/;
+  var space = /^\s/;
   var expectTypes = { splitter: { types: { opHigh: /^(\/|\*\*|\*(?!\*)|%)(?!=)/, op: /^(\+(?!(\+))|-(?!(-)))(?!=)/, comparitor: /^(<=|>=|<(?!<)|>(?!>)|!==|!=(?!=)|===|==)/, boolOp: /^(&&|\|\||instanceof(?![\w$])|in(?![\w$]))/, bitwise: /^(&(?!&)|\|(?!\|)|\^|<<|>>(?!>)|>>>)(?!=)/ }, next: ["modifier", "value", "prop", "incrementerBefore"] }, inlineIf: { types: { inlineIf: /^\?(?!\.(?!\d))/ }, next: ["expEnd"] }, assignment: { types: { assignModify: /^(-=|\+=|\/=|\*\*=|\*=|%=|\^=|&=|\|=|>>>=|>>=|<<=)/, assign: /^(=)(?!=)/ }, next: ["modifier", "value", "prop", "incrementerBefore"] }, incrementerBefore: { types: { incrementerBefore: /^(\+\+|--)/ }, next: ["prop"] }, expEdge: { types: { call: /^(\?\.)?[(]/, incrementerAfter: /^(\+\+|--)/ }, next: ["splitter", "expEdge", "dot", "inlineIf", "expEnd"] }, modifier: { types: { not: /^!/, inverse: /^~/, negative: /^-(?!-)/, positive: /^\+(?!\+)/, typeof: /^typeof(?![\w$])/, delete: /^delete(?![\w$])/ }, next: ["modifier", "value", "prop", "incrementerBefore"] }, dot: { types: { arrayProp: /^(\?\.)?\[/, dot: /^(\?)?\.(?=\s*[a-zA-Z$_])/ }, next: ["splitter", "assignment", "expEdge", "dot", "inlineIf", "expEnd"] }, prop: { types: { prop: /^[a-zA-Z$_][a-zA-Z\d$_]*/ }, next: ["splitter", "assignment", "expEdge", "dot", "inlineIf", "expEnd"] }, value: { types: { createObject: /^\{/, createArray: /^\[/, number: /^(0x[\da-f]+(_[\da-f]+)*|(\d+(_\d+)*(\.\d+(_\d+)*)?|\.\d+(_\d+)*))(e[+-]?\d+(_\d+)*)?(n)?(?!\d)/i, string: /^"(\d+)"/, literal: /^`(\d+)`/, regex: /^\/(\d+)\/r(?![\w$])/, boolean: /^(true|false)(?![\w$])/, null: /^null(?![\w$])/, und: /^undefined(?![\w$])/, arrowFunctionSingle: /^(async\s+)?([a-zA-Z$_][a-zA-Z\d$_]*)\s*=>\s*({)?/, arrowFunction: /^(async\s*)?\(\s*((\.\.\.)?\s*[a-zA-Z$_][a-zA-Z\d$_]*(\s*,\s*(\.\.\.)?\s*[a-zA-Z$_][a-zA-Z\d$_]*)*)?\s*\)\s*=>\s*({)?/, inlineFunction: /^(async\s+)?function(\s*[a-zA-Z$_][a-zA-Z\d$_]*)?\s*\(\s*((\.\.\.)?\s*[a-zA-Z$_][a-zA-Z\d$_]*(\s*,\s*(\.\.\.)?\s*[a-zA-Z$_][a-zA-Z\d$_]*)*)?\s*\)\s*{/, group: /^\(/, NaN: /^NaN(?![\w$])/, Infinity: /^Infinity(?![\w$])/, void: /^void(?![\w$])\s*/, await: /^await(?![\w$])\s*/, new: /^new(?![\w$])\s*/ }, next: ["splitter", "expEdge", "dot", "inlineIf", "expEnd"] }, initialize: { types: { initialize: /^(var|let|const)\s+([a-zA-Z$_][a-zA-Z\d$_]*)\s*(=)?/, return: /^return(?![\w$])/, throw: /^throw(?![\w$])\s*/ }, next: ["modifier", "value", "prop", "incrementerBefore", "expEnd"] }, spreadObject: { types: { spreadObject: /^\.\.\./ }, next: ["value", "prop"] }, spreadArray: { types: { spreadArray: /^\.\.\./ }, next: ["value", "prop"] }, expEnd: { types: {}, next: [] }, expFunction: { types: { function: /^(async\s+)?function(\s*[a-zA-Z$_][a-zA-Z\d$_]*)\s*\(\s*((\.\.\.)?\s*[a-zA-Z$_][a-zA-Z\d$_]*(\s*,\s*(\.\.\.)?\s*[a-zA-Z$_][a-zA-Z\d$_]*)*)?\s*\)\s*{/ }, next: ["expEdge", "expEnd"] }, expSingle: { types: { for: /^(([a-zA-Z$_][\w$]*)\s*:)?\s*for\s*\(/, do: /^(([a-zA-Z$_][\w$]*)\s*:)?\s*do(?![\w$])\s*(\{)?/, while: /^(([a-zA-Z$_][\w$]*)\s*:)?\s*while\s*\(/, loopAction: /^(break|continue)(?![\w$])\s*([a-zA-Z$_][\w$]*)?/, if: /^((([a-zA-Z$_][\w$]*)\s*:)?\s*)if\s*\(/, try: /^try\s*{/, block: /^{/, switch: /^(([a-zA-Z$_][\w$]*)\s*:)?\s*switch\s*\(/ }, next: ["expEnd"] } };
   var closings = { "(": ")", "[": "]", "{": "}", "'": "'", '"': '"', "`": "`" };
   function testMultiple(e, t) {
@@ -22099,62 +22171,902 @@
     }
     return insertedSemicolons.set(t.ref, i), t;
   }
-
-  // webapp.ts
-  var cfg = {
-    "maxOracles": 100,
-    "maxCapabilities": 100,
-    "maxReports": 100,
-    "maxOffers": 100,
-    "maxConnections": 100,
-    "maxMsgLength": 1e6,
-    "httpPort": 8081,
-    "p2pPort": 8334,
-    "hostname": "localhost",
-    "isTest": true,
-    "p2pseed": [
-      { "server": "dk14-peerjs-1586786454", "port": 0 }
-    ],
-    "oracle": {
-      "id": {
-        "pubkey": "AAA",
-        "oracleSignatureType": "SHA256"
-      },
-      "adInterval": 1e4,
-      "adTopN": 10,
-      "dbPath": "./db/myoracle",
-      "httpPort": 9080,
-      "wsPort": 9081
-    },
-    "trader": {
-      "broadcastOfferCycle": 1e3,
-      "broadcastReportCycle": 1e3,
-      "collectOffersCycle": 1e3,
-      "collectReportsCycle": 1e3,
-      "collectOracleAdsCycle": 1e3,
-      "collectOracleCpCycle": 1e3,
-      "pageSize": 100,
-      "maxOraclesPages": 2,
-      "maxCpPages": 2,
-      "maxReportsPages": 2,
-      "maxOffersPages": 2,
-      "maxCollectors": 2,
-      "dbPath": "./db",
-      "httpPort": 7080,
-      "heliosNetwork": "https://d1t0d7c2nekuk0.cloudfront.net/preview.json",
-      "btcSignerEndpoint": "http://localhost:9593/sign",
-      "btcInteractiveSignerEndpoint": "http://localhost:9593/"
+  function checkRegex(e) {
+    let t = 1, n2 = false, r = false, s = false;
+    for (; t < e.length && !r && !s; ) r = "/" === e[t] && !n2, n2 = "\\" === e[t] && !n2, s = "\n" === e[t], t++;
+    const i = e.substring(t);
+    if (s = s || !r || /^\s*\d/.test(i), s) return null;
+    const o = /^[a-z]*/.exec(i);
+    return /^\s+[\w$]/.test(e.substring(t + o[0].length)) ? null : { regex: e.substring(1, t - 1), flags: o && o[0] || "", length: t + (o && o[0].length || 0) };
+  }
+  var notDivide = /(typeof|delete|instanceof|return|in|of|throw|new|void|do|if)$/;
+  var possibleDivide = /^([\w$\])]|\+\+|--)[\s/]/;
+  function extractConstants(e, t, n2 = "") {
+    let r, s, i = [], o = false, a = "", c = -1, p = [], l = "";
+    const d = [], u = [];
+    let f = null, h = 0;
+    for (h = 0; h < t.length; h++) if (l = t[h], a) l === a && ("*" === a && "/" === t[h + 1] ? (a = "", h++) : "\n" === a && (a = ""));
+    else {
+      if (o) {
+        o = false, i.push(l);
+        continue;
+      }
+      if (r) if ("`" === r && "$" === l && "{" === t[h + 1]) {
+        const n3 = extractConstants(e, t.substring(h + 2), "{");
+        p.push(n3.str), i.push("${", p.length - 1, "}"), h += n3.length + 2;
+      } else if (r === l) {
+        if ("`" === r) {
+          const t2 = createLisp({ op: 36, a: unraw(i.join("")), b: [] });
+          t2.tempJsStrings = p, e.literals.push(t2), d.push("`", e.literals.length - 1, "`");
+        } else e.strings.push(unraw(i.join(""))), d.push('"', e.strings.length - 1, '"');
+        r = null, i = [];
+      } else i.push(l);
+      else {
+        if ("'" === l || '"' === l || "`" === l) p = [], r = l;
+        else {
+          if (closings[n2] === l && !u.length) return { str: d.join(""), length: h };
+          closings[l] ? (u.push(l), d.push(l)) : closings[u[u.length - 1]] === l ? (u.pop(), d.push(l)) : "/" !== l || "*" !== t[h + 1] && "/" !== t[h + 1] ? "/" === l && !f && (s = checkRegex(t.substring(h))) ? (e.regexes.push(s), d.push("/", e.regexes.length - 1, "/r"), h += s.length - 1) : d.push(l) : (a = "*" === t[h + 1] ? "*" : "\n", c = h);
+        }
+        f && space.test(l) || (f = possibleDivide.exec(t.substring(h))) && notDivide.test(t.substring(0, h + f[1].length)) && (f = null);
+      }
+      o = !(!r || "\\" !== l);
+    }
+    if (a && "*" === a) throw new SyntaxError(`Unclosed comment '/*': ${t.substring(c)}`);
+    return { str: d.join(""), length: h };
+  }
+  function parse(e, t = false, n2 = false) {
+    if ("string" != typeof e) throw new ParseError(`Cannot parse ${e}`, e);
+    let r = " " + e;
+    const s = { strings: [], literals: [], regexes: [], eager: t };
+    r = extractConstants(s, r).str;
+    for (const e2 of s.literals) e2[2] = e2.tempJsStrings.map((e3) => lispifyExpr(s, new CodeString(e3))), delete e2.tempJsStrings;
+    return { tree: lispifyFunction(new CodeString(r), s, n2), constants: s };
+  }
+  function createEvalContext() {
+    return { sandboxFunction, sandboxedEval, sandboxedSetTimeout, sandboxedSetInterval, lispifyFunction };
+  }
+  function sandboxFunction(e, t) {
+    return function SandboxFunction(...n2) {
+      const r = parse(n2.pop() || "");
+      return createFunction(n2, r.tree, t || currentTicks.current, { ...e, constants: r.constants, tree: r.tree }, void 0, "anonymous");
+    };
+  }
+  function sandboxedEval(e) {
+    return function(t) {
+      return e(t)();
+    };
+  }
+  function sandboxedSetTimeout(e) {
+    return function(t, ...n2) {
+      return "string" != typeof t ? setTimeout(t, ...n2) : setTimeout(e(t), ...n2);
+    };
+  }
+  function sandboxedSetInterval(e) {
+    return function(t, ...n2) {
+      return "string" != typeof t ? setInterval(t, ...n2) : setInterval(e(t), ...n2);
+    };
+  }
+  function subscribeSet(e, t, n2, r) {
+    if (!(e instanceof Object)) throw new Error("Invalid subscription object, got " + ("object" == typeof e ? "null" : typeof e));
+    const s = r.setSubscriptions.get(e) || /* @__PURE__ */ new Map();
+    r.setSubscriptions.set(e, s);
+    const i = s.get(t) || /* @__PURE__ */ new Set();
+    let o;
+    s.set(t, i), i.add(n2);
+    const a = e[t];
+    return a instanceof Object && (o = r.changeSubscriptions.get(a) || /* @__PURE__ */ new Set(), o.add(n2), r.changeSubscriptions.set(a, o)), { unsubscribe: () => {
+      i.delete(n2), o?.delete(n2);
+    } };
+  }
+  var SandboxExec = class _SandboxExec {
+    constructor(e, t) {
+      this.evalContext = t, this.setSubscriptions = /* @__PURE__ */ new WeakMap(), this.changeSubscriptions = /* @__PURE__ */ new WeakMap(), this.sandboxFunctions = /* @__PURE__ */ new WeakMap();
+      const n2 = Object.assign({ audit: false, forbidFunctionCalls: false, forbidFunctionCreation: false, globals: _SandboxExec.SAFE_GLOBALS, prototypeWhitelist: _SandboxExec.SAFE_PROTOTYPES, prototypeReplacements: /* @__PURE__ */ new Map() }, e || {});
+      this.context = createContext(this, n2);
+    }
+    static get SAFE_GLOBALS() {
+      return { Function, console: { debug: console.debug, error: console.error, info: console.info, log: console.log, table: console.table, warn: console.warn }, isFinite, isNaN, parseFloat, parseInt, decodeURI, decodeURIComponent, encodeURI, encodeURIComponent, escape, unescape, Boolean, Number, BigInt, String, Object, Array, Symbol, Error, EvalError, RangeError, ReferenceError, SyntaxError, TypeError, URIError, Int8Array, Uint8Array, Uint8ClampedArray, Int16Array, Uint16Array, Int32Array, Uint32Array, Float32Array, Float64Array, Map, Set, WeakMap, WeakSet, Promise, Intl, JSON, Math, Date, RegExp };
+    }
+    static get SAFE_PROTOTYPES() {
+      const e = [SandboxGlobal, Function, Boolean, Number, BigInt, String, Date, Error, Array, Int8Array, Uint8Array, Uint8ClampedArray, Int16Array, Uint16Array, Int32Array, Uint32Array, Float32Array, Float64Array, Map, Set, WeakMap, WeakSet, Promise, Symbol, Date, RegExp], t = /* @__PURE__ */ new Map();
+      return e.forEach((e2) => {
+        t.set(e2, /* @__PURE__ */ new Set());
+      }), t.set(Object, /* @__PURE__ */ new Set(["entries", "fromEntries", "getOwnPropertyNames", "is", "keys", "hasOwnProperty", "isPrototypeOf", "propertyIsEnumerable", "toLocaleString", "toString", "valueOf", "values"])), t;
+    }
+    subscribeGet(e, t) {
+      return t.getSubscriptions.add(e), { unsubscribe: () => t.getSubscriptions.delete(e) };
+    }
+    subscribeSet(e, t, n2, r) {
+      return subscribeSet(e, t, n2, r);
+    }
+    subscribeSetGlobal(e, t, n2) {
+      return subscribeSet(e, t, n2, this);
+    }
+    getContext(e) {
+      return this.sandboxFunctions.get(e);
+    }
+    executeTree(e, t = []) {
+      return executeTree({ ticks: BigInt(0) }, e, e.tree, t);
+    }
+    executeTreeAsync(e, t = []) {
+      return executeTreeAsync({ ticks: BigInt(0) }, e, e.tree, t);
     }
   };
-  console.log("Start P2P service...   " + cfg.p2pPort);
-  startP2P(cfg);
-  window.traderApi = traderApi(cfg.trader, cfg, api, null, null);
-  window.btc = {
-    generateOpeningTransaction,
-    generateClosingTransaction,
-    generateCetTransaction,
-    generateCetRedemptionTransaction
+  var Sandbox = class extends SandboxExec {
+    constructor(e) {
+      super(e, createEvalContext());
+    }
+    static audit(e, t = []) {
+      const n2 = {};
+      for (const e2 of Object.getOwnPropertyNames(globalThis)) n2[e2] = globalThis[e2];
+      const r = new SandboxExec({ globals: n2, audit: true });
+      return r.executeTree(createExecContext(r, parse(e, true), createEvalContext()), t);
+    }
+    static parse(e) {
+      return parse(e);
+    }
+    compile(e, t = false) {
+      const n2 = parse(e, t);
+      return (...e2) => {
+        const t2 = createExecContext(this, n2, this.evalContext);
+        return { context: t2, run: () => this.executeTree(t2, [...e2]).result };
+      };
+    }
+    compileAsync(e, t = false) {
+      const n2 = parse(e, t);
+      return (...e2) => {
+        const t2 = createExecContext(this, n2, this.evalContext);
+        return { context: t2, run: () => this.executeTreeAsync(t2, [...e2]).then((e3) => e3.result) };
+      };
+    }
+    compileExpression(e, t = false) {
+      const n2 = parse(e, t, true);
+      return (...e2) => {
+        const t2 = createExecContext(this, n2, this.evalContext);
+        return { context: t2, run: () => this.executeTree(t2, [...e2]).result };
+      };
+    }
+    compileExpressionAsync(e, t = false) {
+      const n2 = parse(e, t, true);
+      return (...e2) => {
+        const t2 = createExecContext(this, n2, this.evalContext);
+        return { context: t2, run: () => this.executeTreeAsync(t2, [...e2]).then((e3) => e3.result) };
+      };
+    }
   };
+
+  // node_modules/idb/build/index.js
+  var instanceOfAny = (object, constructors) => constructors.some((c) => object instanceof c);
+  var idbProxyableTypes;
+  var cursorAdvanceMethods;
+  function getIdbProxyableTypes() {
+    return idbProxyableTypes || (idbProxyableTypes = [
+      IDBDatabase,
+      IDBObjectStore,
+      IDBIndex,
+      IDBCursor,
+      IDBTransaction
+    ]);
+  }
+  function getCursorAdvanceMethods() {
+    return cursorAdvanceMethods || (cursorAdvanceMethods = [
+      IDBCursor.prototype.advance,
+      IDBCursor.prototype.continue,
+      IDBCursor.prototype.continuePrimaryKey
+    ]);
+  }
+  var transactionDoneMap = /* @__PURE__ */ new WeakMap();
+  var transformCache = /* @__PURE__ */ new WeakMap();
+  var reverseTransformCache = /* @__PURE__ */ new WeakMap();
+  function promisifyRequest(request) {
+    const promise = new Promise((resolve, reject) => {
+      const unlisten = () => {
+        request.removeEventListener("success", success);
+        request.removeEventListener("error", error);
+      };
+      const success = () => {
+        resolve(wrap(request.result));
+        unlisten();
+      };
+      const error = () => {
+        reject(request.error);
+        unlisten();
+      };
+      request.addEventListener("success", success);
+      request.addEventListener("error", error);
+    });
+    reverseTransformCache.set(promise, request);
+    return promise;
+  }
+  function cacheDonePromiseForTransaction(tx2) {
+    if (transactionDoneMap.has(tx2))
+      return;
+    const done = new Promise((resolve, reject) => {
+      const unlisten = () => {
+        tx2.removeEventListener("complete", complete);
+        tx2.removeEventListener("error", error);
+        tx2.removeEventListener("abort", error);
+      };
+      const complete = () => {
+        resolve();
+        unlisten();
+      };
+      const error = () => {
+        reject(tx2.error || new DOMException("AbortError", "AbortError"));
+        unlisten();
+      };
+      tx2.addEventListener("complete", complete);
+      tx2.addEventListener("error", error);
+      tx2.addEventListener("abort", error);
+    });
+    transactionDoneMap.set(tx2, done);
+  }
+  var idbProxyTraps = {
+    get(target, prop, receiver) {
+      if (target instanceof IDBTransaction) {
+        if (prop === "done")
+          return transactionDoneMap.get(target);
+        if (prop === "store") {
+          return receiver.objectStoreNames[1] ? void 0 : receiver.objectStore(receiver.objectStoreNames[0]);
+        }
+      }
+      return wrap(target[prop]);
+    },
+    set(target, prop, value) {
+      target[prop] = value;
+      return true;
+    },
+    has(target, prop) {
+      if (target instanceof IDBTransaction && (prop === "done" || prop === "store")) {
+        return true;
+      }
+      return prop in target;
+    }
+  };
+  function replaceTraps(callback) {
+    idbProxyTraps = callback(idbProxyTraps);
+  }
+  function wrapFunction(func) {
+    if (getCursorAdvanceMethods().includes(func)) {
+      return function(...args) {
+        func.apply(unwrap(this), args);
+        return wrap(this.request);
+      };
+    }
+    return function(...args) {
+      return wrap(func.apply(unwrap(this), args));
+    };
+  }
+  function transformCachableValue(value) {
+    if (typeof value === "function")
+      return wrapFunction(value);
+    if (value instanceof IDBTransaction)
+      cacheDonePromiseForTransaction(value);
+    if (instanceOfAny(value, getIdbProxyableTypes()))
+      return new Proxy(value, idbProxyTraps);
+    return value;
+  }
+  function wrap(value) {
+    if (value instanceof IDBRequest)
+      return promisifyRequest(value);
+    if (transformCache.has(value))
+      return transformCache.get(value);
+    const newValue = transformCachableValue(value);
+    if (newValue !== value) {
+      transformCache.set(value, newValue);
+      reverseTransformCache.set(newValue, value);
+    }
+    return newValue;
+  }
+  var unwrap = (value) => reverseTransformCache.get(value);
+  function openDB(name, version, { blocked, upgrade, blocking, terminated } = {}) {
+    const request = indexedDB.open(name, version);
+    const openPromise = wrap(request);
+    if (upgrade) {
+      request.addEventListener("upgradeneeded", (event) => {
+        upgrade(wrap(request.result), event.oldVersion, event.newVersion, wrap(request.transaction), event);
+      });
+    }
+    if (blocked) {
+      request.addEventListener("blocked", (event) => blocked(
+        // Casting due to https://github.com/microsoft/TypeScript-DOM-lib-generator/pull/1405
+        event.oldVersion,
+        event.newVersion,
+        event
+      ));
+    }
+    openPromise.then((db) => {
+      if (terminated)
+        db.addEventListener("close", () => terminated());
+      if (blocking) {
+        db.addEventListener("versionchange", (event) => blocking(event.oldVersion, event.newVersion, event));
+      }
+    }).catch(() => {
+    });
+    return openPromise;
+  }
+  var readMethods = ["get", "getKey", "getAll", "getAllKeys", "count"];
+  var writeMethods = ["put", "add", "delete", "clear"];
+  var cachedMethods = /* @__PURE__ */ new Map();
+  function getMethod(target, prop) {
+    if (!(target instanceof IDBDatabase && !(prop in target) && typeof prop === "string")) {
+      return;
+    }
+    if (cachedMethods.get(prop))
+      return cachedMethods.get(prop);
+    const targetFuncName = prop.replace(/FromIndex$/, "");
+    const useIndex = prop !== targetFuncName;
+    const isWrite = writeMethods.includes(targetFuncName);
+    if (
+      // Bail if the target doesn't exist on the target. Eg, getAll isn't in Edge.
+      !(targetFuncName in (useIndex ? IDBIndex : IDBObjectStore).prototype) || !(isWrite || readMethods.includes(targetFuncName))
+    ) {
+      return;
+    }
+    const method2 = async function(storeName, ...args) {
+      const tx2 = this.transaction(storeName, isWrite ? "readwrite" : "readonly");
+      let target2 = tx2.store;
+      if (useIndex)
+        target2 = target2.index(args.shift());
+      return (await Promise.all([
+        target2[targetFuncName](...args),
+        isWrite && tx2.done
+      ]))[0];
+    };
+    cachedMethods.set(prop, method2);
+    return method2;
+  }
+  replaceTraps((oldTraps) => ({
+    ...oldTraps,
+    get: (target, prop, receiver) => getMethod(target, prop) || oldTraps.get(target, prop, receiver),
+    has: (target, prop) => !!getMethod(target, prop) || oldTraps.has(target, prop)
+  }));
+  var advanceMethodProps = ["continue", "continuePrimaryKey", "advance"];
+  var methodMap = {};
+  var advanceResults = /* @__PURE__ */ new WeakMap();
+  var ittrProxiedCursorToOriginalProxy = /* @__PURE__ */ new WeakMap();
+  var cursorIteratorTraps = {
+    get(target, prop) {
+      if (!advanceMethodProps.includes(prop))
+        return target[prop];
+      let cachedFunc = methodMap[prop];
+      if (!cachedFunc) {
+        cachedFunc = methodMap[prop] = function(...args) {
+          advanceResults.set(this, ittrProxiedCursorToOriginalProxy.get(this)[prop](...args));
+        };
+      }
+      return cachedFunc;
+    }
+  };
+  async function* iterate(...args) {
+    let cursor = this;
+    if (!(cursor instanceof IDBCursor)) {
+      cursor = await cursor.openCursor(...args);
+    }
+    if (!cursor)
+      return;
+    cursor = cursor;
+    const proxiedCursor = new Proxy(cursor, cursorIteratorTraps);
+    ittrProxiedCursorToOriginalProxy.set(proxiedCursor, cursor);
+    reverseTransformCache.set(proxiedCursor, unwrap(cursor));
+    while (cursor) {
+      yield proxiedCursor;
+      cursor = await (advanceResults.get(proxiedCursor) || cursor.continue());
+      advanceResults.delete(proxiedCursor);
+    }
+  }
+  function isIteratorProp(target, prop) {
+    return prop === Symbol.asyncIterator && instanceOfAny(target, [IDBIndex, IDBObjectStore, IDBCursor]) || prop === "iterate" && instanceOfAny(target, [IDBIndex, IDBObjectStore]);
+  }
+  replaceTraps((oldTraps) => ({
+    ...oldTraps,
+    get(target, prop, receiver) {
+      if (isIteratorProp(target, prop))
+        return iterate;
+      return oldTraps.get(target, prop, receiver);
+    },
+    has(target, prop) {
+      return isIteratorProp(target, prop) || oldTraps.has(target, prop);
+    }
+  }));
+
+  // webapp.ts
+  (async () => {
+    const safeEval = (expression, data) => {
+      const sandbox = new Sandbox();
+      const exec = sandbox.compile("return " + expression);
+      const res = exec(data).run();
+      return res;
+    };
+    const cfg = {
+      "maxOracles": 100,
+      "maxCapabilities": 100,
+      "maxReports": 100,
+      "maxOffers": 100,
+      "maxConnections": 100,
+      "maxMsgLength": 1e6,
+      "httpPort": 8081,
+      "p2pPort": 8334,
+      "hostname": "localhost",
+      "isTest": true,
+      "p2pseed": [
+        { "server": "dk14-peerjs-1586786454", "port": 0 }
+      ],
+      "oracle": {
+        "id": {
+          "pubkey": "AAA",
+          "oracleSignatureType": "SHA256"
+        },
+        "adInterval": 1e4,
+        "adTopN": 10,
+        "dbPath": "./db/myoracle",
+        "httpPort": 9080,
+        "wsPort": 9081
+      },
+      "trader": {
+        "broadcastOfferCycle": 1e3,
+        "broadcastReportCycle": 1e3,
+        "collectOffersCycle": 1e3,
+        "collectReportsCycle": 1e3,
+        "collectOracleAdsCycle": 1e3,
+        "collectOracleCpCycle": 1e3,
+        "pageSize": 100,
+        "maxOraclesPages": 2,
+        "maxCpPages": 2,
+        "maxReportsPages": 2,
+        "maxOffersPages": 2,
+        "maxCollectors": 2,
+        "dbPath": "./db",
+        "httpPort": 7080,
+        "heliosNetwork": "https://d1t0d7c2nekuk0.cloudfront.net/preview.json",
+        "btcSignerEndpoint": "http://localhost:9593/sign",
+        "btcInteractiveSignerEndpoint": "http://localhost:9593/"
+      }
+    };
+    console.log("Start P2P service...   " + cfg.p2pPort);
+    startP2P(cfg);
+    const adaptjs = (js) => async (x) => {
+      return safeEval(js, x);
+    };
+    const adaptPred = (p) => p.toString();
+    const adaptQuery = (q) => q.where.toString();
+    const traderApiRemote = {
+      collectOracles: async function(tag, predicate, limit) {
+        await fetch("./collectOracles?tag=" + encodeURIComponent(tag), {
+          method: "post",
+          body: JSON.stringify({
+            predicate: "true",
+            limit
+          }),
+          headers: { "Content-Type": "application/json" }
+        });
+        throw new Error("Function not implemented.");
+      },
+      collectCapabilities: async function(tag, q, opredicate, predicate, limit) {
+        await fetch("./collectCapabilities?tag=" + encodeURIComponent(tag), {
+          method: "post",
+          body: JSON.stringify({
+            oquery: q,
+            opredicate,
+            predicate
+          }),
+          headers: { "Content-Type": "application/json" }
+        });
+        throw new Error("Function not implemented.");
+      },
+      collectReports: async function(tag, q, opredicate, predicate, limit) {
+        await fetch("./collectReports?tag=" + encodeURIComponent(tag), {
+          method: "post",
+          body: JSON.stringify({
+            oquery: q,
+            opredicate,
+            predicate
+          }),
+          headers: { "Content-Type": "application/json" }
+        });
+        throw new Error("Function not implemented.");
+      },
+      collectOffers: async function(tag, q, cppredicate, matchingPredicate, limit) {
+        await fetch("./collectOffers?tag=" + encodeURIComponent(tag), {
+          method: "post",
+          body: JSON.stringify({
+            cpquery: q,
+            cppredicate,
+            predicate: matchingPredicate
+          }),
+          headers: { "Content-Type": "application/json" }
+        });
+        throw new Error("Function not implemented.");
+      },
+      issueReport: async function(r) {
+        await fetch("./issueReport", {
+          method: "post",
+          body: JSON.stringify(r),
+          headers: { "Content-Type": "application/json" }
+        });
+      },
+      issueOffer: async function(o) {
+        await fetch("./issueOffer", {
+          method: "post",
+          body: JSON.stringify(o),
+          headers: { "Content-Type": "application/json" }
+        });
+      },
+      startBroadcastingIssuedOffers: function() {
+        fetch("./broadcastIssuedOffers");
+      },
+      stopBroadcastingIssuedOffers: function() {
+        throw new Error("Function not implemented.");
+      },
+      startBroadcastingIssuedReports: function() {
+        fetch("./broadcastIssuedReports");
+      },
+      stopBroadcastingIssuedReports: function() {
+        throw new Error("Function not implemented.");
+      }
+    };
+    const traderApiRemoteAdapted = {
+      collectOracles: async function(tag, predicate, limit) {
+        return traderApiRemote.collectOracles(tag, adaptPred(predicate), limit);
+      },
+      collectCapabilities: async function(tag, q, opredicate, predicate, limit) {
+        return traderApiRemote.collectCapabilities(tag, adaptQuery(q), adaptPred(opredicate), adaptPred(predicate), limit);
+      },
+      collectReports: async function(tag, q, opredicate, predicate, limit) {
+        return traderApiRemote.collectReports(tag, adaptQuery(q), adaptPred(opredicate), adaptPred(predicate), limit);
+      },
+      collectOffers: async function(tag, q, cppredicate, matchingPredicate, limit) {
+        return traderApiRemote.collectOffers(tag, adaptQuery(q), adaptPred(cppredicate), adaptPred(matchingPredicate), limit);
+      },
+      issueReport: function(r) {
+        return traderApiRemote.issueReport(r);
+      },
+      issueOffer: function(o) {
+        return traderApiRemote.issueOffer(o);
+      },
+      startBroadcastingIssuedOffers: function() {
+        traderApiRemote.startBroadcastingIssuedOffers();
+      },
+      stopBroadcastingIssuedOffers: function() {
+        traderApiRemote.stopBroadcastingIssuedOffers();
+      },
+      startBroadcastingIssuedReports: function() {
+        traderApiRemote.startBroadcastingIssuedReports();
+      },
+      stopBroadcastingIssuedReports: function() {
+        traderApiRemote.stopBroadcastingIssuedReports();
+      }
+    };
+    const db = await openDB("store", 1, {
+      upgrade(db2) {
+        db2.createObjectStore("oracles");
+        db2.createObjectStore("cps");
+        db2.createObjectStore("reports");
+        db2.createObjectStore("offers");
+        db2.createObjectStore("issued-reports");
+        db2.createObjectStore("issued-offers");
+      }
+    });
+    const indexDBstorage = {
+      addOracle: async function(o) {
+        const found = await db.get("oracles", o.pubkey);
+        db.put("oracles", o, o.pubkey);
+        return found === void 0;
+      },
+      addCp: async function(cp) {
+        const found = await db.get("oracles", cp.capabilityPubKey);
+        db.put("cps", cp, cp.capabilityPubKey);
+        return found === void 0;
+      },
+      addReport: async function(r) {
+        const found = await db.get("reports", r.pow.hash);
+        db.put("cps", r, r.pow.hash);
+        return found === void 0;
+      },
+      addIssuedReport: async function(r) {
+        const found = await db.get("issued-reports", r.pow.hash);
+        db.put("cps", r, r.pow.hash);
+        return found === void 0;
+      },
+      addOffer: async function(o) {
+        const found = await db.get("offers", o.pow.hash);
+        db.put("cps", o, o.pow.hash);
+        return found === void 0;
+      },
+      addIssuedOffer: async function(o) {
+        const found = await db.get("issued-offers", o.pow.hash);
+        db.put("cps", o, o.pow.hash);
+        return found === void 0;
+      },
+      removeOracles: async function(pubkeys) {
+        Promise.all(pubkeys.map((pub) => db.delete("oracles", pub)));
+      },
+      removeCps: async function(pubkeys) {
+        await Promise.all(pubkeys.map((pub) => db.delete("cps", pub)));
+      },
+      removeReports: async function(pubkeys) {
+        await Promise.all(pubkeys.map((pub) => db.delete("reports", pub)));
+      },
+      removeOffers: async function(pubkeys) {
+        await Promise.all(pubkeys.map((pub) => db.delete("offers", pub)));
+      },
+      removeIssuedOffers: async function(pubkeys) {
+        await Promise.all(pubkeys.map((pub) => db.delete("issued-offers", pub)));
+      },
+      removeIssuedReports: async function(pubkeys) {
+        await Promise.all(pubkeys.map((pub) => db.delete("issued-reports", pub)));
+      },
+      allOracles: function(q, opredicate, handler) {
+        throw new Error("Function not implemented.");
+      },
+      allCps: function(q, cppredicate, handler) {
+        throw new Error("Function not implemented.");
+      },
+      queryOracles: async function(q, paging) {
+        const oracles = db.transaction("oracles").store;
+        const result = [];
+        var i = 0;
+        for await (const cursor of oracles) {
+          if (q.where(cursor.value)) {
+            i++;
+            if (i > paging.chunkSize * (paging.page + 1)) {
+              break;
+            }
+            if (i > paging.chunkSize * paging.page) {
+              result.push(cursor.value);
+            }
+          }
+        }
+        return result;
+      },
+      queryCapabilities: async function(q, paging) {
+        const cps = db.transaction("cps").store;
+        const result = [];
+        var i = 0;
+        for await (const cursor of cps) {
+          if (q.where(cursor.value)) {
+            i++;
+            if (i > paging.chunkSize * (paging.page + 1)) {
+              break;
+            }
+            if (i > paging.chunkSize * paging.page) {
+              result.push(cursor.value);
+            }
+          }
+        }
+        return result;
+      },
+      queryOffers: async function(q, paging) {
+        const offers = db.transaction("offers").store;
+        const result = [];
+        var i = 0;
+        for await (const cursor of offers) {
+          if (q.where(cursor.value)) {
+            i++;
+            if (i > paging.chunkSize * (paging.page + 1)) {
+              break;
+            }
+            if (i > paging.chunkSize * paging.page) {
+              result.push(cursor.value);
+            }
+          }
+        }
+        return result;
+      },
+      queryReports: async function(q, paging) {
+        const reports = db.transaction("reports").store;
+        const result = [];
+        var i = 0;
+        for await (const cursor of reports) {
+          if (q.where(cursor.value)) {
+            i++;
+            if (i > paging.chunkSize * (paging.page + 1)) {
+              break;
+            }
+            if (i > paging.chunkSize * paging.page) {
+              result.push(cursor.value);
+            }
+          }
+        }
+        return result;
+      },
+      queryIssuedOffers: async function(q, paging) {
+        const offers = db.transaction("issued-offers").store;
+        const result = [];
+        var i = 0;
+        for await (const cursor of offers) {
+          if (q.where(cursor.value)) {
+            i++;
+            if (i > paging.chunkSize * (paging.page + 1)) {
+              break;
+            }
+            if (i > paging.chunkSize * paging.page) {
+              result.push(cursor.value);
+            }
+          }
+        }
+        return result;
+      },
+      queryIssuedReports: async function(q, paging) {
+        const reports = db.transaction("issued-reports").store;
+        const result = [];
+        var i = 0;
+        for await (const cursor of reports) {
+          if (q.where(cursor.value)) {
+            i++;
+            if (i > paging.chunkSize * (paging.page + 1)) {
+              break;
+            }
+            if (i > paging.chunkSize * paging.page) {
+              result.push(cursor.value);
+            }
+          }
+        }
+        return result;
+      },
+      allIssuedOffers: function(handler) {
+        throw new Error("Function not implemented.");
+      },
+      allIssuedReports: function(handler) {
+        throw new Error("Function not implemented.");
+      }
+    };
+    const remoteStorage = {
+      addOracle: function(o) {
+        throw new Error("Function not implemented.");
+      },
+      addCp: function(cp) {
+        throw new Error("Function not implemented.");
+      },
+      addReport: function(r) {
+        throw new Error("Function not implemented.");
+      },
+      addIssuedReport: function(r) {
+        throw new Error("Function not implemented.");
+      },
+      addOffer: function(o) {
+        throw new Error("Function not implemented.");
+      },
+      addIssuedOffer: function(o) {
+        throw new Error("Function not implemented.");
+      },
+      removeOracles: function(pubkeys) {
+        throw new Error("Function not implemented.");
+      },
+      removeCps: function(pubkeys) {
+        throw new Error("Function not implemented.");
+      },
+      removeReports: function(pubkeys) {
+        throw new Error("Function not implemented.");
+      },
+      removeOffers: function(pubkeys) {
+        throw new Error("Function not implemented.");
+      },
+      removeIssuedOffers: function(pubkeys) {
+        throw new Error("Function not implemented.");
+      },
+      removeIssuedReports: function(pubkeys) {
+        throw new Error("Function not implemented.");
+      },
+      allOracles: function(q, opredicate, handler) {
+        throw new Error("Function not implemented.");
+      },
+      allCps: function(q, cppredicate, handler) {
+        throw new Error("Function not implemented.");
+      },
+      queryOracles: function(q, paging) {
+        throw new Error("Function not implemented.");
+      },
+      queryCapabilities: function(q, paging) {
+        throw new Error("Function not implemented.");
+      },
+      queryOffers: function(q, paging) {
+        throw new Error("Function not implemented.");
+      },
+      queryReports: function(q, paging) {
+        throw new Error("Function not implemented.");
+      },
+      queryIssuedOffers: function(q, paging) {
+        throw new Error("Function not implemented.");
+      },
+      queryIssuedReports: function(q, paging) {
+        throw new Error("Function not implemented.");
+      },
+      allIssuedOffers: function(handler) {
+        throw new Error("Function not implemented.");
+      },
+      allIssuedReports: function(handler) {
+        throw new Error("Function not implemented.");
+      }
+    };
+    const adaptedStorage = {
+      addOracle: function(o) {
+        throw new Error("Function not implemented.");
+      },
+      addCp: function(cp) {
+        throw new Error("Function not implemented.");
+      },
+      addReport: function(r) {
+        throw new Error("Function not implemented.");
+      },
+      addIssuedReport: function(r) {
+        throw new Error("Function not implemented.");
+      },
+      addOffer: function(o) {
+        throw new Error("Function not implemented.");
+      },
+      addIssuedOffer: function(o) {
+        throw new Error("Function not implemented.");
+      },
+      removeOracles: function(pubkeys) {
+        throw new Error("Function not implemented.");
+      },
+      removeCps: function(pubkeys) {
+        throw new Error("Function not implemented.");
+      },
+      removeReports: function(pubkeys) {
+        throw new Error("Function not implemented.");
+      },
+      removeOffers: function(pubkeys) {
+        throw new Error("Function not implemented.");
+      },
+      removeIssuedOffers: function(pubkeys) {
+        throw new Error("Function not implemented.");
+      },
+      removeIssuedReports: function(pubkeys) {
+        throw new Error("Function not implemented.");
+      },
+      allOracles: function(q, opredicate, handler) {
+        throw new Error("Function not implemented.");
+      },
+      allCps: function(q, cppredicate, handler) {
+        throw new Error("Function not implemented.");
+      },
+      queryOracles: function(q, paging) {
+        throw new Error("Function not implemented.");
+      },
+      queryCapabilities: function(q, paging) {
+        throw new Error("Function not implemented.");
+      },
+      queryOffers: function(q, paging) {
+        throw new Error("Function not implemented.");
+      },
+      queryReports: function(q, paging) {
+        throw new Error("Function not implemented.");
+      },
+      queryIssuedOffers: function(q, paging) {
+        throw new Error("Function not implemented.");
+      },
+      queryIssuedReports: function(q, paging) {
+        throw new Error("Function not implemented.");
+      },
+      allIssuedOffers: function(handler) {
+        throw new Error("Function not implemented.");
+      },
+      allIssuedReports: function(handler) {
+        throw new Error("Function not implemented.");
+      }
+    };
+    const node = {
+      peers: [],
+      discovered: function(peer) {
+      },
+      broadcastPeer: function(peer) {
+      },
+      processApiRequest: async function(command, content) {
+      },
+      broadcastMessage: function(command, content) {
+      }
+    };
+    window.traderApi = traderApi(cfg.trader, cfg, api, indexDBstorage, node);
+    window.storage = indexDBstorage;
+    window.btc = {
+      generateOpeningTransaction,
+      generateClosingTransaction,
+      generateCetTransaction,
+      generateCetRedemptionTransaction
+    };
+  })();
 })();
 /*! Bundled license information:
 
