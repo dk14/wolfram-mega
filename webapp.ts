@@ -1,4 +1,4 @@
-import { Collector, JsPredicate_, Predicate, Predicate_, TraderApi, TraderStorage, traderApi } from './src/client-api/trader-api';
+import { Collector, Predicate, TraderApi, TraderStorage, traderApi } from './src/client-api/trader-api';
 import { MempoolConfig } from './src/config';
 import { startP2P } from './src/p2p';
 import { OracleId, OracleCapability, OfferMsg, Report, PagingDescriptor } from './src/protocol';
@@ -6,8 +6,9 @@ import { FacilitatorNode, api as ndapi} from './src/node';
 import * as btc from "./src/client-api/contracts/generate-btc-tx";
 import Sandbox from "@nyariv/sandboxjs";
 import { openDB } from 'idb';
+import { MatchingEngine, matchingEngine } from './src-web/matching';
 
-type Storage = TraderStorage<TraderQuery<OracleId>, TraderQuery<OracleCapability>, TraderQuery<Report>, TraderQuery<OfferMsg>>
+export type Storage = TraderStorage<TraderQuery<OracleId>, TraderQuery<OracleCapability>, TraderQuery<Report>, TraderQuery<OfferMsg>>
 
 
 export interface TraderQuery<T> {
@@ -23,9 +24,10 @@ export interface BtcApi {
 
 declare global {
     interface Window {
-        traderApi: TraderApi<TraderQuery<OracleId>, TraderQuery<OracleCapability>, Predicate_>
+        traderApi: TraderApi<TraderQuery<OracleId>, TraderQuery<OracleCapability>, boolean>
         storage: Storage
         btc: BtcApi
+        matching: MatchingEngine
     }
 }
 
@@ -94,15 +96,15 @@ startP2P(cfg)
 
 
 const adaptjs = (js: string) => async x => {return safeEval(js, x)}
-const adaptPred = <T>(p: Predicate<T>) => p.toString()
-const adaptQuery = <T>(q: TraderQuery<T>) => q.where.toString()
+const adaptPred = <T>(p: Predicate<T, boolean>) => "(" + p.toString() + ")(this)"
+const adaptQuery = <T>(q: TraderQuery<T>) => "(" + q.where.toString() + ")(this)"
 
-const traderApiRemote: TraderApi<string, string, JsPredicate_> = {
+const traderApiRemote: TraderApi<string, string, string> = {
     collectOracles: async function (tag: string, predicate: string, limit: number): Promise<Collector<OracleId>> {
         await fetch('./collectOracles?tag=' + encodeURIComponent(tag), {
             method: 'post',
             body: JSON.stringify({
-                predicate: 'true',
+                predicate,
                 limit
             }),
             headers: {'Content-Type': 'application/json'}
@@ -174,7 +176,7 @@ const traderApiRemote: TraderApi<string, string, JsPredicate_> = {
     }
 }
 
-const traderApiRemoteAdapted: TraderApi<TraderQuery<OracleId>, TraderQuery<OracleCapability>, Predicate_> = {
+const traderApiRemoteAdapted: TraderApi<TraderQuery<OracleId>, TraderQuery<OracleCapability>, boolean> = {
     
     collectOracles: async function (tag: string, predicate: (cp: OracleId) => Promise<boolean>, limit: number): Promise<Collector<OracleId>> {
         return traderApiRemote.collectOracles(tag, adaptPred(predicate), limit)
@@ -552,3 +554,5 @@ window.btc = {
 }
 
 })()
+
+window.matching = matchingEngine
