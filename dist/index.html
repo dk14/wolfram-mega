@@ -35,6 +35,8 @@
 
         <label for="question">Question:</label>
         <input type="text" id="question" size="50" name="question" value="Who won?">
+        <label for="question">Cp Pub:</label>
+        <input type="text" id="cppub" size="50" name="cppub" value="PUB1">
         
         <input type="button" id="capability" value="Register Capability!">
         <br>
@@ -137,13 +139,14 @@
 
         const capabilityForm = document.getElementById('capability');
         const question = document.getElementById('question');
+        const cpPub = document.getElementById('cppub');
         capabilityForm.onclick = function(event){
             const xhr = new XMLHttpRequest();
             xhr.open('POST','./capability')
             xhr.setRequestHeader("Content-Type", "application/json");
 
             const pow = {"magicNo": 1000, "difficulty":0, "algorithm": "SHA256", "hash": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"}
-            capability = {"seqNo": 1, "cTTL": 0, "pow": pow, "capabilityPubKey": "KEY", "oracleSignature": "MEUCIQDM12f6H73XCMIgnFA/V/JpMnH5/TPbiLRyueAk/Mo+zAIgU/7KFjiBx7AZ/AmXNS4y3/XEOX+gsGdRYU+CgKfcwHk=", "oracleSignatureType": "SHA256"}
+            capability = {"seqNo": 1, "cTTL": 0, "pow": pow, "capabilityPubKey": cpPub.value, "oracleSignature": "MEUCIQDM12f6H73XCMIgnFA/V/JpMnH5/TPbiLRyueAk/Mo+zAIgU/7KFjiBx7AZ/AmXNS4y3/XEOX+gsGdRYU+CgKfcwHk=", "oracleSignatureType": "SHA256"}
             capability.oraclePubKey = pubkey.value
             capability.question = question.value
             xhr.send(JSON.stringify(capability));
@@ -209,7 +212,7 @@
             xhr.onreadystatechange = function() {
                 if (xhr.readyState == XMLHttpRequest.DONE) {
                     const capabilities = JSON.parse(xhr.responseText)
-                    capabilityTable.innerHTML = capabilities.map(x => x.question).join("<br>")
+                    capabilityTable.innerHTML = capabilities.map(x => x.question + " pub=" + x.capabilityPubKey).join("<br>")
                 }
             }
 

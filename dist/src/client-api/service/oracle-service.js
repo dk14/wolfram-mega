@@ -46,9 +46,14 @@ const url = __importStar(require("url"));
 const ws_1 = require("ws");
 const readline = __importStar(require("readline"));
 const fs = __importStar(require("fs"));
-const safe_eval_1 = __importDefault(require("safe-eval"));
-const startOracleService = (cfg) => {
-    const storage = (0, capability_storage_1.capabilityStorage)(cfg.oracle.dbPath, 1, 100);
+const sandboxjs_1 = __importDefault(require("@nyariv/sandboxjs"));
+const safeEval = (expression, data) => {
+    const sandbox = new sandboxjs_1.default();
+    const exec = sandbox.compile("return " + expression);
+    const res = exec(data).run();
+    return res;
+};
+const startOracleService = (cfg, storage = (0, capability_storage_1.capabilityStorage)(cfg.oracle.dbPath, 1, 100)) => {
     const concfg = {
         maxConnections: cfg.maxConnections
     };
@@ -58,6 +63,7 @@ const startOracleService = (cfg) => {
         res.statusCode = 200;
         try {
             const reqUrl = url.parse(req.url, true);
+            console.log('Request type: ' + req.method + ' Endpoint: ' + req.url);
             const pubkey = typeof reqUrl.query.pubkey === "string" ? reqUrl.query.pubkey : "";
             const difficulty = typeof reqUrl.query.difficulty === "string" ? reqUrl.query.difficulty : "";
             const pageNo = typeof reqUrl.query.pageNo === "string" ? parseInt(reqUrl.query.pageNo) : 0;
@@ -106,7 +112,7 @@ const startOracleService = (cfg) => {
                 res.end("{}");
             }
             else if (reqUrl.pathname == '/viewStoredCapabilities') {
-                const q = { where: async (x) => { return (0, safe_eval_1.default)(query, x); } };
+                const q = { where: async (x) => { return safeEval(query, x); } };
                 const cps = await storage.listCapabilities(q, paging);
                 res.setHeader('content-Type', 'application/json');
                 res.end(JSON.stringify(cps));

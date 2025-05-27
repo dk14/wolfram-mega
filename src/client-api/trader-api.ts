@@ -1,8 +1,7 @@
-import { Api, api } from "../node"
+import { Api, api, FacilitatorNode } from "../node"
 import { OfferMsg, OracleCapability, OracleId, PagingDescriptor, Report } from "../protocol"
 import { MempoolConfig } from "../config"
 import { powOverOffer, powOverReport } from "../pow";
-import { p2pNode } from "../p2p";
 
 
 export interface TraderStorage<OracleQuery, CpQuery, RpQuery, MatchingQuery> {
@@ -86,11 +85,12 @@ export interface TraderCfg {
     btcInteractiveSignerEndpoint?: string
 }
 
-export function traderApi<OracleQuery, CpQuery, RpQuery, MatchingQuery, MegaPeerT>(
+export function traderApi<OracleQuery, CpQuery, RpQuery, MatchingQuery, MegaPeerT, Neighbor>(
     tradercfg: TraderCfg,
     poolcfg: MempoolConfig<MegaPeerT>, 
     nodeApi: Api, 
-    storage: TraderStorage<OracleQuery, CpQuery, RpQuery, MatchingQuery>): TraderApi<OracleQuery, CpQuery> {
+    storage: TraderStorage<OracleQuery, CpQuery, RpQuery, MatchingQuery>,
+    p2pNode: FacilitatorNode<Neighbor>): TraderApi<OracleQuery, CpQuery> {
 
     function getRandomInt(max) {
         return Math.floor(Math.random() * max);

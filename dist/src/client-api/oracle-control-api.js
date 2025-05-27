@@ -9,6 +9,17 @@ function oracleControlApi(poolcfg, nodeApi, storage, connections, concfg) {
     var signer = null;
     var cpsigner = null;
     var adobserver = null;
+    const signPowIncCp = async (cp) => {
+        if (signer !== null) {
+            cp.oracleSignature = "";
+            const powsave = cp.pow;
+            cp.pow = undefined;
+            cp.seqNo++;
+            const signed = await cpsigner(cp);
+            signed.pow = powsave;
+            return signed;
+        }
+    };
     return {
         id: async function () {
             return id;
@@ -20,7 +31,7 @@ function oracleControlApi(poolcfg, nodeApi, storage, connections, concfg) {
             if (id === null) {
                 id = {
                     pubkey: cfg.id.pubkey,
-                    seqNo: 0,
+                    seqNo: (await storage.readOracleAdSeqNo())[0],
                     cTTL: 0,
                     pow: undefined,
                     bid: { amount: 0, proof: "" },
@@ -28,7 +39,12 @@ function oracleControlApi(poolcfg, nodeApi, storage, connections, concfg) {
                     oracleSignatureType: cfg.id.oracleSignatureType,
                     manifestUri: cfg.id.manifestUri
                 };
-                id.pow = await (0, pow_1.powOverOracleId)(id, 0);
+                if (await storage.readOracleAdSeqNo()[1] === undefined) {
+                    id.pow = await (0, pow_1.powOverOracleId)(id, 0);
+                }
+                else {
+                    id.pow = await storage.readOracleAdSeqNo()[1];
+                }
             }
             advertiser = async () => {
                 try {
@@ -50,6 +66,7 @@ function oracleControlApi(poolcfg, nodeApi, storage, connections, concfg) {
                         })));
                     }
                     id.seqNo++;
+                    await storage.storeOracleAdSeqNo(id.seqNo, id.pow);
                     if (signer !== null) {
                         id.oracleSignature = "";
                         id = await signer(id);
@@ -62,13 +79,9 @@ function oracleControlApi(poolcfg, nodeApi, storage, connections, concfg) {
                         p2p_1.p2pNode.broadcastMessage('oracle', JSON.stringify(structuredClone(id)));
                     }
                     await Promise.all((await storage.listActiveCapabilities()).map(async (cp) => {
+                        console.log("[advertise] CpPub = " + cp.capabilityPubKey);
                         if (cpsigner !== null) {
-                            cp.oracleSignature = "";
-                            const difficulty = cp.pow?.difficulty ?? 1;
-                            cp.pow = undefined;
-                            cp.seqNo++;
-                            const signed = await cpsigner(cp);
-                            signed.pow = await (0, pow_1.powOverOracleCapability)(signed, difficulty === 0 ? 1 : difficulty);
+                            const signed = await signPowIncCp(cp);
                             storage.addCapability(signed);
                             const res = await nodeApi.announceCapability(poolcfg, signed);
                             if (res !== "success" && res !== "low pow difficulty" && !res.includes("no oracle")) {
@@ -79,12 +92,17 @@ function oracleControlApi(poolcfg, nodeApi, storage, connections, concfg) {
                             }
                         }
                         else {
-                            cp.pow.difficulty = 0;
+                            const unsigned = structuredClone(cp);
+                            unsigned.pow.difficulty = 0;
+                            unsigned.seqNo++;
                             cp.seqNo++;
                             storage.addCapability(cp);
-                            const res = await nodeApi.announceCapability(poolcfg, cp);
+                            const res = await nodeApi.announceCapability(poolcfg, structuredClone(unsigned));
                             if (res !== "success" && res !== "low pow difficulty" && !res.includes("no oracle")) {
-                                console.error(res + " cppub=" + cp.capabilityPubKey);
+                                console.error(res + " _cppub=" + unsigned.capabilityPubKey);
+                            }
+                            if (p2p_1.p2pNode !== undefined) {
+                                p2p_1.p2pNode.broadcastMessage('capability', JSON.stringify(structuredClone(unsigned)));
                             }
                         }
                     }));
@@ -109,7 +127,7 @@ function oracleControlApi(poolcfg, nodeApi, storage, connections, concfg) {
         },
         upgradeCapabilityPow: async function (capabilityPubKey, difficulty) {
             const cp = await storage.getCapability(capabilityPubKey);
-            if (cp !== undefined && cp.oracleSignature !== undefined) {
+            if (cp !== undefined) {
                 storage.updateCapabilityPow(capabilityPubKey, await (0, pow_1.powOverOracleCapability)(cp, difficulty));
             }
         },
@@ -124,6 +142,11 @@ function oracleControlApi(poolcfg, nodeApi, storage, connections, concfg) {
                 oraclePubKey: id.pubkey,
                 capabilityPubKey: cp.capabilityPubKey,
                 question: cp.question,
+                off: cp.off,
+                params: cp.params,
+                answers: cp.answers,
+                endpoint: cp.endpoint,
+                capabilitySignatureType: cp.capabilitySignatureType,
                 seqNo: 0,
                 cTTL: 0,
                 oracleSignature: "",
@@ -133,12 +156,22 @@ function oracleControlApi(poolcfg, nodeApi, storage, connections, concfg) {
             await storage.addCapability(capability);
         },
         deactivateCapability: async function (capabilityPubKey) {
+            const cp = await storage.getCapability(capabilityPubKey);
+            cp.off = true;
+            if (p2p_1.p2pNode !== undefined) {
+                p2p_1.p2pNode.broadcastMessage('capability', JSON.stringify(structuredClone(await signPowIncCp(cp))));
+            }
             await storage.deactivateCapability(capabilityPubKey);
         },
         activateCapability: async function (capabilityPubKey) {
             await storage.activateCapability(capabilityPubKey);
         },
         dropCapability: async function (capabilityPubKey) {
+            const cp = await storage.getCapability(capabilityPubKey);
+            cp.off = true;
+            if (p2p_1.p2pNode !== undefined) {
+                p2p_1.p2pNode.broadcastMessage('capability', JSON.stringify(structuredClone(await signPowIncCp(cp))));
+            }
             await storage.dropCapability(capabilityPubKey);
         },
         watchMyRankSample: function (subscriber) {

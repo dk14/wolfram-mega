@@ -2,7 +2,9 @@
     "maxOracles": 100,
     "maxCapabilities": 100,
     "maxReports": 100,
+    "maxOffers": 100,
     "maxConnections": 100,
+    "maxMsgLength": 1000000,
     "httpPort": 8081,
     "p2pPort": 8334,
     "hostname": "localhost",
@@ -15,7 +17,7 @@
             "pubkey": "AAA",
             "oracleSignatureType" : "SHA256"
         },
-        "adInterval": 100,
+        "adInterval": 10000,
         "adTopN": 10,
         "dbPath": "./db/myoracle",
         "httpPort": 9080,
@@ -35,6 +37,9 @@
         "maxOffersPages": 2,
         "maxCollectors": 2,
         "dbPath": "./db",
-        "httpPort": 7080
+        "httpPort": 7080,
+        "heliosNetwork": "https://d1t0d7c2nekuk0.cloudfront.net/preview.json",
+        "btcSignerEndpoint": "http://localhost:9593/sign",
+        "btcInteractiveSignerEndpoint": "http://localhost:9593/"
     }
 }

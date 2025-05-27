@@ -17,7 +17,19 @@
     "btc-signer": "npx tsx src/client-api/utils/btc-signer.ts",
     "gen-keypair": "npx tsx src/client-api/utils/gen-keypair.ts",
     "demo": "npx tsx test/demo.ts",
-    "build": "tsc -p tsconfig.json && cp wolfram-mega-spec.yaml dist/ && cp index.html dist/ && cp -r cfg dist/"
+    "build": "tsc -p tsconfig.json && cp wolfram-mega-spec.yaml dist/ && cp index.html dist/ && cp -r cfg dist/",
+    "bundle": "esbuild webapp.ts --bundle --outfile=bundle.js"
+  },
+  "browser": {
+    "net": false,
+    "https": false,
+    "fs": false,
+    "openapi-enforcer": false,
+    "node-fetch": false,
+    "crypto": false,
+    "inspector": false,
+    "events": false,
+    "tiny-secp256k1": false
   },
   "bin": {
     "wf-mega-peer": "./bin/wf-mega-peer"
@@ -30,6 +42,7 @@
   "license": "ISC",
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "^1.0.2",
+    "esbuild": "0.25.5",
     "source-map-support": "^0.5.21",
     "ts-node": "^10.9.2",
     "tsx": "^4.19.3",

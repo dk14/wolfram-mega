@@ -36,38 +36,17 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.api = exports.testOnlyReset = exports.checkOracleIdSignature = exports.checkCapabilitySignature = exports.checkPow = exports.testOnlySign = exports.testOnlyGenerateKeyPair = exports.createPemPk = exports.createPemPub = void 0;
+exports.api = exports.testOnlyReset = exports.checkOracleIdSignature = exports.checkCapabilitySignature = exports.checkPow = void 0;
 /* c8 ignore start */
 const crypto_1 = require("crypto");
-const request = __importStar(require("request"));
+const node_fetch_1 = __importDefault(require("node-fetch"));
+const https_1 = __importDefault(require("https"));
 const fs = __importStar(require("fs"));
 const util_1 = require("./util");
 const openapi_enforcer_1 = __importDefault(require("openapi-enforcer"));
 const inspector_1 = require("inspector");
+const util_2 = require("./util");
 const openapi = (0, openapi_enforcer_1.default)(__dirname + '/../wolfram-mega-spec.yaml');
-/* c8 ignore end */
-const curve = 'secp521r1';
-const regexPem = /.{64}/g;
-const createPemPub = (base64) => {
-    return '-----BEGIN PUBLIC KEY-----\n' + base64.replace(regexPem, '$&\n') + '\n-----END PUBLIC KEY-----\n';
-};
-exports.createPemPub = createPemPub;
-const createPemPk = (base64) => {
-    return '-----BEGIN EC PRIVATE KEY-----\n' + base64.replace(regexPem, '$&\n') + '\n-----END EC PRIVATE KEY-----\n';
-};
-exports.createPemPk = createPemPk;
-const testOnlyGenerateKeyPair = () => {
-    const { publicKey, privateKey } = (0, crypto_1.generateKeyPairSync)('ec', { namedCurve: curve });
-    return {
-        pub: publicKey.export({ type: 'spki', format: 'der' }).toString('base64'),
-        pk: privateKey.export({ type: 'sec1', format: 'der' }).toString('base64')
-    };
-};
-exports.testOnlyGenerateKeyPair = testOnlyGenerateKeyPair;
-const testOnlySign = (msg, pk) => {
-    return (0, crypto_1.createSign)('SHA256').update(msg).sign((0, exports.createPemPk)(pk), 'base64');
-};
-exports.testOnlySign = testOnlySign;
 const checkPow = (pow, preimage) => {
     if (!pow.hash.endsWith("0".repeat(pow.difficulty))) {
         return false;
@@ -80,7 +59,7 @@ const checkCapabilitySignature = (cp) => {
     const pow = cp.pow;
     cp.oracleSignature = "";
     cp.pow = undefined;
-    const res = (0, crypto_1.createVerify)(cp.oracleSignatureType).update(JSON.stringify(cp)).verify((0, exports.createPemPub)(cp.oraclePubKey), signature, 'base64');
+    const res = (0, crypto_1.createVerify)(cp.oracleSignatureType).update(JSON.stringify(cp)).verify((0, util_2.createPemPub)(cp.oraclePubKey), signature, 'base64');
     cp.oracleSignature = signature;
     cp.pow = pow;
     return res;
@@ -89,7 +68,7 @@ exports.checkCapabilitySignature = checkCapabilitySignature;
 const checkOracleIdSignature = (o) => {
     const signature = o.oracleSignature;
     o.oracleSignature = "";
-    const res = (0, crypto_1.createVerify)(o.oracleSignatureType).update(JSON.stringify(o)).verify((0, exports.createPemPub)(o.pubkey), signature, 'base64');
+    const res = (0, crypto_1.createVerify)(o.oracleSignatureType).update(JSON.stringify(o)).verify((0, util_2.createPemPub)(o.pubkey), signature, 'base64');
     o.oracleSignature = signature;
     return res;
 };
@@ -144,35 +123,28 @@ const validateBid = async (cfg, bid) => {
         return false;
     }
     if (bid.paymentType === undefined || bid.paymentType === "lightning") {
-        let options = {
-            url: 'https://' + cfg.lnRestHost + '/v1/invoice/' + bid.proof,
-            rejectUnauthorized: false,
-            json: true,
-            headers: {
-                'Grpc-Metadata-macaroon': fs.readFileSync(cfg.lnMacaroonPath).toString('hex'),
-            },
-        };
-        return new Promise(function (resolve, reject) {
-            request.get(options, function (error, response, body) {
-                if (!error && response.statusCode === 200) {
-                    if (body.payment_addr === cfg.facilitatorId?.rewardAddress && body.amt_paid_msat === bid.amount && body.state === "SETTLED") {
-                        resolve(true);
-                    }
-                    else {
-                        resolve(false);
-                    }
-                }
-                else {
-                    reject(error);
-                }
+        try {
+            const headers = new Headers();
+            headers['Grpc-Metadata-macaroon'] = fs.readFileSync(cfg.lnMacaroonPath).toString('hex');
+            const httpsAgent = new https_1.default.Agent({
+                rejectUnauthorized: false
             });
-        });
+            const body = await (await (0, node_fetch_1.default)('https://' + cfg.lnRestHost + '/v1/invoice/' + bid.proof, {
+                headers,
+                agent: httpsAgent,
+            })).json();
+            return body.payment_addr === cfg.facilitatorId?.rewardAddress && body.amt_paid_msat === bid.amount && body.state === "SETTLED";
+        }
+        catch (err) {
+            inspector_1.console.log(err);
+            return false;
+        }
     }
     return false;
     /* c8 ignore end */
 };
 const validateFact = (fact, req) => {
-    return (0, crypto_1.createVerify)(fact.signatureType).update(fact.factWithQuestion).verify((0, exports.createPemPub)(req.capabilityPubKey), fact.signature, 'base64');
+    return (0, crypto_1.createVerify)(fact.signatureType).update(fact.factWithQuestion).verify((0, util_2.createPemPub)(req.capabilityPubKey), fact.signature, 'base64');
 };
 const testOnlyReset = () => {
     //could've made api a factory, but this is more realistic, 
@@ -238,7 +210,7 @@ exports.api = {
         if (cp.pow.difficulty == 0 || (0, exports.checkCapabilitySignature)(cp)) {
             if (cp.pow.difficulty == 0 || (0, exports.checkPow)(cp.pow, cp.oracleSignature)) {
                 if (checkCapabilityRank(cfg, cp, mempool.oracles[cp.oraclePubKey])) {
-                    const found = mempool.oracles[cp.oraclePubKey].capabilies.find(x => x.question == cp.question);
+                    const found = mempool.oracles[cp.oraclePubKey].capabilies.find(x => x.capabilityPubKey == cp.capabilityPubKey);
                     if (found !== undefined) {
                         if (found.seqNo < cp.seqNo && found.pow.difficulty <= cp.pow.difficulty) {
                             found.seqNo = cp.seqNo;

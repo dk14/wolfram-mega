@@ -1,10 +1,10 @@
 import { schnorrApi } from "./btc/schnorr";
 import { PublicSession, txApi, UTxO } from "./btc/tx";
 
-type PubKey = string
-type Hex = string
-type Msg = string
-type TxId = string
+export type PubKey = string
+export type Hex = string
+export type Msg = string
+export type TxId = string
 
 const schnorr = schnorrApi()
 const tx = txApi(schnorr)

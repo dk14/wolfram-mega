@@ -63,40 +63,58 @@ const traderStorage = (path, pageSize) => {
     };
     const storage = {
         addOracle: async function (o) {
-            transformPage("oracles", o.pubkey.slice(0, -pageSize * 4), page => {
+            var created = false;
+            await transformPage("oracles", o.pubkey.slice(0, -pageSize * 4), page => {
+                created = page[o.pubkey] === undefined;
                 page[o.pubkey] = o;
                 return page;
             });
+            return created;
         },
         addCp: async function (cp) {
-            transformPage("capabilities", cp.capabilityPubKey.slice(0, -pageSize * 4), page => {
+            var created = false;
+            await transformPage("capabilities", cp.capabilityPubKey.slice(0, -pageSize * 4), page => {
+                created = page[cp.capabilityPubKey] === undefined;
                 page[cp.capabilityPubKey] = cp;
                 return page;
             });
+            return created;
         },
         addReport: async function (r) {
-            transformPage("reports", r.pow.hash.slice(0, -pageSize * 4), page => {
+            var created = false;
+            await transformPage("reports", r.pow.hash.slice(0, -pageSize * 4), page => {
+                created = page[r.pow.hash] === undefined;
                 page[r.pow.hash] = r;
                 return page;
             });
+            return created;
         },
         addIssuedReport: async function (r) {
-            transformPage("issued-reports", r.pow.hash.slice(0, -pageSize * 4), page => {
+            var created = false;
+            await transformPage("issued-reports", r.pow.hash.slice(0, -pageSize * 4), page => {
+                created = page[r.pow.hash] === undefined;
                 page[r.pow.hash] = r;
                 return page;
             });
+            return created;
         },
         addOffer: async function (o) {
-            transformPage("offers", o.pow.hash.slice(0, -pageSize * 4), page => {
+            var created = false;
+            await transformPage("offers", o.pow.hash.slice(0, -pageSize * 4), page => {
+                created = page[o.pow.hash] === undefined;
                 page[o.pow.hash] = o;
                 return page;
             });
+            return created;
         },
         addIssuedOffer: async function (o) {
-            transformPage("issued-offers", o.pow.hash.slice(0, -pageSize * 4), page => {
+            var created = false;
+            await transformPage("issued-offers", o.pow.hash.slice(0, -pageSize * 4), page => {
+                created = page[o.pow.hash] === undefined;
                 page[o.pow.hash] = o;
                 return page;
             });
+            return created;
         },
         removeOracles: async function (pubkeys) {
             pubkeys.forEach(pub => {

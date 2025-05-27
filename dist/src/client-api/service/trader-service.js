@@ -40,24 +40,33 @@ exports.startTraderService = void 0;
 const node_1 = require("../../node");
 const http = __importStar(require("http"));
 const url = __importStar(require("url"));
-const safe_eval_1 = __importDefault(require("safe-eval"));
 const trader_api_1 = require("../trader-api");
 const trader_storage_1 = require("../client-storage/trader-storage");
 const fs = __importStar(require("fs"));
 const generate_cardano_tx_1 = require("../contracts/generate-cardano-tx");
-const startTraderService = (cfg) => {
-    const storage = (0, trader_storage_1.traderStorage)(cfg.trader.dbPath, 1);
+const btc = __importStar(require("../contracts/generate-btc-tx"));
+const tx_1 = require("../contracts/btc/tx");
+const sandboxjs_1 = __importDefault(require("@nyariv/sandboxjs"));
+const safeEval = (expression, data) => {
+    const sandbox = new sandboxjs_1.default();
+    const exec = sandbox.compile("return " + expression);
+    const res = exec(data).run();
+    return res;
+};
+const startTraderService = (cfg, storage = (0, trader_storage_1.traderStorage)(cfg.trader.dbPath, 1)) => {
+    global.cfg = cfg;
     const api = (0, trader_api_1.traderApi)(cfg.trader, cfg, node_1.api, storage);
     const collectors = {};
     http.createServer(async (req, res) => {
         res.statusCode = 200;
         try {
+            console.log('Request type: ' + req.method + ' Endpoint: ' + req.url);
             const reqUrl = url.parse(req.url, true);
             const tag = typeof reqUrl.query.tag === "string" ? reqUrl.query.tag : "";
             const pageNo = typeof reqUrl.query.pageNo === "string" ? parseInt(reqUrl.query.pageNo) : 0;
             const pageSize = typeof reqUrl.query.pageSize === "string" ? parseInt(reqUrl.query.pageSize) : 10;
             const query = typeof reqUrl.query.pubkey === "string" ? reqUrl.query.pubkey : "true";
-            const q = { where: async (x) => { return (0, safe_eval_1.default)(query, x); } };
+            const q = { where: async (x) => { return safeEval(query, x); } };
             const pubkey = typeof reqUrl.query.pubkey === "string" ? reqUrl.query.pubkey : "";
             const paging = {
                 page: pageNo,
@@ -81,13 +90,23 @@ const startTraderService = (cfg) => {
                 api.stopBroadcastingIssuedReports();
             }
             else if (reqUrl.pathname == '/listCollectors') {
-                res.end(JSON.stringify(Object.keys(collectors).map(tag => `${collectors[tag].type}:${tag}`)));
+                res.end(JSON.stringify(Object.keys(collectors).map(tag => `${collectors[tag].type}:${tag}(${collectors[tag].count()})`)));
             }
             else if (reqUrl.pathname == '/listOracles') {
                 res.end(JSON.stringify(await storage.queryOracles(q, paging)));
             }
             else if (reqUrl.pathname == '/listCapabilities') {
                 res.end(JSON.stringify(await storage.queryCapabilities(q, paging)));
+            }
+            else if (reqUrl.pathname == '/capabilityEndpoint') {
+                const out = await storage.queryCapabilities({ where: async (cp) => cp.capabilityPubKey === pubkey }, paging);
+                const found = out.map(cp => (cp.endpoint ?? ''));
+                if (found.length == 0) {
+                    res.end(JSON.stringify(''));
+                }
+                else {
+                    res.end(JSON.stringify(found[0]));
+                }
             }
             else if (reqUrl.pathname == '/listReports') {
                 res.end(JSON.stringify(await storage.queryReports(q, paging)));
@@ -103,29 +122,33 @@ const startTraderService = (cfg) => {
             }
             else if (reqUrl.pathname == '/deleteOracle') {
                 await storage.removeOracles([pubkey]);
+                res.end();
             }
             else if (reqUrl.pathname == '/deleteCapability') {
                 await storage.removeCps([pubkey]);
+                res.end();
             }
             else if (reqUrl.pathname == '/deleteOffer') {
                 await storage.removeOffers([pubkey]);
+                res.end();
             }
             else if (reqUrl.pathname == '/deleteReport') {
                 await storage.removeReports([pubkey]);
+                res.end();
             }
             else if (reqUrl.pathname == '/deleteIssuedOffer') {
                 await storage.removeIssuedOffers([pubkey]);
+                res.end();
             }
             else if (reqUrl.pathname == '/deleteIssuedReport') {
                 await storage.removeIssuedReports([pubkey]);
+                res.end();
             }
             else if (reqUrl.pathname == '/cancelCollector') {
                 if (collectors[tag]) {
                     collectors[tag].cancel();
                     delete collectors[tag];
                 }
-            }
-            if (req.method === 'GET') {
                 res.end();
             }
             if (req.method === 'POST') {
@@ -145,7 +168,7 @@ const startTraderService = (cfg) => {
                             await api.issueReport(postBody);
                         }
                         else if (reqUrl.pathname == '/collectCapabilities') {
-                            const collector = await api.collectCapabilities(tag, { where: async (x) => { return (0, safe_eval_1.default)(postBody.oquery, x); } }, async (x) => { return (0, safe_eval_1.default)(postBody.opredicate, x); }, async (x) => { return (0, safe_eval_1.default)(postBody.predicate, x); });
+                            const collector = await api.collectCapabilities(tag, { where: async (x) => { return safeEval(postBody.oquery, x); } }, async (x) => { return safeEval(postBody.opredicate, x); }, async (x) => { return safeEval(postBody.predicate, x); }, postBody.limit ?? 10000);
                             if (Object.values(collectors).length < cfg.trader.maxCollectors) {
                                 if (collectors[collector.tag]) {
                                     collectors[collector.tag].cancel();
@@ -154,7 +177,7 @@ const startTraderService = (cfg) => {
                             }
                         }
                         else if (reqUrl.pathname == '/collectOffers') {
-                            const collector = await api.collectOffers(tag, { where: async (x) => { return (0, safe_eval_1.default)(postBody.cpquery, x); } }, async (x) => { return (0, safe_eval_1.default)(postBody.cppredicate, x); }, async (x) => { return (0, safe_eval_1.default)(postBody.predicate, x); });
+                            const collector = await api.collectOffers(tag, { where: async (x) => { return safeEval(postBody.cpquery, x); } }, async (x) => { return safeEval(postBody.cppredicate, x); }, async (x) => { return safeEval(postBody.predicate, x); }, postBody.limit ?? 10000);
                             if (Object.values(collectors).length < cfg.trader.maxCollectors) {
                                 if (collectors[collector.tag]) {
                                     collectors[collector.tag].cancel();
@@ -163,7 +186,7 @@ const startTraderService = (cfg) => {
                             }
                         }
                         else if (reqUrl.pathname == '/collectReports') {
-                            const collector = await api.collectReports(tag, { where: async (x) => { return (0, safe_eval_1.default)(postBody.oquery, x); } }, async (x) => { return (0, safe_eval_1.default)(postBody.opredicate, x); }, async (x) => { return (0, safe_eval_1.default)(postBody.predicate, x); });
+                            const collector = await api.collectReports(tag, { where: async (x) => { return safeEval(postBody.oquery, x); } }, async (x) => { return safeEval(postBody.opredicate, x); }, async (x) => { return safeEval(postBody.predicate, x); }, postBody.limit ?? 10000);
                             if (Object.values(collectors).length < cfg.trader.maxCollectors) {
                                 if (collectors[collector.tag]) {
                                     collectors[collector.tag].cancel();
@@ -172,7 +195,7 @@ const startTraderService = (cfg) => {
                             }
                         }
                         else if (reqUrl.pathname == '/collectOracles') {
-                            const collector = await api.collectOracles(tag, async (x) => { return (0, safe_eval_1.default)(postBody.predicate, x); });
+                            const collector = await api.collectOracles(tag, async (x) => { return safeEval(postBody.predicate, x); }, postBody.limit ?? 10000);
                             if (Object.values(collectors).length < cfg.trader.maxCollectors) {
                                 if (collectors[collector.tag]) {
                                     collectors[collector.tag].cancel();
@@ -181,10 +204,25 @@ const startTraderService = (cfg) => {
                             }
                         }
                         if (reqUrl.pathname == '/generateOpeningTransaction') {
-                            res.end(JSON.stringify((0, generate_cardano_tx_1.generateOpeningTransaction)(postBody)));
+                            res.end(JSON.stringify(await (0, generate_cardano_tx_1.generateOpeningTransaction)(cfg.trader.heliosNetwork ?? "https://d1t0d7c2nekuk0.cloudfront.net/preprod.json", postBody)));
                         }
                         else if (reqUrl.pathname == '/generateClosingTransaction') {
-                            res.end(JSON.stringify((0, generate_cardano_tx_1.generateClosingTransaction)(postBody)));
+                            res.end(JSON.stringify(await (0, generate_cardano_tx_1.generateClosingTransaction)(cfg.trader.heliosNetwork ?? "https://d1t0d7c2nekuk0.cloudfront.net/preprod.json", postBody)));
+                        }
+                        else if (reqUrl.pathname == '/btc/generateOpeningTransaction') {
+                            res.end(JSON.stringify(await btc.generateOpeningTransaction(postBody)));
+                        }
+                        else if (reqUrl.pathname == '/btc/generateClosingTransaction') {
+                            res.end(JSON.stringify(await btc.generateClosingTransaction(postBody)));
+                        }
+                        else if (reqUrl.pathname == '/btc/generateCetTransaction') {
+                            res.end(JSON.stringify(await btc.generateCetTransaction(postBody)));
+                        }
+                        else if (reqUrl.pathname == '/btc/generateCetRedemptionTransaction') {
+                            res.end(JSON.stringify(await btc.generateCetRedemptionTransaction(postBody)));
+                        }
+                        else if (reqUrl.pathname == '/btc/pub2addr') {
+                            res.end(JSON.stringify((0, tx_1.p2pktr)(postBody).address));
                         }
                         else {
                             res.end("{}");
@@ -193,7 +231,17 @@ const startTraderService = (cfg) => {
                     catch (err) {
                         console.error(err);
                         if (!res.writableEnded) {
-                            res.end(JSON.stringify({ error: err.message }));
+                            try {
+                                if (err.message !== undefined) {
+                                    res.end(JSON.stringify({ error: err.message }));
+                                }
+                                else {
+                                    res.end(JSON.stringify(err));
+                                }
+                            }
+                            catch (msg) {
+                                res.end(JSON.stringify(msg));
+                            }
                         }
                     }
                 });

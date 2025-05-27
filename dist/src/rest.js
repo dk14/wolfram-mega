@@ -35,6 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.startHttp = void 0;
 const nd = __importStar(require("./node"));
+const util_1 = require("./util");
 const http = __importStar(require("http"));
 const url = __importStar(require("url"));
 const p2p_1 = require("./p2p");
@@ -79,12 +80,12 @@ const startHttp = (cfg) => {
                 res.setHeader('content-Type', 'text/plain');
                 const pk = typeof reqUrl.query.pubkey === "string" ? reqUrl.query.pubkey : "";
                 const msg = typeof reqUrl.query.pubkey === "string" ? reqUrl.query.pubkey : "";
-                res.end(JSON.stringify(nd.testOnlySign(msg, pk)));
+                res.end(JSON.stringify((0, util_1.testOnlySign)(msg, pk)));
                 return;
             }
             res.setHeader('content-Type', 'Application/json');
             if (cfg.isTest && req.method === 'GET' && reqUrl.pathname == '/testOnlyGenKeyPair') {
-                res.end(JSON.stringify(nd.testOnlyGenerateKeyPair()));
+                res.end(JSON.stringify((0, util_1.testOnlyGenerateKeyPair)()));
                 return;
             }
             if (req.method === 'GET') {
@@ -128,7 +129,13 @@ const startHttp = (cfg) => {
             if (req.method === 'POST') {
                 var body = '';
                 req.on('data', function (chunk) {
-                    body += chunk;
+                    if (body.length < cfg.maxMsgLength) {
+                        body += chunk;
+                    }
+                    else {
+                        res.end("input too large");
+                        throw "input too large";
+                    }
                 });
                 req.on('end', async function () {
                     try {

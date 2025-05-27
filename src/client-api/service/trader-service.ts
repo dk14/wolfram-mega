@@ -11,6 +11,8 @@ import { generateClosingTransaction, generateOpeningTransaction } from "../contr
 import * as btc from "../contracts/generate-btc-tx";
 import { p2pktr } from "../contracts/btc/tx";
 import Sandbox from "@nyariv/sandboxjs";
+import { p2pNode } from "../../p2p";
+
 
 const safeEval = (expression: string, data: any): any => {
     const sandbox = new Sandbox()
@@ -23,7 +25,7 @@ export const startTraderService = (cfg: MempoolConfig<PeerAddr>, storage = trade
     global.cfg = cfg
     
 
-    const api: TraderApi<TraderQuery<OracleId>, TraderQuery<OracleCapability>> = traderApi(cfg.trader, cfg, ndapi, storage)
+    const api: TraderApi<TraderQuery<OracleId>, TraderQuery<OracleCapability>> = traderApi(cfg.trader, cfg, ndapi, storage, p2pNode)
     const collectors: { [id: string] : Collector<any> } = {}
 
     http.createServer(async (req, res) => {

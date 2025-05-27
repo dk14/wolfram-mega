@@ -3,6 +3,8 @@
     "maxCapabilities": 100,
     "maxReports": 100,
     "maxConnections": 100,
+    "maxMsgLength": 1000000,
+    "maxOffers": 100,
     "httpPort": 8081,
     "p2pPort": 8334,
     "hostname": "localhost",

@@ -40,7 +40,7 @@ const child_process_1 = require("child_process");
 const wait_on_1 = __importDefault(require("wait-on"));
 const fs = __importStar(require("fs"));
 const util_1 = require("util");
-const nd = __importStar(require("../src/node"));
+const util_2 = require("../src/util");
 const pow = __importStar(require("../src/pow"));
 const node_fetch_1 = __importDefault(require("node-fetch"));
 const assert = __importStar(require("assert"));
@@ -70,6 +70,7 @@ const readline = __importStar(require("readline"));
             "maxReports": 2,
             "maxOffers": 2,
             "maxConnections": 100,
+            "maxMsgLength": 1000000,
             "httpPort": portHttp,
             "p2pPort": portP2P,
             "hostname": "localhost",
@@ -131,7 +132,7 @@ const readline = __importStar(require("readline"));
         }));
     };
     const genOracle = async () => {
-        const keypair = nd.testOnlyGenerateKeyPair();
+        const keypair = (0, util_2.testOnlyGenerateKeyPair)();
         const oracle = {
             pubkey: keypair.pub,
             oracleSignature: undefined,
@@ -146,7 +147,7 @@ const readline = __importStar(require("readline"));
         };
         oracle.pow = await pow.powOverOracleId(oracle, 2);
         oracle.oracleSignature = "";
-        oracle.oracleSignature = nd.testOnlySign(JSON.stringify(oracle), keypair.pk);
+        oracle.oracleSignature = (0, util_2.testOnlySign)(JSON.stringify(oracle), keypair.pk);
         return {
             body: oracle,
             pk: keypair.pk
@@ -155,7 +156,7 @@ const readline = __importStar(require("readline"));
     const genCp = async (pubkey, pk) => {
         const cp = {
             oraclePubKey: pubkey,
-            capabilityPubKey: nd.testOnlyGenerateKeyPair().pub,
+            capabilityPubKey: (0, util_2.testOnlyGenerateKeyPair)().pub,
             question: 'What?',
             seqNo: 0,
             cTTL: 0,
@@ -163,7 +164,7 @@ const readline = __importStar(require("readline"));
             oracleSignatureType: 'SHA256',
             pow: undefined
         };
-        cp.oracleSignature = nd.testOnlySign(JSON.stringify(cp), pk);
+        cp.oracleSignature = (0, util_2.testOnlySign)(JSON.stringify(cp), pk);
         cp.pow = await pow.powOverOracleCapability(cp, 2);
         return cp;
     };
@@ -203,7 +204,6 @@ const readline = __importStar(require("readline"));
             customContract: '',
             terms,
             blockchain: 'bitcoin-testnet',
-            transactionToBeCoSigned: '',
             contact: ''
         };
         const msg = {
@@ -326,7 +326,7 @@ const readline = __importStar(require("readline"));
     console.log("");
     console.log("--------------------------");
     console.log("Client API tests...\n");
-    const oracleKeypair = nd.testOnlyGenerateKeyPair();
+    const oracleKeypair = (0, util_2.testOnlyGenerateKeyPair)();
     const traderPort = 19997;
     const oraclePort = 19999;
     const oracleWsPort = 19998;
@@ -347,7 +347,7 @@ const readline = __importStar(require("readline"));
         rlOracle.on('line', (line) => {
             //console.log(line)
             const oracleId = JSON.parse(line);
-            oracleId.oracleSignature = nd.testOnlySign(JSON.stringify(oracleId), oracleKeypair.pk);
+            oracleId.oracleSignature = (0, util_2.testOnlySign)(JSON.stringify(oracleId), oracleKeypair.pk);
             streamOracle.write(JSON.stringify(oracleId) + "\n");
             resolve(true);
         });
@@ -358,7 +358,7 @@ const readline = __importStar(require("readline"));
     streamCp.on('error', console.error);
     const rlCp = readline.createInterface(streamCp, streamCp);
     console.log(" b) create, broadcast and auto-sign new capability");
-    const cpKeyPair = nd.testOnlyGenerateKeyPair();
+    const cpKeyPair = (0, util_2.testOnlyGenerateKeyPair)();
     const capabilityPubKey = cpKeyPair.pub;
     const question = "[it] what?";
     const body = { capabilityPubKey, question };
@@ -374,7 +374,7 @@ const readline = __importStar(require("readline"));
             cp.oracleSignature = "";
             cp.pow = undefined;
             assert.strictEqual(cp.oraclePubKey, oracleKeypair.pub);
-            cp.oracleSignature = nd.testOnlySign(JSON.stringify(cp), oracleKeypair.pk);
+            cp.oracleSignature = (0, util_2.testOnlySign)(JSON.stringify(cp), oracleKeypair.pk);
             streamCp.write(JSON.stringify(cp) + "\n");
             resolve(true);
         });
