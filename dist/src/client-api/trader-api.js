@@ -3,8 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.traderApi = traderApi;
 const node_1 = require("../node");
 const pow_1 = require("../pow");
-const p2p_1 = require("../p2p");
-function traderApi(tradercfg, poolcfg, nodeApi, storage) {
+function traderApi(tradercfg, poolcfg, nodeApi, storage, p2pNode) {
     function getRandomInt(max) {
         return Math.floor(Math.random() * max);
     }
@@ -152,8 +151,8 @@ function traderApi(tradercfg, poolcfg, nodeApi, storage) {
                         o.pow = upgraded;
                         res = await node_1.api.publishOffer(poolcfg, o);
                     }
-                    if (p2p_1.p2pNode !== undefined) {
-                        p2p_1.p2pNode.broadcastMessage('offer', JSON.stringify(structuredClone(o)));
+                    if (p2pNode !== undefined) {
+                        p2pNode.broadcastMessage('offer', JSON.stringify(structuredClone(o)));
                     }
                     storage.addIssuedOffer(o);
                 });
@@ -182,8 +181,8 @@ function traderApi(tradercfg, poolcfg, nodeApi, storage) {
                         r.pow = upgraded;
                         res = await node_1.api.reportMalleability(poolcfg, r);
                     }
-                    if (p2p_1.p2pNode !== undefined) {
-                        p2p_1.p2pNode.broadcastMessage('report', JSON.stringify(structuredClone(r)));
+                    if (p2pNode !== undefined) {
+                        p2pNode.broadcastMessage('report', JSON.stringify(structuredClone(r)));
                     }
                     storage.addIssuedReport(r);
                 });

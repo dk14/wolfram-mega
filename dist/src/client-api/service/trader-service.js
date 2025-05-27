@@ -47,6 +47,7 @@ const generate_cardano_tx_1 = require("../contracts/generate-cardano-tx");
 const btc = __importStar(require("../contracts/generate-btc-tx"));
 const tx_1 = require("../contracts/btc/tx");
 const sandboxjs_1 = __importDefault(require("@nyariv/sandboxjs"));
+const p2p_1 = require("../../p2p");
 const safeEval = (expression, data) => {
     const sandbox = new sandboxjs_1.default();
     const exec = sandbox.compile("return " + expression);
@@ -55,7 +56,7 @@ const safeEval = (expression, data) => {
 };
 const startTraderService = (cfg, storage = (0, trader_storage_1.traderStorage)(cfg.trader.dbPath, 1)) => {
     global.cfg = cfg;
-    const api = (0, trader_api_1.traderApi)(cfg.trader, cfg, node_1.api, storage);
+    const api = (0, trader_api_1.traderApi)(cfg.trader, cfg, node_1.api, storage, p2p_1.p2pNode);
     const collectors = {};
     http.createServer(async (req, res) => {
         res.statusCode = 200;

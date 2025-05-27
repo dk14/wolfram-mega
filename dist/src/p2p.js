@@ -36,14 +36,72 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.startP2P = exports.connectionPool = exports.p2pNode = void 0;
+exports.startP2P = exports.connectionPool = exports.p2pNode = exports.browserPeerAPI = exports.serverPeerAPI = void 0;
 const nd = __importStar(require("./node"));
 const net = __importStar(require("net"));
-const p2p_node_1 = require("p2p-node");
+const p2pn = __importStar(require("p2p-node"));
+const p2pjs = __importStar(require("peerjs"));
 const node_fetch_1 = __importDefault(require("node-fetch"));
+exports.serverPeerAPI = {
+    createPeer: (server, port) => {
+        return new p2pn.Peer(server, port);
+    },
+    createServer: (cfg, discovered) => {
+        const server = net.createServer(function (socket) {
+            console.log("Remote connection");
+            discovered({ server: socket.remoteAddress, port: socket.remotePort, seqNo: 0 }, socket);
+        });
+        server.listen(cfg.p2pPort, cfg.hostname);
+    }
+};
+exports.browserPeerAPI = {
+    createPeer: (server, port) => {
+        const jspeer = new p2pjs.Peer(server);
+        var connection = null;
+        jspeer.on("connection", (c) => {
+            connection = c;
+        });
+        const adaptor = {
+            on: (ev, handler) => {
+                if (ev === "connect") {
+                    jspeer.on("connection", (c) => {
+                        handler({ peer: adaptor });
+                    });
+                }
+                else if (ev === "message") {
+                    connection.on("data", (data) => {
+                        handler({
+                            command: data.cmd,
+                            data: Buffer.from(data.msg, "base64")
+                        });
+                    });
+                }
+                else if (ev === "end") {
+                    connection.on("close", () => handler({}));
+                }
+            },
+            send: (cmd, msg) => {
+                connection.send({
+                    cmd, msg: msg.toString("base64")
+                });
+            },
+            server,
+            port,
+            disconnect: () => {
+                jspeer.disconnect();
+            },
+            connect: (addr) => {
+                jspeer.connect(addr.remoteAddress);
+            }
+        };
+        return adaptor;
+    },
+    createServer: (cfg, discovered) => {
+    }
+};
 exports.p2pNode = undefined;
 exports.connectionPool = undefined;
-const startP2P = (cfg) => {
+const startP2P = (cfg, peerApi = exports.serverPeerAPI) => {
     var peersAnnounced = 0;
     var connections = 0;
     const onmessage = (ev) => {
@@ -116,7 +174,7 @@ const startP2P = (cfg) => {
             return;
         }
         try {
-            const p = new p2p_node_1.Peer(addr.server, addr.port);
+            const p = peerApi.createPeer(addr.server, addr.port);
             p.connect(socket);
             p.on('message', onmessage);
             p.on('connect', onconnect);
@@ -228,11 +286,7 @@ const startP2P = (cfg) => {
     const node = {
         peers, discovered, broadcastPeer, processApiRequest, broadcastMessage
     };
-    const server = net.createServer(function (socket) {
-        console.log("Remote connection");
-        discovered({ server: socket.remoteAddress, port: socket.remotePort, seqNo: 0 }, socket);
-    });
-    server.listen(cfg.p2pPort, cfg.hostname);
+    peerApi.createServer(cfg, discovered);
     exports.p2pNode = node;
     exports.connectionPool = {
         list: function (cfg) {
