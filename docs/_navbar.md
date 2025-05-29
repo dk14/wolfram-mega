@@ -1,7 +1,8 @@
+- [Home](README.md)
+- [Manifest](manifest.md)
+- [App](app.md)
 - Getting started
-    - [README](README.md)
+    - [Operators](Operators.md)
     - [Traders](traders.md)
     - [Oracles](oracles.md)
-
-- Conclusion
-    - [README](README.md)
+    - [Contract Demo](tech.md)

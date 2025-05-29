@@ -282,7 +282,7 @@ It would allow for automatic recovery of non-expired trades (using only private 
 
 See `src-web\matching` for code examples.
 
-## Wokflow
+## Matching Workflow
 
 If the whole contract is negotiated through the Mega, offers will form a chain, through back-references (`previousAcceptRef` in `AcceptOffer`, `acceptRef` in `FinalizeOffer`).
 
@@ -302,7 +302,107 @@ The rule for evolving offer state collaboratively is to always pick the offer wi
 
 _Note: One can accept offers outside of Mega mempool network - given that counter-party provided `contact`. Then follow-ups would be communicated directly without Mega-facilitation._
 
-# Composite contracts
+# Composite contracts 
+
+Offers in Mega can express any meaningful financial contract. `ContractTerms` (`src/protocol.ts`) is a basic abstract language (akin to Cardano Marlowe) which standardizes description of financial contracts. 
+
+Unlike Marlowe, `ContractTerms` is closer to modern quantitative finance, taking two-party binary option as a basis.
+
+Traders can write their own interpreter for `ContractTerms` since the logic is trivial: binary options which can depend on outcomes of other binary options. 
+
+This approach is compatible with Bitcoin DLC, since trading app developers can simply generate a tree of CET transaction straightforwardly from `ContractTerms`. It also allows to generate contracts for any chain.
+
+
+## Example
+Here's binary option:
+
+```json
+{
+    question: "who's president?"    
+    partyBetsOn:["ME"],
+    counterPartyBetsOn:["YOU"],
+    partyBetAmount:100,
+    counterpartyBetAmount:10
+}
+```
+
+Here's composite binary option:
+
+PSEUDOCODE (we leave trivial DSLs to app developers):
+```ts
+receive(party, 100 + 20 + 0) //implicit in `ContractTerms`
+receive(counterparty, 10 + 10 + 10) //implicit in `ContractTerms`
+if (outcome("who's president") === "ME") {
+    payTo(party, 10)
+    if (outcome("who's the best?") === "I") {
+        payTo(party, 5 + 5)
+    } else {
+        payTo(counterparty, 20)
+    }
+} else {
+    payTo(counterparty, 100)
+    if (outcome("who's the best?") === "THEY") {
+        payTo(party, 10)
+    } 
+}
+
+```
+
+OFFERS-TO-RENDER:
+
+```json
+
+{
+    hash: "000001",
+    terms: {
+        question: "who's president?"    
+        partyBetsOn:["ME"],
+        counterPartyBetsOn:["YOU"],
+        partyBetAmount:100,
+        counterpartyBetAmount:10
+    }
+}
+```
+
+```json
+{
+    hash: "000002",
+    dependsOn: {
+        outcome: "ME",
+        offerRef: "0000001"
+    },
+    terms: {
+        
+        question: "who's the best?"    
+        partyBetsOn:["I"],
+        counterPartyBetsOn:["THEY"],
+        partyBetAmount:20,
+        counterpartyBetAmount:10
+    }
+}
+```
+
+```json
+{
+    hash: "000003",
+    dependsOn: {
+        outcome: "YOU",
+        offerRef: "0000001"
+    },
+    terms: {
+        question: "who's the best?"    
+        partyBetsOn:["I"],
+        counterPartyBetsOn:["THEY"],
+        partyBetAmount:0,
+        counterpartyBetAmount:10
+    }
+}
+```
+Note: Unlike with Marlowe - money preservation property is ensured in the language design, rather than with SMT-solvers.
+
+> Note: In the composite contract js-eDSL pseudo-code above - `receive` represents full collateral for a participant. It is implicit because it's only needed to assert money preservation (eDSL can check that collateral computed as a some of bets made by a party equals to the number specified in `receive`).
+
+> Note on Marlowe: ad-hoc receives in the middle of a contract have no semantics. They always have to be at the start since non-participation would trigger timeout conditions, which are meaningfully either refund or MAD-lock - due to mmoney preservation itself.
 
 ## Multi-party
 
@@ -310,7 +410,8 @@ Two-party offers are generalizable to multi-party (multi leg) offers through add
 
 ## Schedules 
 
-Schedules (e.g. quantized  `InterestRateSwap`) can be expressed through `dependsOn` reference meant to specify previous stage in a multi-stage contract. `dependsOn` can be conditional on the outcome of previous stage, effectively  making such contracts stateful.
+Schedules (e.g. quantized  `InterestRateSwap`) are  expressed through `ContractTerms.dependsOn` reference meant to specify previous stage in a multi-stage contract. `ContractTerms.dependsOn` can be conditional on the outcome of previous stage, effectively  making such contracts stateful (state would be a set of past outcomes).
+
 
 
 _BTC-DLC matching note: Scheduled offer is finalized when first `openingTx` for the whole composite tree is co-signed (parties cross check that every subcontract is co-signed)._
@@ -324,7 +425,7 @@ For BTC this would require to either:
 - or a consensus of existing parties
 
 ### Exponential explosion
-Offers are meant to represent a contract with predictable execution time (Marlowe expressiveness). This approach also ensures that funds won't stuck in an escrow.
+`ContractTerms` are meant to represent a contract with predictable execution time (Marlowe expressiveness). This approach also ensures that funds won't stuck in an escrow.
 
 Careless use, however, can put contracts at the risk of  explosion, over-choicefullness.
 
@@ -334,11 +435,11 @@ Same goes for schedules: grouping outcomes for every stage in a contract, would 
 - exponential "random-walk"-like explosion 
 - accumulation of uneccesssary state in a contract.
 
-_Note: explosions are explicit in Mega-contracts, unlike Web3. Turing-complete contracts are explicitly tested for computability before creation._
+_Note: explosions are explicit in Mega-contracts, unlike Web3. Turing-complete contracts in Mega are explicitly ensured for computability before creation of blockchain._
 
-#### **Merkle-trees**
+#### Merkle-trees (for DSL designers)
 
-Merkle-trees can also be utilized to eliminate duplicate subtcontract trees in offer trees, thus reducing risks of contract explosion to a theoretical minimum. Such approach would eliminate uneccessary state as well.
+Merkle-trees can potentially be utilized to eliminate duplicate subtcontract trees in offer trees, thus reducing risks of contract explosion to a theoretical minimum. Such approach would eliminate uneccessary intermidiate state as well.
 
 Practically, it requires extra-care:
 
@@ -362,7 +463,7 @@ Simillarly to Marlowe, "quantized perpetual swap"-like contracts can still be mo
 Such condition would also benefit liquidity, and avoid overcollaterization.
 
 ### Collaterals
-Collaterals for composite contracts in Mega are trivial to evaluate: it is simply a sum of all bets made by a party.
+Collaterals for composite contracts in Mega are trivial to evaluate: it is simply a sum of all bets made by a party. 
 
 It is recommended to rather bound contract complexity than use meaningless tokens or pools (managed with "automated"  unsound logic) for collaterization. Collaterization must be done in bounded currency, bounded with physical energy like BTC. 
 
