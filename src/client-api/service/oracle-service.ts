@@ -69,7 +69,7 @@ export const startOracleService = (cfg: MempoolConfig<PeerAddr>, storage = capab
                 res.setHeader('content-Type', 'application/json');
                 res.end("{}")
             } else if(reqUrl.pathname == '/activateCapability') {
-                api.dropCapability(pubkey)
+                api.activateCapability(pubkey)
                 res.setHeader('content-Type', 'application/json');
                 res.end("{}")
             } else if(reqUrl.pathname == '/upgradeOraclePow') {

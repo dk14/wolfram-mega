@@ -128,7 +128,13 @@ export interface FactMissing extends WithFactRequest {
     dispute?: Fact
 }
 
-export type MaleabilityReport = FactDisagreesWithPublic | FactConflict | FactMissing
+export interface AdCollision {
+    type: 'ad-collision'
+    proofOfOracleAdConflict: OracleId[]
+    proofOfCapabilityAdConflict: OracleCapability[]
+}
+
+export type MaleabilityReport = FactDisagreesWithPublic | FactConflict | FactMissing | AdCollision
 
 export interface Dispute {
     claim: FactMissing
