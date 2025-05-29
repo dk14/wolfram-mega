@@ -32,7 +32,8 @@ exports.matchingEngine = {
                     endpoint: "http://localhost:8080" //can use fact-missing claim as an endpoint too
                 }],
             question: capability.question,
-            status: "matching"
+            status: "matching",
+            role: 'acceptor'
         };
         return model;
     },
