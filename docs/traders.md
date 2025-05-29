@@ -324,8 +324,8 @@ Practically, it requires extra-care:
 
 - subcontracts with equivalent semantics might contain small differences (e.g. redemption addresses). This has to be eliminated manually.
 - it is recommended to bound contract-size to reasonable minimum during contract generation, in order to avoid dealing with "halting problem", proof assistants etc. For BTC such bound can be expressed in bytes, or even satochis if txfee is known.
-- use DSL like Marlowe or write your own. For BTC, 
-- recursive calls can be supported in DSLs through  bounded recusrion (with default return value supplied in "return" after a fixed amount recursive calls). Trivial macro inlining sunction body n times.
+- use DSL like Marlowe or write your own.
+- recursive calls can be supported in DSLs through  bounded recusrion (with default return value supplied in "return" after a fixed amount recursive calls). Trivial macro re-inlining function body n times.
 
 After these techniques are applied, only contracts that are aimed at modeling "perpetual motion" would explode.
 
