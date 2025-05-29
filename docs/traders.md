@@ -1,4 +1,4 @@
-# Doc for traders
+# Trader API
 
 ## Start peer with trader-api enabled
 
@@ -133,7 +133,7 @@ await fetch('./collectOffers?tag=' + encodeURIComponent(tag), {
     headers: {'Content-Type': 'application/json'}
 })
 ```
-## Malleability Reports
+## Oracle Malleability Reports
 
 ### Submit report
 
