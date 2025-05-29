@@ -402,7 +402,9 @@ Note: Unlike with Marlowe - money preservation property is ensured in the langua
 
 > Note: In the composite contract js-eDSL pseudo-code above - `receive` represents full collateral for a participant. It is implicit because it's only needed to assert money preservation (eDSL can check that collateral computed as a some of bets made by a party equals to the number specified in `receive`).
 
-> Note on Marlowe: ad-hoc receives in the middle of a contract have no semantics. They always have to be at the start since non-participation would trigger timeout conditions, which are meaningfully either refund or MAD-lock - due to mmoney preservation itself.
+> Note on Marlowe: ad-hoc receives in the middle of a contract have no semantics. They always have to be at the start since non-participation would trigger timeout conditions, which are meaningfully either refund or MAD-lock - due to money preservation itself. 
+
+> Every "ad-hoc" receive in reality triggers its own contract dictating distribution of new collateral - there is no need to have dependencies between two.
 
 ## Multi-party
 
