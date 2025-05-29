@@ -24,6 +24,8 @@ export interface OpeningInputs {
     aliceInput: InputId, 
     bobInput: InputId,
     oracleCpPubKey: Base64,
+    oracleCpPubKey2?: Base64,
+    oracleCpPubKey3?: Base64,
     r: Redemption,
     changeAddr: Bech32,
     txfee: number,
@@ -38,8 +40,12 @@ export interface ClosingInputs {
     aliceCollateralInput: InputId, 
     bobCollateralInput: InputId,
     oracleCpPubKey: Base64,
+    oracleCpPubKey2: Base64,
+    oracleCpPubKey3: Base64,
     msg: Base64, 
     sig: Base64,
+    sig2: Base64,
+    sig3: Base64,
     r: Redemption,
     changeAddr: Bech32,
     txfee: number
@@ -60,9 +66,57 @@ const extractRawSig = (sig: Base64): number[] => {
     return Array.from(Buffer.from(sig, 'base64'))
 }
 
+const pickContract = (inputs: OpeningInputs | ClosingInputs): string => {
+    if (inputs.oracleCpPubKey2 === undefined) {
+        return "/plutus-option.hl"
+    } else {
+        return "/plutus-option-quorum.hl"
+    }
+}
+
+const pickDatum = (inputs: OpeningInputs | ClosingInputs): ListData => {
+    const alicePkh = Address.fromBech32(inputs.aliceInput.addr).pubKeyHash
+    const BobPkh = Address.fromBech32(inputs.bobInput.addr).pubKeyHash
+
+    if (inputs.oracleCpPubKey2 === undefined) {
+        return new ListData([new ByteArrayData(alicePkh.bytes),
+            new ByteArrayData(BobPkh.bytes),
+            new ByteArrayData(extractRawPub(inputs.oracleCpPubKey)),
+            new ByteArrayData(stringToArray(inputs.r.aliceBetsOnMsg)),
+            new ByteArrayData(stringToArray(inputs.r.bobBetsOnMsg))
+        ])
+    } else {
+        return new ListData([new ByteArrayData(alicePkh.bytes),
+            new ByteArrayData(BobPkh.bytes),
+            new ByteArrayData(extractRawPub(inputs.oracleCpPubKey)),
+            new ByteArrayData(extractRawPub(inputs.oracleCpPubKey2)),
+            new ByteArrayData(extractRawPub(inputs.oracleCpPubKey3)),
+            new ByteArrayData(stringToArray(inputs.r.aliceBetsOnMsg)),
+            new ByteArrayData(stringToArray(inputs.r.bobBetsOnMsg))
+        ])
+    }
+}
+
+const pickRedeemer = (inputs: ClosingInputs): ListData => {
+    if (inputs.oracleCpPubKey2 === undefined) {
+        return new ListData([
+            new ByteArrayData(stringToArray(inputs.msg)),
+            new ByteArrayData(extractRawSig(inputs.sig))
+        ])
+    } else {
+        return new ListData([
+            new ByteArrayData(stringToArray(inputs.msg)),
+            new ByteArrayData(extractRawSig(inputs.sig)),
+            new ByteArrayData(extractRawSig(inputs.sig2)),
+            new ByteArrayData(extractRawSig(inputs.sig3))
+        ])
+    }
+}
+
+
 export const generateOpeningTransaction = async (network: string, inputs: OpeningInputs): Promise<CborHex> => {
     const tx = new Tx()
-    const src = fs.readFileSync(__dirname + "/plutus-option.hl").toString()
+    const src = fs.readFileSync(__dirname + pickContract(inputs)).toString()
     const program = Program.new(src)
 
     const uplc = program.compile(false)
@@ -79,15 +133,7 @@ export const generateOpeningTransaction = async (network: string, inputs: Openin
 
     tx.addInputs([utxo1, utxo2])
 
-    const alicePkh = Address.fromBech32(inputs.aliceInput.addr).pubKeyHash
-    const BobPkh = Address.fromBech32(inputs.bobInput.addr).pubKeyHash
-
-    const datum = new ListData([new ByteArrayData(alicePkh.bytes),
-        new ByteArrayData(BobPkh.bytes),
-        new ByteArrayData(extractRawPub(inputs.oracleCpPubKey)),
-        new ByteArrayData(stringToArray(inputs.r.aliceBetsOnMsg)),
-        new ByteArrayData(stringToArray(inputs.r.bobBetsOnMsg))
-    ])
+    const datum = pickDatum(inputs)
 
     const collateral = inputs.aliceInput.amount + inputs.bobInput.amount - inputs.txfee
 
@@ -135,15 +181,7 @@ export const generateClosingTransaction = async (network: string, inputs: Closin
     const uplc = program.compile(false)
     const addr = Address.fromHash(uplc.validatorHash)
 
-    const alicePkh = Address.fromBech32(inputs.aliceInput.addr).pubKeyHash
-    const BobPkh = Address.fromBech32(inputs.bobInput.addr).pubKeyHash
-
-    const datum = new ListData([new ByteArrayData(alicePkh.bytes),
-        new ByteArrayData(BobPkh.bytes),
-        new ByteArrayData(extractRawPub(inputs.oracleCpPubKey)),
-        new ByteArrayData(stringToArray(inputs.r.aliceBetsOnMsg)),
-        new ByteArrayData(stringToArray(inputs.r.bobBetsOnMsg))
-    ])
+    const datum = pickDatum(inputs)
 
     console.log("closing script hash = " + uplc.validatorHash.hex + "\n" + datum.toCborHex())
 
@@ -154,10 +192,7 @@ export const generateClosingTransaction = async (network: string, inputs: Closin
     }), new TxOutput(addr, new Value(BigInt(inputs.input.amount)),  Datum.inline(datum)))
 
     
-    const valRedeemer = new ListData([
-        new ByteArrayData(stringToArray(inputs.msg)),
-        new ByteArrayData(extractRawSig(inputs.sig))
-    ])
+    const valRedeemer = pickRedeemer(inputs)
     
     tx.addInput(collateral, valRedeemer)
     const value = new Value(BigInt(inputs.input.amount - inputs.txfee))

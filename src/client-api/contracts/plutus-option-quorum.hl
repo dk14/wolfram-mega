@@ -1,0 +1,37 @@
+spending optionquorum
+
+struct Datum {
+    alice: PubKeyHash
+    bob: PubKeyHash
+    oracle1: PubKey
+    oracle2: PubKey
+    oracle3: PubKey
+    msgAlice: ByteArray
+    msgBob: ByteArray
+}
+
+struct Redeemer {
+    msg: ByteArray
+    sig1: ByteArray
+    sig2: ByteArray
+    sig3: ByteArray
+}
+
+func main(datum: Datum, input: Redeemer, context: ScriptContext) -> Bool {
+    tx: Tx = context.tx;
+
+    verify1: Bool = datum.oracle1.verify(input.msg, input.sig1);
+    verify2: Bool = datum.oracle2.verify(input.msg, input.sig2);
+    verify3: Bool = datum.oracle3.verify(input.msg, input.sig3);
+
+    quorum1: Bool = verify1 && verify2;
+    quorum2: Bool = verify1 && verify3;
+    quorum3: Bool = verify2 && verify3;
+
+    quorum: Bool = quorum1 || quorum2 || quorum3;
+
+    quorum &&
+    (((input.msg == datum.msgAlice) && tx.is_signed_by(datum.alice)) 
+    || ((input.msg == datum.msgBob) && tx.is_signed_by(datum.bob)))
+    
+}
