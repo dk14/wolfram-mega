@@ -335,7 +335,7 @@ Practically, it requires extra-care:
   - this approach allows for fixed-max-length lists, dictionaries, any type of parsing/analysis on data from oracle.
   - this approach allows for typed IO in DSLs: read data-point from oracle, write funds to parties, up to n times.
 
-**After these techniques are applied, only contracts that are aimed at modeling "perpetual motion" would explode.**
+**After such techniques have been applied, only contracts that are aimed at modeling "perpetual motion" would explode.**
 
 #### **"Perpetuality"**
 
