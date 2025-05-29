@@ -97,7 +97,7 @@ const startOracleService = (cfg, storage = (0, capability_storage_1.capabilitySt
                 res.end("{}");
             }
             else if (reqUrl.pathname == '/activateCapability') {
-                api.dropCapability(pubkey);
+                api.activateCapability(pubkey);
                 res.setHeader('content-Type', 'application/json');
                 res.end("{}");
             }

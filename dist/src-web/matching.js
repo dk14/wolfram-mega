@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.matchingEngine = void 0;
+exports.matchingEngine = exports.checkOriginatorId = exports.getOriginatorId = void 0;
 const crypto_1 = require("crypto");
 const capabilityFilter = (tag) => {
     return async (cp) => cp.tags?.find(x => x === tag) !== undefined;
@@ -9,6 +9,17 @@ const oneElemPage = {
     page: 0,
     chunkSize: 1
 };
+const getOriginatorId = () => {
+    if (localStorage.getItem("originatorId") === undefined) {
+        localStorage.setItem("originatorId", (0, crypto_1.randomInt)(1200000).toString());
+    }
+    return localStorage.getItem("originatorId");
+};
+exports.getOriginatorId = getOriginatorId;
+const checkOriginatorId = (id) => {
+    return id === (0, exports.getOriginatorId)();
+};
+exports.checkOriginatorId = checkOriginatorId;
 exports.matchingEngine = {
     pickOffer: async function () {
         const candidates = (await window.storage.queryOffers({ where: async (x) => true }, {
@@ -38,10 +49,29 @@ exports.matchingEngine = {
         return model;
     },
     generateOffer: async function (cfg) {
-        window.storage.queryOracles;
-        window.storage.queryCapabilities;
+        const candidates = (await window.storage.queryCapabilities({ where: async (x) => true }, {
+            page: 0,
+            chunkSize: 100
+        }));
+        const cp = candidates[(0, crypto_1.randomInt)(candidates.length)];
         //pick a question
-        throw new Error("Function not implemented.");
+        const partyBetAmountOptions = [1, 100, 200, 500];
+        const partyBetAmount = partyBetAmountOptions[(0, crypto_1.randomInt)(partyBetAmountOptions.length)];
+        const counterpartyBetAmountOptions = [5, 250, 300, 500];
+        const counterpartyBetAmount = counterpartyBetAmountOptions[(0, crypto_1.randomInt)(counterpartyBetAmountOptions.length)];
+        const model = {
+            id: "aaa",
+            bet: [partyBetAmount, counterpartyBetAmount],
+            oracles: [{
+                    id: "",
+                    oracle: cp.oraclePubKey,
+                    endpoint: "http://localhost:8080" //can use fact-missing claim as an endpoint too
+                }],
+            question: cp.question,
+            status: "matching",
+            role: 'initiator'
+        };
+        return model;
     },
     broadcastOffer: async function (o) {
         const pow = {
@@ -61,7 +91,6 @@ exports.matchingEngine = {
             partyBetAmount: o.bet[0],
             counterpartyBetAmount: o.bet[1]
         };
-        //TODO attach BTC precommitment
         //TODO subscribe to updates
         //- atach BTC partialSig on update
         //TODO subscribe to oracle
@@ -71,7 +100,8 @@ exports.matchingEngine = {
             customContract: "",
             terms: offerTerms,
             blockchain: "bitcoin-testnet",
-            contact: ""
+            contact: "",
+            originatorId: (0, exports.getOriginatorId)()
         };
         window.traderApi.issueOffer({
             seqNo: 0,
@@ -83,18 +113,19 @@ exports.matchingEngine = {
     acceptOffer: async function (o) {
         const offer = (await window.storage.queryOffers({ where: async (x) => x.pow.hash === o.id }, oneElemPage))[0];
         const openingTx = {
-            tx: "",
+            tx: "TODO",
             sessionIds: [],
             nonceParity: [],
             sessionNonces: [],
-            sesionCommitments: [],
+            sesionCommitments: ["TODO"],
             partialSigs: []
         };
         const accept = {
             chain: "bitcoin-testnet",
             openingTx: openingTx,
             offerRef: undefined,
-            cetTxSet: []
+            cetTxSet: [],
+            acceptorId: (0, exports.getOriginatorId)()
         };
         offer.content.accept = accept;
         offer.pow.hash = offer.pow.hash + "accept"; //will be upgraded

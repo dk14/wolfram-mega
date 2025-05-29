@@ -13040,9 +13040,9 @@
           if (w && w.length > 1) {
             const controlBlock = w[w.length - 1];
             const leafVersion = controlBlock[0] & types_1.TAPLEAF_VERSION_MASK;
-            const script = w[w.length - 2];
+            const script2 = w[w.length - 2];
             const leafHash = (0, bip341_1.tapleafHash)({
-              output: script,
+              output: script2,
               version: leafVersion
             });
             return (0, bip341_1.rootHashFromPath)(controlBlock, leafHash);
@@ -13199,9 +13199,9 @@
               if (!(0, ecc_lib_1.getEccLib)().isXOnlyPoint(internalPubkey))
                 throw new TypeError("Invalid internalPubkey for p2tr witness");
               const leafVersion = controlBlock[0] & types_1.TAPLEAF_VERSION_MASK;
-              const script = witness[witness.length - 2];
+              const script2 = witness[witness.length - 2];
               const leafHash = (0, bip341_1.tapleafHash)({
-                output: script,
+                output: script2,
                 version: leafVersion
               });
               const hash2 = (0, bip341_1.rootHashFromPath)(controlBlock, leafHash);
@@ -14592,9 +14592,9 @@
             "Decode Error: tapLeafScript bad leaf version in key 0x" + keyVal.key.toString("hex")
           );
         }
-        const script = keyVal.value.slice(0, -1);
+        const script2 = keyVal.value.slice(0, -1);
         const controlBlock = keyVal.key.slice(1);
-        return { controlBlock, script, leafVersion };
+        return { controlBlock, script: script2, leafVersion };
       }
       exports2.decode = decode;
       function encode(tScript) {
@@ -14866,23 +14866,23 @@
         let _offset = 8;
         const scriptLen = varuint.decode(keyVal.value, _offset);
         _offset += varuint.encodingLength(scriptLen);
-        const script = keyVal.value.slice(_offset);
-        if (script.length !== scriptLen) {
+        const script2 = keyVal.value.slice(_offset);
+        if (script2.length !== scriptLen) {
           throw new Error("Decode Error: WITNESS_UTXO script is not proper length");
         }
         return {
-          script,
+          script: script2,
           value
         };
       }
       exports2.decode = decode;
       function encode(data) {
-        const { script, value } = data;
-        const varintLen = varuint.encodingLength(script.length);
-        const result = Buffer.allocUnsafe(8 + varintLen + script.length);
+        const { script: script2, value } = data;
+        const varintLen = varuint.encodingLength(script2.length);
+        const result = Buffer.allocUnsafe(8 + varintLen + script2.length);
         tools_1.writeUInt64LE(result, value, 0);
-        varuint.encode(script.length, result, 8);
-        script.copy(result, 8 + varintLen);
+        varuint.encode(script2.length, result, 8);
+        script2.copy(result, 8 + varintLen);
         return {
           key: Buffer.from([typeFields_1.InputTypes.WITNESS_UTXO]),
           value: result
@@ -16159,9 +16159,9 @@
       var crypto_1 = require_crypto3();
       var payments2 = require_payments();
       function isPaymentFactory(payment) {
-        return (script) => {
+        return (script2) => {
           try {
-            payment({ output: script });
+            payment({ output: script2 });
             return true;
           } catch (err) {
             return false;
@@ -16198,10 +16198,10 @@
         return buffer;
       }
       exports2.witnessStackToScriptWitness = witnessStackToScriptWitness;
-      function pubkeyPositionInScript(pubkey, script) {
+      function pubkeyPositionInScript(pubkey, script2) {
         const pubkeyHash = (0, crypto_1.hash160)(pubkey);
         const pubkeyXOnly = pubkey.slice(1, 33);
-        const decompiled = bscript.decompile(script);
+        const decompiled = bscript.decompile(script2);
         if (decompiled === null) throw new Error("Unknown script error");
         return decompiled.findIndex((element) => {
           if (typeof element === "number") return false;
@@ -16209,8 +16209,8 @@
         });
       }
       exports2.pubkeyPositionInScript = pubkeyPositionInScript;
-      function pubkeyInScript(pubkey, script) {
-        return pubkeyPositionInScript(pubkey, script) !== -1;
+      function pubkeyInScript(pubkey, script2) {
+        return pubkeyPositionInScript(pubkey, script2) !== -1;
       }
       exports2.pubkeyInScript = pubkeyInScript;
       function checkInputForSig(input, action) {
@@ -16273,8 +16273,8 @@
       var bip341_1 = require_bip341();
       var payments_1 = require_payments();
       var psbtutils_2 = require_psbtutils();
-      var toXOnly = (pubKey) => pubKey.length === 32 ? pubKey : pubKey.slice(1, 33);
-      exports2.toXOnly = toXOnly;
+      var toXOnly2 = (pubKey) => pubKey.length === 32 ? pubKey : pubKey.slice(1, 33);
+      exports2.toXOnly = toXOnly2;
       function tapScriptFinalizer(inputIndex, input, tapLeafHashToFinalize) {
         const tapLeaf = findTapLeafToFinalize(
           input,
@@ -16301,8 +16301,8 @@
         return input && !!(input.tapInternalKey || input.tapMerkleRoot || input.tapLeafScript && input.tapLeafScript.length || input.tapBip32Derivation && input.tapBip32Derivation.length || input.witnessUtxo && (0, psbtutils_1.isP2TR)(input.witnessUtxo.script));
       }
       exports2.isTaprootInput = isTaprootInput;
-      function isTaprootOutput(output, script) {
-        return output && !!(output.tapInternalKey || output.tapTree || output.tapBip32Derivation && output.tapBip32Derivation.length || script && (0, psbtutils_1.isP2TR)(script));
+      function isTaprootOutput(output, script2) {
+        return output && !!(output.tapInternalKey || output.tapTree || output.tapBip32Derivation && output.tapBip32Derivation.length || script2 && (0, psbtutils_1.isP2TR)(script2));
       }
       exports2.isTaprootOutput = isTaprootOutput;
       function checkTaprootInputFields(inputData, newInputData, action) {
@@ -16321,13 +16321,13 @@
         const tapTree = newOutputData.tapTree || outputData.tapTree;
         if (tapInternalKey) {
           const { script: scriptPubkey } = outputData;
-          const script = getTaprootScripPubkey(tapInternalKey, tapTree);
-          if (scriptPubkey && !scriptPubkey.equals(script))
+          const script2 = getTaprootScripPubkey(tapInternalKey, tapTree);
+          if (scriptPubkey && !scriptPubkey.equals(script2))
             throw new Error("Error adding output. Script or address missmatch.");
         }
       }
       function getTaprootScripPubkey(tapInternalKey, tapTree) {
-        const scriptTree = tapTree && tapTreeFromList(tapTree.leaves);
+        const scriptTree = tapTree && tapTreeFromList2(tapTree.leaves);
         const { output } = (0, payments_1.p2tr)({
           internalPubkey: tapInternalKey,
           scriptTree
@@ -16344,15 +16344,15 @@
         return outputKey.x;
       }
       exports2.tweakInternalPubKey = tweakInternalPubKey;
-      function tapTreeToList(tree) {
+      function tapTreeToList2(tree) {
         if (!(0, types_1.isTaptree)(tree))
           throw new Error(
             "Cannot convert taptree to tapleaf list. Expecting a tapree structure."
           );
         return _tapTreeToList(tree);
       }
-      exports2.tapTreeToList = tapTreeToList;
-      function tapTreeFromList(leaves = []) {
+      exports2.tapTreeToList = tapTreeToList2;
+      function tapTreeFromList2(leaves = []) {
         if (leaves.length === 1 && leaves[0].depth === 0)
           return {
             output: leaves[0].script,
@@ -16360,7 +16360,7 @@
           };
         return instertLeavesInTree(leaves);
       }
-      exports2.tapTreeFromList = tapTreeFromList;
+      exports2.tapTreeFromList = tapTreeFromList2;
       function checkTaprootInputForSigs(input, action) {
         const sigs = extractTaprootSigs(input);
         return sigs.some(
@@ -16490,12 +16490,12 @@
         });
         return (input.tapScriptSig || []).filter((tss) => tss.leafHash.equals(leafHash)).map((tss) => addPubkeyPositionInScript(tapLeaf.script, tss)).sort((t1, t2) => t2.positionInScript - t1.positionInScript).map((t) => t.signature);
       }
-      function addPubkeyPositionInScript(script, tss) {
+      function addPubkeyPositionInScript(script2, tss) {
         return Object.assign(
           {
             positionInScript: (0, psbtutils_1.pubkeyPositionInScript)(
               tss.pubkey,
-              script
+              script2
             )
           },
           tss
@@ -16722,8 +16722,8 @@
           const { address } = outputData;
           if (typeof address === "string") {
             const { network } = this.opts;
-            const script = (0, address_1.toOutputScript)(address, network);
-            outputData = Object.assign({}, outputData, { script });
+            const script2 = (0, address_1.toOutputScript)(address, network);
+            outputData = Object.assign({}, outputData, { script: script2 });
           }
           (0, bip371_1.checkTaprootOutputFields)(outputData, outputData, "addOutput");
           const c = this.__CACHE;
@@ -16783,17 +16783,17 @@
           throw new Error(`Cannot finalize input #${inputIndex}. Not Taproot.`);
         }
         _finalizeInput(inputIndex, input, finalScriptsFunc = getFinalScripts) {
-          const { script, isP2SH, isP2WSH, isSegwit } = getScriptFromInput(
+          const { script: script2, isP2SH, isP2WSH, isSegwit } = getScriptFromInput(
             inputIndex,
             input,
             this.__CACHE
           );
-          if (!script) throw new Error(`No script found for input #${inputIndex}`);
+          if (!script2) throw new Error(`No script found for input #${inputIndex}`);
           checkPartialSigSighashes(input);
           const { finalScriptSig, finalScriptWitness } = finalScriptsFunc(
             inputIndex,
             input,
-            script,
+            script2,
             isSegwit,
             isP2SH,
             isP2WSH
@@ -16833,9 +16833,9 @@
         }
         getInputType(inputIndex) {
           const input = (0, utils_1.checkForInput)(this.data.inputs, inputIndex);
-          const script = getScriptFromUtxo(inputIndex, input, this.__CACHE);
+          const script2 = getScriptFromUtxo(inputIndex, input, this.__CACHE);
           const result = getMeaningfulScript(
-            script,
+            script2,
             inputIndex,
             "input",
             input.redeemScript || redeemFromFinalScriptSig(input.finalScriptSig),
@@ -16895,7 +16895,7 @@
           let sighashCache;
           for (const pSig of mySigs) {
             const sig = bscript.signature.decode(pSig.signature);
-            const { hash: hash2, script } = sighashCache !== sig.hashType ? getHashForSig(
+            const { hash: hash2, script: script2 } = sighashCache !== sig.hashType ? getHashForSig(
               inputIndex,
               Object.assign({}, input, { sighashType: sig.hashType }),
               this.__CACHE,
@@ -16903,8 +16903,8 @@
             ) : { hash: hashCache, script: scriptCache };
             sighashCache = sig.hashType;
             hashCache = hash2;
-            scriptCache = script;
-            checkScriptForPubkey(pSig.pubkey, script, "verify");
+            scriptCache = script2;
+            checkScriptForPubkey(pSig.pubkey, script2, "verify");
             results.push(validator(pSig.pubkey, hash2, sig.signature));
           }
           return results.every((res) => res === true);
@@ -17358,14 +17358,14 @@
           return this.tx.toBuffer();
         }
       };
-      function canFinalize(input, script, scriptType) {
+      function canFinalize(input, script2, scriptType) {
         switch (scriptType) {
           case "pubkey":
           case "pubkeyhash":
           case "witnesspubkeyhash":
             return hasSigs(1, input.partialSig);
           case "multisig":
-            const p2ms = payments2.p2ms({ output: script });
+            const p2ms = payments2.p2ms({ output: script2 });
             return hasSigs(p2ms.m, input.partialSig, p2ms.pubkeys);
           default:
             return false;
@@ -17432,8 +17432,8 @@
           }
         });
       }
-      function checkScriptForPubkey(pubkey, script, action) {
-        if (!(0, psbtutils_1.pubkeyInScript)(pubkey, script)) {
+      function checkScriptForPubkey(pubkey, script2, action) {
+        if (!(0, psbtutils_1.pubkeyInScript)(pubkey, script2)) {
           throw new Error(
             `Can not ${action} for this input with the key ${pubkey.toString("hex")}`
           );
@@ -17491,12 +17491,12 @@
         if (key === "__FEE_RATE") return c.__FEE_RATE;
         else if (key === "__FEE") return c.__FEE;
       }
-      function getFinalScripts(inputIndex, input, script, isSegwit, isP2SH, isP2WSH) {
-        const scriptType = classifyScript(script);
-        if (!canFinalize(input, script, scriptType))
+      function getFinalScripts(inputIndex, input, script2, isSegwit, isP2SH, isP2WSH) {
+        const scriptType = classifyScript(script2);
+        if (!canFinalize(input, script2, scriptType))
           throw new Error(`Can not finalize input #${inputIndex}`);
         return prepareFinalScripts(
-          script,
+          script2,
           scriptType,
           input.partialSig,
           isSegwit,
@@ -17504,10 +17504,10 @@
           isP2WSH
         );
       }
-      function prepareFinalScripts(script, scriptType, partialSig, isSegwit, isP2SH, isP2WSH) {
+      function prepareFinalScripts(script2, scriptType, partialSig, isSegwit, isP2SH, isP2WSH) {
         let finalScriptSig;
         let finalScriptWitness;
-        const payment = getPayment(script, scriptType, partialSig);
+        const payment = getPayment(script2, scriptType, partialSig);
         const p2wsh = !isP2WSH ? null : payments2.p2wsh({ redeem: payment });
         const p2sh = !isP2SH ? null : payments2.p2sh({ redeem: p2wsh || payment });
         if (isSegwit) {
@@ -17537,14 +17537,14 @@
       }
       function getHashAndSighashType(inputs, inputIndex, pubkey, cache, sighashTypes) {
         const input = (0, utils_1.checkForInput)(inputs, inputIndex);
-        const { hash: hash2, sighashType, script } = getHashForSig(
+        const { hash: hash2, sighashType, script: script2 } = getHashForSig(
           inputIndex,
           input,
           cache,
           false,
           sighashTypes
         );
-        checkScriptForPubkey(pubkey, script, "sign");
+        checkScriptForPubkey(pubkey, script2, "sign");
         return {
           hash: hash2,
           sighashType
@@ -17639,8 +17639,8 @@
         return allHashes.flat();
       }
       function getPrevoutTaprootKey(inputIndex, input, cache) {
-        const { script } = getScriptAndAmountFromUtxo(inputIndex, input, cache);
-        return (0, psbtutils_1.isP2TR)(script) ? script.subarray(2, 34) : null;
+        const { script: script2 } = getScriptAndAmountFromUtxo(inputIndex, input, cache);
+        return (0, psbtutils_1.isP2TR)(script2) ? script2.subarray(2, 34) : null;
       }
       function trimTaprootSig(signature) {
         return signature.length === 64 ? signature : signature.subarray(0, 64);
@@ -17699,32 +17699,32 @@
           );
         }
       }
-      function getPayment(script, scriptType, partialSig) {
+      function getPayment(script2, scriptType, partialSig) {
         let payment;
         switch (scriptType) {
           case "multisig":
-            const sigs = getSortedSigs(script, partialSig);
+            const sigs = getSortedSigs(script2, partialSig);
             payment = payments2.p2ms({
-              output: script,
+              output: script2,
               signatures: sigs
             });
             break;
           case "pubkey":
             payment = payments2.p2pk({
-              output: script,
+              output: script2,
               signature: partialSig[0].signature
             });
             break;
           case "pubkeyhash":
             payment = payments2.p2pkh({
-              output: script,
+              output: script2,
               pubkey: partialSig[0].pubkey,
               signature: partialSig[0].signature
             });
             break;
           case "witnesspubkeyhash":
             payment = payments2.p2wpkh({
-              output: script,
+              output: script2,
               pubkey: partialSig[0].pubkey,
               signature: partialSig[0].signature
             });
@@ -17790,8 +17790,8 @@
         });
         return signers;
       }
-      function getSortedSigs(script, partialSig) {
-        const p2ms = payments2.p2ms({ output: script });
+      function getSortedSigs(script2, partialSig) {
+        const p2ms = payments2.p2ms({ output: script2 });
         return p2ms.pubkeys.map((pk) => {
           return (partialSig.filter((ps) => {
             return ps.pubkey.equals(pk);
@@ -17898,8 +17898,8 @@
         return c[inputIndex];
       }
       function getScriptFromUtxo(inputIndex, input, cache) {
-        const { script } = getScriptAndAmountFromUtxo(inputIndex, input, cache);
-        return script;
+        const { script: script2 } = getScriptAndAmountFromUtxo(inputIndex, input, cache);
+        return script2;
       }
       function getScriptAndAmountFromUtxo(inputIndex, input, cache) {
         if (input.witnessUtxo !== void 0) {
@@ -17920,9 +17920,9 @@
         }
       }
       function pubkeyInInput(pubkey, input, inputIndex, cache) {
-        const script = getScriptFromUtxo(inputIndex, input, cache);
+        const script2 = getScriptFromUtxo(inputIndex, input, cache);
         const { meaningfulScript } = getMeaningfulScript(
-          script,
+          script2,
           inputIndex,
           "input",
           input.redeemScript,
@@ -17931,9 +17931,9 @@
         return (0, psbtutils_1.pubkeyInScript)(pubkey, meaningfulScript);
       }
       function pubkeyInOutput(pubkey, output, outputIndex, cache) {
-        const script = cache.__TX.outs[outputIndex].script;
+        const script2 = cache.__TX.outs[outputIndex].script;
         const { meaningfulScript } = getMeaningfulScript(
-          script,
+          script2,
           outputIndex,
           "output",
           output.redeemScript,
@@ -17976,10 +17976,10 @@
       function isSigLike(buf) {
         return bscript.isCanonicalScriptSignature(buf);
       }
-      function getMeaningfulScript(script, index, ioType, redeemScript, witnessScript) {
-        const isP2SH = (0, psbtutils_1.isP2SHScript)(script);
+      function getMeaningfulScript(script2, index, ioType, redeemScript, witnessScript) {
+        const isP2SH = (0, psbtutils_1.isP2SHScript)(script2);
         const isP2SHP2WSH = isP2SH && redeemScript && (0, psbtutils_1.isP2WSHScript)(redeemScript);
-        const isP2WSH = (0, psbtutils_1.isP2WSHScript)(script);
+        const isP2WSH = (0, psbtutils_1.isP2WSHScript)(script2);
         if (isP2SH && redeemScript === void 0)
           throw new Error("scriptPubkey is P2SH but redeemScript missing");
         if ((isP2WSH || isP2SHP2WSH) && witnessScript === void 0)
@@ -17989,34 +17989,34 @@
         let meaningfulScript;
         if (isP2SHP2WSH) {
           meaningfulScript = witnessScript;
-          checkRedeemScript(index, script, redeemScript, ioType);
+          checkRedeemScript(index, script2, redeemScript, ioType);
           checkWitnessScript(index, redeemScript, witnessScript, ioType);
           checkInvalidP2WSH(meaningfulScript);
         } else if (isP2WSH) {
           meaningfulScript = witnessScript;
-          checkWitnessScript(index, script, witnessScript, ioType);
+          checkWitnessScript(index, script2, witnessScript, ioType);
           checkInvalidP2WSH(meaningfulScript);
         } else if (isP2SH) {
           meaningfulScript = redeemScript;
-          checkRedeemScript(index, script, redeemScript, ioType);
+          checkRedeemScript(index, script2, redeemScript, ioType);
         } else {
-          meaningfulScript = script;
+          meaningfulScript = script2;
         }
         return {
           meaningfulScript,
           type: isP2SHP2WSH ? "p2sh-p2wsh" : isP2SH ? "p2sh" : isP2WSH ? "p2wsh" : "raw"
         };
       }
-      function checkInvalidP2WSH(script) {
-        if ((0, psbtutils_1.isP2WPKH)(script) || (0, psbtutils_1.isP2SHScript)(script)) {
+      function checkInvalidP2WSH(script2) {
+        if ((0, psbtutils_1.isP2WPKH)(script2) || (0, psbtutils_1.isP2SHScript)(script2)) {
           throw new Error("P2WPKH or P2SH can not be contained within P2WSH");
         }
       }
-      function classifyScript(script) {
-        if ((0, psbtutils_1.isP2WPKH)(script)) return "witnesspubkeyhash";
-        if ((0, psbtutils_1.isP2PKH)(script)) return "pubkeyhash";
-        if ((0, psbtutils_1.isP2MS)(script)) return "multisig";
-        if ((0, psbtutils_1.isP2PK)(script)) return "pubkey";
+      function classifyScript(script2) {
+        if ((0, psbtutils_1.isP2WPKH)(script2)) return "witnesspubkeyhash";
+        if ((0, psbtutils_1.isP2PKH)(script2)) return "pubkeyhash";
+        if ((0, psbtutils_1.isP2MS)(script2)) return "multisig";
+        if ((0, psbtutils_1.isP2PK)(script2)) return "pubkey";
         return "nonstandard";
       }
       function range(n2) {
@@ -18039,8 +18039,8 @@
       exports2.networks = networks2;
       var payments2 = require_payments();
       exports2.payments = payments2;
-      var script = require_script();
-      exports2.script = script;
+      var script2 = require_script();
+      exports2.script = script2;
       var block_1 = require_block();
       Object.defineProperty(exports2, "Block", {
         enumerable: true,
@@ -18924,6 +18924,7 @@
 
   // src/client-api/contracts/btc/tx.ts
   var bitcoin = __toESM(require_src4());
+  var import_bip371 = __toESM(require_bip371());
   var ecc = __toESM(require_lib3());
   bitcoin.initEccLib(ecc);
   var net2 = bitcoin.networks.testnet;
@@ -19056,12 +19057,12 @@
     return {
       genOpeningTx: async (aliceIn, bobIn, alicePub, bobPub, aliceAmounts, bobAmounts, changeAlice, changeBob, txfee) => {
         const psbt = new bitcoin.Psbt({ network: net2 });
-        let aliceP2TR = p2pktr(alicePub);
-        let bobP2TR = p2pktr(bobPub);
+        const aliceP2TR = p2pktr(alicePub);
+        const bobP2TR = p2pktr(bobPub);
         console.log("alice_addr = " + aliceP2TR.address);
         console.log("bob_addr = " + bobP2TR.address);
         const pkCombined = muSig.pubKeyCombine([Buffer.from(alicePub, "hex"), Buffer.from(bobPub, "hex")]);
-        let pubKeyCombined = convert2.intToBuffer(pkCombined.affineX);
+        const pubKeyCombined = convert2.intToBuffer(pkCombined.affineX);
         const aliceAmount = aliceAmounts.reduce((a, b) => a + b) - changeAlice;
         const bobAmount = bobAmounts.reduce((a, b) => a + b) - changeBob;
         aliceIn.forEach((utxo, i) => {
@@ -19111,8 +19112,8 @@
       genClosingTx: async (multiIn, alicePub, bobPub, aliceAmount, bobAmount, txfee) => {
         const psbt = new bitcoin.Psbt({ network: net2 });
         const pkCombined = muSig.pubKeyCombine([Buffer.from(alicePub, "hex"), Buffer.from(bobPub, "hex")]);
-        let pubKeyCombined = convert2.intToBuffer(pkCombined.affineX);
-        let multiP2TR = p2pktr(pubKeyCombined);
+        const pubKeyCombined = convert2.intToBuffer(pkCombined.affineX);
+        const multiP2TR = p2pktr(pubKeyCombined);
         psbt.addInput({
           hash: multiIn.txid,
           index: multiIn.vout,
@@ -19134,13 +19135,13 @@
           hex: psbt.extractTransaction().toHex()
         };
       },
-      genAliceCet: async (multiIn, alicePub, bobPub, adaptorPub, aliceAmount, bobAmount, txfee, session = null) => {
+      genAliceCet: async (multiIn, alicePub, bobPub, adaptorPub, aliceAmount, bobAmount, txfee, session = null, stateAmount) => {
         const psbt = new bitcoin.Psbt({ network: net2 });
         const pkCombined = muSig.pubKeyCombine([Buffer.from(alicePub, "hex"), Buffer.from(bobPub, "hex")]);
-        let pubKeyCombined = convert2.intToBuffer(pkCombined.affineX);
-        let multiP2TR = p2pktr(pubKeyCombined);
+        const pubKeyCombined = convert2.intToBuffer(pkCombined.affineX);
+        const multiP2TR = p2pktr(pubKeyCombined);
         const adaptorPkCombined = muSig.pubKeyCombine([Buffer.from(alicePub, "hex"), Buffer.from(adaptorPub, "hex")]);
-        let adaptorPubKeyCombined = convert2.intToBuffer(adaptorPkCombined.affineX);
+        const adaptorPubKeyCombined = convert2.intToBuffer(adaptorPkCombined.affineX);
         psbt.addInput({
           hash: multiIn.txid,
           index: multiIn.vout,
@@ -19151,6 +19152,12 @@
           address: p2pktr(adaptorPubKeyCombined).address,
           value: aliceAmount + bobAmount - txfee
         });
+        if (stateAmount !== void 0) {
+          psbt.addOutput({
+            address: p2pktr(pubKeyCombined).address,
+            value: stateAmount
+          });
+        }
         if (session === null || session === void 0) {
           await psbt.signInputAsync(0, schnorrSignerMulti(alicePub, bobPub));
         } else {
@@ -19165,8 +19172,8 @@
       genAliceCetRedemption: async (aliceOracleIn, adaptorPub, alicePub, oracleS, amount, txfee) => {
         const psbt = new bitcoin.Psbt({ network: net2 });
         const adaptorPkCombined = muSig.pubKeyCombine([Buffer.from(alicePub, "hex"), Buffer.from(adaptorPub, "hex")]);
-        let adaptorPubKeyCombined = convert2.intToBuffer(adaptorPkCombined.affineX);
-        let aliceOracleP2TR = p2pktr(adaptorPubKeyCombined);
+        const adaptorPubKeyCombined = convert2.intToBuffer(adaptorPkCombined.affineX);
+        const aliceOracleP2TR = p2pktr(adaptorPubKeyCombined);
         psbt.addInput({
           hash: aliceOracleIn.txid,
           index: aliceOracleIn.vout,
@@ -19179,6 +19186,186 @@
           value: amount - txfee
         });
         await psbt.signInputAsync(0, schnorrSignerMulti(alicePub, adaptorPub, ["", oracleS]));
+        psbt.finalizeAllInputs();
+        return {
+          txid: psbt.extractTransaction().getId(),
+          hex: psbt.extractTransaction().toHex()
+        };
+      },
+      genAliceCetQuorum: async (multiIn, alicePub, bobPub, adaptorPub, adaptorPub2, adaptorPub3, aliceAmount, bobAmount, txfee, session, stateAmount) => {
+        const psbt = new bitcoin.Psbt({ network: net2 });
+        const pkCombined = muSig.pubKeyCombine([Buffer.from(alicePub, "hex"), Buffer.from(bobPub, "hex")]);
+        const pubKeyCombined = convert2.intToBuffer(pkCombined.affineX);
+        const multiP2TR = p2pktr(pubKeyCombined);
+        const adaptorPkCombined1 = muSig.pubKeyCombine([Buffer.from(alicePub, "hex"), Buffer.from(adaptorPub, "hex")]);
+        const adaptorPubKeyCombined1 = convert2.intToBuffer(adaptorPkCombined1.affineX);
+        const adaptorPkCombined2 = muSig.pubKeyCombine([Buffer.from(alicePub, "hex"), Buffer.from(adaptorPub2, "hex")]);
+        const adaptorPubKeyCombined2 = convert2.intToBuffer(adaptorPkCombined2.affineX);
+        const adaptorPkCombined3 = muSig.pubKeyCombine([Buffer.from(alicePub, "hex"), Buffer.from(adaptorPub3, "hex")]);
+        const adaptorPubKeyCombined3 = convert2.intToBuffer(adaptorPkCombined3.affineX);
+        const script_asm1 = `${(0, import_bip371.toXOnly)(adaptorPubKeyCombined1)} OP_CHECKSIGVERIFY ${(0, import_bip371.toXOnly)(adaptorPubKeyCombined2)}  OP_CHECKSIG`;
+        const script_asm2 = `${(0, import_bip371.toXOnly)(adaptorPubKeyCombined1)} OP_CHECKSIGVERIFY ${(0, import_bip371.toXOnly)(adaptorPubKeyCombined3)}  OP_CHECKSIG`;
+        const script_asm3 = `${(0, import_bip371.toXOnly)(adaptorPubKeyCombined2)} OP_CHECKSIGVERIFY ${(0, import_bip371.toXOnly)(adaptorPubKeyCombined3)}  OP_CHECKSIG`;
+        psbt.addInput({
+          hash: multiIn.txid,
+          index: multiIn.vout,
+          witnessUtxo: { value: aliceAmount + bobAmount, script: multiP2TR.output },
+          tapInternalKey: Buffer.from(alicePub, "hex")
+        });
+        const scriptTree = [
+          {
+            output: bitcoin.script.fromASM(script_asm1)
+          },
+          [
+            {
+              output: bitcoin.script.fromASM(script_asm2)
+            },
+            {
+              output: bitcoin.script.fromASM(script_asm3)
+            }
+          ]
+        ];
+        const script_p2tr = bitcoin.payments.p2tr({
+          internalPubkey: (0, import_bip371.toXOnly)(pubKeyCombined),
+          scriptTree
+        });
+        if (session === null || session === void 0) {
+          await psbt.signInputAsync(0, schnorrSignerMulti(alicePub, bobPub));
+        } else {
+          await psbt.signInputAsync(0, schnorrSignerInteractive(alicePub, bobPub, session));
+        }
+        const script_addr = script_p2tr.address ?? "";
+        psbt.addOutput({
+          address: script_addr,
+          value: aliceAmount + bobAmount - txfee
+        });
+        if (stateAmount !== void 0) {
+          psbt.addOutput({
+            address: p2pktr(pubKeyCombined).address,
+            value: stateAmount
+          });
+        }
+        psbt.finalizeAllInputs();
+        return {
+          txid: psbt.extractTransaction().getId(),
+          hex: psbt.extractTransaction().toHex()
+        };
+      },
+      genAliceCetRedemptionQuorum: async (quorumno, aliceOracleIn, adaptorPub, adaptorPub2, adaptorPub3, alicePub, bobPub, oracleS, oracleS2, oracleS3, amount, txfee) => {
+        const psbt = new bitcoin.Psbt({ network: net2 });
+        const pkCombined = muSig.pubKeyCombine([Buffer.from(alicePub, "hex"), Buffer.from(bobPub, "hex")]);
+        const pubKeyCombined = convert2.intToBuffer(pkCombined.affineX);
+        const adaptorPkCombined1 = muSig.pubKeyCombine([Buffer.from(alicePub, "hex"), Buffer.from(adaptorPub, "hex")]);
+        const adaptorPubKeyCombined1 = convert2.intToBuffer(adaptorPkCombined1.affineX);
+        const adaptorPkCombined2 = muSig.pubKeyCombine([Buffer.from(alicePub, "hex"), Buffer.from(adaptorPub2, "hex")]);
+        const adaptorPubKeyCombined2 = convert2.intToBuffer(adaptorPkCombined2.affineX);
+        const adaptorPkCombined3 = muSig.pubKeyCombine([Buffer.from(alicePub, "hex"), Buffer.from(adaptorPub3, "hex")]);
+        const adaptorPubKeyCombined3 = convert2.intToBuffer(adaptorPkCombined3.affineX);
+        const script_asm1 = `${(0, import_bip371.toXOnly)(adaptorPubKeyCombined1)} OP_CHECKSIGVERIFY ${(0, import_bip371.toXOnly)(adaptorPubKeyCombined2)}  OP_CHECKSIG`;
+        const script_asm2 = `${(0, import_bip371.toXOnly)(adaptorPubKeyCombined1)} OP_CHECKSIGVERIFY ${(0, import_bip371.toXOnly)(adaptorPubKeyCombined3)}  OP_CHECKSIG`;
+        const script_asm3 = `${(0, import_bip371.toXOnly)(adaptorPubKeyCombined2)} OP_CHECKSIGVERIFY ${(0, import_bip371.toXOnly)(adaptorPubKeyCombined3)}  OP_CHECKSIG`;
+        const redeem1 = {
+          output: bitcoin.script.fromASM(script_asm1),
+          redeemVersion: 192
+        };
+        const redeem2 = {
+          output: bitcoin.script.fromASM(script_asm2),
+          redeemVersion: 192
+        };
+        const redeem3 = {
+          output: bitcoin.script.fromASM(script_asm3),
+          redeemVersion: 192
+        };
+        const scriptTree = [
+          {
+            output: bitcoin.script.fromASM(script_asm1)
+          },
+          [
+            {
+              output: bitcoin.script.fromASM(script_asm2)
+            },
+            {
+              output: bitcoin.script.fromASM(script_asm3)
+            }
+          ]
+        ];
+        const p1 = bitcoin.payments.p2tr({
+          internalPubkey: (0, import_bip371.toXOnly)((0, import_bip371.toXOnly)(pubKeyCombined)),
+          scriptTree,
+          redeem: redeem1
+        });
+        const p2 = bitcoin.payments.p2tr({
+          internalPubkey: (0, import_bip371.toXOnly)((0, import_bip371.toXOnly)(pubKeyCombined)),
+          scriptTree,
+          redeem: redeem2
+        });
+        const p3 = bitcoin.payments.p2tr({
+          internalPubkey: (0, import_bip371.toXOnly)((0, import_bip371.toXOnly)(pubKeyCombined)),
+          scriptTree,
+          redeem: redeem3
+        });
+        if (quorumno == 1) {
+          psbt.addInput({
+            hash: aliceOracleIn.txid,
+            index: aliceOracleIn.vout,
+            witnessUtxo: { value: amount, script: p1.output },
+            tapLeafScript: [
+              {
+                leafVersion: redeem1.redeemVersion,
+                script: redeem1.output,
+                controlBlock: p1.witness[p1.witness.length - 1]
+                // extract control block from witness data
+              }
+            ]
+          });
+        }
+        if (quorumno == 2) {
+          psbt.addInput({
+            hash: aliceOracleIn.txid,
+            index: aliceOracleIn.vout,
+            witnessUtxo: { value: amount, script: p2.output },
+            tapLeafScript: [
+              {
+                leafVersion: redeem2.redeemVersion,
+                script: redeem2.output,
+                controlBlock: p2.witness[p2.witness.length - 1]
+                // extract control block from witness data
+              }
+            ]
+          });
+        }
+        if (quorumno == 3) {
+          psbt.addInput({
+            hash: aliceOracleIn.txid,
+            index: aliceOracleIn.vout,
+            witnessUtxo: { value: amount, script: p3.output },
+            tapLeafScript: [
+              {
+                leafVersion: redeem1.redeemVersion,
+                script: redeem1.output,
+                controlBlock: p3.witness[p3.witness.length - 1]
+                // extract control block from witness data
+              }
+            ]
+          });
+        }
+        psbt.addOutput({
+          address: p2pktr(alicePub).address,
+          // TODO: generate alice address from oracleMsgHex and oracleR
+          value: amount - txfee
+        });
+        if (quorumno == 1) {
+          await psbt.signInputAsync(0, schnorrSignerMulti(alicePub, adaptorPub, ["", oracleS]));
+          await psbt.signInputAsync(0, schnorrSignerMulti(alicePub, adaptorPub, ["", oracleS2]));
+        }
+        if (quorumno == 2) {
+          await psbt.signInputAsync(0, schnorrSignerMulti(alicePub, adaptorPub, ["", oracleS]));
+          await psbt.signInputAsync(0, schnorrSignerMulti(alicePub, adaptorPub, ["", oracleS3]));
+        }
+        if (quorumno == 3) {
+          await psbt.signInputAsync(0, schnorrSignerMulti(alicePub, adaptorPub, ["", oracleS2]));
+          await psbt.signInputAsync(0, schnorrSignerMulti(alicePub, adaptorPub, ["", oracleS3]));
+        }
         psbt.finalizeAllInputs();
         return {
           txid: psbt.extractTransaction().getId(),
@@ -19218,37 +19405,77 @@
       params.txfee
     )).hex;
   };
-  var generateCetTransaction = async (params) => {
+  var generateCetTransaction = async (params, vout = 0) => {
     const multiIn = {
       txid: params.lockedTxId,
-      vout: 0
+      vout
     };
-    const twistedPk = schnorr2.adaptorPublic(params.oraclePub, params.answer, params.rValue).padStart(64, "0");
-    return (await tx.genAliceCet(
-      multiIn,
-      params.alicePub,
-      params.bobPub,
-      twistedPk,
-      params.aliceAmount,
-      params.bobAmount,
-      params.txfee,
-      params.session
-    )).hex;
+    if (params.oraclePub2 === void 0) {
+      const twistedPk = schnorr2.adaptorPublic(params.oraclePub, params.answer, params.rValue).padStart(64, "0");
+      return (await tx.genAliceCet(
+        multiIn,
+        params.alicePub,
+        params.bobPub,
+        twistedPk,
+        params.aliceAmount,
+        params.bobAmount,
+        params.txfee,
+        params.session,
+        params.stateAmount
+      )).hex;
+    } else {
+      const twistedPk1 = schnorr2.adaptorPublic(params.oraclePub, params.answer, params.rValue).padStart(64, "0");
+      const twistedPk2 = schnorr2.adaptorPublic(params.oraclePub2, params.answer, params.rValue2).padStart(64, "0");
+      const twistedPk3 = schnorr2.adaptorPublic(params.oraclePub3, params.answer, params.rValue3).padStart(64, "0");
+      return (await tx.genAliceCetQuorum(
+        multiIn,
+        params.alicePub,
+        params.bobPub,
+        twistedPk1,
+        twistedPk2,
+        twistedPk3,
+        params.aliceAmount,
+        params.bobAmount,
+        params.txfee,
+        params.session,
+        params.stateAmount
+      )).hex;
+    }
   };
   var generateCetRedemptionTransaction = async (params) => {
-    const twistedPk = schnorr2.adaptorPublic(params.oraclePub, params.answer, params.rValue).padStart(64, "0");
     const cetOut = {
       txid: params.cetTxId,
       vout: 0
     };
-    return (await tx.genAliceCetRedemption(
-      cetOut,
-      twistedPk,
-      params.alicePub,
-      params.oracleSignature,
-      params.amount,
-      params.txfee
-    )).hex;
+    if (params.oraclePub2 === void 0) {
+      const twistedPk = schnorr2.adaptorPublic(params.oraclePub, params.answer, params.rValue).padStart(64, "0");
+      return (await tx.genAliceCetRedemption(
+        cetOut,
+        twistedPk,
+        params.alicePub,
+        params.oracleSignature,
+        params.amount,
+        params.txfee
+      )).hex;
+    } else {
+      const twistedPk1 = schnorr2.adaptorPublic(params.oraclePub, params.answer, params.rValue).padStart(64, "0");
+      const twistedPk2 = schnorr2.adaptorPublic(params.oraclePub2, params.answer, params.rValue2).padStart(64, "0");
+      const twistedPk3 = schnorr2.adaptorPublic(params.oraclePub3, params.answer, params.rValue3).padStart(64, "0");
+      return (await tx.genAliceCetRedemptionQuorum(
+        params.quorumno,
+        cetOut,
+        twistedPk1,
+        twistedPk2,
+        twistedPk3,
+        params.alicePub,
+        params.bobPub,
+        params.oracleSignature,
+        params.oracleSignature2,
+        params.oracleSignature3,
+        params.amount,
+        params.txfee
+      )).hex;
+    }
   };
 
   // node_modules/@nyariv/sandboxjs/dist/Sandbox.min.js
@@ -20809,6 +21036,12 @@
     page: 0,
     chunkSize: 1
   };
+  var getOriginatorId = () => {
+    if (localStorage.getItem("originatorId") === void 0) {
+      localStorage.setItem("originatorId", (void 0)(12e5).toString());
+    }
+    return localStorage.getItem("originatorId");
+  };
   var matchingEngine = {
     pickOffer: async function() {
       const candidates = await window.storage.queryOffers({ where: async (x) => true }, {
@@ -20838,9 +21071,29 @@
       return model;
     },
     generateOffer: async function(cfg) {
-      window.storage.queryOracles;
-      window.storage.queryCapabilities;
-      throw new Error("Function not implemented.");
+      const candidates = await window.storage.queryCapabilities({ where: async (x) => true }, {
+        page: 0,
+        chunkSize: 100
+      });
+      const cp = candidates[(void 0)(candidates.length)];
+      const partyBetAmountOptions = [1, 100, 200, 500];
+      const partyBetAmount = partyBetAmountOptions[(void 0)(partyBetAmountOptions.length)];
+      const counterpartyBetAmountOptions = [5, 250, 300, 500];
+      const counterpartyBetAmount = counterpartyBetAmountOptions[(void 0)(counterpartyBetAmountOptions.length)];
+      const model = {
+        id: "aaa",
+        bet: [partyBetAmount, counterpartyBetAmount],
+        oracles: [{
+          id: "",
+          oracle: cp.oraclePubKey,
+          endpoint: "http://localhost:8080"
+          //can use fact-missing claim as an endpoint too
+        }],
+        question: cp.question,
+        status: "matching",
+        role: "initiator"
+      };
+      return model;
     },
     broadcastOffer: async function(o) {
       const pow = {
@@ -20866,7 +21119,8 @@
         customContract: "",
         terms: offerTerms,
         blockchain: "bitcoin-testnet",
-        contact: ""
+        contact: "",
+        originatorId: getOriginatorId()
       };
       window.traderApi.issueOffer({
         seqNo: 0,
@@ -20878,18 +21132,19 @@
     acceptOffer: async function(o) {
       const offer = (await window.storage.queryOffers({ where: async (x) => x.pow.hash === o.id }, oneElemPage))[0];
       const openingTx = {
-        tx: "",
+        tx: "TODO",
         sessionIds: [],
         nonceParity: [],
         sessionNonces: [],
-        sesionCommitments: [],
+        sesionCommitments: ["TODO"],
         partialSigs: []
       };
       const accept = {
         chain: "bitcoin-testnet",
         openingTx,
         offerRef: void 0,
-        cetTxSet: []
+        cetTxSet: [],
+        acceptorId: getOriginatorId()
       };
       offer.content.accept = accept;
       offer.pow.hash = offer.pow.hash + "accept";

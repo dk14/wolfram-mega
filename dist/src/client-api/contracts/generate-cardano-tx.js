@@ -47,9 +47,55 @@ const extractRawPub = (pub) => {
 const extractRawSig = (sig) => {
     return Array.from(Buffer.from(sig, 'base64'));
 };
+const pickContract = (inputs) => {
+    if (inputs.oracleCpPubKey2 === undefined) {
+        return "/plutus-option.hl";
+    }
+    else {
+        return "/plutus-option-quorum.hl";
+    }
+};
+const pickDatum = (inputs) => {
+    const alicePkh = helios_1.Address.fromBech32(inputs.aliceInput.addr).pubKeyHash;
+    const BobPkh = helios_1.Address.fromBech32(inputs.bobInput.addr).pubKeyHash;
+    if (inputs.oracleCpPubKey2 === undefined) {
+        return new helios_1.ListData([new helios_1.ByteArrayData(alicePkh.bytes),
+            new helios_1.ByteArrayData(BobPkh.bytes),
+            new helios_1.ByteArrayData(extractRawPub(inputs.oracleCpPubKey)),
+            new helios_1.ByteArrayData(stringToArray(inputs.r.aliceBetsOnMsg)),
+            new helios_1.ByteArrayData(stringToArray(inputs.r.bobBetsOnMsg))
+        ]);
+    }
+    else {
+        return new helios_1.ListData([new helios_1.ByteArrayData(alicePkh.bytes),
+            new helios_1.ByteArrayData(BobPkh.bytes),
+            new helios_1.ByteArrayData(extractRawPub(inputs.oracleCpPubKey)),
+            new helios_1.ByteArrayData(extractRawPub(inputs.oracleCpPubKey2)),
+            new helios_1.ByteArrayData(extractRawPub(inputs.oracleCpPubKey3)),
+            new helios_1.ByteArrayData(stringToArray(inputs.r.aliceBetsOnMsg)),
+            new helios_1.ByteArrayData(stringToArray(inputs.r.bobBetsOnMsg))
+        ]);
+    }
+};
+const pickRedeemer = (inputs) => {
+    if (inputs.oracleCpPubKey2 === undefined) {
+        return new helios_1.ListData([
+            new helios_1.ByteArrayData(stringToArray(inputs.msg)),
+            new helios_1.ByteArrayData(extractRawSig(inputs.sig))
+        ]);
+    }
+    else {
+        return new helios_1.ListData([
+            new helios_1.ByteArrayData(stringToArray(inputs.msg)),
+            new helios_1.ByteArrayData(extractRawSig(inputs.sig)),
+            new helios_1.ByteArrayData(extractRawSig(inputs.sig2)),
+            new helios_1.ByteArrayData(extractRawSig(inputs.sig3))
+        ]);
+    }
+};
 const generateOpeningTransaction = async (network, inputs) => {
     const tx = new helios_1.Tx();
-    const src = fs.readFileSync(__dirname + "/plutus-option.hl").toString();
+    const src = fs.readFileSync(__dirname + pickContract(inputs)).toString();
     const program = helios_1.Program.new(src);
     const uplc = program.compile(false);
     const utxo1 = new helios_1.TxInput(helios_1.TxOutputId.fromProps({
@@ -61,14 +107,7 @@ const generateOpeningTransaction = async (network, inputs) => {
         utxoId: inputs.bobInput.txout
     }), new helios_1.TxOutput(helios_1.Address.fromBech32(inputs.bobInput.addr), new helios_1.Value(BigInt(inputs.bobActualAmount))));
     tx.addInputs([utxo1, utxo2]);
-    const alicePkh = helios_1.Address.fromBech32(inputs.aliceInput.addr).pubKeyHash;
-    const BobPkh = helios_1.Address.fromBech32(inputs.bobInput.addr).pubKeyHash;
-    const datum = new helios_1.ListData([new helios_1.ByteArrayData(alicePkh.bytes),
-        new helios_1.ByteArrayData(BobPkh.bytes),
-        new helios_1.ByteArrayData(extractRawPub(inputs.oracleCpPubKey)),
-        new helios_1.ByteArrayData(stringToArray(inputs.r.aliceBetsOnMsg)),
-        new helios_1.ByteArrayData(stringToArray(inputs.r.bobBetsOnMsg))
-    ]);
+    const datum = pickDatum(inputs);
     const collateral = inputs.aliceInput.amount + inputs.bobInput.amount - inputs.txfee;
     const utxo3 = new helios_1.TxOutput(helios_1.Address.fromHash(uplc.validatorHash, true), new helios_1.Value(BigInt(collateral)), helios_1.Datum.inline(datum));
     tx.addOutput(utxo3);
@@ -91,23 +130,13 @@ const generateClosingTransaction = async (network, inputs) => {
     const program = helios_1.Program.new(src);
     const uplc = program.compile(false);
     const addr = helios_1.Address.fromHash(uplc.validatorHash);
-    const alicePkh = helios_1.Address.fromBech32(inputs.aliceInput.addr).pubKeyHash;
-    const BobPkh = helios_1.Address.fromBech32(inputs.bobInput.addr).pubKeyHash;
-    const datum = new helios_1.ListData([new helios_1.ByteArrayData(alicePkh.bytes),
-        new helios_1.ByteArrayData(BobPkh.bytes),
-        new helios_1.ByteArrayData(extractRawPub(inputs.oracleCpPubKey)),
-        new helios_1.ByteArrayData(stringToArray(inputs.r.aliceBetsOnMsg)),
-        new helios_1.ByteArrayData(stringToArray(inputs.r.bobBetsOnMsg))
-    ]);
+    const datum = pickDatum(inputs);
     console.log("closing script hash = " + uplc.validatorHash.hex + "\n" + datum.toCborHex());
     const collateral = new helios_1.TxInput(helios_1.TxOutputId.fromProps({
         txId: helios_1.TxId.fromHex(inputs.input.txid),
         utxoId: inputs.input.txout
     }), new helios_1.TxOutput(addr, new helios_1.Value(BigInt(inputs.input.amount)), helios_1.Datum.inline(datum)));
-    const valRedeemer = new helios_1.ListData([
-        new helios_1.ByteArrayData(stringToArray(inputs.msg)),
-        new helios_1.ByteArrayData(extractRawSig(inputs.sig))
-    ]);
+    const valRedeemer = pickRedeemer(inputs);
     tx.addInput(collateral, valRedeemer);
     const value = new helios_1.Value(BigInt(inputs.input.amount - inputs.txfee));
     tx.attachScript(uplc);
