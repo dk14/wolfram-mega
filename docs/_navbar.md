@@ -2,7 +2,7 @@
 - [Manifest](manifest.md)
 - [App](app.md)
 - Getting started
-    - [Operators](Operators.md)
+    - [Operators](operators.md)
     - [Traders](traders.md)
     - [Oracles](oracles.md)
     - [Contract Demo](tech.md)
