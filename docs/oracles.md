@@ -96,13 +96,24 @@ await (await fetch('./id')).json()
 const cps = await (await fetch('./viewStoredCapabilities?pageSize=100&pageNo=0')).json()
 ```
 
-## How to sign messages as oracle 
+## How to sign ads as oracle 
  `src/client-api/utils/oracle-endpoint` has an example.
 
 After starting oracle api,
-`ws://host:port/signCp` and `ws://host:port/signAd` would give you streams for signing capabilities and oracle ads respectively. You read a message - you write same message but with oracleSignature.
+`ws://host:port/signCp` and `ws://host:port/signAd` would give you streams for signing capability ads and oracle ads respectively. You read a message - you write same message but with oracleSignature.
 
 The best approach is to sign messages manually unless they only differ in `seqNo` field.
+
+## Signatures
+
+Oracle ads and capabilites are signed with root oracle signature.
+
+Commitments and facts are signed with corresponding capability signature.
+
+
+Security note:
+- signing capability with `capabilityPubKey` not belonging to oracle would allow woner of corresponding private key to make commitments on behalf of oracle.
+- Thus, it is recommended to derive capability private keys from root oracle private key (HD-wallet approach)
 
 # Oracle Endpoint
 Oracle endpoint has to implement this interface over REST:
