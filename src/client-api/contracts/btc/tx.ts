@@ -31,9 +31,9 @@ export interface Tx {
 export interface TxApi {
     genOpeningTx(aliceIn: UTxO[], bobIn: UTxO[], alicePub: string, bobPub: string, aliceAmounts: number[], bobAmounts: number[], changeAlice: number, changeBob: number, txfee: number): Promise<Tx>
     genClosingTx(multiIn: UTxO, alicePub: string, bobPub: string, aliceAmount: number, bobAmount: number, txfee: number): Promise<Tx>
-    genAliceCet(multiIn: UTxO, alicePub: string, bobPub: string, adaptorPub: string, aliceAmount: number, bobAmount: number, txfee: number, session?: PublicSession): Promise<Tx>
+    genAliceCet(multiIn: UTxO, alicePub: string, bobPub: string, adaptorPub: string, aliceAmount: number, bobAmount: number, txfee: number, session?: PublicSession, stateAmount?: number): Promise<Tx>
     genAliceCetRedemption(aliceOracleIn: UTxO, adaptorPubKeyCombined: string, alicePub: string, oracleS: string, amount: number, txfee: number): Promise<Tx>
-    genAliceCetQuorum(multiIn: UTxO, alicePub: string, bobPub: string, adaptorPub: string, adaptorPub2: string, adaptorPub3: string,  aliceAmount: number, bobAmount: number, txfee: number, session?: PublicSession): Promise<Tx>
+    genAliceCetQuorum(multiIn: UTxO, alicePub: string, bobPub: string, adaptorPub: string, adaptorPub2: string, adaptorPub3: string,  aliceAmount: number, bobAmount: number, txfee: number, session?: PublicSession, stateAmount?: number): Promise<Tx>
     genAliceCetRedemptionQuorum(quorumno: number, aliceOracleIn: UTxO, adaptorPubKeyCombined: string, adaptorPubKeyCombined2: string, adaptorPubKeyCombined3: string, alicePub: string, bobPub: string, oracleS: string, oracleS2: string, oracleS3: string, amount: number, txfee: number): Promise<Tx>
 
 }
@@ -295,7 +295,7 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
                 hex: psbt.extractTransaction().toHex()
             }
         },
-        genAliceCet: async (multiIn: UTxO, alicePub: string, bobPub: string, adaptorPub: string, aliceAmount: number, bobAmount: number, txfee: number, session: PublicSession = null): Promise<Tx> => {
+        genAliceCet: async (multiIn: UTxO, alicePub: string, bobPub: string, adaptorPub: string, aliceAmount: number, bobAmount: number, txfee: number, session: PublicSession = null, stateAmount?: number): Promise<Tx> => {
             const psbt = new bitcoin.Psbt({ network: net})
             const pkCombined = muSig.pubKeyCombine([Buffer.from(alicePub, "hex"), Buffer.from(bobPub, "hex")]);
             const pubKeyCombined = convert.intToBuffer(pkCombined.affineX);
@@ -316,6 +316,13 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
                 address: p2pktr(adaptorPubKeyCombined).address!, 
                 value: aliceAmount + bobAmount - txfee
             });
+
+            if (stateAmount !== undefined) {
+                psbt.addOutput({
+                    address: p2pktr(pubKeyCombined).address!, 
+                    value: stateAmount
+                });
+            }
 
             if (session === null || session === undefined) {
                 await psbt.signInputAsync(0, schnorrSignerMulti(alicePub, bobPub))
@@ -358,7 +365,7 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
                 hex: psbt.extractTransaction().toHex()
             }
         },
-        genAliceCetQuorum: async (multiIn: UTxO, alicePub: string, bobPub: string, adaptorPub: string, adaptorPub2: string, adaptorPub3: string,  aliceAmount: number, bobAmount: number, txfee: number, session?: PublicSession): Promise<Tx> => {
+        genAliceCetQuorum: async (multiIn: UTxO, alicePub: string, bobPub: string, adaptorPub: string, adaptorPub2: string, adaptorPub3: string,  aliceAmount: number, bobAmount: number, txfee: number, session?: PublicSession, stateAmount?: number): Promise<Tx> => {
             
             const psbt = new bitcoin.Psbt({ network: net})
             const pkCombined = muSig.pubKeyCombine([Buffer.from(alicePub, "hex"), Buffer.from(bobPub, "hex")]);
@@ -415,6 +422,13 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
                 address: script_addr, 
                 value: aliceAmount + bobAmount - txfee
             });
+
+            if (stateAmount !== undefined) {
+                psbt.addOutput({
+                    address: p2pktr(pubKeyCombined).address!, 
+                    value: stateAmount
+                });
+            }
             
             psbt.finalizeAllInputs()
             
@@ -423,7 +437,7 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
                 hex: psbt.extractTransaction().toHex()
             }
         },
-        genAliceCetRedemptionQuorum: async (quorumno: number, aliceOracleIn: UTxO, adaptorPub: string, adaptorPub2: string, adaptorPub3: string, alicePub: string, bobPub: string, oracleS: string, oracleS2: string, oracleS3: string, amount: number, txfee: number): Promise<Tx> => {
+        genAliceCetRedemptionQuorum: async (quorumno: 1 | 2 | 3, aliceOracleIn: UTxO, adaptorPub: string, adaptorPub2: string, adaptorPub3: string, alicePub: string, bobPub: string, oracleS: string, oracleS2: string, oracleS3: string, amount: number, txfee: number): Promise<Tx> => {
             const psbt = new bitcoin.Psbt({ network: net})
             
             const pkCombined = muSig.pubKeyCombine([Buffer.from(alicePub, "hex"), Buffer.from(bobPub, "hex")]);

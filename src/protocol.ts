@@ -197,9 +197,9 @@ export interface Offer {
     terms: OfferTerms
     blockchain: 'bitcoin-testnet' | 'bitcoin-mainnet' | 'plutus-testnet'
     contact: string
-    transactionToBeCoSigned?: PartiallySignedTx //note for interactive sign: can be used to share precommitment
+    transactionToBeCoSigned?: PartiallySignedTx 
     txfee?: string
-    accept?: AcceptOffer //note for interactive sign: counterparty returns its commitment through this first time and party replies with its nonce; second time: it returns its nonce and partial sig
+    accept?: AcceptOffer //note for interactive sign: counterparty returns its commitment through this first time and party replies with its commitment; second time: party returns its nonce; third time ccounterparty returns nonce and partial sig
     finalize?: FinalizeOffer //here after final signature is put; txid is reported
     dependsOn?: DependsOn[] // AND condition
     encryptedDetails?: string //to make matching private - can encrypt actual `Offer` here

@@ -345,17 +345,13 @@ if (outcome("who's president") === "ME") {
         payTo(party, 10)
     } 
 }
-
 ```
+> pseudo-DSL above assumes no recapitalization of winnings. Recapitalisation is implicit, but same as in Marlowe, internal accounts in remaining collateral, can be modeled as syntax sugar and simply added to remaining payout.
 
 OFFERS-TO-RENDER:
-> `dependsOn` is a list - offer depends on ALL of dependent outcomes to fulfill
 
-> `offerRefs` is a list too - offer depends on ANY of the offers to fulfill selected outcome. This approach allows for trivial Merkle-tree-like optimisations in DSLs: same contract can be re-used as a subcontract. It is reverse hash-tree though.
-
-STAGE1:
+STAGE1 offer-chunk:
 ```json
-
 {
     hash: "000001",
     terms: {
@@ -370,11 +366,11 @@ STAGE1:
 }
 ```
 
-> partyCompositeCollateralAmount, counterpartyCompositeCollateralAmount are optional, since they can be deduced from the tree of contracts. Specifying these params makes it easier to generate DLC contracts and ensure their integrity
+> `partyCompositeCollateralAmount`, `counterpartyCompositeCollateralAmount` are optional, since they can be calculated from the tree of contracts. Specifying these params makes it easier to generate DLC contracts and ensure their integrity
 
 Worst-case scenario: party will have 20sat (`partyCompositeCollateralAmount - partyBetAmount`) left in multisig escrow, counterparty will have 10sat  (`counterpartyCompositeCollateralAmount - counterpartyBetAmount`).
 
-STAGE2:
+STAGE2 offer-chunks:
 ```json
 {
     hash: "000002",
@@ -408,9 +404,14 @@ STAGE2:
     }
 }
 ```
-Note: Unlike with Marlowe - money preservation property is ensured in the language design, rather than with SMT-solvers.
 
-> Note: In the composite contract js-eDSL pseudo-code above - `receive` represents full collateral for a participant. It is implicit "syntax sugar" because it's only needed to assert money preservation (eDSL can check that collateral computed as a sum of bets made by a given party (for worst-case outcomes) equals to the number specified in `receive`).
+> `dependsOn` is a list - offer depends on ALL of dependent outcomes to fulfill
+
+> `offerRefs` is a list too - offer depends on ANY of the offers to fulfill selected outcome. This approach allows for trivial Merkle-tree-like optimisations in DSLs: same contract can be re-used as a subcontract. It is reverse hash-tree though.
+
+ Unlike with Marlowe - money preservation property is ensured in the language design, rather than with SMT-solvers.
+
+> In the composite contract js-eDSL pseudo-code above - `receive` represents full collateral for a participant. It is implicit "syntax sugar" because it's only needed to assert money preservation (eDSL can check that collateral computed as a sum of bets made by a given party (for worst-case outcomes) equals to the number specified in `receive`).
 
 > Note on Marlowe: ad-hoc receives in the middle of a contract have no semantics. They always have to be at the start since non-participation would trigger timeout conditions, which are meaningfully either refund or MAD-lock - due to money preservation itself. 
 
@@ -419,6 +420,17 @@ Note: Unlike with Marlowe - money preservation property is ensured in the langua
 ## Multi-party
 
 Two-party offers are generalizable to multi-party (multi leg) offers through adding a composite party, e.g. "bob,carol".
+
+It simplifies matching, since originator of the offer would not have to care about how many parties would join it. 
+
+>In BTC-DLC "bob, carol" would have their own multisig and pre-sign their own CET-transactions, before co-signing CET and opening transaction with alice.
+
+It is trivial to built "multiParty eDSLs" under this framework too, since one only has to take 3-party (n-party) contract and generate 2 (n-1) bilateral contracts:
+
+- one where bob and carol are considered same party
+- another one where bob payouts are simply excluded
+
+>In BTC-DLC, inputs-outputs from the same stage - can still be pooled together in order to reduce fees.
 
 ## Schedules 
 

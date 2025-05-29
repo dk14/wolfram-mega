@@ -11,10 +11,11 @@ const ecurve = require('ecurve');
 
 const randomBuffer = (len: number) => Buffer.from(randomBytes(len));
 
-//Issue Offer - share commitment1
-//Accept - share commitment2
-//Accept2 - share nonce1
-//Accept3 - share nonce2, partialSig
+//Issue Offer 
+//Accept1 - form tx, share commitment1
+//Accept2 - share commitment2
+//Accept3 - share nonce1
+//Accept4 - share nonce2, partialSig
 //Finalize - full signature
 //SECURITY NOTE: IF NO PRE-COMMITMENTS IMPLEMENTED, ROGUE KEYS ARE WELCOME
 
