@@ -179,6 +179,8 @@ export interface AcceptOffer {
     offerRef: HashCashPow
     cetTxSet: PartiallySignedTx[]
     previousAcceptRef?: HashCashPow //for sharing precommitments in interactive sign
+    acceptorId?: string
+    acceptorSig?: string
 }
 
 export interface FinalizeOffer {
@@ -199,6 +201,8 @@ export interface Offer {
     finalize?: FinalizeOffer //here after final signature is put; txid is reported
     dependsOn?: DependsOn[] // AND condition
     encryptedDetails?: string //to make matching private - can encrypt actual `Offer` here
+    originatorId?: string //for matching
+    originatorSig?: string //for matching - to check if u really originator
 }
 
 
