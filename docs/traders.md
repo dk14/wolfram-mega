@@ -286,6 +286,8 @@ The rule for evolving offer state collaboratively is to always pick the offer wi
 
 _Note: One can accept offers outside of Mega mempool network - given that counter-party provided `contact`._
 
+## Composite contracts
+
 ## Multi-party
 
 Two-party offers are generalizable to multi-party (multi leg) offers through adding a composite party, e.g. "bob,carol".
@@ -293,9 +295,9 @@ Two-party offers are generalizable to multi-party (multi leg) offers through add
 ## Schedules 
 
 Schedules (e.g. `InterestRateSwap`) can be expressed through `dependsOn` reference. 
-Scheduled offer is finalized when first `openingTx` for the whole tree is co-signed (parties cross check that every node is co-signed).
+Scheduled offer is finalized when first `openingTx` for the whole composite tree is co-signed (parties cross check that every subcontract is co-signed).
 
-#### "Ad-hoc" parties in schedules
+### "Ad-hoc" parties in schedules
 If party has to be added "on the go" then special "new party" outome has to be added.
 Such outome can be attested without third-party oracle, by verifying proof of funding transaction on-chain.
 
@@ -304,7 +306,7 @@ For BTC this would require to either:
 - or a consensus of existing parties
 
 ### Exponential explosion
-Offers are meant to represent a contract with predictable execution time (Marlowe-like expressiveness). This approach also ensures that funds won't stuck in an escrow.
+Offers are meant to represent a contract with predictable execution time (Marlowe expressiveness). This approach also ensures that funds won't stuck in an escrow.
 
 Same as Marlowe, it puts contracts at the risk of exponential explosion.
 
@@ -316,9 +318,16 @@ Same goes for schedules: grouping outcomes for every stage in a contract, would 
 
 #### **Merkle-trees**
 
-Merkle-trees can also be utilized to avoid duplicate subtrees in offer trees, thus reducing risks of contract exploding to a minimum. It is recommended to use same
+Merkle-trees can also be utilized to eliminate duplicate subtcontract trees in offer trees, thus reducing risks of contract explosion to a theoretical minimum. 
 
-After this technique is applied only contracts that are aimed at modeling "perpetual motion" would explode.
+Practically, it requires extra-care:
+
+- subcontracts with equivalent semantics might contain small differences (e.g. redemption addresses). This has to be eliminated manually.
+- it is recommended to bound contract-size to reasonable minimum during contract generation, in order to avoid dealing with "halting problem", proof assistants etc. For BTC such bound can be expressed in bytes, or even satochis if txfee is known.
+- use DSL like Marlowe or write your own. For BTC, 
+- recursive calls can be supported in DSLs through  bounded recusrion (with default return value supplied in "return" after a fixed amount recursive calls). Trivial macro inlining sunction body n times.
+
+After these techniques are applied, only contracts that are aimed at modeling "perpetual motion" would explode.
 
 #### **"Perpetuality"**
 
