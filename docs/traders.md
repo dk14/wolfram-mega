@@ -383,7 +383,6 @@ STAGE2:
         offerRefs: ["0000001"]
     }],
     terms: {
-        
         question: "who's the best?"    
         partyBetsOn:["I"],
         counterPartyBetsOn:["THEY"],
