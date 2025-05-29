@@ -330,8 +330,8 @@ Here's composite binary option:
 
 PSEUDOCODE (we leave trivial DSLs to app developers):
 ```ts
-receive(party, 100 + max(20, 0)) //implicit in `ContractTerms`
-receive(counterparty, 10 + max(10, 10)) //implicit in `ContractTerms`
+receive(party, 100 + max(20, 0)) //can be implicit in `ContractTerms`
+receive(counterparty, 10 + max(10, 10)) //can be implicit in `ContractTerms`
 if (outcome("who's president") === "ME") {
     payTo(party, 10)
     if (outcome("who's the best?") === "I") {
@@ -370,7 +370,7 @@ STAGE1:
 }
 ```
 
-> partyCompositeCollateralAmount, counterpartyCompositeCollateralAmount are optional, but make it easier to generate DLC contracts and ensure their integrity
+> partyCompositeCollateralAmount, counterpartyCompositeCollateralAmount are optional, since they can be deduced from the tree of contracts, but make it easier to generate DLC contracts and ensure their integrity
 
 Worst-case scenario: party will have 20sat (`partyCompositeCollateralAmount - partyBetAmount`) left in multisig escrow, counterparty will have 10sat  (`counterpartyCompositeCollateralAmount - counterpartyBetAmount`).
 
