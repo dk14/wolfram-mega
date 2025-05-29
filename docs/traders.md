@@ -370,7 +370,7 @@ STAGE1:
 }
 ```
 
-> partyCompositeCollateralAmount, counterpartyCompositeCollateralAmount are optional, since they can be deduced from the tree of contracts, but make it easier to generate DLC contracts and ensure their integrity
+> partyCompositeCollateralAmount, counterpartyCompositeCollateralAmount are optional, since they can be deduced from the tree of contracts. Specifying these params makes it easier to generate DLC contracts and ensure their integrity
 
 Worst-case scenario: party will have 20sat (`partyCompositeCollateralAmount - partyBetAmount`) left in multisig escrow, counterparty will have 10sat  (`counterpartyCompositeCollateralAmount - counterpartyBetAmount`).
 
