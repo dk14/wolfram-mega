@@ -4,13 +4,14 @@
 ## Start peer with oracle-api enabled
 
 ```bash
-npm run peer cfg/mempool-trader.json
+npm run peer cfg/mempool-oracle.json
 ```
 REST will be available at:
 
 - http://localhost:7080/
 
-or run a full demo:
+---
+**or** run a full demo:
 ```bash
 npm run demo
 ```
@@ -19,6 +20,8 @@ npm run demo
 - Mockup Oracle: http://localhost:8080/oracle-endpoint/
 - Trader API: http://localhost:8080/trader-console/
 - Oracle Ad Signer would connect to `ws-port:9081` at Oracle Admin
+
+---
 
 ## Start advertising
 
@@ -128,17 +131,27 @@ export interface OracleEndpointApi {
 
 Every capability can have its own endpoint.
 
-If oracle provides facts through messengers or any other means (inluding `fact-missing` report as a hack), then it must be able to manually or chat-bot-automatically send `commitment` and eventually `fact` as json in response to `fact-request`.
+If oracle provides facts through messengers, blockchain or any other means (inluding `fact-missing` report as a hack), then it must be able to manually or chat-bot-automatically send `commitment` and eventually `fact` as json in response to `fact-request`.
 
 **Commitments are signed and legally binding. Oracle can be reported for not fulfilling (or misfulfilling) the commitment it made.**
 
-Exmple of implementation from `src/client-api/utils/oracle-endpoint`:
+It is NOT recommended (STRONGLY discouraged) for Oracles to tie facts or commitments to blockchain contracts. If oracle uses blockchain to fulfill SLA, it should be separate transaction.
+
+Separation of responsibilities:
+
+- Mega encourages pull-based approach for privacy
+- oracle should NOT KNOW anything about contracts on blockchain relying on its data. Only `fact-req` is known to oracle. This is strongly recommended in order to prevent market manipulation by oracles themselves.
+- moreover, in Mega, oracle does not have to know about blockchain existence either. Mega DOES NOT require oracles to maintain blockchain wallets (full nodes etc).
+- only lightweight Mega-node (mempool connected to p2p) with `oracle-api` activated is required from Oracle.
+
+-----
+Exmple of endpoint implementation from `src/client-api/utils/oracle-endpoint`:
 
 ```ts
 //optional, can check proof of payment here
 const canCommit = ... 
 
-//optional, can pledge something on blockchain
+//optional, can pledge something on blockchain, add quorum contract
 const generateSLA = ... 
 
 // external signing; example of auto-signer: src/client-api/oracle-auto-signer.ts
