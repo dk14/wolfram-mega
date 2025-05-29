@@ -318,7 +318,7 @@ Same goes for schedules: grouping outcomes for every stage in a contract, would 
 
 #### **Merkle-trees**
 
-Merkle-trees can also be utilized to eliminate duplicate subtcontract trees in offer trees, thus reducing risks of contract explosion to a theoretical minimum. Such approach would elminate uneccessary state as well.
+Merkle-trees can also be utilized to eliminate duplicate subtcontract trees in offer trees, thus reducing risks of contract explosion to a theoretical minimum. Such approach would eliminate uneccessary state as well.
 
 Practically, it requires extra-care:
 
