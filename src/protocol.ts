@@ -157,6 +157,7 @@ export interface OfferTerms {
     counterPartyBetsOn: Answer[]
     partyBetAmount: number
     counterpartyBetAmount: number
+    compositeCollateralAmount?: number //this is needed to ensure that whole tree of CET-transactions is recovered
 }
 
 export interface PartiallySignedTx {
