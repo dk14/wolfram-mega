@@ -286,7 +286,7 @@ The rule for evolving offer state collaboratively is to always pick the offer wi
 
 _Note: One can accept offers outside of Mega mempool network - given that counter-party provided `contact`._
 
-## Composite contracts
+# Composite contracts
 
 ## Multi-party
 
