@@ -99,10 +99,10 @@ export const generateClosingTransaction = async (params: ClosingParams): Promise
 // e.g. oracle1 would co-sign CET only for quorum #1 and #2, oracle2 for q2 and q3, oracle 3 for q1 and q3
 // 3 separate contracts
 // note: adding HTLC to it would ensure SLA
-export const generateCetTransaction = async (params: CetParams): Promise<Hex> => {
+export const generateCetTransaction = async (params: CetParams, vout: number = 0): Promise<Hex> => {
     const multiIn = {
         txid:  params.lockedTxId,
-        vout: 0
+        vout
     }
     if (params.oraclePub2 === undefined) {
         const twistedPk = schnorr.adaptorPublic(params.oraclePub, params.answer, params.rValue).padStart(64, "0")
@@ -287,7 +287,7 @@ const generateChildDlcContract = async (params: ChildDlcParams): Promise<ChildDl
             answer, lockedTxId: params.lockedTxId, 
             aliceAmount: params.outcomes[answer].aliceAmount,
             bobAmount: params.outcomes[answer].bobAmount
-            }))
+            }), 1)
         return [answer, cet]
     }))))   
     return { cet }

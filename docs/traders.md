@@ -80,7 +80,7 @@ await fetch('./collectReports?tag=' + encodeURIComponent(tag), {
 Offers have unique pow hash, pow hash is their id. 
 If offer is rejected due to low-pow difficulty - trader API will upgrade PoW. 
 
->>Note: there is a limitation on the maximum length of the message.
+>Note: there is a limitation on the maximum length of the message.
 
 ```ts
 const content = {
@@ -146,7 +146,7 @@ await fetch('./collectOffers?tag=' + encodeURIComponent(tag), {
 Reports have unique pow hash, pow hash is their id. 
 If report is rejected due to low-pow difficulty - trader API will upgrade PoW.
 
-Note: there is a limitation on the maximum length of the message.
+> Note: there is a limitation on the maximum length of the message.
 
 ```ts
 const content = { 

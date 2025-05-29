@@ -209,6 +209,7 @@ export interface Offer {
 
 
 export interface OfferMsg extends MsgLike, WithPow {
+    [x: string]: any
     seqNo: number
     cTTL: number
     pow: HashCashPow

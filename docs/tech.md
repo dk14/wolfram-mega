@@ -66,3 +66,236 @@ npm run mock-oracle cfg/endpoint-test.json
 npm run auto-sign cfg/signer-test.json
 npm run btc-signer cfg/btc-signer-test.json
 ```
+
+# Contracts Typescript API (BTC)
+`src/client-api/contracts/generate-btc-tx`
+`src/client-api/service/index.html`
+
+## CET
+### Parameters
+
+```ts
+export interface OpeningParams {
+    aliceIn: UTxO[],
+    bobIn: UTxO[],
+    alicePub: PubKey,
+    bobPub: PubKey,
+    aliceAmountIn: number[],
+    bobAmountIn: number[],
+    changeAlice: number,
+    changeBob: number,
+    txfee: number
+}
+
+export interface ClosingParams {
+    lockedTxId: TxId,
+    alicePub: PubKey,
+    bobPub: PubKey,
+    aliceAmount: number,
+    bobAmount: number,
+    txfee: number
+}
+
+export interface CetParams {
+    lockedTxId: TxId,
+    oraclePub: PubKey,
+    oraclePub2: PubKey,
+    oraclePub3: PubKey,  
+    answer: Msg, 
+    rValue: Hex,
+    rValue2?: Hex,
+    rValue3?: Hex,
+    alicePub: PubKey,
+    bobPub: PubKey,
+    aliceAmount: number,
+    bobAmount: number,
+    txfee: number,
+    session?: PublicSession,
+    stateAmount?: number //goes back to multisig, for composite contracts
+}
+
+export interface CetRedemptionParams {
+    cetTxId: TxId, 
+    oraclePub: PubKey,
+    oraclePub2?: PubKey, 
+    oraclePub3?: PubKey,  
+    answer: Msg, 
+    rValue: Hex,
+    rValue2?: Hex,
+    rValue3?: Hex,
+    alicePub: PubKey, 
+    bobPub: PubKey,
+    oracleSignature: Hex, 
+    oracleSignature2?: Hex, 
+    oracleSignature3?: Hex, 
+    quorumno?: 1 | 2 | 3,
+    amount: number,
+    txfee: number
+}
+
+```
+
+### API
+
+```ts
+type Hex = string
+
+interface BtcApi {
+    generateOpeningTransaction: (params: OpeningParams) => Promise<Hex>
+    generateClosingTransaction: (params: ClosingParams) => Promise<Hex>
+    generateCetTransaction: (params: CetParams) => Promise<Hex>
+}
+```
+
+> DLC can also be used to generate oracle's pledge 
+> pairs of oracles can co-sign DLC contracts refunding themselves in case of quorum. Adding HTLC to it would ensure SLA. otherwise - their funds remain locked
+
+> this would avoid 51% attack on minority - all oralces would have to agree. Majority takes all pledge can also be implemented with DLC.
+
+## Full BTC DLC
+
+```ts
+export interface DlcParams {
+    aliceIn: UTxO[],
+    bobIn: UTxO[],
+    aliceAmountIn: number[],
+    bobAmountIn: number[],
+    oraclePub: PubKey,
+    oraclePub2: PubKey,
+    oraclePub3: PubKey,  
+    outcomes: { [id: Msg]: FundDistribution; }, 
+    rValue: Hex,
+    rValue2?: Hex,
+    rValue3?: Hex,
+    alicePub: PubKey,
+    bobPub: PubKey,
+
+    changeAlice: number,
+    changeBob: number,
+    txfee: number,
+    session?: PublicSession,
+    stateAmount?: number //goes back to multisig, for composite contracts
+}
+
+interface CompositeDlcParams {
+    subcontracts: { [id: Msg]: CompositeDlcParams }
+    oraclePub: PubKey,
+    oraclePub2: PubKey,
+    oraclePub3: PubKey,  
+    outcomes: { [id: Msg]: FundDistribution; }, 
+    rValue: Hex,
+    rValue2?: Hex,
+    rValue3?: Hex,
+    alicePub: PubKey,
+    bobPub: PubKey,
+    txfee: number,
+    session?: PublicSession,
+    stateAmount: number
+}
+
+export interface CompositeDlcParamsEnvelope {
+    openingParams: DlcParams,
+    compositeCetParams: CompositeDlcParams
+}
+
+
+```
+
+### API
+
+This would generate one-stage DLC contract:
+
+```ts
+
+interface DlcContract {
+    openingTx: Hex
+    cet: Hex[]
+}
+
+generateDlcContract = (params: DlcParams): Promise<DlcContract> => ...
+```
+
+
+This would generate multi-stage composite DLC contract (experimental)
+```ts
+interface CompositeDlcContract {
+    subcontracts: { [id: Msg]: [Hex, CompositeDlcContract] }
+}
+
+interface CompositeDlcContractEnvelope {
+    openingTx: Hex
+    contract: CompositeDlcContract
+}
+
+generateCompositeDlcContractEnvelope = (params: CompositeDlcParamsEnvelope): Promise<CompositeDlcContractEnvelope> => ...
+
+```
+
+
+# Contract Typescript API (Cardano Helios)
+`src/client-api/contracts/generate-cardano-tx`
+`src/client-api/service/index.html`
+
+### Params
+```ts
+type Hex = string
+type CborHex = string
+type Bech32 = string
+type Base64 = string
+
+export interface InputId {
+    txid: Hex,
+    txout: number,
+    amount: number,
+    addr?: Bech32
+} 
+
+interface Redemption {
+    aliceRedemptionAddr: Bech32,
+    aliceBetsOnMsg: Base64
+    bobRedemptionAddr: Bech32
+    bobBetsOnMsg: Base64
+}
+
+export interface OpeningInputs {
+    aliceInput: InputId, 
+    bobInput: InputId,
+    oracleCpPubKey: Base64,
+    oracleCpPubKey2?: Base64,
+    oracleCpPubKey3?: Base64,
+    r: Redemption,
+    changeAddr: Bech32,
+    txfee: number,
+    aliceActualAmount: string,
+    bobActualAmount: string
+}
+
+export interface ClosingInputs {
+    input: InputId,
+    aliceInput: InputId, 
+    bobInput: InputId,
+    aliceCollateralInput: InputId, 
+    bobCollateralInput: InputId,
+    oracleCpPubKey: Base64,
+    oracleCpPubKey2?: Base64,
+    oracleCpPubKey3?: Base64,
+    msg: Base64, 
+    sig: Base64,
+    sig2: Base64,
+    sig3: Base64,
+    r: Redemption,
+    changeAddr: Bech32,
+    txfee: number
+}
+
+```
+
+### API
+
+```ts
+generateOpeningTransaction = (network: string, inputs: OpeningInputs): Promise<CborHex> => ...
+generateClosingTransaction = (network: string, inputs: ClosingInputs): Promise<CborHex> => ...
+
+```
+
+>network is a link to cardano network params

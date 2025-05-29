@@ -63,6 +63,18 @@ const oneElemPage = {
     chunkSize: 1
 }
 
+export const getOriginatorId = (): string => { //TODO generate per trade
+    if (localStorage.getItem("originatorId") === undefined) {
+        localStorage.setItem("originatorId", randomInt(1200000).toString())
+    }
+    return localStorage.getItem("originatorId")
+}
+
+export const checkOriginatorId = (id: string): boolean => {
+    return id === getOriginatorId()
+}
+
+
 export const matchingEngine: MatchingEngine = {
     pickOffer: async function (): Promise<OfferModel> {
         const candidates = (await window.storage.queryOffers({where: async x => true}, {
@@ -96,11 +108,34 @@ export const matchingEngine: MatchingEngine = {
         return model
     },
     generateOffer: async function (cfg: PreferenceModel): Promise<OfferModel> {
-        window.storage.queryOracles
-        window.storage.queryCapabilities
+
+        const candidates = (await window.storage.queryCapabilities({where: async x => true}, {
+            page: 0,
+            chunkSize: 100
+        }))
+
+        const cp = candidates[randomInt(candidates.length)]
         //pick a question
 
-        throw new Error("Function not implemented.")
+        const partyBetAmountOptions = [1, 100, 200, 500]
+        const partyBetAmount = partyBetAmountOptions[randomInt(partyBetAmountOptions.length)]
+        const counterpartyBetAmountOptions = [5, 250, 300, 500]
+        const counterpartyBetAmount = counterpartyBetAmountOptions[randomInt(counterpartyBetAmountOptions.length)]
+        
+        const model: OfferModel = {
+            id: "aaa",
+            bet: [partyBetAmount, counterpartyBetAmount],
+            oracles: [{
+                id: "",
+                oracle: cp.oraclePubKey,
+                endpoint: "http://localhost:8080" //can use fact-missing claim as an endpoint too
+            }],
+            question: cp.question,
+            status: "matching",
+            role: 'initiator'
+        }
+
+        return model
     },
     broadcastOffer: async function (o: OfferModel): Promise<void> {
         const pow: HashCashPow = {
@@ -123,7 +158,7 @@ export const matchingEngine: MatchingEngine = {
             counterpartyBetAmount: o.bet[1]
         }
 
-        //TODO attach BTC precommitment
+
         //TODO subscribe to updates
         //- atach BTC partialSig on update
         //TODO subscribe to oracle
@@ -134,7 +169,8 @@ export const matchingEngine: MatchingEngine = {
             customContract: "",
             terms: offerTerms,
             blockchain: "bitcoin-testnet",
-            contact: ""
+            contact: "",
+            originatorId: getOriginatorId()
         }
         window.traderApi.issueOffer({
             seqNo: 0,
@@ -146,18 +182,19 @@ export const matchingEngine: MatchingEngine = {
     acceptOffer: async function (o: OfferModel): Promise<void> {
         const offer = (await window.storage.queryOffers({where: async x => x.pow.hash === o.id}, oneElemPage))[0]
         const openingTx: PartiallySignedTx = {
-            tx: "",
+            tx: "TODO",
             sessionIds: [],
             nonceParity: [],
             sessionNonces: [],
-            sesionCommitments: [],
+            sesionCommitments: ["TODO"],
             partialSigs: []
         }
         const accept: AcceptOffer = {
             chain: "bitcoin-testnet",
             openingTx: openingTx,
             offerRef: undefined,
-            cetTxSet: []
+            cetTxSet: [],
+            acceptorId: getOriginatorId()
         }
         offer.content.accept = accept
         offer.pow.hash = offer.pow.hash + "accept" //will be upgraded
