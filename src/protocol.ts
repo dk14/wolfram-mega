@@ -162,6 +162,11 @@ export interface PartiallySignedTx {
     partialSigs: string[]
 }
 
+export interface DependsOn { //for schedules, aka stateful multi-stage contracts, everything that Marlowe can do
+    outome: string,
+    offerRef: HashCashPow
+}
+
 export interface AcceptOffer {
     chain: 'bitcoin-testnet'
     openingTx: PartiallySignedTx
@@ -185,7 +190,8 @@ export interface Offer {
     txfee?: string
     accept?: AcceptOffer //note for interactive sign: counterparty returns its commitment through this first time and party replies with its nonce; second time: it returns its nonce and partial sig
     finalize?: FinalizeOffer //here after final signature is put; txid is reported
-    encryptedDetails?: string //to make matching private - can encrypt actual `Offer` here 
+    dependsOn?: DependsOn
+    encryptedDetails?: string //to make matching private - can encrypt actual `Offer` here
 }
 
 

@@ -273,3 +273,9 @@ If the whole contract is negotiated through the Mega, offers will also form a ch
 The rule for evolving offer state collaboratively is to always pick the offer with highest PoW difficulty in a most progressed state (longest chain of back-references).
 
 One can accept offers outside of Mega mempool network - given that counter-party provided `contact`.
+Two-party offers are generalizable to multi-party (multi leg) offers through adding a composite party, e.g. "bob,carol"
+
+### Schedules 
+
+Schedules (e.g. `InterestRateSwap`) can be expressed through `dependsOn` reference. 
+Scheduled offer is finalized when first `openingTx` for the whole tree is co-signed (parties cross check that every node is co-signed).
