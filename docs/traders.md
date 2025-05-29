@@ -264,15 +264,27 @@ If those collections are lost, recovery procedure would need:
 - if oracle is at liberty to evict facts (fact retention) - signed fact should be preserved
 
 
-# Matching 
+# Matching
+
+See `src-web\matching` for code examples.
+
+## Wokflow
+
+If the whole contract is negotiated through the Mega, offers will form a chain, through back-references (`previousAcceptRef` in `AcceptOffer`, `acceptRef` in `FinalizeOffer`).
+
+```
+Offer 
+-> negotiationStages * (Offer + AcceptOffer) 
+-> Offer + negotiationStages * AcceptOfffer + FinalizeOffer
+```
+
+## Duplicates
 
 Offers and Reports are allowed to have duplicates, since PoW can be upgraded.
 
-If the whole contract is negotiated through the Mega, offers will also form a chain, through back-references (`previousAcceptRef` in `AcceptOffer`, `acceptRef` in `FinalizeOffer`).
-
 The rule for evolving offer state collaboratively is to always pick the offer with highest PoW difficulty in a most progressed state (longest chain of back-references).
 
-One can accept offers outside of Mega mempool network - given that counter-party provided `contact`.
+_Note: One can accept offers outside of Mega mempool network - given that counter-party provided `contact`._
 
 ## Multi-party
 

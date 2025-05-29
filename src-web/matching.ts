@@ -41,6 +41,7 @@ export interface OfferModel {
     redemtion_txid?: string,
     redemtion_tx?: string,
     status: OfferStatus
+    role: 'initiator' | 'acceptor'
 }
 
 export interface MatchingEngine {
@@ -89,7 +90,8 @@ export const matchingEngine: MatchingEngine = {
                 endpoint: "http://localhost:8080" //can use fact-missing claim as an endpoint too
             }],
             question: capability.question,
-            status: "matching"
+            status: "matching",
+            role: 'acceptor'
         }
         return model
     },
