@@ -86,7 +86,7 @@ await fetch('./upgradeOraclePow?pubkey=' + encodeURIComponent(capabilityPubKey)
 ```
 
 ## View oracle ad
-```
+```ts
 await (await fetch('./id')).json()
 ```
 
