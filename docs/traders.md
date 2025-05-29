@@ -330,12 +330,12 @@ Here's composite binary option:
 
 PSEUDOCODE (we leave trivial DSLs to app developers):
 ```ts
-receive(party, 100 + 20 + 0) //implicit in `ContractTerms`
-receive(counterparty, 10 + 10 + 10) //implicit in `ContractTerms`
+receive(party, 100 + max(20, 0)) //implicit in `ContractTerms`
+receive(counterparty, 10 + max(10, 10)) //implicit in `ContractTerms`
 if (outcome("who's president") === "ME") {
     payTo(party, 10)
     if (outcome("who's the best?") === "I") {
-        payTo(party, 5 + 5)
+        payTo(party, 10)
     } else {
         payTo(counterparty, 20)
     }
@@ -353,20 +353,28 @@ OFFERS-TO-RENDER:
 
 > `offerRefs` is a list too - offer depends on ANY of the offers to fulfill selected outcome. This approach allows for trivial Merkle-tree-like optimisations in DSLs: same contract can be re-used as a subcontract. It is reverse hash-tree though.
 
+STAGE1:
 ```json
 
 {
     hash: "000001",
     terms: {
         question: "who's president?"    
-        partyBetsOn:["ME"],
-        counterPartyBetsOn:["YOU"],
-        partyBetAmount:100,
-        counterpartyBetAmount:10
+        partyBetsOn: ["ME"],
+        counterPartyBetsOn: ["YOU"],
+        partyBetAmount: 100,
+        counterpartyBetAmount: 10,
+        partyCompositeCollateralAmount: 120
+        counterpartyCompositeCollateralAmount: 10
     }
 }
 ```
 
+> partyCompositeCollateralAmount, counterpartyCompositeCollateralAmount are optional, but make it easier to generate DLC contracts and ensure their integrity
+
+Worst-case scenario: party will have 20sat (`partyCompositeCollateralAmount - partyBetAmount`) left in multisig escrow, counterparty will have 10sat  (`counterpartyCompositeCollateralAmount - counterpartyBetAmount`).
+
+STAGE2:
 ```json
 {
     hash: "000002",
@@ -468,7 +476,7 @@ Simillarly to Marlowe, "quantized perpetual swap"-like contracts can still be mo
 Such condition would also benefit liquidity, and avoid overcollaterization.
 
 ### Collaterals
-Collaterals for composite contracts in Mega are trivial to evaluate: it is simply a sum of all bets made by a party. 
+Collaterals for composite contracts in Mega are trivial to evaluate: it is simply a sum of all worst-case (see `receive`) bets made by a party. 
 
 It is recommended to rather bound contract complexity than use meaningless tokens or pools (managed with "automated"  unsound logic) for collaterization. Collaterization must be done in bounded currency, bounded with physical energy like BTC. 
 
