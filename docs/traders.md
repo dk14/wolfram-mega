@@ -260,9 +260,14 @@ It is, together with oracle's commitments or facts, required in order to redeem 
 If those collections are lost, recovery procedure would need:
 - original trader's private key
 - co-signed CET-transactions 
-- signed commitments from oracle (or capabilities avilable in database)
-- if oracle is at liberty to evict facts (fact retention) - signed fact should be preserved
+- signed commitments from oracle
+- if oracle is at liberty to evict facts (fact retention) - signed fact might be needed be preserved
 
+For extra-valuable contracts with a long expiry term, it is recommended to provide trader with option of selectively backing up subset of CET as well as commitment (compressed and encrypted with private key) either:
+- on-chain (in `OP_RETURN`)
+- or on the harware wallet itself
+
+It would allow for automatic recovery of non-expired trades (using only private key) if data is lost.
 
 # Matching
 
