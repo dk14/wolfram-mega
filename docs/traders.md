@@ -320,9 +320,9 @@ Merkle-trees can also be utilized to avoid duplicate subtrees in offer trees, th
 
 After this technique is applied only contracts that are aimed at modeling "perpetual motion" would explode.
 
-#### **Perpetuality**
+#### **"Perpetuality"**
 
 Simillarly to Marlowe, "perpetual swap"-like contracts can still be modeled without exponential explosion by:
 -  allowing "renewal or refund" condition (optional "close").
 
-Such condition would also benefit liquidity, and avoid overcollateriztion.
+Such condition would also benefit liquidity, and avoid overcollaterization.
