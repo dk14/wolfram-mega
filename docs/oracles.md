@@ -97,12 +97,12 @@ const cps = await (await fetch('./viewStoredCapabilities?pageSize=100&pageNo=0')
 ```
 
 ## How to sign messages as oracle 
+ `src/client-api/utils/oracle-endpoint` has an example.
+ 
 After starting oracle api,
 `ws://host:port/signCp` and `ws://host:port/signAd` would give you streams for signing capabilities and oracle ads respectively. You read a message - you write same message but with oracleSignature.
 
 The best approach is to sign messages manually unless they only differ in `seqNo` field.
-
- `src/client-api/utils/oracle-endpoint` has an example.
 
 # Oracle Endpoint
 Oracle endpoint has to implement this interface over REST:
