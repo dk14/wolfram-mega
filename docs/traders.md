@@ -347,4 +347,6 @@ Such condition would also benefit liquidity, and avoid overcollaterization.
 ### Collaterals
 Collaterals for composite contracts in Mega are trivial to evaluate: it is simply a sum of all bets made by a party.
 
-It is recommended to rather bound contract complexity than use meaningless tokens for collaterization. Collaterization must be done in bounded currency, bounded with physical energy like BTC.
+It is recommended to rather bound contract complexity than use meaningless tokens or pools (managed with "automated"  unsound logic) for collaterization. Collaterization must be done in bounded currency, bounded with physical energy like BTC. 
+
+Limiting complexity is better than double-counting physical energy.
