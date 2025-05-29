@@ -9,7 +9,6 @@ REST will be available at:
 
 - http://localhost:7080/
 
-----
 or run a full demo:
 ```bash
 npm run demo
@@ -19,7 +18,6 @@ npm run demo
 - Mockup Oracle: http://localhost:8080/oracle-endpoint/
 - Trader API: http://localhost:8080/trader-console/
 
----
 ## Find Oracle and Capability
 
 ### Register oracle collector

@@ -10,7 +10,7 @@ REST will be available at:
 
 - http://localhost:7080/
 
----
+
 or run a full demo:
 ```bash
 npm run demo
@@ -21,7 +21,7 @@ npm run demo
 - Trader API: http://localhost:8080/trader-console/
 - Oracle Ad Signer would connect to `ws-port:9081` at Oracle Admin
 
----
+
 
 ## Start advertising
 
