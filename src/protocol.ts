@@ -170,7 +170,7 @@ export interface PartiallySignedTx {
 
 export interface DependsOn { //for schedules, aka stateful multi-stage contracts, everything that Marlowe can do
     outome: string,
-    offerRef: HashCashPow
+    offerRefs: HashCashPow[] //OR condition
 }
 
 export interface AcceptOffer {
@@ -197,7 +197,7 @@ export interface Offer {
     txfee?: string
     accept?: AcceptOffer //note for interactive sign: counterparty returns its commitment through this first time and party replies with its nonce; second time: it returns its nonce and partial sig
     finalize?: FinalizeOffer //here after final signature is put; txid is reported
-    dependsOn?: DependsOn
+    dependsOn?: DependsOn[] // AND condition
     encryptedDetails?: string //to make matching private - can encrypt actual `Offer` here
 }
 

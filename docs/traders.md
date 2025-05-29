@@ -80,7 +80,7 @@ await fetch('./collectReports?tag=' + encodeURIComponent(tag), {
 Offers have unique pow hash, pow hash is their id. 
 If offer is rejected due to low-pow difficulty - trader API will upgrade PoW. 
 
-Note: there is a limitation on the maximum length of the message.
+>>Note: there is a limitation on the maximum length of the message.
 
 ```ts
 const content = {
@@ -349,6 +349,9 @@ if (outcome("who's president") === "ME") {
 ```
 
 OFFERS-TO-RENDER:
+> `dependsOn` is a list - offer depends on ALL of dependent outcomes to fulfill
+
+> `offerRefs` is a list too - offer depends on ANY of the offers to fulfill selected outcome. This approach allows for trivial Merkle-tree-like optimisations in DSLs: same contract can be re-used as a subcontract. It is reverse hash-tree though.
 
 ```json
 
@@ -367,10 +370,10 @@ OFFERS-TO-RENDER:
 ```json
 {
     hash: "000002",
-    dependsOn: {
+    dependsOn: [{
         outcome: "ME",
-        offerRef: "0000001"
-    },
+        offerRefs: ["0000001"]
+    }],
     terms: {
         
         question: "who's the best?"    
@@ -385,10 +388,10 @@ OFFERS-TO-RENDER:
 ```json
 {
     hash: "000003",
-    dependsOn: {
+    dependsOn: [{
         outcome: "YOU",
-        offerRef: "0000001"
-    },
+        offerRefs: ["0000001"]
+    }],
     terms: {
         question: "who's the best?"    
         partyBetsOn:["I"],

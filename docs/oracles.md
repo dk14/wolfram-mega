@@ -33,7 +33,7 @@ fetch('./start')
 
 ## Register capability
 
-Note: there is a limitation on the maximum length of the message.
+>Note: there is a limitation on the maximum length of the message.
 
 ```ts
 const capabilityPubKey = ...
