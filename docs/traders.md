@@ -286,7 +286,7 @@ Offers and Reports are allowed to have duplicates, since PoW can be upgraded.
 
 The rule for evolving offer state collaboratively is to always pick the offer with highest PoW difficulty in a most progressed state (longest chain of back-references).
 
-_Note: One can accept offers outside of Mega mempool network - given that counter-party provided `contact`._
+_Note: One can accept offers outside of Mega mempool network - given that counter-party provided `contact`. Then follow-ups would be communicated directly without Mega-facilitation._
 
 # Composite contracts
 
@@ -296,14 +296,14 @@ Two-party offers are generalizable to multi-party (multi leg) offers through add
 
 ## Schedules 
 
-Schedules (e.g. `InterestRateSwap`) can be expressed through `dependsOn` reference meant to specify previous stage in a multi-stage contract. `dependsOn` can be conditional on the outcome of previous stage.
+Schedules (e.g. `InterestRateSwap`) can be expressed through `dependsOn` reference meant to specify previous stage in a multi-stage contract. `dependsOn` can be conditional on the outcome of previous stage, effectively  making such contracts stateful.
 
 
-BTC-DLC matching note: Scheduled offer is finalized when first `openingTx` for the whole composite tree is co-signed (parties cross check that every subcontract is co-signed).
+_BTC-DLC matching note: Scheduled offer is finalized when first `openingTx` for the whole composite tree is co-signed (parties cross check that every subcontract is co-signed)._
 
 ### "Ad-hoc" parties in schedules
-If party has to be added "on the go" then special "new party" outome has to be added.
-Such outome can be attested without third-party oracle, by verifying proof of funding transaction on-chain.
+If party has to be added "on the go" then special "new party" outcome has to be added.
+Such outcome can be attested without third-party oracle, by verifying proof of funding transaction on-chain.
 
 For BTC this would require to either: 
 - potential candidates to specify their adresses in advance (in the offer itself) together with conditions to join, 
@@ -312,13 +312,15 @@ For BTC this would require to either:
 ### Exponential explosion
 Offers are meant to represent a contract with predictable execution time (Marlowe expressiveness). This approach also ensures that funds won't stuck in an escrow.
 
-Same as Marlowe, it puts contracts at the risk of exponential explosion.
+Careless use, however, can put contracts at the risk of  explosion, over-choicefullness.
 
 In order to avoid such explosion - outcomes can be compressed. For instance, "BTC price" can have two outomes "0..100000" and "100000..moon" instead of infinity of outcomes.
 
 Same goes for schedules: grouping outcomes for every stage in a contract, would avoid:
 - exponential "random-walk"-like explosion 
 - accumulation of uneccesssary state in a contract.
+
+_Note: explosions are explicit in Mega-contracts, unlike Web3. Turing-complete contracts are explicitly tested for computability before creation._
 
 #### **Merkle-trees**
 
@@ -329,9 +331,11 @@ Practically, it requires extra-care:
 - subcontracts with equivalent semantics might contain small differences (e.g. redemption addresses). This has to be eliminated manually.
 - it is recommended to bound contract-size to reasonable minimum during contract generation, in order to avoid dealing with "halting problem", proof assistants etc. For BTC such bound can be expressed in bytes, or even satochis if txfee is known.
 - use DSL like Marlowe or write your own.
-- recursive calls can be supported in DSLs through  bounded recusrion (with default return value supplied in "return" after a fixed amount recursive calls). Trivial macro re-inlining function body n times.
+- recursive calls in DSLs can be supported through  bounded "typed" recursion, with default return value supplied in "return" after a fixed amount recursive calls (backup-value for "stack-overflow"). Such trivial macro re-inlining function body n times solves Turing-completeness issues once and for all.
+  - this approach allows for fixed-max-length lists, dictionaries, any type of parsing/analysis on data from oracle.
+  - this approach allows for typed IO in DSLs: read data-point from oracle, write funds to parties, up to n times.
 
-After these techniques are applied, only contracts that are aimed at modeling "perpetual motion" would explode.
+**After these techniques are applied, only contracts that are aimed at modeling "perpetual motion" would explode.**
 
 #### **"Perpetuality"**
 
