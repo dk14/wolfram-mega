@@ -273,9 +273,29 @@ If the whole contract is negotiated through the Mega, offers will also form a ch
 The rule for evolving offer state collaboratively is to always pick the offer with highest PoW difficulty in a most progressed state (longest chain of back-references).
 
 One can accept offers outside of Mega mempool network - given that counter-party provided `contact`.
-Two-party offers are generalizable to multi-party (multi leg) offers through adding a composite party, e.g. "bob,carol"
+
+### Multi-party
+
+Two-party offers are generalizable to multi-party (multi leg) offers through adding a composite party, e.g. "bob,carol".
 
 ### Schedules 
 
 Schedules (e.g. `InterestRateSwap`) can be expressed through `dependsOn` reference. 
 Scheduled offer is finalized when first `openingTx` for the whole tree is co-signed (parties cross check that every node is co-signed).
+
+#### "Ad-hoc" parties in schedules
+If party has to be added "on the go" then special "new party" outome has to be added.
+Such outome can be attested without third-party oracle, by verifying proof of funding transaction on-chain.
+
+For BTC this would require to either: 
+- potential candidates to specify their adresses in advance (in the offer itself) together with conditions to join, 
+- or a consensus of existing parties
+
+### Exponential explosion
+Offers are meant to represent a contract with predictable execution time (Marlowe-like expressiveness). 
+
+In order to avoid exponential explosion - outcomes can be compressed. For instance, "BTC price" can have two outomes "0..100000" and "100000..moon" instead of infinity of outcomes.
+
+Same goes for schedules: grouping outcomes for every stage in a contract, would avoid:
+- exponential "random-walk"-like explosion 
+- accumulation of uneccesssary state in a contract.
