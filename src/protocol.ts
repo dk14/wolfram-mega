@@ -128,7 +128,7 @@ export interface FactMissing extends WithFactRequest {
     dispute?: Fact
 }
 
-export interface AdCollision {
+export interface AdCollision extends WithFactRequest {
     type: 'ad-collision'
     proofOfOracleAdConflict: OracleId[]
     proofOfCapabilityAdConflict: OracleCapability[]

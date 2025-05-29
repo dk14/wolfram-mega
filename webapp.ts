@@ -19,7 +19,7 @@ export interface BtcApi {
     generateOpeningTransaction: (p: btc.OpeningParams) => Promise<btc.Hex>
     generateClosingTransaction: (P: btc.ClosingParams) => Promise<btc.Hex>
     generateCetTransaction: (p: btc.CetParams) => Promise<btc.Hex>
-    generateCetRedemptionTransaction: (p: btc.CetRedemptioParams) => Promise<btc.Hex>
+    generateCetRedemptionTransaction: (p: btc.CetRedemptionParams) => Promise<btc.Hex>
 }
 
 declare global {
