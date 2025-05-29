@@ -334,6 +334,7 @@ Practically, it requires extra-care:
 - recursive calls in DSLs can be supported through  bounded "typed" recursion, with default return value supplied in "return" after a fixed amount recursive calls (backup-value for "stack-overflow"). Such trivial macro re-inlining function body n times solves Turing-completeness issues once and for all.
   - this approach allows for fixed-max-length lists, dictionaries, any type of parsing/analysis on data from oracle.
   - this approach allows for typed IO in DSLs: read data-point from oracle, write funds to parties, up to n times.
+  - BTC-DLC: proposed SIGHASH_NOINPUT would additionally allow to compress recursive inlines into a single DLC contract. Compression of higher-kind type.
 
 **After such techniques have been applied, only contracts that are aimed at modeling "perpetual motion" would explode.**
 
