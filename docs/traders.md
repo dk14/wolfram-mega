@@ -296,8 +296,10 @@ Two-party offers are generalizable to multi-party (multi leg) offers through add
 
 ## Schedules 
 
-Schedules (e.g. `InterestRateSwap`) can be expressed through `dependsOn` reference. 
-Scheduled offer is finalized when first `openingTx` for the whole composite tree is co-signed (parties cross check that every subcontract is co-signed).
+Schedules (e.g. `InterestRateSwap`) can be expressed through `dependsOn` reference meant to specify previous stage in a multi-stage contract. `dependsOn` can be conditional on the outcome of previous stage.
+
+
+BTC-DLC matching note: Scheduled offer is finalized when first `openingTx` for the whole composite tree is co-signed (parties cross check that every subcontract is co-signed).
 
 ### "Ad-hoc" parties in schedules
 If party has to be added "on the go" then special "new party" outome has to be added.
