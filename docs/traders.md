@@ -278,6 +278,8 @@ Offer
 -> Offer + negotiationStages * AcceptOfffer + FinalizeOffer
 ```
 
+Several `Offer + AcceptOffer` messages might be needed to implement complex signing schemes (e.g. Schnorr musig).
+
 ## Duplicates
 
 Offers and Reports are allowed to have duplicates, since PoW can be upgraded.
