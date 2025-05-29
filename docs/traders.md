@@ -343,3 +343,7 @@ Simillarly to Marlowe, "perpetual swap"-like contracts can still be modeled with
 -  allowing "renewal or refund" condition (optional "close").
 
 Such condition would also benefit liquidity, and avoid overcollaterization.
+
+### Collaterals
+Collaterals for composite contracts in Mega are trivial to evaluate: it is simply a sum of all bets made by a party.
+
