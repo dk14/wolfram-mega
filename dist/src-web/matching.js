@@ -61,6 +61,10 @@ exports.matchingEngine = {
             counterpartyBetAmount: o.bet[1]
         };
         //TODO attach BTC precommitment
+        //TODO subscribe to updates
+        //- atach BTC partialSig on update
+        //TODO subscribe to oracle
+        // - generate redemtion if WIN
         const offer = {
             message: "",
             customContract: "",
@@ -93,6 +97,11 @@ exports.matchingEngine = {
         };
         offer.content.accept = accept;
         offer.pow.hash = offer.pow.hash + "accept"; //will be upgraded
+        //TODO attach BTC pre-commitment
+        //TODO subscribe to updates
+        // - attach BTC signature and submit tx on update
+        //TODO subscribe to oracle
+        // - generate redemtion if WIN
         window.traderApi.issueOffer(offer);
     },
     collectQuestions: async function (cfg) {
