@@ -184,6 +184,7 @@ export interface AcceptOffer {
 export interface FinalizeOffer {
     txid: string
     acceptRef: HashCashPow
+    backup?: string
 }
 
 export interface Offer {

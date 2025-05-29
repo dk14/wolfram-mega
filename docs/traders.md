@@ -1,5 +1,9 @@
 # Trader API
 
+## Configure
+
+Example: `cfg/mempool-trader.json`
+
 ## Start peer with trader-api enabled
 
 ```bash
@@ -74,7 +78,9 @@ await fetch('./collectReports?tag=' + encodeURIComponent(tag), {
 ## Issue offer
 
 Offers have unique pow hash, pow hash is their id. 
-If offer is rejected due to low-pow difficulty - trader API will upgrade PoW.
+If offer is rejected due to low-pow difficulty - trader API will upgrade PoW. 
+
+Note: there is a limitation on the maximum length of the message.
 
 ```ts
 const content = {
@@ -139,6 +145,8 @@ await fetch('./collectOffers?tag=' + encodeURIComponent(tag), {
 
 Reports have unique pow hash, pow hash is their id. 
 If report is rejected due to low-pow difficulty - trader API will upgrade PoW.
+
+Note: there is a limitation on the maximum length of the message.
 
 ```ts
 const content = { 
@@ -263,9 +271,10 @@ If those collections are lost, recovery procedure would need:
 - signed commitments from oracle
 - if oracle is at liberty to evict facts (fact retention) - signed fact might be needed be preserved
 
-For extra-valuable contracts with a long expiry term, it is recommended to provide trader with option of selectively backing up subset of CET as well as commitment (compressed and encrypted with private key) either:
+For extra-valuable contracts with a long expiry term, it is recommended to provide trader with option of selectively backing up subset of CET as well as commitment (compressed and **encrypted** with private key) either:
 - on-chain (in `OP_RETURN`)
-- or on the harware wallet itself
+- with oracles as well as mega-facilitators (`backup` field in `FinalizeOffer`)
+- or on the hardware wallet itself
 
 It would allow for automatic recovery of non-expired trades (using only private key) if data is lost.
 

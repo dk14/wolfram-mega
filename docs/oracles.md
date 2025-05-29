@@ -1,6 +1,10 @@
 
 # Oracle API
 
+## Configure
+
+Example: `cfg/mempool-oracle.json`
+
 ## Start peer with oracle-api enabled
 
 ```bash
@@ -21,8 +25,6 @@ npm run demo
 - Trader API: http://localhost:8080/trader-console/
 - Oracle Ad Signer would connect to `ws-port:9081` at Oracle Admin
 
-
-
 ## Start advertising
 
 ```ts
@@ -30,6 +32,8 @@ fetch('./start')
 ```
 
 ## Register capability
+
+Note: there is a limitation on the maximum length of the message.
 
 ```ts
 const capabilityPubKey = ...
