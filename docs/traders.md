@@ -342,7 +342,7 @@ _This approach works for any Schnorr-enabled blockchain starting with BTC, but i
 
 #### **"Perpetuality"**
 
-Simillarly to Marlowe, "perpetual swap"-like contracts can still be modeled without exponential explosion by:
+Simillarly to Marlowe, "quantized perpetual swap"-like contracts can still be modeled without exponential explosion by:
 -  allowing "renewal or refund" condition (optional "close").
 
 Such condition would also benefit liquidity, and avoid overcollaterization.
