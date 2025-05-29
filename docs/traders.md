@@ -404,7 +404,7 @@ Note: Unlike with Marlowe - money preservation property is ensured in the langua
 
 > Note on Marlowe: ad-hoc receives in the middle of a contract have no semantics. They always have to be at the start since non-participation would trigger timeout conditions, which are meaningfully either refund or MAD-lock - due to money preservation itself. 
 
-> Every "ad-hoc" receive in reality triggers its own contract dictating distribution of new collateral - there is no need to have dependencies between two.
+> Every "ad-hoc" receive in reality triggers its own contract, dictating distribution of new collateral - there is no need to have dependencies between two receives from same party. New receive from same parties - new escrow contract formed.
 
 ## Multi-party
 
