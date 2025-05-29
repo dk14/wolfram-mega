@@ -264,7 +264,7 @@ If those collections are lost, recovery procedure would need:
 - if oracle is at liberty to evict facts (fact retention) - signed fact should be preserved
 
 
-## Matching 
+# Matching 
 
 Offers and Reports are allowed to have duplicates, since PoW can be upgraded.
 
@@ -274,11 +274,11 @@ The rule for evolving offer state collaboratively is to always pick the offer wi
 
 One can accept offers outside of Mega mempool network - given that counter-party provided `contact`.
 
-### Multi-party
+## Multi-party
 
 Two-party offers are generalizable to multi-party (multi leg) offers through adding a composite party, e.g. "bob,carol".
 
-### Schedules 
+## Schedules 
 
 Schedules (e.g. `InterestRateSwap`) can be expressed through `dependsOn` reference. 
 Scheduled offer is finalized when first `openingTx` for the whole tree is co-signed (parties cross check that every node is co-signed).
@@ -292,10 +292,25 @@ For BTC this would require to either:
 - or a consensus of existing parties
 
 ### Exponential explosion
-Offers are meant to represent a contract with predictable execution time (Marlowe-like expressiveness). 
+Offers are meant to represent a contract with predictable execution time (Marlowe-like expressiveness). This approach also ensures that funds won't stuck in an escrow.
 
-In order to avoid exponential explosion - outcomes can be compressed. For instance, "BTC price" can have two outomes "0..100000" and "100000..moon" instead of infinity of outcomes.
+Same as Marlowe, it puts contracts at the risk of exponential explosion.
+
+In order to avoid such explosion - outcomes can be compressed. For instance, "BTC price" can have two outomes "0..100000" and "100000..moon" instead of infinity of outcomes.
 
 Same goes for schedules: grouping outcomes for every stage in a contract, would avoid:
 - exponential "random-walk"-like explosion 
 - accumulation of uneccesssary state in a contract.
+
+#### **Merkle-trees**
+
+Merkle-trees can also be utilized to avoid duplicate subtrees in offer trees, thus reducing risks of contract exploding to a minimum. It is recommended to use same
+
+After this technique is applied only contracts that are aimed at modeling "perpetual motion" would explode.
+
+#### **Perpetuality**
+
+Simillarly to Marlowe, "perpetual swap"-like contracts can still be modeled without exponential explosion by:
+-  allowing "renewal or refund" condition (optional "close").
+
+Such condition would also benefit liquidity, and avoid overcollateriztion.
