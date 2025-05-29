@@ -73,7 +73,8 @@ await fetch('./collectReports?tag=' + encodeURIComponent(tag), {
 
 ## Issue offer
 
-Note: reports have unique pow hash.
+Offers have unique pow hash, pow hash is their id. 
+If offer is rejected due to low-pow difficulty - trader API will upgrade PoW.
 
 ```ts
 const content = {
@@ -136,7 +137,8 @@ await fetch('./collectOffers?tag=' + encodeURIComponent(tag), {
 
 ### Submit report
 
-Note: reports have unique pow hash.
+Reports have unique pow hash, pow hash is their id. 
+If report is rejected due to low-pow difficulty - trader API will upgrade PoW.
 
 ```ts
 const content = { 
@@ -249,3 +251,25 @@ const endpoints = {
 
 const data = await (await fetch(`./${endpoints[view]}?pageSize=100&pageNo=${page}`)).json()
 ```
+
+# Golden source
+
+Collection of issued offers and reports represents trader's portfolio.
+It is, together with oracle's commitments or facts, required in order to redeem binary options at expiration.
+
+If those collections are lost, recovery procedure would need:
+- original trader's private key
+- co-signed CET-transactions 
+- signed commitments from oracle (or capabilities avilable in database)
+- if oracle is at liberty to evict facts (fact retention) - signed fact should be preserved
+
+
+## Matching 
+
+Offers and Reports are allowed to have duplicates, since PoW can be upgraded.
+
+If the whole contract is negotiated through the Mega, offers will also form a chain, through back-references (`previousAcceptRef` in `AcceptOffer`, `acceptRef` in `FinalizeOffer`).
+
+The rule for evolving offer state collaboratively is to always pick the offer with highest PoW difficulty in a most progressed state (longest chain of back-references).
+
+One can accept offers outside of Mega mempool network - given that counter-party provided `contact`.

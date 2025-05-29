@@ -22,6 +22,7 @@ export interface Commitment {
     curve?: string
     rewardAddress?: string
     oracleSig: string
+    factRetentionPeriod?: string // how long would fact be available in oracle's database
 }
 
 export interface OracleCapability extends MsgLike {
@@ -161,7 +162,7 @@ export interface PartiallySignedTx {
     partialSigs: string[]
 }
 
-export interface AccepOffer {
+export interface AcceptOffer {
     chain: 'bitcoin-testnet'
     openingTx: PartiallySignedTx
     offerRef: HashCashPow
@@ -182,7 +183,7 @@ export interface Offer {
     contact: string
     transactionToBeCoSigned?: PartiallySignedTx //note for interactive sign: can be used to share precommitment
     txfee?: string
-    accept?: AccepOffer //note for interactive sign: counterparty returns its commitment through this first time and party replies with its nonce; second time: it returns its nonce and partial sig
+    accept?: AcceptOffer //note for interactive sign: counterparty returns its commitment through this first time and party replies with its nonce; second time: it returns its nonce and partial sig
     finalize?: FinalizeOffer //here after final signature is put; txid is reported
     encryptedDetails?: string //to make matching private - can encrypt actual `Offer` here 
 }
