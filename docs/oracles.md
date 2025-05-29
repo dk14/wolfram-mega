@@ -140,7 +140,7 @@ It is NOT recommended (STRONGLY discouraged) for Oracles to tie facts or commitm
 Separation of responsibilities:
 
 - Mega encourages pull-based approach for privacy
-- oracle should NOT KNOW anything about contracts on blockchain relying on its data. Only `fact-req` is known to oracle. This is strongly recommended in order to prevent market manipulation by oracles themselves.
+- oracle should NOT KNOW anything about contracts on blockchain relying on its data. Only `fact-req` is known to oracle. This is strongly recommended in order to prevent market naive manipulation by oracles themselves.
 - moreover, in Mega, oracle does not have to know about blockchain existence either. Mega DOES NOT require oracles to maintain blockchain wallets (full nodes etc).
 - only lightweight Mega-node (mempool connected to p2p) with `oracle-api` activated is required from Oracle.
 
