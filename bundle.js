@@ -31,9 +31,9 @@
     mod
   ));
 
-  // (disabled):../node_modules/buffer/index.js
+  // (disabled):buffer
   var require_buffer = __commonJS({
-    "(disabled):../node_modules/buffer/index.js"() {
+    "(disabled):buffer"() {
     }
   });
 
