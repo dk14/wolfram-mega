@@ -10,7 +10,13 @@ import {
   } from 'bitcoinjs-lib/src/psbt/bip371';
 import * as ecc from 'tiny-secp256k1';
 
-bitcoin.initEccLib(ecc)
+if (isBrowser()) {
+    (ecc as any).then(ec => bitcoin.initEccLib(ec))
+} else {
+    bitcoin.initEccLib(ecc)
+}
+
+
 
 
 import {Signer, SignerAsync} from "bitcoinjs-lib/src/psbt.d"
@@ -49,6 +55,7 @@ const convert = schnorr.convert;
 import * as multisig from './mu-sig'
 import { SchnorrApi } from "./schnorr";
 import { Taptree } from "bitcoinjs-lib/src/types";
+import { isBrowser } from "../../../util";
 
 function schnorrSignerSingle(pub: string): SignerAsync {
     return {
