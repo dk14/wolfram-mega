@@ -1,6 +1,6 @@
 import * as nd from './node'
 import * as mega from './protocol'
-import { testOnlySign, testOnlyGenerateKeyPair} from './util'
+import { testOnlySign, testOnlyGenerateKeyPair} from './crypto'
 import * as http from 'http'
 import * as url from 'url'
 import { p2pNode } from "./p2p"
