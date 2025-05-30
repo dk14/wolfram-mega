@@ -101,11 +101,11 @@ const server = http.createServer(async (req, res) => {
                         multisigInteractive.sign1(
                             input.pk1,
                             input.pk2,
-                            input.commitment1,
-                            input.nonce1,
-                            Buffer.from(bs58.decode(cfg.secrets[input.pk2])).toString("hex").substring(2, 64 + 2),
+                            input.commitment2,
+                            input.nonce2,
+                            Buffer.from(bs58.decode(cfg.secrets[input.pk1])).toString("hex").substring(2, 64 + 2),
                             Buffer.from(input.msg, "hex"),
-                            input.sessionId2
+                            input.sessionId1
                         )
 
                     } else if (reqUrl.pathname == '/sign2') {
@@ -113,13 +113,13 @@ const server = http.createServer(async (req, res) => {
                         multisigInteractive.sign2(
                             input.pk1,
                             input.pk2,
-                            input.partSig2,
+                            input.partSig1,
                             input.combinedNonceParity,
-                            input.nonce2,
-                            input.commitment2,
-                            Buffer.from(bs58.decode(cfg.secrets[input.pk1])).toString("hex").substring(2, 64 + 2),
+                            input.nonce1,
+                            input.commitment1,
+                            Buffer.from(bs58.decode(cfg.secrets[input.pk2])).toString("hex").substring(2, 64 + 2),
                             Buffer.from(input.msg, "hex"),
-                            input.sessionId1
+                            input.sessionId2
                         )
 
                     }

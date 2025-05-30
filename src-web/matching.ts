@@ -20,7 +20,8 @@ export type OfferStatus = 'matching' | 'accepted' | 'oracle committed' | 'signin
 export interface PreferenceModel {
     minOraclePow: number,
     minOracleReputation: number,
-    tags: string[]
+    tags: string[],
+    txfee: number
 }
 
 
