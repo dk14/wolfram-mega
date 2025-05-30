@@ -91,10 +91,6 @@ exports.matchingEngine = {
             partyBetAmount: o.bet[0],
             counterpartyBetAmount: o.bet[1]
         };
-        //TODO subscribe to updates
-        //- atach BTC partialSig on update
-        //TODO subscribe to oracle
-        // - generate redemtion if WIN
         const offer = {
             message: "",
             customContract: "",
@@ -129,11 +125,6 @@ exports.matchingEngine = {
         };
         offer.content.accept = accept;
         offer.pow.hash = offer.pow.hash + "accept"; //will be upgraded
-        //TODO attach BTC pre-commitment
-        //TODO subscribe to updates
-        // - attach BTC signature and submit tx on update
-        //TODO subscribe to oracle
-        // - generate redemtion if WIN
         window.traderApi.issueOffer(offer);
     },
     collectQuestions: async function (cfg) {
@@ -153,7 +144,47 @@ exports.matchingEngine = {
         });
     },
     listOrders: async function (p) {
-        return [];
+        const pagedescriptor = {
+            page: 0,
+            chunkSize: 100
+        };
+        const myOffers = (await window.storage.queryIssuedOffers({
+            where: async (x) => (0, exports.checkOriginatorId)(x.content.originatorId)
+        }, pagedescriptor));
+        const theirOffers = (await window.storage.queryIssuedOffers({
+            where: async (x) => (0, exports.checkOriginatorId)(x.content.originatorId)
+        }, pagedescriptor));
+        const myModels = myOffers.map(o => {
+            const model = {
+                id: "",
+                bet: [o.content.terms.partyBetAmount, o.content.terms.counterpartyBetAmount],
+                oracles: [{
+                        id: o.content.terms.question.capabilityPubKey,
+                        oracle: o.content.terms.question.capabilityPubKey,
+                        endpoint: "TODO"
+                    }],
+                question: "TODO",
+                status: "matching",
+                role: "initiator"
+            };
+            return model;
+        });
+        const theirModels = theirOffers.map(o => {
+            const model = {
+                id: "",
+                bet: [o.content.terms.partyBetAmount, o.content.terms.counterpartyBetAmount],
+                oracles: [{
+                        id: o.content.terms.question.capabilityPubKey,
+                        oracle: o.content.terms.question.capabilityPubKey,
+                        endpoint: "TODO"
+                    }],
+                question: "TODO",
+                status: "matching",
+                role: "acceptor"
+            };
+            return model;
+        });
+        return myModels.concat(theirModels);
     }
 };
 //# sourceMappingURL=matching.js.map

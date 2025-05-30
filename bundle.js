@@ -21086,6 +21086,9 @@
     }
     return localStorage.getItem("originatorId");
   };
+  var checkOriginatorId = (id) => {
+    return id === getOriginatorId();
+  };
   var matchingEngine = {
     pickOffer: async function() {
       const candidates = await window.storage.queryOffers({ where: async (x) => true }, {
@@ -21223,7 +21226,47 @@
       });
     },
     listOrders: async function(p) {
-      return [];
+      const pagedescriptor = {
+        page: 0,
+        chunkSize: 100
+      };
+      const myOffers = await window.storage.queryIssuedOffers({
+        where: async (x) => checkOriginatorId(x.content.originatorId)
+      }, pagedescriptor);
+      const theirOffers = await window.storage.queryIssuedOffers({
+        where: async (x) => checkOriginatorId(x.content.originatorId)
+      }, pagedescriptor);
+      const myModels = myOffers.map((o) => {
+        const model = {
+          id: "",
+          bet: [o.content.terms.partyBetAmount, o.content.terms.counterpartyBetAmount],
+          oracles: [{
+            id: o.content.terms.question.capabilityPubKey,
+            oracle: o.content.terms.question.capabilityPubKey,
+            endpoint: "TODO"
+          }],
+          question: "TODO",
+          status: "matching",
+          role: "initiator"
+        };
+        return model;
+      });
+      const theirModels = theirOffers.map((o) => {
+        const model = {
+          id: "",
+          bet: [o.content.terms.partyBetAmount, o.content.terms.counterpartyBetAmount],
+          oracles: [{
+            id: o.content.terms.question.capabilityPubKey,
+            oracle: o.content.terms.question.capabilityPubKey,
+            endpoint: "TODO"
+          }],
+          question: "TODO",
+          status: "matching",
+          role: "acceptor"
+        };
+        return model;
+      });
+      return myModels.concat(theirModels);
     }
   };
 
