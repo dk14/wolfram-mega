@@ -37,7 +37,12 @@ exports.txApi = exports.p2pktr = void 0;
 const bitcoin = __importStar(require("bitcoinjs-lib"));
 const bip371_1 = require("bitcoinjs-lib/src/psbt/bip371");
 const ecc = __importStar(require("tiny-secp256k1"));
-bitcoin.initEccLib(ecc);
+if ((0, util_1.isBrowser)()) {
+    ecc.then(ec => bitcoin.initEccLib(ec));
+}
+else {
+    bitcoin.initEccLib(ecc);
+}
 const net = bitcoin.networks.testnet;
 const p2pktr = (pub) => bitcoin.payments.p2tr({
     pubkey: Buffer.from(pub, "hex"),
@@ -47,6 +52,7 @@ exports.p2pktr = p2pktr;
 const schnorr = require('bip-schnorr');
 const muSig = schnorr.muSig;
 const convert = schnorr.convert;
+const util_1 = require("../../../util");
 function schnorrSignerSingle(pub) {
     return {
         publicKey: Buffer.from(pub, "hex"),
