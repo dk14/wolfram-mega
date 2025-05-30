@@ -34,7 +34,7 @@ interface Inputs {
     utxoBob: UTxO[]
 }
 
-export const getUtXo = async (o: OfferMsg, c: Commitment, pref: PreferenceModel) => {
+export const getUtXo = async (o: OfferMsg, c: Commitment, pref: PreferenceModel): Promise<Inputs> => {
 
 
     const terms = o.content.terms
