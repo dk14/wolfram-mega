@@ -110,13 +110,13 @@ function schnorrSignerMulti(pub1: string, pub2: string, secrets: string[] = []):
 }
 
 export interface PublicSession {
-    partSig1: any;
     sessionId1?: string,
     sessionId2?: string,
     commitment1?: string,
     commitment2?:string,
     nonce1?:string,
     nonce2?:string,
+    partSig1?: string;
     partSig2?:string,
     combinedNonceParity?:string,
     update: (p: PublicSession) => void
@@ -345,7 +345,16 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
             if (session === null || session === undefined) {
                 await psbt.signInputAsync(0, schnorrSignerMulti(alicePub, bobPub))
             } else {
-                await psbt.signInputAsync(0, schnorrSignerInteractive(alicePub, bobPub, session))
+                try {
+                    await psbt.signInputAsync(0, schnorrSignerInteractive(alicePub, bobPub, session))
+                } catch (e) {
+                    if (e ===  "incomplete sign") {
+                        return undefined
+                    } else {
+                        throw e
+                    }
+                }
+                
             }
             
             psbt.finalizeAllInputs()

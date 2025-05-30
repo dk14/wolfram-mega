@@ -1,4 +1,7 @@
 
+import { resolve } from "path"
+import { PublicSession } from "../src/client-api/contracts/btc/tx"
+import { DlcContract, DlcParams } from "../src/client-api/contracts/generate-btc-tx"
 import { Commitment, OfferMsg, OfferTerms } from "../src/protocol"
 import { PreferenceModel } from "./matching"
 
@@ -26,7 +29,12 @@ interface UTxO {
     age: number
 }
 
-const getUtXo = async (o: OfferMsg, c: Commitment, pref: PreferenceModel) => {
+interface Inputs {
+    utxoAlice: UTxO[]
+    utxoBob: UTxO[]
+}
+
+export const getUtXo = async (o: OfferMsg, c: Commitment, pref: PreferenceModel) => {
 
 
     const terms = o.content.terms
@@ -65,8 +73,100 @@ const getUtXo = async (o: OfferMsg, c: Commitment, pref: PreferenceModel) => {
         }
     }
 
-    const utxoAlice = getMultipleUtxo(aliceUtxos)
-    const utxoBob = getMultipleUtxo(bobUtxos)
+    return {
+        utxoAlice: getMultipleUtxo(aliceUtxos),
+        utxoBob: getMultipleUtxo(bobUtxos)
+    }
     
+}
+
+//updates offer with multisig data; offer should be accepted
+export const genDlcContract = async (inputs: Inputs, o: OfferMsg): Promise<[DlcContract, OfferMsg]> => {
+    const terms = o.content.terms
+    const yesSession = o.content.accept.cetTxSet[0]
+    const noSession = o.content.accept.cetTxSet[1]
+
+    const dlc: Promise<DlcContract> = new Promise(resolveDlc => {
+        const yesSessionUpdate: Promise<PublicSession> = new Promise(async resolveYes => {
+            const noSessionUpdate: Promise<PublicSession> = new Promise(async resolveNo => {
+                const params: DlcParams = {
+                    aliceIn: inputs.utxoAlice,
+                    bobIn: inputs.utxoBob,
+                    aliceAmountIn: inputs.utxoAlice.map(x => x.value),
+                    bobAmountIn: inputs.utxoBob.map(x => x.value),
+                    oraclePub: o.content.terms.question.capabilityPubKey,
+                    oraclePub2: undefined,
+                    oraclePub3: undefined,
+                    outcomes: {
+                        "YES": {aliceAmount: terms.partyBetAmount, bobAmount: 0},
+                        "NO": {aliceAmount: 0, bobAmount: terms.counterpartyBetAmount}
+                    },
+                    rValue: "",
+                    alicePub: "",
+                    bobPub: "",
+                    changeAlice: 0, //aliceAmountIn.sum - partyBetAmount
+                    changeBob: 0,
+                    txfee: 0,
+                    session: {
+                        "YES":  {
+                            sessionId1: yesSession.sessionIds[0],
+                            sessionId2: yesSession.sessionIds[1],
+                            commitment1: yesSession.sesionCommitments[0],
+                            commitment2: yesSession.sesionCommitments[1],
+                            nonce1: yesSession.sessionNonces[0],
+                            nonce2: yesSession.sessionNonces[1],
+                            partSig1: yesSession.partialSigs[0],
+                            partSig2: yesSession.partialSigs[1],
+                            combinedNonceParity: yesSession.nonceParity[0],
+                            update: (p: PublicSession) => {
+                                resolveYes(p)
+                            }
+                        },
+                        "NO":  {
+                            sessionId1: noSession.sessionIds[0],
+                            sessionId2: noSession.sessionIds[1],
+                            commitment1: noSession.sesionCommitments[0],
+                            commitment2: noSession.sesionCommitments[1],
+                            nonce1: noSession.sessionNonces[0],
+                            nonce2: noSession.sessionNonces[1],
+                            partSig1: noSession.partialSigs[0],
+                            partSig2: noSession.partialSigs[1],
+                            combinedNonceParity: noSession.nonceParity[0],
+                            update: (p: PublicSession) => {
+                                resolveNo(p)
+                            }
+                        }
+                    }
+                }
+                resolveDlc(window.btc.generateDlcContract(params))
+
+            })
+
+            const yes = await yesSessionUpdate
+            yesSession.sessionIds[0] = yes.sessionId1
+            yesSession.sesionCommitments[0] = yes.commitment1
+            yesSession.sessionNonces[0] = yes.nonce1
+            yesSession.partialSigs[0] = yes.partSig1
+            yesSession.nonceParity[0] = yes.combinedNonceParity
+            yesSession.sessionIds[1] = yes.sessionId2
+            yesSession.sesionCommitments[1] = yes.commitment2
+            yesSession.sessionNonces[1] = yes.nonce2
+            yesSession.partialSigs[1] = yes.partSig2
+
+            const no = await noSessionUpdate
+            noSession.sessionIds[0] = no.sessionId1
+            noSession.sesionCommitments[0] = no.commitment1
+            noSession.sessionNonces[0] = no.nonce1
+            noSession.partialSigs[0] = no.partSig1
+            noSession.nonceParity[0] = no.combinedNonceParity
+            noSession.sessionIds[1] = no.sessionId2
+            noSession.sesionCommitments[1] = no.commitment2
+            noSession.sessionNonces[1] = no.nonce2
+            noSession.partialSigs[1] = no.partSig2
+
+        })
+    })
+    
+    return [await dlc, o]
 }
 

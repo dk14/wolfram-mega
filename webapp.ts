@@ -16,10 +16,10 @@ export interface TraderQuery<T> {
 }
 
 export interface BtcApi {
-    generateOpeningTransaction: (p: btc.OpeningParams) => Promise<btc.Hex>
+    generateDlcContract:(params: btc.DlcParams) => Promise<btc.DlcContract>
     generateClosingTransaction: (P: btc.ClosingParams) => Promise<btc.Hex>
-    generateCetTransaction: (p: btc.CetParams) => Promise<btc.Hex>
     generateCetRedemptionTransaction: (p: btc.CetRedemptionParams) => Promise<btc.Hex>
+   
 }
 
 declare global {
@@ -547,10 +547,9 @@ window.traderApi = traderApi(cfg.trader, cfg, ndapi, indexDBstorage, node)
 window.storage = indexDBstorage
 
 window.btc = { 
-    generateOpeningTransaction: btc.generateOpeningTransaction, 
     generateClosingTransaction: btc.generateClosingTransaction,
-    generateCetTransaction: btc.generateCetTransaction,
-    generateCetRedemptionTransaction: btc.generateCetRedemptionTransaction
+    generateCetRedemptionTransaction: btc.generateCetRedemptionTransaction,
+    generateDlcContract: btc.generateDlcContract
 }
 
 })()

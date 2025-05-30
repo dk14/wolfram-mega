@@ -199,7 +199,7 @@ export interface DlcParams {
     changeAlice: number,
     changeBob: number,
     txfee: number,
-    session?: PublicSession,
+    session: { [id: Msg]: PublicSession; },
     stateAmount?: number //goes back to multisig, for composite contracts
 }
 
@@ -240,7 +240,7 @@ export interface CompositeDlcParamsEnvelope {
     compositeCetParams: CompositeDlcParams
 }
 
-interface DlcContract {
+export interface DlcContract {
     openingTx: Hex
     cet: Hex[]
 }
@@ -276,7 +276,8 @@ export const generateDlcContract = async (params: DlcParams): Promise<DlcContrac
         generateCetTransaction(Object.assign({}, params, {
             answer, lockedTxId, 
             aliceAmount: params.outcomes[answer].aliceAmount,
-            bobAmount: params.outcomes[answer].bobAmount
+            bobAmount: params.outcomes[answer].bobAmount,
+            session: params.session[answer]
         }))))
     return {openingTx, cet}
 }
