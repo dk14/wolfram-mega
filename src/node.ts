@@ -20,8 +20,20 @@ const openapi = __dirname ? Enforcer(__dirname + '/../wolfram-mega-spec.yaml') :
 /* c8 ignore end */
 
 const validate = async (msg: any, path, method): Promise<any> => {
-    const [ _, error ] = (await openapi).request({ method, path, body: msg})
-    return error
+    if (__dirname) {
+        const [ _, error ] = (await openapi).request({ method, path, body: msg})
+        return error
+    } else {
+        const request = {
+            path,
+            headers: {
+              'content-type': 'application/json'
+            },
+            body: msg,
+            params: {},
+        }
+        return openapi.validateRequest(request)
+    }
 }
 
 //we keep data in memory (HDD is only used as a backup storage), some data (malleability reports) can be sharded between peers
