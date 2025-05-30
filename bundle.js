@@ -25662,8 +25662,20 @@
   var import_openapi_request_validator = __toESM(require_dist3());
   var openapi = __dirname ? (0, import_openapi_enforcer.default)(__dirname + "/../wolfram-mega-spec.yaml") : new import_openapi_request_validator.default(window.spec);
   var validate = async (msg, path, method2) => {
-    const [_, error] = (await openapi).request({ method: method2, path, body: msg });
-    return error;
+    if (__dirname) {
+      const [_, error] = (await openapi).request({ method: method2, path, body: msg });
+      return error;
+    } else {
+      const request = {
+        path,
+        headers: {
+          "content-type": "application/json"
+        },
+        body: msg,
+        params: {}
+      };
+      return openapi.validateRequest(request);
+    }
   };
   var checkPow = (pow, preimage) => {
     if (!pow.hash.endsWith("0".repeat(pow.difficulty))) {

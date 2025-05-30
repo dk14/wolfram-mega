@@ -50,8 +50,21 @@ const openapi_request_validator_1 = __importDefault(require("openapi-request-val
 const openapi = __dirname ? (0, openapi_enforcer_1.default)(__dirname + '/../wolfram-mega-spec.yaml') : new openapi_request_validator_1.default(window.spec);
 /* c8 ignore end */
 const validate = async (msg, path, method) => {
-    const [_, error] = (await openapi).request({ method, path, body: msg });
-    return error;
+    if (__dirname) {
+        const [_, error] = (await openapi).request({ method, path, body: msg });
+        return error;
+    }
+    else {
+        const request = {
+            path,
+            headers: {
+                'content-type': 'application/json'
+            },
+            body: msg,
+            params: {},
+        };
+        return openapi.validateRequest(request);
+    }
 };
 const checkPow = (pow, preimage) => {
     if (!pow.hash.endsWith("0".repeat(pow.difficulty))) {
