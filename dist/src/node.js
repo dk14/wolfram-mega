@@ -46,7 +46,13 @@ const util_1 = require("./util");
 const openapi_enforcer_1 = __importDefault(require("openapi-enforcer"));
 const inspector_1 = require("inspector");
 const util_2 = require("./util");
-const openapi = (0, openapi_enforcer_1.default)(__dirname + '/../wolfram-mega-spec.yaml');
+const openapi_request_validator_1 = __importDefault(require("openapi-request-validator"));
+const openapi = __dirname ? (0, openapi_enforcer_1.default)(__dirname + '/../wolfram-mega-spec.yaml') : new openapi_request_validator_1.default(window.spec);
+/* c8 ignore end */
+const validate = async (msg, path, method) => {
+    const [_, error] = (await openapi).request({ method, path, body: msg });
+    return error;
+};
 const checkPow = (pow, preimage) => {
     if (!pow.hash.endsWith("0".repeat(pow.difficulty))) {
         return false;
@@ -160,7 +166,7 @@ const mempool = {
 };
 exports.api = {
     announceOracle: async (cfg, id) => {
-        const [_, error] = (await openapi).request({ method: 'POST', path: '/oracle', body: id });
+        const error = await validate(id, '/oracle', 'POST');
         if (error !== undefined) {
             return ['invalid request', error.toString()];
         }
@@ -200,7 +206,7 @@ exports.api = {
         }
     },
     announceCapability: async (cfg, cp) => {
-        const [_, error] = (await openapi).request({ method: 'POST', path: '/capability', body: cp });
+        const error = await validate(cp, '/capability', 'POST');
         if (error !== undefined) {
             return ['invalid request', error.toString()];
         }
@@ -238,7 +244,7 @@ exports.api = {
         }
     },
     reportMalleability: async (cfg, report) => {
-        const [_, error] = (await openapi).request({ method: 'POST', path: '/report', body: report });
+        const error = await validate(report, '/report', 'POST');
         if (error !== undefined) {
             return ['invalid request', error.toString()];
         }
@@ -265,7 +271,7 @@ exports.api = {
         return "success";
     },
     disputeMissingfactClaim: async (dispute) => {
-        const [_, error] = (await openapi).request({ method: 'POST', path: '/dispute', body: dispute });
+        const error = await validate(dispute, '/dispute', 'POST');
         if (error !== undefined) {
             return ['invalid request', error.toString()];
         }
@@ -311,7 +317,7 @@ exports.api = {
         return mempool.oracles[oraclePub].reports.slice(paging.page * paging.chunkSize, (paging.page + 1) * paging.chunkSize);
     },
     publishOffer: async function (cfg, offer) {
-        const [_, error] = (await openapi).request({ method: 'POST', path: '/offer', body: offer });
+        const error = await validate(offer, '/offer', 'POST');
         if (error !== undefined) {
             return ['invalid request', error.toString()];
         }
