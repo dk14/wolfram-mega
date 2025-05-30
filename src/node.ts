@@ -3,7 +3,7 @@ import {createVerify, generateKeyPairSync, createSign, sign, createPrivateKey, K
 import fetch from 'node-fetch'
 import https from 'https'
 import * as fs from 'fs'
-import { hash } from './util'
+import { hash, isBrowser } from './util'
 import Enforcer from 'openapi-enforcer'
 import { console } from 'inspector'
 import { MempoolConfig } from "./config"
@@ -16,11 +16,11 @@ import {OracleId, OracleCapability,
 import { createPemPub } from './util'
 import OpenAPIRequestValidator from 'openapi-request-validator'
 
-const openapi = __dirname ? Enforcer(__dirname + '/../wolfram-mega-spec.yaml') : new OpenAPIRequestValidator(window.spec)
+const openapi = !isBrowser() ? Enforcer(__dirname + '/../wolfram-mega-spec.yaml') : new OpenAPIRequestValidator(window.spec)
 /* c8 ignore end */
 
 const validate = async (msg: any, path, method): Promise<any> => {
-    if (__dirname) {
+    if (!isBrowser()) {
         const [ _, error ] = (await openapi).request({ method, path, body: msg})
         return error
     } else {

@@ -69,3 +69,7 @@ export const testOnlySign = (msg: string, pk: string) => {
 export const testOnlySignEd = (msg: string, pk: string) => {
     return sign(null, Buffer.from(msg), createPemPkEd(pk)).toString('base64')
 }
+
+export function isBrowser() {
+    return typeof window !== 'undefined' && typeof window.document !== 'undefined';
+}
