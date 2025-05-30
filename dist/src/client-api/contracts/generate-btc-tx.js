@@ -72,7 +72,8 @@ const generateDlcContract = async (params) => {
     const cet = await Promise.all(Object.keys(params.outcomes).map(answer => (0, exports.generateCetTransaction)(Object.assign({}, params, {
         answer, lockedTxId,
         aliceAmount: params.outcomes[answer].aliceAmount,
-        bobAmount: params.outcomes[answer].bobAmount
+        bobAmount: params.outcomes[answer].bobAmount,
+        session: params.session[answer]
     }))));
     return { openingTx, cet };
 };

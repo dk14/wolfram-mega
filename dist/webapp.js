@@ -531,10 +531,9 @@ const matching_1 = require("./src-web/matching");
     window.traderApi = (0, trader_api_1.traderApi)(cfg.trader, cfg, node_1.api, indexDBstorage, node);
     window.storage = indexDBstorage;
     window.btc = {
-        generateOpeningTransaction: btc.generateOpeningTransaction,
         generateClosingTransaction: btc.generateClosingTransaction,
-        generateCetTransaction: btc.generateCetTransaction,
-        generateCetRedemptionTransaction: btc.generateCetRedemptionTransaction
+        generateCetRedemptionTransaction: btc.generateCetRedemptionTransaction,
+        generateDlcContract: btc.generateDlcContract
     };
 })();
 window.matching = matching_1.matchingEngine;

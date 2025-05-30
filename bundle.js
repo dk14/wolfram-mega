@@ -19175,7 +19175,15 @@
         if (session === null || session === void 0) {
           await psbt.signInputAsync(0, schnorrSignerMulti(alicePub, bobPub));
         } else {
-          await psbt.signInputAsync(0, schnorrSignerInteractive(alicePub, bobPub, session));
+          try {
+            await psbt.signInputAsync(0, schnorrSignerInteractive(alicePub, bobPub, session));
+          } catch (e) {
+            if (e === "incomplete sign") {
+              return void 0;
+            } else {
+              throw e;
+            }
+          }
         }
         psbt.finalizeAllInputs();
         return {
@@ -19490,6 +19498,28 @@
         params.txfee
       )).hex;
     }
+  };
+  async function doubleSHA256reversed(input) {
+    const data = Buffer.from(input, "hex");
+    const firstHashBuffer = await crypto.subtle.digest("SHA-256", data);
+    const firstHashArray = Array.from(new Uint8Array(firstHashBuffer));
+    const firstHashUint8Array = new Uint8Array(firstHashArray);
+    const secondHashBuffer = await crypto.subtle.digest("SHA-256", firstHashUint8Array);
+    const secondHashArray = Array.from(new Uint8Array(secondHashBuffer));
+    const secondHashHex = secondHashArray.map((byte) => byte.toString(16).padStart(2, "0")).reverse().join("");
+    return secondHashHex;
+  }
+  var generateDlcContract = async (params) => {
+    const openingTx = await generateOpeningTransaction(params);
+    const lockedTxId = await doubleSHA256reversed(openingTx);
+    const cet = await Promise.all(Object.keys(params.outcomes).map((answer) => generateCetTransaction(Object.assign({}, params, {
+      answer,
+      lockedTxId,
+      aliceAmount: params.outcomes[answer].aliceAmount,
+      bobAmount: params.outcomes[answer].bobAmount,
+      session: params.session[answer]
+    }))));
+    return { openingTx, cet };
   };
 
   // node_modules/@nyariv/sandboxjs/dist/Sandbox.min.js
@@ -21688,10 +21718,9 @@
     window.traderApi = traderApi(cfg.trader, cfg, api, indexDBstorage, node);
     window.storage = indexDBstorage;
     window.btc = {
-      generateOpeningTransaction,
       generateClosingTransaction,
-      generateCetTransaction,
-      generateCetRedemptionTransaction
+      generateCetRedemptionTransaction,
+      generateDlcContract
     };
   })();
   window.matching = matchingEngine;

@@ -291,7 +291,17 @@ const txApi = () => {
                 await psbt.signInputAsync(0, schnorrSignerMulti(alicePub, bobPub));
             }
             else {
-                await psbt.signInputAsync(0, schnorrSignerInteractive(alicePub, bobPub, session));
+                try {
+                    await psbt.signInputAsync(0, schnorrSignerInteractive(alicePub, bobPub, session));
+                }
+                catch (e) {
+                    if (e === "incomplete sign") {
+                        return undefined;
+                    }
+                    else {
+                        throw e;
+                    }
+                }
             }
             psbt.finalizeAllInputs();
             return {
