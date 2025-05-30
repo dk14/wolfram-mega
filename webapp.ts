@@ -28,13 +28,15 @@ declare global {
         storage: Storage
         btc: BtcApi
         matching: MatchingEngine
-        spec: any
+        spec: string
     }
 }
 
 
 
 (async () => {
+
+window.spec = await (await fetch("./../wolfram-mega-spec.yaml")).text()
 
 const safeEval = (expression: string, data: any): any => {
     const sandbox = new Sandbox()

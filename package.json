@@ -43,6 +43,7 @@
   "license": "ISC",
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "^1.0.2",
+    "@types/js-yaml": "^4.0.9",
     "esbuild": "0.25.5",
     "source-map-support": "^0.5.21",
     "ts-node": "^10.9.2",
@@ -70,6 +71,7 @@
     "https": "^1.0.0",
     "idb": "^8.0.3",
     "js-sha256": "^0.9.0",
+    "js-yaml": "^4.1.0",
     "node-fetch": "^3.3.2",
     "openapi-enforcer": "^1.23.0",
     "openapi-request-validator": "^12.1.3",

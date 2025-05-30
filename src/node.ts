@@ -15,11 +15,12 @@ import {OracleId, OracleCapability,
 } from './protocol'
 import { createPemPub } from './util'
 import OpenAPIRequestValidator from 'openapi-request-validator'
+import yaml from 'js-yaml'
 
-const openapi = !isBrowser() ? Enforcer(__dirname + '/../wolfram-mega-spec.yaml') : new OpenAPIRequestValidator(window.spec)
-/* c8 ignore end */
+const openapi = !isBrowser() ? Enforcer(__dirname + '/../wolfram-mega-spec.yaml') 
+    : new OpenAPIRequestValidator(yaml.load(window.spec))
 
-const validate = async (msg: any, path, method): Promise<any> => {
+const validate = async (msg: any, path: string, method: string): Promise<any> => {
     if (!isBrowser()) {
         const [ _, error ] = (await openapi).request({ method, path, body: msg})
         return error
@@ -27,7 +28,7 @@ const validate = async (msg: any, path, method): Promise<any> => {
         const request = {
             path,
             headers: {
-              'content-type': 'application/json'
+                'content-type': 'application/json'
             },
             body: msg,
             params: {},
@@ -35,6 +36,10 @@ const validate = async (msg: any, path, method): Promise<any> => {
         return openapi.validateRequest(request)
     }
 }
+
+/* c8 ignore end */
+
+
 
 //we keep data in memory (HDD is only used as a backup storage), some data (malleability reports) can be sharded between peers
 // facilitators can start multiple fact sharing nodes in order to keep more data available
