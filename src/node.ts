@@ -13,9 +13,13 @@ import {OracleId, OracleCapability,
     ReportRejected, Dispute, DisputeAccepted, DisputeRejected, PagingDescriptor,
     Fact, FactRequest
 } from './protocol'
-import { createPemPub } from './util'
 import OpenAPIRequestValidator from 'openapi-request-validator'
 import yaml from 'js-yaml'
+
+const regexPem = /.{64}/g;
+export const createPemPub = (base64: string): string => {
+    return '-----BEGIN PUBLIC KEY-----\n'+ base64.replace(regexPem, '$&\n') + '\n-----END PUBLIC KEY-----\n'
+}
 
 const openapi = !isBrowser() ? Enforcer(__dirname + '/../wolfram-mega-spec.yaml') 
     : new OpenAPIRequestValidator(yaml.load(window.spec))

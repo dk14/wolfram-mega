@@ -2,7 +2,7 @@ import WebSocket, { createWebSocketStream } from 'ws';
 import * as readline from 'readline'
 import * as mega from '../../protocol'
 import * as nd from '../../node'
-import * as util from '../../util'
+import * as utilcrypto from '../../crypto'
 import * as fs from 'fs'
 import { schnorrApi } from '../contracts/btc/schnorr';
 import bs58 from 'bs58'
@@ -42,7 +42,7 @@ interface SignerCfg {
     rlOracle.on('line', (line) => {
         console.log(line)
         const oracleId: mega.OracleId = JSON.parse(line)
-        oracleId.oracleSignature = util.testOnlySign(JSON.stringify(oracleId), cfg.oraclePK)
+        oracleId.oracleSignature = utilcrypto.testOnlySign(JSON.stringify(oracleId), cfg.oraclePK)
         streamOracle.write(JSON.stringify(oracleId) + "\n")
     })
 
@@ -58,7 +58,7 @@ interface SignerCfg {
             const cp: mega.OracleCapability = JSON.parse(line)
             cp.oracleSignature = ""
             cp.pow = undefined
-            cp.oracleSignature = util.testOnlySign(JSON.stringify(cp), cfg.oraclePK)
+            cp.oracleSignature = utilcrypto.testOnlySign(JSON.stringify(cp), cfg.oraclePK)
             streamCp.write(JSON.stringify(cp) + "\n")
         } catch (err) {
             console.error(err)
@@ -97,8 +97,8 @@ interface SignerCfg {
                     streamFact.write(rValue + sValue + "\n")
                 } else {
                     const sig = (crypto === 'ed') ? 
-                    util.testOnlySignEd(JSON.stringify(commitment), cfg.capabilityPKs[commitment.req.capabilityPubKey])
-                    : util.testOnlySignEd(JSON.stringify(commitment), cfg.capabilityPKs[commitment.req.capabilityPubKey])
+                    utilcrypto.testOnlySignEd(JSON.stringify(commitment), cfg.capabilityPKs[commitment.req.capabilityPubKey])
+                    : utilcrypto.testOnlySignEd(JSON.stringify(commitment), cfg.capabilityPKs[commitment.req.capabilityPubKey])
                     
                     streamFact.write(sig + "\n")
                 }
@@ -111,8 +111,8 @@ interface SignerCfg {
                     streamFact.write(sValue + "\n")
                 } else {
                     const sig = (crypto === 'ed') ? 
-                    util.testOnlySignEd(x[1], cfg.capabilityPKs[commitment.req.capabilityPubKey])
-                    : util.testOnlySign(x[1], cfg.capabilityPKs[commitment.req.capabilityPubKey])
+                    utilcrypto.testOnlySignEd(x[1], cfg.capabilityPKs[commitment.req.capabilityPubKey])
+                    : utilcrypto.testOnlySign(x[1], cfg.capabilityPKs[commitment.req.capabilityPubKey])
                     streamFact.write(sig + "\n")
                 }
                 

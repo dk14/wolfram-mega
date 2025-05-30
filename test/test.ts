@@ -2,7 +2,7 @@ import * as nd from '../src/node';
 import * as mega from '../src/protocol';
 import * as assert from 'assert'
 import * as pow from '../src/pow'
-import { testOnlyGenerateKeyPair, testOnlySign} from '../src/util'
+import { testOnlyGenerateKeyPair, testOnlySign} from '../src/crypto'
 
 
 (async () => {

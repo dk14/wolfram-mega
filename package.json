@@ -18,7 +18,7 @@
     "gen-keypair": "npx tsx src/client-api/utils/gen-keypair.ts",
     "demo": "npx tsx test/demo.ts",
     "build": "tsc -p tsconfig.json && cp wolfram-mega-spec.yaml dist/ && cp index.html dist/ && cp -r cfg dist/",
-    "bundle": "esbuild webapp.ts --bundle --outfile=bundle.js"
+    "bundle": "npx tsx esbuild.ts"
   },
   "browser": {
     "net": false,
@@ -31,8 +31,7 @@
     "stream": false,
     "inspector": false,
     "events": false,
-    "tiny-secp256k1": false,
-    "buffer": false
+    "tiny-secp256k1": false
   },
   "bin": {
     "wf-mega-peer": "./bin/wf-mega-peer"
@@ -46,8 +45,8 @@
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "^1.0.2",
     "@types/js-yaml": "^4.0.9",
-    "crypto-browserify": "^3.12.1",
     "esbuild": "0.25.5",
+    "esbuild-plugins-node-modules-polyfill": "^1.7.0",
     "source-map-support": "^0.5.21",
     "ts-node": "^10.9.2",
     "tsx": "^4.19.3",

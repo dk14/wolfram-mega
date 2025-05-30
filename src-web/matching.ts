@@ -2,7 +2,10 @@ import { Or } from "@nyariv/sandboxjs/dist/node/parser"
 import { TraderApi } from "../src/client-api/trader-api"
 import { AcceptOffer, FactRequest, HashCashPow, Offer, OfferTerms, OracleCapability, OracleId, PagingDescriptor, PartiallySignedTx } from "../src/protocol"
 import { BtcApi, TraderQuery, Storage } from "../webapp"
-import { randomInt } from "crypto"
+
+const randomInt = (n: number): number => {
+    return 1000
+}
 
 declare global {
     interface Window {
