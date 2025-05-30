@@ -38,7 +38,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const ws_1 = __importStar(require("ws"));
 const readline = __importStar(require("readline"));
-const util = __importStar(require("../../util"));
+const utilcrypto = __importStar(require("../../crypto"));
 const fs = __importStar(require("fs"));
 const schnorr_1 = require("../contracts/btc/schnorr");
 const bs58_1 = __importDefault(require("bs58"));
@@ -63,7 +63,7 @@ const bs58_1 = __importDefault(require("bs58"));
     rlOracle.on('line', (line) => {
         console.log(line);
         const oracleId = JSON.parse(line);
-        oracleId.oracleSignature = util.testOnlySign(JSON.stringify(oracleId), cfg.oraclePK);
+        oracleId.oracleSignature = utilcrypto.testOnlySign(JSON.stringify(oracleId), cfg.oraclePK);
         streamOracle.write(JSON.stringify(oracleId) + "\n");
     });
     const wsCp = new ws_1.default(`ws://localhost:${cfg.oracleWsPort}/signCp`);
@@ -77,7 +77,7 @@ const bs58_1 = __importDefault(require("bs58"));
             const cp = JSON.parse(line);
             cp.oracleSignature = "";
             cp.pow = undefined;
-            cp.oracleSignature = util.testOnlySign(JSON.stringify(cp), cfg.oraclePK);
+            cp.oracleSignature = utilcrypto.testOnlySign(JSON.stringify(cp), cfg.oraclePK);
             streamCp.write(JSON.stringify(cp) + "\n");
         }
         catch (err) {
@@ -114,8 +114,8 @@ const bs58_1 = __importDefault(require("bs58"));
                 }
                 else {
                     const sig = (crypto === 'ed') ?
-                        util.testOnlySignEd(JSON.stringify(commitment), cfg.capabilityPKs[commitment.req.capabilityPubKey])
-                        : util.testOnlySignEd(JSON.stringify(commitment), cfg.capabilityPKs[commitment.req.capabilityPubKey]);
+                        utilcrypto.testOnlySignEd(JSON.stringify(commitment), cfg.capabilityPKs[commitment.req.capabilityPubKey])
+                        : utilcrypto.testOnlySignEd(JSON.stringify(commitment), cfg.capabilityPKs[commitment.req.capabilityPubKey]);
                     streamFact.write(sig + "\n");
                 }
             }
@@ -128,8 +128,8 @@ const bs58_1 = __importDefault(require("bs58"));
                 }
                 else {
                     const sig = (crypto === 'ed') ?
-                        util.testOnlySignEd(x[1], cfg.capabilityPKs[commitment.req.capabilityPubKey])
-                        : util.testOnlySign(x[1], cfg.capabilityPKs[commitment.req.capabilityPubKey]);
+                        utilcrypto.testOnlySignEd(x[1], cfg.capabilityPKs[commitment.req.capabilityPubKey])
+                        : utilcrypto.testOnlySign(x[1], cfg.capabilityPKs[commitment.req.capabilityPubKey]);
                     streamFact.write(sig + "\n");
                 }
             }

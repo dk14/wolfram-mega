@@ -36,7 +36,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.api = exports.testOnlyReset = exports.checkOracleIdSignature = exports.checkCapabilitySignature = exports.checkPow = void 0;
+exports.api = exports.testOnlyReset = exports.checkOracleIdSignature = exports.checkCapabilitySignature = exports.checkPow = exports.createPemPub = void 0;
 /* c8 ignore start */
 const crypto_1 = require("crypto");
 const node_fetch_1 = __importDefault(require("node-fetch"));
@@ -45,9 +45,13 @@ const fs = __importStar(require("fs"));
 const util_1 = require("./util");
 const openapi_enforcer_1 = __importDefault(require("openapi-enforcer"));
 const inspector_1 = require("inspector");
-const util_2 = require("./util");
 const openapi_request_validator_1 = __importDefault(require("openapi-request-validator"));
 const js_yaml_1 = __importDefault(require("js-yaml"));
+const regexPem = /.{64}/g;
+const createPemPub = (base64) => {
+    return '-----BEGIN PUBLIC KEY-----\n' + base64.replace(regexPem, '$&\n') + '\n-----END PUBLIC KEY-----\n';
+};
+exports.createPemPub = createPemPub;
 const openapi = !(0, util_1.isBrowser)() ? (0, openapi_enforcer_1.default)(__dirname + '/../wolfram-mega-spec.yaml')
     : new openapi_request_validator_1.default(js_yaml_1.default.load(window.spec));
 const validate = async (msg, path, method) => {
@@ -79,7 +83,7 @@ const checkCapabilitySignature = (cp) => {
     const pow = cp.pow;
     cp.oracleSignature = "";
     cp.pow = undefined;
-    const res = (0, crypto_1.createVerify)(cp.oracleSignatureType).update(JSON.stringify(cp)).verify((0, util_2.createPemPub)(cp.oraclePubKey), signature, 'base64');
+    const res = (0, crypto_1.createVerify)(cp.oracleSignatureType).update(JSON.stringify(cp)).verify((0, exports.createPemPub)(cp.oraclePubKey), signature, 'base64');
     cp.oracleSignature = signature;
     cp.pow = pow;
     return res;
@@ -88,7 +92,7 @@ exports.checkCapabilitySignature = checkCapabilitySignature;
 const checkOracleIdSignature = (o) => {
     const signature = o.oracleSignature;
     o.oracleSignature = "";
-    const res = (0, crypto_1.createVerify)(o.oracleSignatureType).update(JSON.stringify(o)).verify((0, util_2.createPemPub)(o.pubkey), signature, 'base64');
+    const res = (0, crypto_1.createVerify)(o.oracleSignatureType).update(JSON.stringify(o)).verify((0, exports.createPemPub)(o.pubkey), signature, 'base64');
     o.oracleSignature = signature;
     return res;
 };
@@ -164,7 +168,7 @@ const validateBid = async (cfg, bid) => {
     /* c8 ignore end */
 };
 const validateFact = (fact, req) => {
-    return (0, crypto_1.createVerify)(fact.signatureType).update(fact.factWithQuestion).verify((0, util_2.createPemPub)(req.capabilityPubKey), fact.signature, 'base64');
+    return (0, crypto_1.createVerify)(fact.signatureType).update(fact.factWithQuestion).verify((0, exports.createPemPub)(req.capabilityPubKey), fact.signature, 'base64');
 };
 const testOnlyReset = () => {
     //could've made api a factory, but this is more realistic, 

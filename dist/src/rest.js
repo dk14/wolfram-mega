@@ -35,7 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.startHttp = void 0;
 const nd = __importStar(require("./node"));
-const util_1 = require("./util");
+const crypto_1 = require("./crypto");
 const http = __importStar(require("http"));
 const url = __importStar(require("url"));
 const p2p_1 = require("./p2p");
@@ -80,12 +80,12 @@ const startHttp = (cfg) => {
                 res.setHeader('content-Type', 'text/plain');
                 const pk = typeof reqUrl.query.pubkey === "string" ? reqUrl.query.pubkey : "";
                 const msg = typeof reqUrl.query.pubkey === "string" ? reqUrl.query.pubkey : "";
-                res.end(JSON.stringify((0, util_1.testOnlySign)(msg, pk)));
+                res.end(JSON.stringify((0, crypto_1.testOnlySign)(msg, pk)));
                 return;
             }
             res.setHeader('content-Type', 'Application/json');
             if (cfg.isTest && req.method === 'GET' && reqUrl.pathname == '/testOnlyGenKeyPair') {
-                res.end(JSON.stringify((0, util_1.testOnlyGenerateKeyPair)()));
+                res.end(JSON.stringify((0, crypto_1.testOnlyGenerateKeyPair)()));
                 return;
             }
             if (req.method === 'GET') {

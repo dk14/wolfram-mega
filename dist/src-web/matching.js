@@ -1,7 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.matchingEngine = exports.checkOriginatorId = exports.getOriginatorId = void 0;
-const crypto_1 = require("crypto");
+const randomInt = (n) => {
+    return 1000;
+};
 const capabilityFilter = (tag) => {
     return async (cp) => cp.tags?.find(x => x === tag) !== undefined;
 };
@@ -11,7 +13,7 @@ const oneElemPage = {
 };
 const getOriginatorId = () => {
     if (localStorage.getItem("originatorId") === undefined) {
-        localStorage.setItem("originatorId", (0, crypto_1.randomInt)(1200000).toString());
+        localStorage.setItem("originatorId", randomInt(1200000).toString());
     }
     return localStorage.getItem("originatorId");
 };
@@ -26,7 +28,7 @@ exports.matchingEngine = {
             page: 0,
             chunkSize: 100
         }));
-        const offer = candidates[(0, crypto_1.randomInt)(candidates.length)];
+        const offer = candidates[randomInt(candidates.length)];
         const capability = (await window.storage.queryCapabilities({
             where: async (x) => x.capabilityPubKey === offer.content.terms.question.capabilityPubKey
         }, oneElemPage))[0];
@@ -53,12 +55,12 @@ exports.matchingEngine = {
             page: 0,
             chunkSize: 100
         }));
-        const cp = candidates[(0, crypto_1.randomInt)(candidates.length)];
+        const cp = candidates[randomInt(candidates.length)];
         //pick a question
         const partyBetAmountOptions = [1, 100, 200, 500];
-        const partyBetAmount = partyBetAmountOptions[(0, crypto_1.randomInt)(partyBetAmountOptions.length)];
+        const partyBetAmount = partyBetAmountOptions[randomInt(partyBetAmountOptions.length)];
         const counterpartyBetAmountOptions = [5, 250, 300, 500];
-        const counterpartyBetAmount = counterpartyBetAmountOptions[(0, crypto_1.randomInt)(counterpartyBetAmountOptions.length)];
+        const counterpartyBetAmount = counterpartyBetAmountOptions[randomInt(counterpartyBetAmountOptions.length)];
         const model = {
             id: "aaa",
             bet: [partyBetAmount, counterpartyBetAmount],

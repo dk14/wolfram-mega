@@ -36,7 +36,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const nd = __importStar(require("../src/node"));
 const assert = __importStar(require("assert"));
 const pow = __importStar(require("../src/pow"));
-const util_1 = require("../src/util");
+const crypto_1 = require("../src/crypto");
 (async () => {
     const cfg = {
         "maxOracles": 2,
@@ -53,8 +53,8 @@ const util_1 = require("../src/util");
     const oracle1Pub = "AAA";
     const capability1Pub = "BBB";
     const capability2Pub = "MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAEKWN+hSgqzb2rE7ft4fXBrIyXeRwfHHa3IMD7XDiZq/KnVRQrY47lmCwIScqOE+PAqtbovxPCRK5C6euYYRv7lg==";
-    const keypairOracle2 = (0, util_1.testOnlyGenerateKeyPair)();
-    const keypairOracle3 = (0, util_1.testOnlyGenerateKeyPair)();
+    const keypairOracle2 = (0, crypto_1.testOnlyGenerateKeyPair)();
+    const keypairOracle3 = (0, crypto_1.testOnlyGenerateKeyPair)();
     const pow1 = {
         difficulty: 0,
         algorithm: 'SHA256',
@@ -112,23 +112,23 @@ const util_1 = require("../src/util");
     const capability4 = structuredClone(capability1);
     capability4.pow = undefined;
     capability4.question = "hello?";
-    capability4.capabilityPubKey = (0, util_1.testOnlyGenerateKeyPair)().pub;
+    capability4.capabilityPubKey = (0, crypto_1.testOnlyGenerateKeyPair)().pub;
     capability4.oracleSignature = "";
-    capability4.oracleSignature = (0, util_1.testOnlySign)(JSON.stringify(capability4), keypairOracle3.pk);
+    capability4.oracleSignature = (0, crypto_1.testOnlySign)(JSON.stringify(capability4), keypairOracle3.pk);
     capability4.pow = await pow.powOverOracleCapability(capability4, 2);
     const capability5 = structuredClone(capability1);
     capability5.pow = undefined;
     capability5.question = "hellooo?";
-    capability5.capabilityPubKey = (0, util_1.testOnlyGenerateKeyPair)().pub;
+    capability5.capabilityPubKey = (0, crypto_1.testOnlyGenerateKeyPair)().pub;
     capability5.oracleSignature = "";
-    capability5.oracleSignature = (0, util_1.testOnlySign)(JSON.stringify(capability5), keypairOracle3.pk);
+    capability5.oracleSignature = (0, crypto_1.testOnlySign)(JSON.stringify(capability5), keypairOracle3.pk);
     capability5.pow = await pow.powOverOracleCapability(capability5, 2);
     const capability6 = structuredClone(capability1);
     capability6.pow = undefined;
     capability6.question = "hellooo???";
-    capability6.capabilityPubKey = (0, util_1.testOnlyGenerateKeyPair)().pub;
+    capability6.capabilityPubKey = (0, crypto_1.testOnlyGenerateKeyPair)().pub;
     capability6.oracleSignature = "";
-    capability6.oracleSignature = (0, util_1.testOnlySign)(JSON.stringify(capability6), keypairOracle3.pk);
+    capability6.oracleSignature = (0, crypto_1.testOnlySign)(JSON.stringify(capability6), keypairOracle3.pk);
     capability6.pow = await pow.powOverOracleCapability(capability6, 1);
     const factreq1 = {
         capabilityPubKey: capability4.capabilityPubKey,
@@ -267,18 +267,18 @@ const util_1 = require("../src/util");
         oracle2.pubkey = keypairOracle2.pub;
         oracle2.pow = await pow.powOverOracleId(oracle2, 2);
         oracle2.oracleSignature = "";
-        oracle2.oracleSignature = (0, util_1.testOnlySign)(JSON.stringify(oracle2), keypairOracle2.pk);
+        oracle2.oracleSignature = (0, crypto_1.testOnlySign)(JSON.stringify(oracle2), keypairOracle2.pk);
         const res3 = await nd.api.announceOracle(cfg, oracle2);
         assert.strictEqual(res3, "success", "pow or signature check failed");
         oracle2.oracleSignature = "";
         const err = await nd.api.announceOracle(cfg, oracle2);
         assert.strictEqual(err, "wrong signature");
         oracle2.pow.difficulty = 100;
-        oracle2.oracleSignature = (0, util_1.testOnlySign)(JSON.stringify(oracle2), keypairOracle2.pk);
+        oracle2.oracleSignature = (0, crypto_1.testOnlySign)(JSON.stringify(oracle2), keypairOracle2.pk);
         const err2 = await nd.api.announceOracle(cfg, oracle2);
         assert.strictEqual(err2, "wrong pow");
         oracle2.pow.difficulty = 2;
-        oracle2.oracleSignature = (0, util_1.testOnlySign)(JSON.stringify(oracle2), keypairOracle2.pk);
+        oracle2.oracleSignature = (0, crypto_1.testOnlySign)(JSON.stringify(oracle2), keypairOracle2.pk);
         //-----rejections/evictions-----
         const oracles2 = await nd.api.lookupOracles(paging);
         assert.deepStrictEqual(oracles2, [oracle1, oracle2]);
@@ -286,17 +286,17 @@ const util_1 = require("../src/util");
         oracle3.pubkey = keypairOracle3.pub;
         oracle3.pow = await pow.powOverOracleId(oracle3, 2);
         oracle3.oracleSignature = "";
-        oracle3.oracleSignature = (0, util_1.testOnlySign)(JSON.stringify(oracle3), keypairOracle3.pk);
+        oracle3.oracleSignature = (0, crypto_1.testOnlySign)(JSON.stringify(oracle3), keypairOracle3.pk);
         const res4 = await nd.api.announceOracle(cfg, oracle3);
         assert.strictEqual(res4, "success");
         const oracles3 = await nd.api.lookupOracles(paging);
         assert.deepStrictEqual(oracles3, [oracle2, oracle3]);
-        const keypairOracle4 = (0, util_1.testOnlyGenerateKeyPair)();
+        const keypairOracle4 = (0, crypto_1.testOnlyGenerateKeyPair)();
         const oracle4 = structuredClone(oracle2);
         oracle4.pubkey = keypairOracle4.pub;
         oracle4.pow = await pow.powOverOracleId(oracle4, 1);
         oracle4.oracleSignature = "";
-        oracle4.oracleSignature = (0, util_1.testOnlySign)(JSON.stringify(oracle4), keypairOracle4.pk);
+        oracle4.oracleSignature = (0, crypto_1.testOnlySign)(JSON.stringify(oracle4), keypairOracle4.pk);
         const err3 = await nd.api.announceOracle(cfg, oracle4);
         assert.strictEqual(err3, "low pow difficulty");
         assert.deepStrictEqual(await nd.api.lookupOracles(paging), [oracle2, oracle3]);
@@ -322,9 +322,9 @@ const util_1 = require("../src/util");
         assert.deepStrictEqual(capabilities2, []);
         //----crypto-----
         capability3.oraclePubKey = keypairOracle2.pub;
-        capability3.capabilityPubKey = (0, util_1.testOnlyGenerateKeyPair)().pub;
+        capability3.capabilityPubKey = (0, crypto_1.testOnlyGenerateKeyPair)().pub;
         capability3.oracleSignature = "";
-        capability3.oracleSignature = (0, util_1.testOnlySign)(JSON.stringify(capability3), keypairOracle2.pk);
+        capability3.oracleSignature = (0, crypto_1.testOnlySign)(JSON.stringify(capability3), keypairOracle2.pk);
         capability3.pow = await pow.powOverOracleCapability(capability3, 1);
         const res3 = await nd.api.announceCapability(cfg, capability3);
         assert.strictEqual(res3, "success", "pow or signature check failed");
@@ -337,7 +337,7 @@ const util_1 = require("../src/util");
         const err2 = await nd.api.announceCapability(cfg, capability3);
         assert.strictEqual(err2, "wrong pow");
         capability3.pow.difficulty = 1;
-        capability3.oracleSignature = (0, util_1.testOnlySign)(JSON.stringify(oracle2), keypairOracle2.pk);
+        capability3.oracleSignature = (0, crypto_1.testOnlySign)(JSON.stringify(oracle2), keypairOracle2.pk);
         //-----rejections/evictions-----
         assert.deepStrictEqual(await nd.api.lookupCapabilities(paging, keypairOracle3.pub), [capability1]);
         assert.strictEqual(await nd.api.announceCapability(cfg, capability4), "success");
