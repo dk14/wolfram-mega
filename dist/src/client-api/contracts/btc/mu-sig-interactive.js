@@ -65,8 +65,7 @@ const muSigNonce1 = (pk1, pk2, secret1, msg, sessionId1 = randomBuffer(32)) => {
     const nonce1 = session1.nonce;
     const commitment1 = session1.commitment;
     return {
-        nonce1: convert.intToBuffer(nonce1).toString("hex"),
-        commitment1: convert.intToBuffer(commitment1).toString("hex"),
+        commitment1: commitment1.toString("hex"),
         sessionId1: sessionId1.toString("hex")
     };
 };
@@ -84,15 +83,46 @@ const muSigCommitment2 = (pk1, pk2, secret2, msg, sessionId2 = randomBuffer(32))
     const session2 = muSig.sessionInitialize(sessionId2, privateKey2, msg, pubKeyCombined, pubKeyParity, pubKeyHash, 1);
     const commitment2 = session2.commitment;
     return {
-        commitment2: convert.intToBuffer(commitment2).toString("hex"),
+        commitment2: commitment2.toString("hex"),
+        nonce2: session2.nonce.toString("hex"),
         sessionId2: sessionId2.toString("hex")
     };
 };
 exports.muSigCommitment2 = muSigCommitment2;
-const sign1 = (pk1, pk2, commitment1hex, nonce1hex, secret2, msg, sessionId2Hex) => {
-    const sessionId2 = Buffer.from(sessionId2Hex, "hex");
+const sign1 = (pk1, pk2, commitment2hex, nonce2hex, secret1, msg, sessionId1Hex) => {
+    const sessionId1 = Buffer.from(sessionId1Hex, "hex");
+    const nonce2 = Buffer.from(nonce2hex, "hex");
+    const commitment2 = Buffer.from(commitment2hex, "hex");
+    const pubKeys = [
+        Buffer.from(pk1, 'hex'),
+        Buffer.from(pk2, 'hex')
+    ];
+    const nonce2Hash = convert.hash(nonce2);
+    assert.strictEqual(nonce2Hash.toString('hex'), commitment2.toString('hex'));
+    const pubKeyHash = muSig.computeEll(pubKeys);
+    const pkCombined = muSig.pubKeyCombine(pubKeys, pubKeyHash);
+    const pubKeyCombined = convert.intToBuffer(pkCombined.affineX);
+    const pubKeyParity = math.isEven(pkCombined);
+    const privateKey1 = BigInteger.fromHex(secret1);
+    const session1 = muSig.sessionInitialize(sessionId1, privateKey1, msg, pubKeyCombined, pubKeyParity, pubKeyHash, 1);
+    const nonce1 = session1.nonce;
+    const nonceCombined = muSig.sessionNonceCombine(session1, [nonce1, nonce2]);
+    const combinedNonceParity = session1.combinedNonceParity;
+    session1.partialSignature = muSig.partialSign(session1, msg, nonceCombined, pubKeyCombined);
+    const partSig1 = session1.partialSignature;
+    return {
+        nonce1: nonce1.toString("hex"),
+        partSig1: partSig1.toString("hex"),
+        combinedNonceParity: convert.intToBuffer(combinedNonceParity).toString('hex')
+    };
+};
+exports.sign1 = sign1;
+const sign2 = (pk1, pk2, partSig1Hex, combinedNonceParityHex, nonce1hex, commitment1hex, secret2, msg, sessionId2Hex) => {
+    const partSig1 = Buffer.from(partSig1Hex, "hex");
+    const combinedNonceParity = convert.bufferToInt(Buffer.from(combinedNonceParityHex, "hex"));
     const nonce1 = Buffer.from(nonce1hex, "hex");
     const commitment1 = Buffer.from(commitment1hex, "hex");
+    const sessionId2 = Buffer.from(sessionId2Hex, "hex");
     const pubKeys = [
         Buffer.from(pk1, 'hex'),
         Buffer.from(pk2, 'hex')
@@ -104,43 +134,13 @@ const sign1 = (pk1, pk2, commitment1hex, nonce1hex, secret2, msg, sessionId2Hex)
     const pubKeyCombined = convert.intToBuffer(pkCombined.affineX);
     const pubKeyParity = math.isEven(pkCombined);
     const privateKey2 = BigInteger.fromHex(secret2);
-    const session2 = muSig.sessionInitialize(sessionId2, privateKey2, msg, pubKeyCombined, pubKeyParity, pubKeyHash, 1);
-    const nonce2 = session2.nonce;
-    const nonceCombined = muSig.sessionNonceCombine(session2, [nonce1, nonce2]);
-    const combinedNonceParity = session2.combinedNonceParity;
+    const session2 = muSig.sessionInitialize(sessionId2, privateKey2, msg, pubKeyCombined, pubKeyParity, pubKeyHash, 0);
+    session2.combinedNonceParity = combinedNonceParity;
+    const nonceCombined = muSig.sessionNonceCombine(session2, [nonce1, session2.nonce]);
+    session2.combinedNonceParity = combinedNonceParity;
     session2.partialSignature = muSig.partialSign(session2, msg, nonceCombined, pubKeyCombined);
-    const partSig2 = session2.partialSignature;
-    return {
-        nonce2: nonce2.toString("hex"),
-        partSig2: partSig2.toString("hex"),
-        combinedNonceParity: convert.intToBuffer(combinedNonceParity).toString('hex')
-    };
-};
-exports.sign1 = sign1;
-const sign2 = (pk1, pk2, partSig2Hex, combinedNonceParityHex, nonce2hex, commitment2hex, secret1, msg, sessionId1Hex) => {
-    const partSig2 = Buffer.from(partSig2Hex, "hex");
-    const combinedNonceParity = convert.bufferToInt(Buffer.from(combinedNonceParityHex, "hex"));
-    const nonce2 = Buffer.from(nonce2hex, "hex");
-    const commitment2 = Buffer.from(commitment2hex, "hex");
-    const sessionId1 = Buffer.from(sessionId1Hex, "hex");
-    const pubKeys = [
-        Buffer.from(pk1, 'hex'),
-        Buffer.from(pk2, 'hex')
-    ];
-    const nonce2Hash = convert.hash(nonce2);
-    assert.strictEqual(convert.intToBuffer(nonce2Hash).toString('hex'), convert.intToBuffer(commitment2).toString('hex'));
-    const pubKeyHash = muSig.computeEll(pubKeys);
-    const pkCombined = muSig.pubKeyCombine(pubKeys, pubKeyHash);
-    const pubKeyCombined = convert.intToBuffer(pkCombined.affineX);
-    const pubKeyParity = math.isEven(pkCombined);
-    const privateKey1 = BigInteger.fromHex(secret1);
-    const session1 = muSig.sessionInitialize(sessionId1, privateKey1, msg, pubKeyCombined, pubKeyParity, pubKeyHash, 0);
-    session1.combinedNonceParity = combinedNonceParity;
-    const nonceCombined = muSig.sessionNonceCombine(session1, [session1.nonce, nonce2]);
-    session1.combinedNonceParity = combinedNonceParity;
-    session1.partialSignature = muSig.partialSign(session1, msg, nonceCombined, pubKeyCombined);
-    muSig.partialSigVerify(session1, partSig2, nonceCombined, 0, pubKeys[2], nonce2);
-    const partSig1 = muSig.partialSign(session1, msg, nonceCombined, pubKeyCombined);
+    muSig.partialSigVerify(session2, partSig1, nonceCombined, 0, pubKeys[2], nonce1);
+    const partSig2 = muSig.partialSign(session2, msg, nonceCombined, pubKeyCombined);
     const signature = muSig.partialSigCombine(nonceCombined, [partSig1, partSig2]);
     schnorr.verify(pubKeyCombined, msg, signature);
     return signature.toString("hex");

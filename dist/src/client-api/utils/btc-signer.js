@@ -102,11 +102,11 @@ const server = http.createServer(async (req, res) => {
                     }
                     else if (reqUrl.pathname == '/sign1') {
                         const input = JSON.parse(body);
-                        multisigInteractive.sign1(input.pk1, input.pk2, input.commitment1, input.nonce1, Buffer.from(bs58_1.default.decode(cfg.secrets[input.pk2])).toString("hex").substring(2, 64 + 2), Buffer.from(input.msg, "hex"), input.sessionId2);
+                        multisigInteractive.sign1(input.pk1, input.pk2, input.commitment2, input.nonce2, Buffer.from(bs58_1.default.decode(cfg.secrets[input.pk1])).toString("hex").substring(2, 64 + 2), Buffer.from(input.msg, "hex"), input.sessionId1);
                     }
                     else if (reqUrl.pathname == '/sign2') {
                         const input = JSON.parse(body);
-                        multisigInteractive.sign2(input.pk1, input.pk2, input.partSig2, input.combinedNonceParity, input.nonce2, input.commitment2, Buffer.from(bs58_1.default.decode(cfg.secrets[input.pk1])).toString("hex").substring(2, 64 + 2), Buffer.from(input.msg, "hex"), input.sessionId1);
+                        multisigInteractive.sign2(input.pk1, input.pk2, input.partSig1, input.combinedNonceParity, input.nonce1, input.commitment1, Buffer.from(bs58_1.default.decode(cfg.secrets[input.pk2])).toString("hex").substring(2, 64 + 2), Buffer.from(input.msg, "hex"), input.sessionId2);
                     }
                     return;
                 }

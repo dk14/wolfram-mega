@@ -111,7 +111,7 @@ function schnorrSignerInteractive(pub1, pub2, session) {
         },
         async signSchnorr(hash) {
             if (!session.sessionId1) {
-                throw await (await fetch(global.cfg.trader.btcInteractiveSignerEndpoint + "/muSigNonce1", {
+                const res = await (await fetch(global.cfg.trader.btcInteractiveSignerEndpoint + "/muSigNonce1", {
                     method: 'post',
                     body: JSON.stringify({
                         pk1: pub1,
@@ -120,9 +120,13 @@ function schnorrSignerInteractive(pub1, pub2, session) {
                     }),
                     headers: { 'Content-Type': 'application/json' }
                 })).json();
+                session.sessionId1 = res.sessionId1;
+                session.commitment1 = res.commitment1;
+                session.update(session);
+                throw "incomplete sign";
             }
             if (!session.commitment2) {
-                throw await (await fetch(global.cfg.trader.btcInteractiveSignerEndpoint + "/muSigCommitment2", {
+                const res = await (await fetch(global.cfg.trader.btcInteractiveSignerEndpoint + "/muSigCommitment2", {
                     method: 'post',
                     body: JSON.stringify({
                         pk1: pub1,
@@ -131,31 +135,41 @@ function schnorrSignerInteractive(pub1, pub2, session) {
                     }),
                     headers: { 'Content-Type': 'application/json' }
                 })).json();
+                session.commitment2 = res.commitment2;
+                session.nonce2 = res.nonce2;
+                session.sessionId2 = res.sessionId2;
+                session.update(session);
+                throw "incomplete sign";
             }
-            if (!session.nonce2) {
-                throw await (await fetch(global.cfg.trader.btcInteractiveSignerEndpoint + "/sign1", {
+            if (!session.nonce1) {
+                const res = await (await fetch(global.cfg.trader.btcInteractiveSignerEndpoint + "/sign1", {
                     method: 'post',
                     body: JSON.stringify({
                         pk1: pub1,
                         pk2: pub2,
-                        commitment1: session.commitment1,
-                        nonce1: session.nonce1,
+                        commitment2: session.commitment2,
+                        nonce2: session.nonce2,
                         sessionId2: session.sessionId2,
                         msg: hash.toString('hex')
                     }),
                     headers: { 'Content-Type': 'application/json' }
                 })).json();
+                session.nonce1 = res.nonce1;
+                session.partSig1 = res.partSig1;
+                session.combinedNonceParity = res.combinedNonceParity;
+                session.update(session);
+                throw "incomplete sign";
             }
             const response = await fetch(global.cfg.trader.btcInteractiveSignerEndpoint + "/sign2", {
                 method: 'post',
                 body: JSON.stringify({
                     pk1: pub1,
                     pk2: pub2,
-                    partSig2: session.partSig2,
+                    partSig1: session.partSig1,
                     combinedNonceParity: session.combinedNonceParity,
-                    nonce2: session.nonce2,
-                    commitment2: session.commitment2,
-                    sessionId1: session.sessionId1,
+                    nonce1: session.nonce1,
+                    commitment1: session.commitment1,
+                    sessionId2: session.sessionId2,
                     msg: hash.toString('hex')
                 }),
                 headers: { 'Content-Type': 'application/json' }
