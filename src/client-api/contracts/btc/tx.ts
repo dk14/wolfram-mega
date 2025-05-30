@@ -16,9 +16,6 @@ if (isBrowser()) {
     bitcoin.initEccLib(ecc)
 }
 
-
-
-
 import {Signer, SignerAsync} from "bitcoinjs-lib/src/psbt.d"
 
 const net = bitcoin.networks.testnet
