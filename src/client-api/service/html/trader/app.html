@@ -242,7 +242,8 @@ Address: <font color="blue">n3W8YyK59F6vQe34uQ8n835L627k2J</font> <img src="./as
                     <button class="tag-button">world</button>
                 </div>
                 <pre><input class="add-interest"> <button class="add-interest-button">+</button></pre>
-
+                <input id="confirm_orders" type="checkbox" name="confirm" checked>
+                <label for="confirm"> ask order confirmation</label><br>
             </div>
             <hr>
             <div class="profile-group">
@@ -473,7 +474,9 @@ Address: <font color="blue">n3W8YyK59F6vQe34uQ8n835L627k2J</font> <img src="./as
                 yesSvg.src = "./assets/yes.svg"
                 yesSvg.className = "offer-button"
                 yesSvg.onclick = () => {
-                    confirm("Bet " + offer.bet[0] + " sat on '" + offer.question + "'")
+                    if (document.getElementById("confirm_orders").checked) {
+                        confirm("Bet " + offer.bet[0] + " sat on '" + offer.question + "'")
+                    } 
                 }
 
 
@@ -481,8 +484,11 @@ Address: <font color="blue">n3W8YyK59F6vQe34uQ8n835L627k2J</font> <img src="./as
                 noSvg.src = "./assets/no.svg"
                 noSvg.className = "offer-button"
                 noSvg.onclick = () => {
-                    confirm("Bet " + offer.bet[1] + " sat against '" + offer.question + "'")
+                    if (document.getElementById("confirm_orders").checked) {
+                        confirm("Bet " + offer.bet[1] + " sat against '" + offer.question + "'")
+                    }
                 }
+                    
 
                 const removeSvg = document.createElement("img")
                 removeSvg.src = "./assets/cycle.svg"
