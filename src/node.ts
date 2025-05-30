@@ -14,11 +14,15 @@ import {OracleId, OracleCapability,
     Fact, FactRequest
 } from './protocol'
 import { createPemPub } from './util'
+import OpenAPIRequestValidator from 'openapi-request-validator'
 
-const openapi = Enforcer(__dirname + '/../wolfram-mega-spec.yaml')
+const openapi = __dirname ? Enforcer(__dirname + '/../wolfram-mega-spec.yaml') : new OpenAPIRequestValidator(window.spec)
 /* c8 ignore end */
 
-
+const validate = async (msg: any, path, method): Promise<any> => {
+    const [ _, error ] = (await openapi).request({ method, path, body: msg})
+    return error
+}
 
 //we keep data in memory (HDD is only used as a backup storage), some data (malleability reports) can be sharded between peers
 // facilitators can start multiple fact sharing nodes in order to keep more data available
@@ -193,7 +197,7 @@ const mempool: Mempool = {
 export const api: Api = {
 
     announceOracle: async (cfg: MempoolConfig<any>, id: OracleId): Promise<Registered | NotRegistered> => {
-        const [ _, error ] = (await openapi).request({ method: 'POST', path: '/oracle', body: id})
+        const error = await validate(id, '/oracle', 'POST')
         if (error !== undefined) {
             return ['invalid request', error.toString()]
         }
@@ -229,7 +233,7 @@ export const api: Api = {
         }
     },
     announceCapability: async (cfg: MempoolConfig<any>, cp: OracleCapability): Promise<Registered | NotRegistered> => {
-        const [ _, error ] = (await openapi).request({ method: 'POST', path: '/capability', body: cp})
+        const error = await validate(cp, '/capability', 'POST')
         if (error !== undefined) {
             return ['invalid request', error.toString()]
         }
@@ -264,7 +268,7 @@ export const api: Api = {
         }
     },
     reportMalleability: async (cfg: MempoolConfig<any>, report: Report): Promise<ReportAccepted | ReportRejected> => {
-        const [ _, error ] = (await openapi).request({ method: 'POST', path: '/report', body: report})
+        const error = await validate(report, '/report', 'POST')
         if (error !== undefined) {
             return ['invalid request', error.toString()]
         }
@@ -292,7 +296,7 @@ export const api: Api = {
         return "success";
     },
     disputeMissingfactClaim: async (dispute: Dispute): Promise<DisputeAccepted | DisputeRejected> => {
-        const [ _, error ] = (await openapi).request({ method: 'POST', path: '/dispute', body: dispute})
+        const error = await validate(dispute, '/dispute', 'POST')
         if (error !== undefined) {
             return ['invalid request', error.toString()]
         }
@@ -337,7 +341,7 @@ export const api: Api = {
         return mempool.oracles[oraclePub].reports.slice(paging.page * paging.chunkSize, (paging.page + 1) * paging.chunkSize);
     },
     publishOffer: async function (cfg: MempoolConfig<any>, offer: OfferMsg): Promise<Registered | NotRegistered> {
-        const [ _, error ] = (await openapi).request({ method: 'POST', path: '/offer', body: offer})
+        const error = await validate(offer, '/offer', 'POST')
         if (error !== undefined) {
             return ['invalid request', error.toString()]
         }

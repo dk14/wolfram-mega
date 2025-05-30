@@ -28,6 +28,7 @@ declare global {
         storage: Storage
         btc: BtcApi
         matching: MatchingEngine
+        spec: any
     }
 }
 
