@@ -44,6 +44,7 @@ const sandboxjs_1 = __importDefault(require("@nyariv/sandboxjs"));
 const idb_1 = require("idb");
 const matching_1 = require("./src-web/matching");
 (async () => {
+    window.spec = await (await fetch("./../wolfram-mega-spec.yaml")).text();
     const safeEval = (expression, data) => {
         const sandbox = new sandboxjs_1.default();
         const exec = sandbox.compile("return " + expression);
