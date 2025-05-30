@@ -47,10 +47,10 @@ const openapi_enforcer_1 = __importDefault(require("openapi-enforcer"));
 const inspector_1 = require("inspector");
 const util_2 = require("./util");
 const openapi_request_validator_1 = __importDefault(require("openapi-request-validator"));
-const openapi = __dirname ? (0, openapi_enforcer_1.default)(__dirname + '/../wolfram-mega-spec.yaml') : new openapi_request_validator_1.default(window.spec);
+const openapi = !(0, util_1.isBrowser)() ? (0, openapi_enforcer_1.default)(__dirname + '/../wolfram-mega-spec.yaml') : new openapi_request_validator_1.default(window.spec);
 /* c8 ignore end */
 const validate = async (msg, path, method) => {
-    if (__dirname) {
+    if (!(0, util_1.isBrowser)()) {
         const [_, error] = (await openapi).request({ method, path, body: msg });
         return error;
     }

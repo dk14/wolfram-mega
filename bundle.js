@@ -25656,13 +25656,16 @@
   var createPemPub = (base64) => {
     return "-----BEGIN PUBLIC KEY-----\n" + base64.replace(regexPem, "$&\n") + "\n-----END PUBLIC KEY-----\n";
   };
+  function isBrowser() {
+    return typeof window !== "undefined" && typeof window.document !== "undefined";
+  }
 
   // src/node.ts
   var import_openapi_enforcer = __toESM(require_openapi_enforcer());
   var import_openapi_request_validator = __toESM(require_dist3());
-  var openapi = __dirname ? (0, import_openapi_enforcer.default)(__dirname + "/../wolfram-mega-spec.yaml") : new import_openapi_request_validator.default(window.spec);
+  var openapi = !isBrowser() ? (0, import_openapi_enforcer.default)(__dirname + "/../wolfram-mega-spec.yaml") : new import_openapi_request_validator.default(window.spec);
   var validate = async (msg, path, method2) => {
-    if (__dirname) {
+    if (!isBrowser()) {
       const [_, error] = (await openapi).request({ method: method2, path, body: msg });
       return error;
     } else {

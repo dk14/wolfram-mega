@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.testOnlySignEd = exports.testOnlySign = exports.testOnlyGenerateKeyPairEd = exports.testOnlyGenerateKeyPair = exports.createPemPkEd = exports.createPemPk = exports.createPemPub = exports.mine = exports.hash = void 0;
+exports.isBrowser = isBrowser;
 const crypto_1 = require("crypto");
 const hash = (msg, algo = "SHA256") => {
     return (0, crypto_1.createHash)(algo).update(msg).digest('hex');
@@ -59,4 +60,7 @@ const testOnlySignEd = (msg, pk) => {
     return (0, crypto_2.sign)(null, Buffer.from(msg), (0, exports.createPemPkEd)(pk)).toString('base64');
 };
 exports.testOnlySignEd = testOnlySignEd;
+function isBrowser() {
+    return typeof window !== 'undefined' && typeof window.document !== 'undefined';
+}
 //# sourceMappingURL=util.js.map
