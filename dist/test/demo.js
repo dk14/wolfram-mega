@@ -110,10 +110,10 @@ const cfg = getcfg(process.argv[2] ?? "cfg/demo.json");
     console.log("Starting proxy..." + cfg.httpPort);
     const proxyRules = new http_proxy_rules_1.default({
         rules: {
-            '/peer-monitor/(.*)': `http://localhost:${getcfg(cfg.mempoolCfg).httpPort}/$1`,
-            '/oracle-admin/(.*)': `http://localhost:${getcfg(cfg.mempoolCfg).oracle.httpPort}/$1`,
-            '/oracle-endpoint/(.*)': `http://localhost:${getcfg("../src/client-api/utils/" + cfg.mockOracleCfg).httpPort}/$1`,
-            '/trader-console/(.*)': `http://localhost:${getcfg(cfg.mempoolCfg).trader.httpPort}/$1`,
+            '/peer-monitor(.*)': `http://localhost:${getcfg(cfg.mempoolCfg).httpPort}$1`,
+            '/oracle-admin(.*)': `http://localhost:${getcfg(cfg.mempoolCfg).oracle.httpPort}$1`,
+            '/oracle-endpoint(.*)': `http://localhost:${getcfg("../src/client-api/utils/" + cfg.mockOracleCfg).httpPort}/$1`,
+            '/trader-console(.*)': `http://localhost:${getcfg(cfg.mempoolCfg).trader.httpPort}$1`,
         },
         default: 'http://localhost:${getcfg(cfg.mempoolCfg).trader.httpPort}/' // default target
     });
