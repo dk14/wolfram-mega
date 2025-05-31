@@ -22,6 +22,8 @@ require("../../webapp");
     await global.initWebapp
     console.log("\n")
     console.log("Start Acceptor")
+    console.log("\n")
+    console.log("----------")
 
     setInterval(() => window.stalking.trackIssuedOffers({
         "bitcoin-testnet": btcDlcContractInterpreter
