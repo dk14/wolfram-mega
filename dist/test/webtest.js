@@ -55,6 +55,6 @@ require("../webapp");
     };
     await window.matching.broadcastOffer(myCustomOffer);
     console.log("OK!");
+    process.exit(0);
 })();
-//process.exit(0)
 //# sourceMappingURL=webtest.js.map
