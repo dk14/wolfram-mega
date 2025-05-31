@@ -1,9 +1,10 @@
 
 import { resolve } from "path"
 import { PublicSession } from "../src/client-api/contracts/btc/tx"
-import { DlcContract, DlcParams } from "../src/client-api/contracts/generate-btc-tx"
-import { Commitment, OfferMsg, OfferTerms } from "../src/protocol"
+import { CetRedemptionParams, DlcContract, DlcParams } from "../src/client-api/contracts/generate-btc-tx"
+import { Commitment, Fact, OfferMsg, OfferTerms } from "../src/protocol"
 import { PreferenceModel } from "./matching"
+import { off } from "process"
 
 type TxId = string
 type TxBody = string
@@ -16,8 +17,8 @@ export interface Contract {
 export interface UTxO {
     txid: string
     vout: number
-    value: number
-    age: number
+    value?: number
+    age?: number
 }
 
 export interface Inputs {
@@ -25,12 +26,11 @@ export interface Inputs {
     utxoBob: UTxO[]
 }
 
-
-
 export interface ContractInterpreter {
-    getUtXo: (terms: OfferTerms, c: Commitment) => Promise<Inputs>
+    getUtXo: (terms: OfferMsg, c: Commitment) => Promise<Inputs>
     genContractTx: (inputs: Inputs, c: Commitment, offer: OfferMsg) => Promise<[Contract, OfferMsg?]>
     submitTx: (tx: string) => Promise<TxId>
+    genRedemtionTx: (lockingTxId: UTxO, c: Commitment, fact: Fact, offer: OfferMsg) => Promise<string>
 }
 
 
@@ -44,8 +44,9 @@ const scan = (arr, reducer, seed) => {
 }
 
 
-const getUtXo = async (terms: OfferTerms, c: Commitment): Promise<Inputs> => {
+const getUtXo = async (offer: OfferMsg, c: Commitment): Promise<Inputs> => {
 
+    const terms = offer.content.terms
 
     //const terms = o.content.terms
     const req = terms.question
@@ -56,15 +57,14 @@ const getUtXo = async (terms: OfferTerms, c: Commitment): Promise<Inputs> => {
 
     const txfee = terms.txfee
 
-    const addressAlice = 'tb1pudlyenkk7426rvsx84j97qddf4tuc8l63suz62xeq4s6j3wmuylq0j54ex'
-    const addressBob = 'tb1p0l5zsw2lv9pu99dwzckjxhpufdvvylapl5spn6yd54vhnwa989hq20cvyv'
+    const addressAlice = offer.content.addresses[0]
+    const addressBob = offer.content.addresses[1]
     
     const aliceUtxos = await utxoExplore(addressAlice)
+
     const bobUtxos = await utxoExplore(addressBob)
 
-    const btcBalance = `[balance] alice: ${aliceUtxos.map(x => x.value).reduce((a, b) => (a ?? 0) + (b ?? 0))}, bob: ${bobUtxos.map(x => x.value).reduce((a, b) => (a ?? 0) + (b ?? 0))}`
-    
-    
+    //const btcBalance = `[balance] alice: ${aliceUtxos.map(x => x.value).reduce((a, b) => (a ?? 0) + (b ?? 0))}, bob: ${bobUtxos.map(x => x.value).reduce((a, b) => (a ?? 0) + (b ?? 0))}`
 
     const getMultipleUtxo = (utxos: UTxO[]): UTxO[] => {
         if (utxos.find(a => a.value > terms.partyBetAmount + txfee / 2)) {
@@ -74,8 +74,7 @@ const getUtXo = async (terms: OfferTerms, c: Commitment): Promise<Inputs> => {
             const i = scan(utxos.map(x => x.value), (a, b) => a + b, 0).findIndex(x => x > terms.partyBetAmount + txfee / 2)
 
             if (i !== -1) {
-                return aliceUtxos.slice(0, i + 1)
-                
+                return aliceUtxos.slice(0, i + 1)      
             } else {
                 return undefined
             }
@@ -83,10 +82,14 @@ const getUtXo = async (terms: OfferTerms, c: Commitment): Promise<Inputs> => {
     }
 
     return {
-        utxoAlice: getMultipleUtxo(aliceUtxos),
-        utxoBob: getMultipleUtxo(bobUtxos)
+        utxoAlice: offer.content.utxos[0] ? 
+        offer.content.utxos[0].map(x => {return {txid: x[0], vout: x[1]}})
+            : getMultipleUtxo(aliceUtxos),
+
+        utxoBob: offer.content.utxos[1] ? 
+            offer.content.utxos[1].map(x => {return {txid: x[0], vout: x[1]}})
+            : getMultipleUtxo(bobUtxos)
     }
-    
 }
 
 const genContractTx = async (inputs: Inputs, c: Commitment, offer: OfferMsg): Promise<[DlcContract, OfferMsg?]> => {
@@ -94,6 +97,7 @@ const genContractTx = async (inputs: Inputs, c: Commitment, offer: OfferMsg): Pr
     const terms = o.content.terms
     const yesSession = o.content.accept.cetTxSet[0]
     const noSession = o.content.accept.cetTxSet[1]
+    const openingSession = o.content.accept.openingTx
 
     const dlcPromise: Promise<DlcContract> = new Promise(resolveDlc => {
         const yesSessionUpdate: Promise<PublicSession> = new Promise(async resolveYes => {
@@ -116,6 +120,7 @@ const genContractTx = async (inputs: Inputs, c: Commitment, offer: OfferMsg): Pr
                     changeAlice: 0, //aliceAmountIn.sum - partyBetAmount
                     changeBob: 0,
                     txfee: 0,
+                    openingSession: { sigs: openingSession.partialSigs },
                     session: {
                         "YES":  {
                             sessionId1: yesSession.sessionIds[0],
@@ -177,7 +182,7 @@ const genContractTx = async (inputs: Inputs, c: Commitment, offer: OfferMsg): Pr
     })
     
     const dlc = await dlcPromise
-    if (dlc.cet[0] === 'undefined') {
+    if (dlc.cet[0] === 'undefined' || dlc.cet[1] === 'undefined') {
         return [dlc, o]
     } else {
         return [dlc, undefined]
@@ -188,8 +193,23 @@ const genContractTx = async (inputs: Inputs, c: Commitment, offer: OfferMsg): Pr
 export const btcDlcContractInterpreter: ContractInterpreter = {
     getUtXo: getUtXo,
     genContractTx: genContractTx,
-    submitTx: function (tx: string): Promise<string> {
+    submitTx: async function (tx: string): Promise<string> {
         throw new Error("Function not implemented.")
+    },
+    genRedemtionTx: async function (lockingTxId: UTxO, c: Commitment, fact: Fact, offer: OfferMsg): Promise<string> {
+        const terms = offer.content.terms
+        const p: CetRedemptionParams = {
+            cetTxId: lockingTxId.txid,
+            oraclePub: c.req.capabilityPubKey,
+            answer: fact.factWithQuestion,
+            rValue: c.rValueSchnorrHex,
+            alicePub: offer.content.pubkeys[0],
+            bobPub: offer.content.pubkeys[0],
+            oracleSignature: fact.signature,
+            amount: (terms.partyBetAmount + terms.counterpartyBetAmount) - terms.txfee,
+            txfee: offer.content.terms.txfee
+        }
+        return window.btc.generateCetRedemptionTransaction(p)
     }
 }
 

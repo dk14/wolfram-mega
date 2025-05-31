@@ -1,3 +1,5 @@
+import { number } from "bitcoinjs-lib/src/script"
+
 export interface MsgLike {
     seqNo: number 
     cTTL: number 
@@ -205,13 +207,15 @@ export interface Offer {
     blockchain: 'bitcoin-testnet' | 'bitcoin-mainnet' | 'plutus-testnet'
     contact: string
     transactionToBeCoSigned?: PartiallySignedTx 
-    txfee?: string
     accept?: AcceptOffer //note for interactive sign: counterparty returns its commitment through this first time and party replies with its commitment; second time: party returns its nonce; third time ccounterparty returns nonce and partial sig
     finalize?: FinalizeOffer //here after final signature is put; txid is reported
     encryptedDetails?: string //to make matching private - can encrypt actual `Offer` here
     originatorId?: string //for matching
     originatorSig?: string //for matching - to check if u really originator
-    pubkeys?: string
+    orderId?: string 
+    addresses?: string[]
+    pubkeys?: [string, string],
+    utxos?: [[string, number][], [string, number][]]
     meta?: string
 }
 

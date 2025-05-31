@@ -56,7 +56,7 @@ const server = http.createServer(async (req, res) => {
                     res.statusCode = 201;
                     res.setHeader('content-Type', 'text/plain');
         
-                    if(reqUrl.pathname == '/sign') {
+                    if (reqUrl.pathname == '/sign') {
                         if (input.pubkeys.length > 1) {
                             const secret1 = cfg.secrets[input.pubkeys[0]] ? 
                                 Buffer.from(bs58.decode(cfg.secrets[input.pubkeys[0]])).toString("hex").substring(2, 64 + 2)

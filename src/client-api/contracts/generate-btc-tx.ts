@@ -1,5 +1,5 @@
 import { schnorrApi } from "./btc/schnorr";
-import { PublicSession, txApi, UTxO } from "./btc/tx";
+import { OpeningTxSession, PublicSession, txApi, UTxO } from "./btc/tx";
 
 export type PubKey = string
 export type Hex = string
@@ -18,7 +18,8 @@ export interface OpeningParams {
     bobAmountIn: number[],
     changeAlice: number,
     changeBob: number,
-    txfee: number
+    txfee: number,
+    openingSession?: OpeningTxSession
 }
 
 export interface ClosingParams {
@@ -77,7 +78,8 @@ export const generateOpeningTransaction = async (params: OpeningParams): Promise
         params.bobAmountIn,
         params.changeAlice,
         params.changeBob,
-        params.txfee)).hex
+        params.txfee,
+        params.openingSession)).hex
 }
 
 export const generateClosingTransaction = async (params: ClosingParams): Promise<Hex> => {
@@ -200,6 +202,7 @@ export interface DlcParams {
     changeBob: number,
     txfee: number,
     session: { [id: Msg]: PublicSession; },
+    openingSession: OpeningTxSession,
     stateAmount?: number //goes back to multisig, for composite contracts
 }
 
@@ -216,6 +219,7 @@ interface ChildDlcParams {
     bobPub: PubKey,
     txfee: number,
     session?: PublicSession,
+    openingTxSession: OpeningTxSession,
     stateAmount: number
 }
 
@@ -232,6 +236,7 @@ interface CompositeDlcParams {
     bobPub: PubKey,
     txfee: number,
     session?: PublicSession,
+    openingTxSession: OpeningTxSession,
     stateAmount: number
 }
 
