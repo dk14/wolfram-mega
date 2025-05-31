@@ -39,9 +39,9 @@ const url = __importStar(require("url"));
 const ws_1 = require("ws");
 const readline = __importStar(require("readline"));
 const fs = __importStar(require("fs"));
-const oracle_auto_signer_1 = require("./oracle-auto-signer");
+const oracle_web_signer_1 = require("./oracle-web-signer");
 var globalSigner = null;
-exports.webSigner = oracle_auto_signer_1.webSign;
+exports.webSigner = oracle_web_signer_1.webSign;
 exports.webLookup = {
     getFact: async function (fr) {
         try {

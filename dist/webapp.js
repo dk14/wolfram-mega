@@ -45,6 +45,7 @@ const matching_1 = require("./src-web/matching");
 const tx_1 = require("./src/client-api/contracts/btc/tx");
 const stalking_1 = require("./src-web/stalking");
 const transactions_1 = require("./src-web/transactions");
+const oracle_data_provider_1 = require("./src-web/oracle-data-provider");
 (async () => {
     window.spec = await (await fetch("./../wolfram-mega-spec.yaml")).text();
     const safeEval = (expression, data) => {
@@ -583,7 +584,7 @@ const transactions_1 = require("./src-web/transactions");
     window.stalking = stalking_1.stalkingEngine;
     setInterval(() => window.stalking.trackIssuedOffers({
         "bitcoin-testnet": transactions_1.btcDlcContractInterpreter
-    }), 1000);
+    }, oracle_data_provider_1.dataProvider), 1000);
     setTimeout(async () => {
         const preferences = {
             minOraclePow: 0,

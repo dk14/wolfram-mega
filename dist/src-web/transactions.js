@@ -40,7 +40,7 @@ const getUtXo = async (terms, c) => {
         utxoBob: getMultipleUtxo(bobUtxos)
     };
 };
-const genContractTx = async (inputs, offer) => {
+const genContractTx = async (inputs, c, offer) => {
     const o = structuredClone(offer);
     const terms = o.content.terms;
     const yesSession = o.content.accept.cetTxSet[0];
@@ -60,7 +60,7 @@ const genContractTx = async (inputs, offer) => {
                         "YES": { aliceAmount: terms.partyBetAmount, bobAmount: 0 },
                         "NO": { aliceAmount: 0, bobAmount: terms.counterpartyBetAmount }
                     },
-                    rValue: "",
+                    rValue: c.rValueSchnorrHex,
                     alicePub: "",
                     bobPub: "",
                     changeAlice: 0, //aliceAmountIn.sum - partyBetAmount
