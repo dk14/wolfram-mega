@@ -5,7 +5,7 @@ import { OracleCapability, FactRequest, Commitment, Fact } from '../../protocol'
 import WebSocket, { WebSocketServer, createWebSocketStream } from 'ws';
 import * as readline from 'readline'
 import * as fs from 'fs'
-import { webSign } from './oracle-auto-signer';
+import { webSign } from './oracle-web-signer';
 
 export interface LookUp {
     getFact: (fr: FactRequest) => Promise<string>
