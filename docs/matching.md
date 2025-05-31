@@ -257,7 +257,7 @@ _Note: explosions are explicit in Mega-contracts, unlike Web3. Turing-complete c
 
 #### Merkle-trees (for DSL designers)
 
-Merkle-trees can potentially be utilized to eliminate duplicate subtcontract trees in offer trees, thus reducing risks of contract explosion to a theoretical minimum. Such approach would eliminate uneccessary intermidiate state as well.
+Merkle-trees can potentially be utilized to eliminate duplicate subtcontract trees in offer trees, thus reducing risks of contract explosion to a theoretical minimum. Such approach would eliminate uneccessary intermediate state as well.
 
 Practically, it requires extra-care:
 
