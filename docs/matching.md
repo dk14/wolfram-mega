@@ -112,11 +112,14 @@ Here's non-composite binary option:
 
 ```json
 {
-    question: "who's president?"    
-    partyBetsOn:["ME"],
-    counterPartyBetsOn:["YOU"],
-    partyBetAmount:100,
-    counterpartyBetAmount:10
+    hash: "0000",
+    terms: {
+        question: "who's president?"    
+        partyBetsOn:["ME"],
+        counterPartyBetsOn:["YOU"],
+        partyBetAmount:100,
+        counterpartyBetAmount:10
+    }
 }
 ```
 
@@ -144,7 +147,7 @@ if (outcome("who's president") === "ME") {
 
 OFFERS-TO-RENDER:
 
-STAGE1 offer-chunk:
+STAGE1 (root offer-chunk):
 ```json
 {
     hash: "000001",
@@ -164,7 +167,7 @@ STAGE1 offer-chunk:
 
 Worst-case scenario: party will have 20sat (`partyCompositeCollateralAmount - partyBetAmount`) left in multisig escrow, counterparty will have 10sat  (`counterpartyCompositeCollateralAmount - counterpartyBetAmount`).
 
-STAGE2 offer-chunks:
+STAGE2 (leaf offer-chunks):
 ```json
 {
     hash: "000002",
