@@ -1,9 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.matchingEngine = exports.checkOriginatorId = exports.getOriginatorId = void 0;
+exports.matchingEngine = exports.checkOriginatorId = exports.getOriginatorId = exports.randomInt = void 0;
 const randomInt = (n) => {
     return Math.floor(Math.random() * (n - 1));
 };
+exports.randomInt = randomInt;
 const capabilityFilter = (tag) => {
     return async (cp) => cp.tags?.find(x => x === tag) !== undefined;
 };
@@ -13,10 +14,10 @@ const oneElemPage = {
 };
 const getOriginatorId = () => {
     if (localStorage === undefined) {
-        return randomInt(1200000).toString();
+        return (0, exports.randomInt)(1200000).toString();
     }
     if (localStorage.getItem("originatorId") === undefined) {
-        localStorage.setItem("originatorId", randomInt(1200000).toString());
+        localStorage.setItem("originatorId", (0, exports.randomInt)(1200000).toString());
     }
     return localStorage.getItem("originatorId");
 };
@@ -31,7 +32,7 @@ exports.matchingEngine = {
             page: 0,
             chunkSize: 100
         }));
-        const offer = candidates[randomInt(candidates.length)];
+        const offer = candidates[(0, exports.randomInt)(candidates.length)];
         if (!offer) {
             throw "no offers found in database; db.length =" + candidates.length;
         }
@@ -65,12 +66,12 @@ exports.matchingEngine = {
         if (candidates.length === 0) {
             throw "no capabilties found";
         }
-        const cp = candidates[randomInt(candidates.length)];
+        const cp = candidates[(0, exports.randomInt)(candidates.length)];
         //pick a question
         const partyBetAmountOptions = [1, 100, 200, 500];
-        const partyBetAmount = partyBetAmountOptions[randomInt(partyBetAmountOptions.length)];
+        const partyBetAmount = partyBetAmountOptions[(0, exports.randomInt)(partyBetAmountOptions.length)];
         const counterpartyBetAmountOptions = [5, 250, 300, 500];
-        const counterpartyBetAmount = counterpartyBetAmountOptions[randomInt(counterpartyBetAmountOptions.length)];
+        const counterpartyBetAmount = counterpartyBetAmountOptions[(0, exports.randomInt)(counterpartyBetAmountOptions.length)];
         const model = {
             id: "aaa",
             bet: [partyBetAmount, counterpartyBetAmount],
@@ -95,7 +96,7 @@ exports.matchingEngine = {
         }
         const pow = {
             difficulty: 0,
-            algorithm: "",
+            algorithm: "SHA-256",
             hash: "", //initial id
             magicNo: 0
         };
@@ -118,7 +119,7 @@ exports.matchingEngine = {
             contact: "",
             originatorId: (0, exports.getOriginatorId)(),
             addresses: [window.address],
-            orderId: randomInt(1200000).toString()
+            orderId: (0, exports.randomInt)(1200000).toString()
         };
         window.traderApi.issueOffer({
             seqNo: 0,
@@ -151,8 +152,11 @@ exports.matchingEngine = {
             acceptorId: (0, exports.getOriginatorId)()
         };
         offer.content.accept = accept;
+        if (!offer.content.addresses) {
+            offer.content.addresses = [];
+        }
         offer.content.addresses[1] = window.address;
-        offer.pow.hash = offer.pow.hash + "accept"; //will be upgraded
+        offer.pow.hash = offer.pow.hash + "accept" + (0, exports.randomInt)(100); //will be upgraded
         window.traderApi.issueOffer(offer);
     },
     collectQuestions: async function (cfg) {

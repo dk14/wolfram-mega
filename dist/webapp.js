@@ -256,28 +256,28 @@ global.initWebapp = new Promise(async (resolve) => {
             return found === undefined;
         },
         addCp: async function (cp) {
-            const found = await db.get("oracles", cp.capabilityPubKey);
+            const found = await db.get("cps", cp.capabilityPubKey);
             await db.put("cps", cp, cp.capabilityPubKey);
             return found === undefined;
         },
         addReport: async function (r) {
             const found = await db.get("reports", r.pow.hash);
-            await db.put("cps", r, r.pow.hash);
+            await db.put("reports", r, r.pow.hash);
             return found === undefined;
         },
         addIssuedReport: async function (r) {
             const found = await db.get("issued-reports", r.pow.hash);
-            await db.put("cps", r, r.pow.hash);
+            await db.put("issued-reports", r, r.pow.hash);
             return found === undefined;
         },
         addOffer: async function (o) {
             const found = await db.get("offers", o.pow.hash);
-            await db.put("cps", o, o.pow.hash);
+            await db.put("offers", o, o.pow.hash);
             return found === undefined;
         },
         addIssuedOffer: async function (o) {
             const found = await db.get("issued-offers", o.pow.hash);
-            await db.put("cps", o, o.pow.hash);
+            await db.put("issued-offers", o, o.pow.hash);
             return found === undefined;
         },
         removeOracles: async function (pubkeys) {
@@ -580,9 +580,41 @@ global.initWebapp = new Promise(async (resolve) => {
     };
     window.matching = matching_1.matchingEngine;
     window.stalking = stalking_1.stalkingEngine;
+    const testPow = {
+        difficulty: 0,
+        algorithm: 'SHA-256',
+        hash: 'TEST-OFFER',
+        magicNo: 0
+    };
+    const testFactRequest = {
+        capabilityPubKey: pubOracleCp,
+        arguments: {}
+    };
+    const testOfferTerms = {
+        question: testFactRequest,
+        partyBetsOn: ["YES"],
+        counterPartyBetsOn: ["NO"],
+        partyBetAmount: 10,
+        counterpartyBetAmount: 200
+    };
+    const testOffer = {
+        message: '',
+        customContract: '',
+        terms: testOfferTerms,
+        blockchain: 'bitcoin-testnet',
+        contact: ''
+    };
+    const testOfferMsg = {
+        seqNo: 0,
+        cTTL: 0,
+        pow: testPow,
+        content: testOffer
+    };
+    await node_1.api.publishOffer(cfg, testOfferMsg);
+    await window.storage.addOffer(testOfferMsg);
     const mockPow = {
         difficulty: 0,
-        algorithm: '',
+        algorithm: 'SHA-256',
         hash: 'MOCK',
         magicNo: 0
     };
@@ -595,7 +627,7 @@ global.initWebapp = new Promise(async (resolve) => {
         oracleSignature: '',
         oracleSignatureType: ''
     };
-    await indexDBstorage.addOracle(testOracle);
+    await window.storage.addOracle(testOracle);
     const testCp = {
         oraclePubKey: pubOracleCp,
         capabilityPubKey: pubOracleCp,
@@ -607,8 +639,10 @@ global.initWebapp = new Promise(async (resolve) => {
         pow: mockPow,
         endpoint: "weboracle:local"
     };
-    await indexDBstorage.addCp(testCp);
-    console.log("Started!");
+    await node_1.api.announceOracle(cfg, testOracle);
+    await node_1.api.announceCapability(cfg, testCp);
+    await window.storage.addCp(testCp);
+    console.log("WebAPI is ready!");
     resolve(window);
 });
 //# sourceMappingURL=webapp.js.map

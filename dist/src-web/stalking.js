@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.stalkingEngine = void 0;
+const matching_1 = require("./matching");
 const trackIssuedOffers = async (interpreters, dataProvider) => {
     const pagedescriptor = {
         page: 0,
@@ -43,7 +44,7 @@ const trackIssuedOffers = async (interpreters, dataProvider) => {
                 const inputs = await interpreter.getUtXo(order);
                 const [contract, partial] = await interpreter.genContractTx(inputs, [commitment], order);
                 if (partial !== undefined) {
-                    partial.pow.hash = partial.pow.hash + "-signing";
+                    partial.pow.hash = partial.pow.hash + "-signing" + (0, matching_1.randomInt)(100);
                     partial.content.utxos[0] = inputs.utxoAlice.map(x => [x.txid, x.vout]);
                     partial.content.utxos[1] = inputs.utxoBob.map(x => [x.txid, x.vout]);
                     window.traderApi.issueOffer(partial);
