@@ -75,7 +75,7 @@ await fetch('./collectReports?tag=' + encodeURIComponent(tag), {
 })
 ```
 
-## View collected broadcasts
+### View collected broadcasts
 
 ```ts
 const view = ... //type of broadcast
@@ -134,7 +134,7 @@ await fetch('./issueOffer', {
 
 ### View issued offers
 ```ts
-const data = await (await fetch(`./listIssuedOffers?pageSize=100&pageNo=${page}`)).json()
+const issuedOffers = await (await fetch(`./listIssuedOffers?pageSize=100&pageNo=${page}`)).json()
 ```
 ### Start broadcasting issued offers
 
@@ -191,7 +191,7 @@ await fetch('./issueReport', {
 ```
 ### View issued reports
 ```ts
-const data = await (await fetch(`./listIssuedOffers?pageSize=100&pageNo=${page}`)).json()
+const issuedReports = await (await fetch(`./listIssuedOffers?pageSize=100&pageNo=${page}`)).json()
 ```
 
 ### Start broadcasting submitted reports
