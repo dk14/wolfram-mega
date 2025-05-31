@@ -9,7 +9,8 @@ import { IDBPDatabase, openDB } from 'idb';
 import { CapabilityModel, MatchingEngine, OfferModel, PreferenceModel, matchingEngine } from './src-web/matching';
 import * as bitcoin from "bitcoinjs-lib"
 import { p2pktr } from './src/client-api/contracts/btc/tx';
-import { trackIssuedOffers } from './src-web/stalking';
+import { stalkingEngine, StalkingEngine } from './src-web/stalking';
+import { btcDlcContractInterpreter } from './src-web/transactions';
 
 export type Storage = TraderStorage<TraderQuery<OracleId>, TraderQuery<OracleCapability>, TraderQuery<Report>, TraderQuery<OfferMsg>>
 
@@ -31,6 +32,8 @@ declare global {
         storage: Storage
         btc: BtcApi
         matching: MatchingEngine
+        stalking: StalkingEngine
+
         pool: Api
         spec: string
         address: string
@@ -611,8 +614,11 @@ window.btc = {
 
 
 window.matching = matchingEngine
+window.stalking = stalkingEngine
 
-setInterval(() => trackIssuedOffers(), 1000)
+setInterval(() => window.stalking.trackIssuedOffers({
+        "bitcoin-testnet": btcDlcContractInterpreter
+    }), 1000)
 
 setTimeout(async () => {
     
@@ -650,6 +656,7 @@ setTimeout(async () => {
         oracles: [oracle],
         question: '?',
         status: 'matching',
+        blockchain: 'bitcoin-testnet',
         role: 'initiator'
     }
 

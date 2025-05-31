@@ -1,8 +1,12 @@
 import { Commitment } from "../src/protocol"
 import { PreferenceModel, checkOriginatorId } from "./matching"
-import { genDlcContract, getUtXo } from "./transactions"
+import { ContractInterpreter } from "./transactions"
 
-export const trackIssuedOffers = async () => {
+export interface StalkingEngine {
+    trackIssuedOffers: (interpreters: {[id: string]: ContractInterpreter}) => Promise<void>
+}
+
+const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterpreter}) => {
     const pagedescriptor = {
         page: 0,
         chunkSize: 100
@@ -14,6 +18,7 @@ export const trackIssuedOffers = async () => {
 
     allOffers.forEach(async myOffer => {
         try {
+            const interpreter = interpreters[myOffer.content.blockchain]
             if (myOffer.content.finalize) {
 
             } else if (myOffer.content.accept) {
@@ -22,14 +27,15 @@ export const trackIssuedOffers = async () => {
                 
                 const tx = myOffer.content.accept.openingTx.tx
                 const commitment: Commitment = undefined // todo oracle commitment
-                const inputs = await getUtXo(myOffer, commitment)
-                const [contract, offer] = await genDlcContract(inputs, myOffer)
-                if (contract.cet[0] === undefined || contract.cet[1] === undefined) {
+                const inputs = await interpreter.getUtXo(myOffer.content.terms, commitment)
+                const [contract, offer] = await interpreter.genContractTx(inputs, myOffer)
+
+                if (offer !== undefined) {
                     offer.pow.hash = offer.pow.hash + "-signing"
                     window.traderApi.issueOffer(offer)
                 } else {
                     // publish
-                    // finalize
+                    // finalize offer
                 }
                 
             }
@@ -38,4 +44,8 @@ export const trackIssuedOffers = async () => {
         }   
     })
 
+}
+
+export const stalkingEngine: StalkingEngine = {
+    trackIssuedOffers
 }

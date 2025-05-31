@@ -177,7 +177,7 @@ export interface DependsOn { //for schedules, aka stateful multi-stage contracts
 }
 
 export interface AcceptOffer {
-    chain: 'bitcoin-testnet'
+    chain: string
     openingTx: PartiallySignedTx
     offerRef: HashCashPow
     cetTxSet: PartiallySignedTx[]

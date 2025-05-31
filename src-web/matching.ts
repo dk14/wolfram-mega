@@ -2,6 +2,7 @@ import { Or } from "@nyariv/sandboxjs/dist/node/parser"
 import { TraderApi } from "../src/client-api/trader-api"
 import { AcceptOffer, FactRequest, HashCashPow, Offer, OfferTerms, OracleCapability, OracleId, PagingDescriptor, PartiallySignedTx } from "../src/protocol"
 import { BtcApi, TraderQuery, Storage } from "../webapp"
+import { bitcoin } from "bitcoinjs-lib/src/networks"
 
 const randomInt = (n: number): number => {
     return 1000
@@ -44,7 +45,8 @@ export interface OfferModel {
     tx?: string,
     redemtion_txid?: string,
     redemtion_tx?: string,
-    status: OfferStatus
+    status: OfferStatus,
+    blockchain: string,
     role: 'initiator' | 'acceptor'
 }
 
@@ -111,6 +113,7 @@ export const matchingEngine: MatchingEngine = {
                 endpoint: "http://localhost:8080" //can use fact-missing claim as an endpoint too
             }],
             question: capability.question,
+            blockchain: "bitcoin-testnet",
             status: "matching",
             role: 'acceptor'
         }
@@ -140,6 +143,7 @@ export const matchingEngine: MatchingEngine = {
                 endpoint: "http://localhost:8080" //can use fact-missing claim as an endpoint too
             }],
             question: cp.question,
+            blockchain: "bitcoin-testnet",
             status: "matching",
             role: 'initiator'
         }
@@ -205,7 +209,7 @@ export const matchingEngine: MatchingEngine = {
             partialSigs: []
         }
         const accept: AcceptOffer = {
-            chain: "bitcoin-testnet",
+            chain: o.blockchain,
             openingTx: openingTx,
             offerRef: undefined,
             cetTxSet: [],
@@ -271,6 +275,7 @@ export const matchingEngine: MatchingEngine = {
                     endpoint: "TODO"
                 }],
                 question: "TODO",
+                blockchain: o.content.blockchain,
                 status: "matching",
                 role: "initiator"
             }
@@ -287,6 +292,7 @@ export const matchingEngine: MatchingEngine = {
                     endpoint: "TODO"
                 }],
                 question: "TODO",
+                blockchain: o.content.blockchain,
                 status: "matching",
                 role: "acceptor"
             }

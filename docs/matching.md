@@ -1,6 +1,6 @@
 # Matching API (Web)
 
-**WIP**
+**WIP: Work in Progress**
 
 ## Add bundle
 
@@ -58,6 +58,7 @@ const myCustomOffer: OfferModel = {
     bet: [1, 100],
     oracles: [oracle],
     question: '?',
+    blockchain: 'bitcoin-testnet',
     status: 'matching',
     role: 'initiator'
 }
@@ -65,5 +66,4 @@ const myCustomOffer: OfferModel = {
 await window.matching.broadcastOffer(myCustomOffer)
 
 ```
-
 

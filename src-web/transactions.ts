@@ -5,14 +5,35 @@ import { DlcContract, DlcParams } from "../src/client-api/contracts/generate-btc
 import { Commitment, OfferMsg, OfferTerms } from "../src/protocol"
 import { PreferenceModel } from "./matching"
 
+type TxId = string
+type TxBody = string
 
-const errorToResult = <T, U>(call: () => T): T | U => {
-    try {
-        return call()
-    } catch (e) {
-        return e
-    }
+export interface Contract {
+    openingTx: TxBody
+    cet: TxBody[]
 }
+
+export interface UTxO {
+    txid: string
+    vout: number
+    value: number
+    age: number
+}
+
+export interface Inputs {
+    utxoAlice: UTxO[]
+    utxoBob: UTxO[]
+}
+
+
+
+export interface ContractInterpreter {
+    getUtXo: (terms: OfferTerms, c: Commitment) => Promise<Inputs>
+    genContractTx: (inputs: Inputs, offer: OfferMsg) => Promise<[Contract, OfferMsg?]>
+    submitTx: (tx: string) => Promise<TxId>
+}
+
+
 
 const scan = (arr, reducer, seed) => {
     return arr.reduce(([acc, result], value, index) => {
@@ -22,29 +43,18 @@ const scan = (arr, reducer, seed) => {
     }, [seed, []])[1];
 }
 
-interface UTxO {
-    txid: string
-    vout: number
-    value: number
-    age: number
-}
 
-interface Inputs {
-    utxoAlice: UTxO[]
-    utxoBob: UTxO[]
-}
-
-export const getUtXo = async (o: OfferMsg, c: Commitment): Promise<Inputs> => {
+const getUtXo = async (terms: OfferTerms, c: Commitment): Promise<Inputs> => {
 
 
-    const terms = o.content.terms
+    //const terms = o.content.terms
     const req = terms.question
 
     const utxoExplore = async (address: string): Promise<UTxO[]> => {
        return (await (await fetch (`https://mempool.space/api/address/${address}/utxo`)).json())
     }
 
-    const txfee = o.txfee
+    const txfee = terms.txfee
 
     const addressAlice = 'tb1pudlyenkk7426rvsx84j97qddf4tuc8l63suz62xeq4s6j3wmuylq0j54ex'
     const addressBob = 'tb1p0l5zsw2lv9pu99dwzckjxhpufdvvylapl5spn6yd54vhnwa989hq20cvyv'
@@ -79,13 +89,13 @@ export const getUtXo = async (o: OfferMsg, c: Commitment): Promise<Inputs> => {
     
 }
 
-//updates offer with multisig data; offer should be accepted
-export const genDlcContract = async (inputs: Inputs, o: OfferMsg): Promise<[DlcContract, OfferMsg]> => {
+const genContractTx = async (inputs: Inputs, offer: OfferMsg): Promise<[DlcContract, OfferMsg?]> => {
+    const o = structuredClone(offer)
     const terms = o.content.terms
     const yesSession = o.content.accept.cetTxSet[0]
     const noSession = o.content.accept.cetTxSet[1]
 
-    const dlc: Promise<DlcContract> = new Promise(resolveDlc => {
+    const dlcPromise: Promise<DlcContract> = new Promise(resolveDlc => {
         const yesSessionUpdate: Promise<PublicSession> = new Promise(async resolveYes => {
             const noSessionUpdate: Promise<PublicSession> = new Promise(async resolveNo => {
                 const params: DlcParams = {
@@ -166,6 +176,20 @@ export const genDlcContract = async (inputs: Inputs, o: OfferMsg): Promise<[DlcC
         })
     })
     
-    return [await dlc, o]
+    const dlc = await dlcPromise
+    if (dlc.cet[0] === 'undefined') {
+        return [dlc, o]
+    } else {
+        return [dlc, undefined]
+    }
+    
+}
+
+export const btcDlcContractInterpreter: ContractInterpreter = {
+    getUtXo: getUtXo,
+    genContractTx: genContractTx,
+    submitTx: function (tx: string): Promise<string> {
+        throw new Error("Function not implemented.")
+    }
 }
 

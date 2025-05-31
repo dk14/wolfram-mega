@@ -5,5 +5,5 @@
     - [Operators](operators.md)
     - [Traders](traders.md)
     - [Oracles](oracles.md)
-    - [Contract Demo](tech.md)
+    - [Contracts](contracts.md)
     - [Matching](matching.md)
