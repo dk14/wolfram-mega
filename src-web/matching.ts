@@ -139,7 +139,7 @@ export const matchingEngine: MatchingEngine = {
             oracles: [{
                 capabilityPub: "",
                 oracle: cp.oraclePubKey,
-                endpoint: "http://localhost:8080" //can use fact-missing claim as an endpoint too
+                endpoint: "http://localhost:8080"
             }],
             question: cp.question,
             blockchain: "bitcoin-testnet",
