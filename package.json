@@ -30,8 +30,7 @@
     "readable-stream": false,
     "stream": false,
     "inspector": false,
-    "events": false,
-    "tiny-secp256k1": false
+    "events": false
   },
   "bin": {
     "wf-mega-peer": "./bin/wf-mega-peer"
