@@ -40,7 +40,7 @@ Protocol is specifications are in `src/protocol.ts` and `wolfram-mega-spec.yaml`
 
 ## TODOs
 
-- implement pledges, add quorums and pledges to mockup oracle
+- implement slashing, add slashing and multisigs to mockup oracle
 - mockup database for webapp
 - bind models for webapp
 - detect matching stages for webapp
