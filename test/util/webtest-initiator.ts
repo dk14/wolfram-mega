@@ -34,7 +34,6 @@ require("../../webapp");
         txfee: 0
     }
     
-    console.log("- start collectors")
     window.matching.collectQuestions(preferences)
     window.matching.collectOffers(preferences)
 
