@@ -26,8 +26,8 @@ const interpreter: ContractInterpreter = ...
 ```ts
 import { dataProvider } from './src-web/oracle-data-provider';
 
-setInterval(() => 
-    window.stalking.trackIssuedOffers({
+setInterval(() => window.stalking.trackIssuedOffers(
+    {
         "my-chain": interpreter
     },
     dataProvider
@@ -40,8 +40,8 @@ There is a default intepreter for BTC-DLC:
 import { btcDlcContractInterpreter } from './src-web/transactions';
 import { dataProvider } from './src-web/oracle-data-provider';
 
-setInterval(() => 
-    window.stalking.trackIssuedOffers({
+setInterval(() => window.stalking.trackIssuedOffers(
+    {
         "bitcoin-testnet": btcDlcContractInterpreter
     },
     dataProvider
