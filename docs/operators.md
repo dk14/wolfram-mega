@@ -42,20 +42,12 @@ Optional `mempool-cfg` config parameters:
 - `facilitatorId`: `facilitatorId.rewardAddress` is lightning address for rewards (microbids),  `facilitatorId.facilitatorRewardIdPow` would allow you to establish identity for rewards.
 - `lnRestHost`, `lnMacaroonPath` are used to verify proofs of payments for rewards.
 - `p2pKeepAlive` how often (milliseconds) your peer would remind network about itself.
-- `oracle` and `trader` would spawn oracle administration and trader consoles respectively, see example at [cfg/mempool-trader.json](cfg/mempool-trader.json). `dbPath` param is a path for persistent storage. `wsPort` is websocket for signing messages. [README](src/client-api/README.md)
+- `oracle` and `trader` would spawn oracle administration and trader consoles respectively, see example at [cfg/mempool-trader.json](cfg/mempool-trader.json). `dbPath` param is a path for persistent storage. `wsPort` is websocket for signing messages. 
 
+> Security: don't use `oracle` and `trader` options as a node operator. Their ports should not be open to public. Run separate, isolated instance if you wish to be both: public node and trader.
 
 ## Install (optional)
 ```
 npm i https://github.com/dk14/wolfram-mega
 npx wf-mega-peer <mempool-conf.json>
-```
-
-or
-
-(if you have [GitHub npm repo access](https://github.com/orgs/community/discussions/19037))
-
-```
-npm i @dk14/wolfram-mega -g
-wf-mega-peer <mempool-conf.json>
 ```
