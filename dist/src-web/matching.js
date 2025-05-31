@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.matchingEngine = exports.checkOriginatorId = exports.getOriginatorId = void 0;
 const randomInt = (n) => {
-    return 1000;
+    return Math.floor(Math.random() * (n - 1));
 };
 const capabilityFilter = (tag) => {
     return async (cp) => cp.tags?.find(x => x === tag) !== undefined;
@@ -12,6 +12,9 @@ const oneElemPage = {
     chunkSize: 1
 };
 const getOriginatorId = () => {
+    if (localStorage === undefined) {
+        return randomInt(1200000).toString();
+    }
     if (localStorage.getItem("originatorId") === undefined) {
         localStorage.setItem("originatorId", randomInt(1200000).toString());
     }
@@ -30,7 +33,7 @@ exports.matchingEngine = {
         }));
         const offer = candidates[randomInt(candidates.length)];
         if (!offer) {
-            throw "no offers found in database";
+            throw "no offers found in database; db.length =" + candidates.length;
         }
         const capability = (await window.storage.queryCapabilities({
             where: async (x) => x.capabilityPubKey === offer.content.terms.question.capabilityPubKey
@@ -59,6 +62,9 @@ exports.matchingEngine = {
             page: 0,
             chunkSize: 100
         }));
+        if (candidates.length === 0) {
+            throw "no capabilties found";
+        }
         const cp = candidates[randomInt(candidates.length)];
         //pick a question
         const partyBetAmountOptions = [1, 100, 200, 500];

@@ -44,9 +44,7 @@ const idb_1 = require("idb");
 const matching_1 = require("./src-web/matching");
 const tx_1 = require("./src/client-api/contracts/btc/tx");
 const stalking_1 = require("./src-web/stalking");
-const transactions_1 = require("./src-web/transactions");
-const oracle_data_provider_1 = require("./src-web/oracle-data-provider");
-(async () => {
+global.initWebapp = new Promise(async (resolve) => {
     window.spec = await (await fetch("./../wolfram-mega-spec.yaml")).text();
     const safeEval = (expression, data) => {
         const sandbox = new sandboxjs_1.default();
@@ -610,43 +608,7 @@ const oracle_data_provider_1 = require("./src-web/oracle-data-provider");
         endpoint: "weboracle:local"
     };
     await indexDBstorage.addCp(testCp);
-    setInterval(() => window.stalking.trackIssuedOffers({
-        "bitcoin-testnet": transactions_1.btcDlcContractInterpreter
-    }, oracle_data_provider_1.dataProvider), 1000);
-    setTimeout(async () => {
-        const preferences = {
-            minOraclePow: 0,
-            minOracleReputation: 0,
-            tags: [],
-            txfee: 0
-        };
-        window.matching.collectQuestions(preferences);
-        window.matching.collectOffers(preferences);
-        const offer = await window.matching.pickOffer();
-        await window.matching.acceptOffer(offer);
-        const myOffer = await window.matching.generateOffer(preferences);
-        await window.matching.broadcastOffer(myOffer);
-        // custom offer
-        const oracles = await window.storage.queryCapabilities({ where: async (x) => true }, {
-            page: 0,
-            chunkSize: 100
-        });
-        const oracle = {
-            capabilityPub: oracles[0].capabilityPubKey,
-            oracle: '',
-            endpoint: ''
-        };
-        const myCustomOffer = {
-            id: 'id',
-            bet: [1, 100],
-            oracles: [oracle],
-            question: '?',
-            status: 'matching',
-            blockchain: 'bitcoin-testnet',
-            role: 'initiator'
-        };
-        await window.matching.broadcastOffer(myCustomOffer);
-    }, 1000);
     console.log("Started!");
-})();
+    resolve(window);
+});
 //# sourceMappingURL=webapp.js.map
