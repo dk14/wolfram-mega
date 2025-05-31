@@ -696,9 +696,6 @@ setTimeout(async () => {
 
     await window.matching.broadcastOffer(myCustomOffer)
 
-   
-
-
 }, 1000)
 
 
