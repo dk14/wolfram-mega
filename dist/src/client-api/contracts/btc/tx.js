@@ -32,6 +32,9 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.txApi = exports.p2pktr = void 0;
 const bitcoin = __importStar(require("bitcoinjs-lib"));
@@ -43,6 +46,8 @@ if ((0, util_1.isBrowser)()) {
 else {
     bitcoin.initEccLib(ecc);
 }
+const multisigInteractive = __importStar(require("./mu-sig-interactive"));
+const bs58_1 = __importDefault(require("bs58"));
 const net = bitcoin.networks.testnet;
 const p2pktr = (pub) => bitcoin.payments.p2tr({
     pubkey: Buffer.from(pub, "hex"),
@@ -137,7 +142,7 @@ const remoteSigner = {
                 pk2: pub2,
                 commitment2: session.commitment2,
                 nonce2: session.nonce2,
-                sessionId2: session.sessionId2,
+                sessionId1: session.sessionId1,
                 msg
             }),
             headers: { 'Content-Type': 'application/json' }
@@ -160,7 +165,21 @@ const remoteSigner = {
         })).text();
     }
 };
-function schnorrSignerInteractive(pub1, pub2, session, signer = remoteSigner) {
+const webSigner = {
+    muSigNonce1: async function (pub1, pub2, msg) {
+        return multisigInteractive.muSigNonce1(pub1, pub2, Buffer.from(bs58_1.default.decode(await window.privateDB.get("secrets", pub1))).toString("hex").substring(2, 64 + 2), Buffer.from(msg, "hex"));
+    },
+    muSigCommitment2: async function (pub1, pub2, msg) {
+        return multisigInteractive.muSigCommitment2(pub1, pub2, Buffer.from(bs58_1.default.decode(await window.privateDB.get("secrets", pub2))).toString("hex").substring(2, 64 + 2), Buffer.from(msg, "hex"));
+    },
+    sign1: async function (pub1, pub2, msg, input) {
+        return multisigInteractive.sign1(pub1, pub2, input.commitment2, input.nonce2, Buffer.from(bs58_1.default.decode(await window.privateDB.get("secrets", pub2))).toString("hex").substring(2, 64 + 2), Buffer.from(msg, "hex"), input.sessionId1);
+    },
+    sign2: async function (pub1, pub2, msg, input) {
+        return multisigInteractive.sign2(pub1, pub2, input.partSig1, input.combinedNonceParity, input.nonce1, input.commitment1, Buffer.from(bs58_1.default.decode(await window.privateDB.get("secrets", pub2))).toString("hex").substring(2, 64 + 2), Buffer.from(msg, "hex"), input.sessionId2);
+    }
+};
+function schnorrSignerInteractive(pub1, pub2, session, signer = (0, util_1.isBrowser)() ? webSigner : remoteSigner) {
     const pkCombined = muSig.pubKeyCombine([Buffer.from(pub1, "hex"), Buffer.from(pub2, "hex")]);
     let pubKeyCombined = convert.intToBuffer(pkCombined.affineX);
     return {
@@ -189,7 +208,7 @@ function schnorrSignerInteractive(pub1, pub2, session, signer = remoteSigner) {
                 const res = await signer.sign1(pub1, pub2, hash.toString('hex'), {
                     commitment2: session.commitment2,
                     nonce2: session.nonce2,
-                    sessionId2: session.sessionId2,
+                    sessionId1: session.sessionId1,
                 });
                 session.nonce1 = res.nonce1;
                 session.partSig1 = res.partSig1;

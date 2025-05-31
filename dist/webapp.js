@@ -43,6 +43,7 @@ const btc = __importStar(require("./src/client-api/contracts/generate-btc-tx"));
 const sandboxjs_1 = __importDefault(require("@nyariv/sandboxjs"));
 const idb_1 = require("idb");
 const matching_1 = require("./src-web/matching");
+const bitcoin = __importStar(require("bitcoinjs-lib"));
 (async () => {
     window.spec = await (await fetch("./../wolfram-mega-spec.yaml")).text();
     const safeEval = (expression, data) => {
@@ -208,6 +209,16 @@ const matching_1 = require("./src-web/matching");
             traderApiRemote.stopBroadcastingIssuedReports();
         }
     };
+    window.privateDB = await (0, idb_1.openDB)('store', 1, {
+        upgrade(db) {
+            db.createObjectStore('secrets');
+        },
+    });
+    const pub1 = "cRFAdefAzpxzKduj3F9wf3qSTgA5johBBqPZZT72hh46dgCRr997";
+    const pub2 = "cRFAdefAzpxzKduj3F9wf3qSTgA5johBBqPZZT72hh46dgCRr997";
+    window.privateDB.add("secrets", pub1, "e37e4cced6f555a1b2063d645f01ad4d57cc1ffa8c382d28d90561a945dbe13e");
+    window.privateDB.add("secrets", pub2, "7fe828395f6143c295ae162d235c3c4b58c27fa1fd2019e88da55979bba5396e");
+    window.address = bitcoin.payments.p2pkh({ pubkey: Buffer.from(pub1, 'hex') }).address;
     const db = await (0, idb_1.openDB)('store', 1, {
         upgrade(db) {
             db.createObjectStore('oracles');
