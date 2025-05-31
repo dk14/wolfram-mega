@@ -522,7 +522,7 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
                         throw e
                     }
                 }
-                
+
             }
             
             psbt.finalizeAllInputs()
