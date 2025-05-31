@@ -31,7 +31,7 @@ setInterval(() =>
 ), 1000)
 ```
 
-There is default intepreter for BTC-DLC:
+There is a default intepreter for BTC-DLC:
 
 ```ts
 import { btcDlcContractInterpreter } from './src-web/transactions';
