@@ -45,7 +45,7 @@ export interface OracleCapability extends MsgLike {
     answers?: Answer[] //possible answers
     endpoint?: string //how to query oracle; e.g. `http://...`; special protocol: `web-oracle:peerjs-handle`; use `web-oracle:local` for local mocks
     commitmentEndpoint?: string //where to get comitment to future value from oracle
-    meta: string
+    meta?: string
 }
 
 
