@@ -1,7 +1,7 @@
 import { Collector, Predicate, TraderApi, TraderStorage, traderApi } from './src/client-api/trader-api';
 import { MempoolConfig } from './src/config';
 import { browserPeerAPI, startP2P } from './src/p2p';
-import { OracleId, OracleCapability, OfferMsg, Report, PagingDescriptor } from './src/protocol';
+import { OracleId, OracleCapability, OfferMsg, Report, PagingDescriptor, Commitment, Fact, FactRequest } from './src/protocol';
 import { Api, FacilitatorNode, api as ndapi} from './src/node';
 import * as btc from "./src/client-api/contracts/generate-btc-tx";
 import Sandbox from "@nyariv/sandboxjs";
@@ -11,6 +11,7 @@ import * as bitcoin from "bitcoinjs-lib"
 import { p2pktr } from './src/client-api/contracts/btc/tx';
 import { stalkingEngine, StalkingEngine } from './src-web/stalking';
 import { btcDlcContractInterpreter } from './src-web/transactions';
+import { dataProvider } from './src-web/oracle-data-provider';
 
 export type Storage = TraderStorage<TraderQuery<OracleId>, TraderQuery<OracleCapability>, TraderQuery<Report>, TraderQuery<OfferMsg>>
 
@@ -618,7 +619,7 @@ window.stalking = stalkingEngine
 
 setInterval(() => window.stalking.trackIssuedOffers({
         "bitcoin-testnet": btcDlcContractInterpreter
-    }), 1000)
+    }, dataProvider), 1000)
 
 setTimeout(async () => {
     

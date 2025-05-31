@@ -13,7 +13,7 @@
 ```ts
 export interface ContractInterpreter {
     getUtXo: (terms: OfferTerms, c: Commitment) => Promise<Inputs>
-    genContractTx: (inputs: Inputs, offer: OfferMsg) => Promise<[Contract, OfferMsg?]>
+    genContractTx: (inputs: Inputs, c: Commitment, offer: OfferMsg) => Promise<[Contract, OfferMsg?]>
     submitTx: (tx: string) => Promise<TxId>
 }
 

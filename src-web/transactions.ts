@@ -29,7 +29,7 @@ export interface Inputs {
 
 export interface ContractInterpreter {
     getUtXo: (terms: OfferTerms, c: Commitment) => Promise<Inputs>
-    genContractTx: (inputs: Inputs, offer: OfferMsg) => Promise<[Contract, OfferMsg?]>
+    genContractTx: (inputs: Inputs, c: Commitment, offer: OfferMsg) => Promise<[Contract, OfferMsg?]>
     submitTx: (tx: string) => Promise<TxId>
 }
 
@@ -89,7 +89,7 @@ const getUtXo = async (terms: OfferTerms, c: Commitment): Promise<Inputs> => {
     
 }
 
-const genContractTx = async (inputs: Inputs, offer: OfferMsg): Promise<[DlcContract, OfferMsg?]> => {
+const genContractTx = async (inputs: Inputs, c: Commitment, offer: OfferMsg): Promise<[DlcContract, OfferMsg?]> => {
     const o = structuredClone(offer)
     const terms = o.content.terms
     const yesSession = o.content.accept.cetTxSet[0]
@@ -110,7 +110,7 @@ const genContractTx = async (inputs: Inputs, offer: OfferMsg): Promise<[DlcContr
                         "YES": {aliceAmount: terms.partyBetAmount, bobAmount: 0},
                         "NO": {aliceAmount: 0, bobAmount: terms.counterpartyBetAmount}
                     },
-                    rValue: "",
+                    rValue: c.rValueSchnorrHex,
                     alicePub: "",
                     bobPub: "",
                     changeAlice: 0, //aliceAmountIn.sum - partyBetAmount

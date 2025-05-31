@@ -156,6 +156,7 @@ export interface OfferTerms {
     counterPartyBetsOn: Answer[]
     partyBetAmount: number
     counterpartyBetAmount: number
+    dependsOn?: DependsOn[] // AND condition
     partyCompositeCollateralAmount?: number //this is needed to ensure that whole tree of CET-transactions is recovered
     counterpartyCompositeCollateralAmount?: number
     assetPair?: [string, string] // if parties bet assets 
@@ -202,10 +203,10 @@ export interface Offer {
     txfee?: string
     accept?: AcceptOffer //note for interactive sign: counterparty returns its commitment through this first time and party replies with its commitment; second time: party returns its nonce; third time ccounterparty returns nonce and partial sig
     finalize?: FinalizeOffer //here after final signature is put; txid is reported
-    dependsOn?: DependsOn[] // AND condition
     encryptedDetails?: string //to make matching private - can encrypt actual `Offer` here
     originatorId?: string //for matching
     originatorSig?: string //for matching - to check if u really originator
+    pubkeys?: string
 }
 
 
