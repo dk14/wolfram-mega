@@ -1,9 +1,6 @@
-import { Or } from "@nyariv/sandboxjs/dist/node/parser"
 import { TraderApi } from "../src/client-api/trader-api"
 import { AcceptOffer, DependsOn, FactRequest, HashCashPow, Offer, OfferTerms, OracleCapability, OracleId, PagingDescriptor, PartiallySignedTx } from "../src/protocol"
 import { BtcApi, TraderQuery, Storage } from "../webapp"
-import { bitcoin } from "bitcoinjs-lib/src/networks"
-import { off } from "process"
 
 const randomInt = (n: number): number => {
     return 1000
@@ -189,7 +186,7 @@ export const matchingEngine: MatchingEngine = {
             addresses: [window.address],
             orderId: randomInt(1200000).toString()
         }
-        
+
         window.traderApi.issueOffer({
             seqNo: 0,
             cTTL: 0,
