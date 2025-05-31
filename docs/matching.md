@@ -1,6 +1,6 @@
 # Matching API (Web)
 
-**WIP: Work in Progress**
+**WIP: Web-API is Work in Progress**
 
 ## Add bundle
 
