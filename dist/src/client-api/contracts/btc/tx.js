@@ -59,7 +59,7 @@ const schnorr = require('bip-schnorr');
 const muSig = schnorr.muSig;
 const convert = schnorr.convert;
 const util_1 = require("../../../util");
-function schnorrSignerSingle(pub) {
+function schnorrSignerSingle(pub, session = { sigs: [] }, out = 0) {
     return {
         publicKey: Buffer.from(pub, "hex"),
         network: net,
@@ -67,15 +67,25 @@ function schnorrSignerSingle(pub) {
             return null;
         },
         async signSchnorr(hash) {
-            const response = await fetch(global.cfg.trader.btcSignerEndpoint, {
-                method: 'post',
-                body: JSON.stringify({
-                    pubkeys: [pub],
-                    msg: hash.toString('hex')
-                }),
-                headers: { 'Content-Type': 'application/json' }
-            });
-            return Buffer.from(await response.text(), "hex");
+            try {
+                const response = await fetch(global.cfg.trader.btcSignerEndpoint, {
+                    method: 'post',
+                    body: JSON.stringify({
+                        pubkeys: [pub],
+                        msg: hash.toString('hex')
+                    }),
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const signature = Buffer.from(await response.text(), "hex");
+                session.sigs[out] = signature.toString('hex');
+                return signature;
+            }
+            catch (e) {
+                if (session.sigs[out] !== undefined) {
+                    return Buffer.from(session.sigs[out], "hex");
+                }
+                throw e;
+            }
             //return schnorr.sign(convert.bufferToInt(secret), hash)
         },
         getPublicKey() {
@@ -307,7 +317,12 @@ const txApi = () => {
                 }
                 else {
                     try {
-                        await psbt.signInputAsync(i, schnorrSignerSingleWeb(alicePub, session, i));
+                        if ((0, util_1.isBrowser)()) {
+                            await psbt.signInputAsync(i, schnorrSignerSingleWeb(alicePub, session, i));
+                        }
+                        else {
+                            await psbt.signInputAsync(i, schnorrSignerSingle(alicePub, session, i));
+                        }
                     }
                     catch {
                     }
@@ -319,7 +334,12 @@ const txApi = () => {
                 }
                 else {
                     try {
-                        await psbt.signInputAsync(aliceIn.length + i, schnorrSignerSingleWeb(bobPub, session, aliceIn.length + i));
+                        if ((0, util_1.isBrowser)()) {
+                            await psbt.signInputAsync(aliceIn.length + i, schnorrSignerSingleWeb(bobPub, session, aliceIn.length + i));
+                        }
+                        else {
+                            await psbt.signInputAsync(aliceIn.length + i, schnorrSignerSingle(bobPub, session, aliceIn.length + i));
+                        }
                     }
                     catch {
                     }
