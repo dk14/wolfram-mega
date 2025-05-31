@@ -3,7 +3,7 @@ import { AcceptOffer, DependsOn, FactRequest, HashCashPow, Offer, OfferTerms, Or
 import { BtcApi, TraderQuery, Storage } from "../webapp"
 
 const randomInt = (n: number): number => {
-    return 1000
+    return Math.floor(Math.random() * (n - 1));
 }
 
 declare global {
@@ -71,6 +71,9 @@ const oneElemPage = {
 }
 
 export const getOriginatorId = (): string => { //TODO generate per trade
+    if (localStorage === undefined) {
+        return randomInt(1200000).toString()
+    }
     if (localStorage.getItem("originatorId") === undefined) {
         localStorage.setItem("originatorId", randomInt(1200000).toString())
     }
@@ -92,7 +95,7 @@ export const matchingEngine: MatchingEngine = {
         const offer = candidates[randomInt(candidates.length)]
 
         if (!offer) {
-            throw "no offers found in database"
+            throw "no offers found in database; db.length =" + candidates.length
         }
 
         const capability = (await window.storage.queryCapabilities({
@@ -126,6 +129,10 @@ export const matchingEngine: MatchingEngine = {
             page: 0,
             chunkSize: 100
         }))
+
+        if (candidates.length === 0) {
+            throw "no capabilties found"
+        }
 
         const cp = candidates[randomInt(candidates.length)]
         //pick a question

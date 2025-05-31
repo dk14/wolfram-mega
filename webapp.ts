@@ -12,6 +12,7 @@ import { p2pktr } from './src/client-api/contracts/btc/tx';
 import { stalkingEngine, StalkingEngine } from './src-web/stalking';
 import { btcDlcContractInterpreter } from './src-web/transactions';
 import { dataProvider } from './src-web/oracle-data-provider';
+import { isBrowser } from './src/util';
 
 export type Storage = TraderStorage<TraderQuery<OracleId>, TraderQuery<OracleCapability>, TraderQuery<Report>, TraderQuery<OfferMsg>>
 
@@ -40,14 +41,19 @@ declare global {
         address: string
         privateDB: IDBPDatabase<unknown> //security note: secrts will be shared across pages in origin (subdomain, e.g. dk14.github.io)
         webOracleFacts: IDBPDatabase<unknown>
+
+        test: boolean
     }
 }
 
 
 
-(async () => {
+global.initWebapp = new Promise(async (resolve) => {
+
 
 window.spec = await (await fetch("./../wolfram-mega-spec.yaml")).text()
+
+
 
 const safeEval = (expression: string, data: any): any => {
     const sandbox = new Sandbox()
@@ -650,55 +656,7 @@ const testCp: OracleCapability = {
 
 await indexDBstorage.addCp(testCp)
 
-setInterval(() => window.stalking.trackIssuedOffers({
-        "bitcoin-testnet": btcDlcContractInterpreter
-    }, dataProvider), 1000)
-
-setTimeout(async () => {
-    
-    const preferences: PreferenceModel = {
-        minOraclePow: 0,
-        minOracleReputation: 0,
-        tags: [],
-        txfee: 0
-    }
-
-    window.matching.collectQuestions(preferences)
-    window.matching.collectOffers(preferences)
-
-    const offer = await window.matching.pickOffer()
-
-    await window.matching.acceptOffer(offer)
-
-    const myOffer = await window.matching.generateOffer(preferences)
-    await window.matching.broadcastOffer(myOffer)
-
-    // custom offer
-    const oracles = await window.storage.queryCapabilities({where: async x => true}, {
-        page: 0,
-        chunkSize: 100
-    })
-
-    const oracle: CapabilityModel = {
-        capabilityPub: oracles[0].capabilityPubKey,
-        oracle: '',
-        endpoint: ''
-    }
-    const myCustomOffer: OfferModel = {
-        id: 'id',
-        bet: [1, 100],
-        oracles: [oracle],
-        question: '?',
-        status: 'matching',
-        blockchain: 'bitcoin-testnet',
-        role: 'initiator'
-    }
-
-    await window.matching.broadcastOffer(myCustomOffer)
-
-}, 1000)
-
-
 console.log("Started!")
+resolve(window)
 
-})()
+})
