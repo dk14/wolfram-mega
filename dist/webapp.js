@@ -595,7 +595,7 @@ global.initWebapp = new Promise(async (resolve) => {
         partyBetsOn: ["YES"],
         counterPartyBetsOn: ["NO"],
         partyBetAmount: 10,
-        counterpartyBetAmount: 200
+        counterpartyBetAmount: 2053
     };
     const testOffer = {
         message: '',
@@ -629,7 +629,7 @@ global.initWebapp = new Promise(async (resolve) => {
     const testCp = {
         oraclePubKey: pubOracleCp,
         capabilityPubKey: pubOracleCp,
-        question: '???',
+        question: 'human extinct?',
         seqNo: 0,
         cTTL: 0,
         oracleSignature: '',

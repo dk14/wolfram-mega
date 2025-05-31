@@ -4,7 +4,7 @@ exports.mine = exports.hash = void 0;
 exports.isBrowser = isBrowser;
 const crypto_1 = require("crypto");
 const hash = (msg, algo = "SHA256") => {
-    return (0, crypto_1.createHash)(algo).update(msg).digest('hex');
+    return (0, crypto_1.createHash)(algo.replaceAll('-', '')).update(msg).digest('hex');
 };
 exports.hash = hash;
 const mine = (difficulty, preimage, algorithm) => {
