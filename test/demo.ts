@@ -36,16 +36,50 @@ const cfg: DemoCfg = getcfg(process.argv[2] ?? "cfg/demo.json");
     }
 
     const peer = spawn("npm", ["run", "peer", cfg.mempoolCfg]);
+    peer.stderr.on('error', async function(data){
+        console.log("[PEER-ERROR]" + data);
+    });
+    peer.stdout.on('data', async function(data){
+        console.log("[PEER]" + data);
+    });
 
+    console.log("########## Wait for peer..." + getcfg(cfg.mempoolCfg).httpPort)
     await waitFor(['http-get://localhost:' + getcfg(cfg.mempoolCfg).httpPort + '/id'])
 
     const endpoint = spawn("npm", ["run", "mock-oracle", cfg.mockOracleCfg]);
+    endpoint.stderr.on('error', async function(data){
+        console.log("[ENDPOINT-ERROR]" + data);
+    });
+    endpoint.stdout.on('data', async function(data){
+        console.log("[ENDPOINT]" + data);
+    });
 
+    console.log("##########  Wait for endpoint http..." +  getcfg("../src/client-api/utils/" + cfg.mockOracleCfg).httpPort)
+    await waitFor([ 'tcp:localhost:' + getcfg("../src/client-api/utils/" + cfg.mockOracleCfg).httpPort])
+
+    console.log("########## Wait for endpoint ws..." +  getcfg("../src/client-api/utils/" + cfg.mockOracleCfg).wsPort)
     await waitFor([ 'tcp:localhost:' + getcfg("../src/client-api/utils/" + cfg.mockOracleCfg).wsPort])
+
+    console.log("########## Starting signers...")
+
     const signer = spawn("npm", ["run", "auto-signer", cfg.signerCfg]);
+    signer.stderr.on('error', async function(data){
+        console.log("[SIGNER-ERROR]" + data);
+    });
+    signer.stdout.on('data', async function(data){
+        console.log("[SIGNER]" + data);
+    });
 
     const btcSigner = spawn("npm", ["run", "btc-signer", cfg.btcSignerCfg]);
+    btcSigner.stderr.on('error', async function(data){
+        console.log("[BTC-SIGNER-ERROR]" + data);
+    });
+    btcSigner.stdout.on('data', async function(data){
+        console.log("[BTC-SIGNER]" + data);
+    });
 
+
+    console.log("########## STARTED!!!!!")
     
     const cleanUp = async () => {
         console.log("Exiting...")
@@ -63,35 +97,6 @@ const cfg: DemoCfg = getcfg(process.argv[2] ?? "cfg/demo.json");
     process.on('SIGINT', cleanUp);
     process.on('SIGUSR1', cleanUp);
     process.on('SIGUSR2', cleanUp);
-
-    peer.stderr.on('data', async function(data){
-        console.log("[PEER-ERROR]" + data);
-    });
-    peer.stdout.on('data', async function(data){
-        console.log("[PEER]" + data);
-    });
-
-    endpoint.stderr.on('data', async function(data){
-        console.log("[ENDPOINT-ERROR]" + data);
-    });
-    endpoint.stdout.on('data', async function(data){
-        console.log("[ENDPOINT]" + data);
-    });
-
-    signer.stderr.on('data', async function(data){
-        console.log("[SIGNER-ERROR]" + data);
-    });
-    signer.stdout.on('data', async function(data){
-        console.log("[SIGNER]" + data);
-    });
-
-    btcSigner.stderr.on('data', async function(data){
-        console.log("[BTC-SIGNER-ERROR]" + data);
-    });
-    btcSigner.stdout.on('data', async function(data){
-        console.log("[BTC-SIGNER]" + data);
-    });
-
 
     // none of this should be exposed to public in prod!
     console.log("Starting proxy..." + cfg.httpPort)

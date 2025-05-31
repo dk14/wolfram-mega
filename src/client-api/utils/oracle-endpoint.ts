@@ -5,6 +5,7 @@ import { OracleCapability, FactRequest, Commitment, Fact } from '../../protocol'
 import WebSocket, { WebSocketServer, createWebSocketStream } from 'ws';
 import * as readline from 'readline'
 import * as fs from 'fs'
+import { webSign } from './oracle-auto-signer';
 
 export interface LookUp {
     getFact: (fr: FactRequest) => Promise<string>
@@ -15,6 +16,24 @@ export interface LookUp {
 
 type Signer = (msg: [Commitment, string]) => Promise<string>
 var globalSigner: Signer = null
+
+export const webSigner: Signer = webSign
+
+export const webLookup: LookUp = {
+    getFact: async function (fr: FactRequest): Promise<string> {
+        try {
+            if (await window.webOracleFacts.get("answers", fr.capabilityPubKey)) {
+                return window.webOracleFacts.get("answers", fr.capabilityPubKey)
+            }
+        } catch {
+
+        }
+        return "WHAT"
+    },
+    checkCommitment: async function (c: FactRequest): Promise<boolean> {
+        return true
+    }
+}
 
 export const endpointAPi = (signerFactory: () => Signer, lookup: LookUp): OracleEndpointApi => {
     const api: OracleEndpointApi = {

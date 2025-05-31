@@ -32,6 +32,7 @@ declare global {
         spec: string
         address: string
         privateDB: IDBPDatabase<unknown> //security note: secrts will be shared across pages in origin (subdomain, e.g. dk14.github.io)
+        webOracleFacts: IDBPDatabase<unknown>
     }
 }
 
@@ -216,7 +217,9 @@ const traderApiRemoteAdapted: TraderApi<TraderQuery<OracleId>, TraderQuery<Oracl
     }
 }
 
-window.privateDB = await openDB('store', 1, {
+
+//WALLETT
+window.privateDB = await openDB('private', 1, {
     upgrade(db) {
       db.createObjectStore('secrets');
     },
@@ -225,10 +228,22 @@ window.privateDB = await openDB('store', 1, {
 
 const pub1 = "cRFAdefAzpxzKduj3F9wf3qSTgA5johBBqPZZT72hh46dgCRr997"
 const pub2 = "cRFAdefAzpxzKduj3F9wf3qSTgA5johBBqPZZT72hh46dgCRr997"
+const pubOracleCp = "cW3z2LN7rwnomrds4cF2PJhbrCmFPkX1Q8KY5Fe6F6myRotHFXrv"
+
 window.privateDB.add("secrets", pub1, "e37e4cced6f555a1b2063d645f01ad4d57cc1ffa8c382d28d90561a945dbe13e")
 window.privateDB.add("secrets", pub2, "7fe828395f6143c295ae162d235c3c4b58c27fa1fd2019e88da55979bba5396e")
+window.privateDB.add("secrets", pubOracleCp, "07508128697f7a1aca5c3e86292daa4b08f76e68b405e4b4ffe50d066ade55c3")
 
 window.address = bitcoin.payments.p2pkh({ pubkey: Buffer.from(pub1, 'hex') }).address
+
+//LOCAL ORACLE
+window.webOracleFacts = await openDB('web-oracle', 1, {
+    upgrade(db) {
+      db.createObjectStore('answers');
+    },
+})
+
+window.privateDB.add("secrets", pubOracleCp, "YES")
 
 
 const db: IDBPDatabase<unknown> = await openDB('store', 1, {
