@@ -9,7 +9,7 @@ Example: `cfg/mempool-trader.json`
 ```bash
 npm run peer cfg/mempool-trader.json
 ```
-REST will be available at:
+Trader Console UI and REST will be available at:
 
 - http://localhost:7080/
 

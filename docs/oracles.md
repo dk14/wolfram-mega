@@ -10,10 +10,9 @@ Example: `cfg/mempool-oracle.json`
 ```bash
 npm run peer cfg/mempool-oracle.json
 ```
-REST will be available at:
+Oracle Admin UI and REST will be available at:
 
 - http://localhost:7080/
-
 
 or run a full demo:
 ```bash
