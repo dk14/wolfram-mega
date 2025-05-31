@@ -29,7 +29,7 @@ window.matching.collectOffers(preferences)
 const offer = await window.matching.pickOffer()
 ```
 
-## Aceept picked offer
+## Accept picked offer
 ```ts
 await window.matching.acceptOffer(offer)
 ```
