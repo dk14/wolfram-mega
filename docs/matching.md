@@ -1,12 +1,17 @@
 # Matching API (Web)
 
-**WIP: Web-API is Work in Progress**
-
 ## Add bundle
+
+```bash
+npm run webtest
+npm run bundle
+```
 
 ```html
 <script src="./bundle.js" type="module"></script>
 ```
+
+
 
 ## Start collectors
 

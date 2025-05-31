@@ -4,6 +4,10 @@
 **WIP: Web-API is Work in Progress; Nodejs is available**
 
 ## Add bundle
+```bash
+npm run webtest
+npm run bundle
+```
 
 ```html
 <script src="./bundle.js" type="module"></script>
