@@ -1,7 +1,7 @@
 import { Collector, Predicate, TraderApi, TraderStorage, traderApi } from './src/client-api/trader-api';
 import { MempoolConfig } from './src/config';
 import { browserPeerAPI, startP2P } from './src/p2p';
-import { OracleId, OracleCapability, OfferMsg, Report, PagingDescriptor, Commitment, Fact, FactRequest } from './src/protocol';
+import { OracleId, OracleCapability, OfferMsg, Report, PagingDescriptor, Commitment, Fact, FactRequest, HashCashPow } from './src/protocol';
 import { Api, FacilitatorNode, api as ndapi} from './src/node';
 import * as btc from "./src/client-api/contracts/generate-btc-tx";
 import Sandbox from "@nyariv/sandboxjs";
@@ -616,6 +616,39 @@ window.btc = {
 
 window.matching = matchingEngine
 window.stalking = stalkingEngine
+
+const mockPow: HashCashPow = {
+    difficulty: 0,
+    algorithm: '',
+    hash: 'MOCK',
+    magicNo: 0
+}
+
+const testOracle: OracleId = {
+    pubkey: pubOracleCp,
+    seqNo: 0,
+    cTTL: 0,
+    pow: mockPow,
+    bid: {amount: 0, proof: ""},
+    oracleSignature: '',
+    oracleSignatureType: ''
+}
+
+await indexDBstorage.addOracle(testOracle)
+
+const testCp: OracleCapability = {
+    oraclePubKey: pubOracleCp,
+    capabilityPubKey: pubOracleCp,
+    question: '???',
+    seqNo: 0,
+    cTTL: 0,
+    oracleSignature: '',
+    oracleSignatureType: '',
+    pow: mockPow,
+    endpoint: "weboracle:local"
+}
+
+await indexDBstorage.addCp(testCp)
 
 setInterval(() => window.stalking.trackIssuedOffers({
         "bitcoin-testnet": btcDlcContractInterpreter
