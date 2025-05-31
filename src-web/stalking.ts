@@ -32,6 +32,10 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
 
             const commitment: Commitment = await dataProvider.getCommitment(endpoint, order.content.terms.question)
 
+            if (order.content.terms.question2) {
+
+            }
+
             if (order.content.finalize) {
                 try {
                     const fact = await dataProvider.getFact(endpoint, commitment)
@@ -47,7 +51,7 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
                         interpreter.submitTx(cet[1].tx)
                     }
                     
-                    const redeem = await interpreter.genRedemtionTx(cetTxId, commitment, fact, order)
+                    const redeem = await interpreter.genRedemtionTx(cetTxId, [commitment], fact, order)
                     interpreter.submitTx(redeem)
                 } catch {
 
@@ -55,9 +59,9 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
 
             } else if (order.content.accept) {
 
-                const inputs = await interpreter.getUtXo(order, commitment)
+                const inputs = await interpreter.getUtXo(order)
                 
-                const [contract, partial] = await interpreter.genContractTx(inputs, commitment, order)
+                const [contract, partial] = await interpreter.genContractTx(inputs, [commitment], order)
 
                 if (partial !== undefined) {
                     partial.pow.hash = partial.pow.hash + "-signing"

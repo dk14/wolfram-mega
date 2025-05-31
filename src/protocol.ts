@@ -157,6 +157,8 @@ export interface Report extends MsgLike, WithPow {
 
 export interface OfferTerms {
     question: FactRequest
+    question2?: FactRequest
+    question3?: FactRequest
     partyBetsOn: Answer[]
     counterPartyBetsOn: Answer[]
     partyBetAmount: number
