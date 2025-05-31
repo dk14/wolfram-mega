@@ -104,7 +104,6 @@ const data = await (await fetch(`./${endpoints[view]}?pageSize=100&pageNo=${page
 
 ## Oracle Malleability Reports
 
-
 ### Submit report
 
 Reports have unique pow hash, pow hash is their id. 
