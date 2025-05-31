@@ -35,14 +35,14 @@ P2P network uses [Bitcoin protocol structure](https://en.bitcoin.it/wiki/Protoco
 }
 ```
 
-p2p network is discovered from `p2pseed`, see example at [../cfg/mempool-2.json](cfg/mempool-2.json). Specifying `hostname` would make your node discoverable. `httpPort` is port for REST, `p2pPort` is port for P2P gossiping.
+p2p network is discovered from `p2pseed`, see example at `cfg/mempool-2.json`. Specifying `hostname` would make your node discoverable. `httpPort` is port for REST, `p2pPort` is port for P2P gossiping.
 
 Optional `mempool-cfg` config parameters:
 - `isTest` enables `testOnly` REST endpoints for convenience. 
 - `facilitatorId`: `facilitatorId.rewardAddress` is lightning address for rewards (microbids),  `facilitatorId.facilitatorRewardIdPow` would allow you to establish identity for rewards.
 - `lnRestHost`, `lnMacaroonPath` are used to verify proofs of payments for rewards.
 - `p2pKeepAlive` how often (milliseconds) your peer would remind network about itself.
-- `oracle` and `trader` would spawn oracle administration and trader consoles respectively, see example at [cfg/mempool-trader.json](cfg/mempool-trader.json). `dbPath` param is a path for persistent storage. `wsPort` is websocket for signing messages. 
+- `oracle` and `trader` would spawn oracle administration and trader consoles respectively, see example at `cfg/mempool-trader.json`. `dbPath` param is a path for persistent storage. `wsPort` is websocket for signing messages. 
 
 > Security: don't use `oracle` and `trader` options as a node operator. Their ports should not be open to public. Run separate, isolated instance if you wish to be both: public node and trader.
 
