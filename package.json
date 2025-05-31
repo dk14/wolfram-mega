@@ -22,7 +22,8 @@
   },
   "browser": {
     "openapi-enforcer": false,
-    "p2p-node": false
+    "p2p-node": false,
+    "readline": false
   },
   "bin": {
     "wf-mega-peer": "./bin/wf-mega-peer"
