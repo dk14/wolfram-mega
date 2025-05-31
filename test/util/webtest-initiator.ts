@@ -16,8 +16,7 @@ import assert from "assert";
 fetchMock.config.allowRelativeUrls = true
 fetchMock.mockGlobal().route("./../../wolfram-mega-spec.yaml", "data");
 
-require("../webapp");
-
+require("../../webapp");
 
 (async () => {
     await global.initWebapp

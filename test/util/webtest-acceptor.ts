@@ -16,8 +16,7 @@ import assert from "assert";
 fetchMock.config.allowRelativeUrls = true
 fetchMock.mockGlobal().route("./../../wolfram-mega-spec.yaml", "data");
 
-require("../webapp");
-
+require("../../webapp");
 
 (async () => {
     await global.initWebapp
@@ -46,7 +45,7 @@ require("../webapp");
 
     let offer: OfferModel = undefined
     let i = 0
-    while(offer === undefined && i < 30) {
+    while (offer === undefined && i < 30) {
         i++
         const candidate = await window.matching.pickOffer()
         if (candidate.bet[1] === 30345){
