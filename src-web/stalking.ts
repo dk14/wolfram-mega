@@ -2,7 +2,7 @@ import { Commitment } from "../src/protocol"
 import { PreferenceModel, checkOriginatorId } from "./matching"
 import { genDlcContract, getUtXo } from "./transactions"
 
-export const trackIssuedOffers = async (pref: PreferenceModel) => {
+export const trackIssuedOffers = async () => {
     const pagedescriptor = {
         page: 0,
         chunkSize: 100
@@ -22,7 +22,7 @@ export const trackIssuedOffers = async (pref: PreferenceModel) => {
                 
                 const tx = myOffer.content.accept.openingTx.tx
                 const commitment: Commitment = undefined // todo oracle commitment
-                const inputs = await getUtXo(myOffer, commitment, pref)
+                const inputs = await getUtXo(myOffer, commitment)
                 const [contract, offer] = await genDlcContract(inputs, myOffer)
                 if (contract.cet[0] === undefined || contract.cet[1] === undefined) {
                     offer.pow.hash = offer.pow.hash + "-signing"

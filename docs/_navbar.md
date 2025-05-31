@@ -6,3 +6,4 @@
     - [Traders](traders.md)
     - [Oracles](oracles.md)
     - [Contract Demo](tech.md)
+    - [Matching](matching.md)

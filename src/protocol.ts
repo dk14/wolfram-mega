@@ -159,6 +159,7 @@ export interface OfferTerms {
     partyCompositeCollateralAmount?: number //this is needed to ensure that whole tree of CET-transactions is recovered
     counterpartyCompositeCollateralAmount?: number
     assetPair?: [string, string] // if parties bet assets 
+    txfee?: number
 }
 
 export interface PartiallySignedTx {

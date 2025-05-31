@@ -29,7 +29,7 @@ export interface PreferenceModel {
 
 
 export interface CapabilityModel {
-    id: string
+    capabilityPub: string
     oracle: string
     endpoint: string
 }
@@ -50,8 +50,8 @@ export interface OfferModel {
 
 export interface MatchingEngine {
     pickOffer: () => Promise<OfferModel>
-    collectQuestions: (cfg: PreferenceModel) => Promise<void>
-    collectOffers: (cfg: PreferenceModel) => Promise<void>
+    collectQuestions: (cfg: PreferenceModel) => Promise<string[]>
+    collectOffers: (cfg: PreferenceModel) => Promise<string[]>
     generateOffer: (cfg: PreferenceModel) => Promise<OfferModel>
     broadcastOffer: (o: OfferModel) => Promise<void>
     acceptOffer: (o: OfferModel) => Promise<void>
@@ -87,6 +87,11 @@ export const matchingEngine: MatchingEngine = {
         }))
 
         const offer = candidates[randomInt(candidates.length)]
+
+        if (!offer) {
+            throw "no offers found in database"
+        }
+
         const capability = (await window.storage.queryCapabilities({
             where: async x => x.capabilityPubKey === offer.content.terms.question.capabilityPubKey
         }, oneElemPage))[0]
@@ -101,7 +106,7 @@ export const matchingEngine: MatchingEngine = {
             id: offer.pow.hash,
             bet: [offer.content.terms.partyBetAmount, offer.content.terms.counterpartyBetAmount],
             oracles: [{
-                id: "",
+                capabilityPub: "",
                 oracle: "Wolfram",
                 endpoint: "http://localhost:8080" //can use fact-missing claim as an endpoint too
             }],
@@ -130,7 +135,7 @@ export const matchingEngine: MatchingEngine = {
             id: "aaa",
             bet: [partyBetAmount, counterpartyBetAmount],
             oracles: [{
-                id: "",
+                capabilityPub: "",
                 oracle: cp.oraclePubKey,
                 endpoint: "http://localhost:8080" //can use fact-missing claim as an endpoint too
             }],
@@ -142,6 +147,12 @@ export const matchingEngine: MatchingEngine = {
         return model
     },
     broadcastOffer: async function (o: OfferModel): Promise<void> {
+        if (o.status !== 'matching') {
+            throw "progresssed offers not accepted. status must be 'matching'"
+        }
+        if (o.role !== 'initiator') {
+            throw "you must be initiator; use acceptOffer to accept"
+        }
         const pow: HashCashPow = {
             difficulty: 0,
             algorithm: "",
@@ -150,7 +161,7 @@ export const matchingEngine: MatchingEngine = {
         }
 
         const factRequest: FactRequest = {
-            capabilityPubKey: "",
+            capabilityPubKey: o.oracles[0].capabilityPub,
             arguments: {}
         }
 
@@ -178,6 +189,12 @@ export const matchingEngine: MatchingEngine = {
         })
     },
     acceptOffer: async function (o: OfferModel): Promise<void> {
+        if (o.status !== 'matching') {
+            throw "progresssed offers not accepted. status must be 'matching'"
+        }
+        if (o.role !== 'acceptor') {
+            throw "you must be initiator; use acceptOffer to accept"
+        }
         const offer = (await window.storage.queryOffers({where: async x => x.pow.hash === o.id}, oneElemPage))[0]
         const openingTx: PartiallySignedTx = {
             tx: "TODO",
@@ -200,31 +217,34 @@ export const matchingEngine: MatchingEngine = {
 
        window.traderApi.issueOffer(offer)
     },
-    collectQuestions: async function (cfg: PreferenceModel): Promise<void> {
-        cfg.tags.forEach(tag => {
+    collectQuestions: async function (cfg: PreferenceModel): Promise<string[]> {
+        const ocollectors = cfg.tags.map(tag => {
             window.traderApi.collectOracles("pref-oracles-" + tag, async (o: OracleId) => o.tags?.find(x => x === tag) !== undefined, 10)
+            return "pref-oracles-" + tag
         })
-        cfg.tags.forEach(tag => {
+        const cpcollectors = cfg.tags.map(tag => {
             window.traderApi.collectCapabilities(
                 "pref-cps-" + tag, 
                 {where: async x => true},
                 async (o: OracleId) => o.tags?.find(x => x === tag) !== undefined,
                 capabilityFilter(tag), 
                 10)
+            return "pref-cps-" + tag
         })
+        return ocollectors.concat(cpcollectors)
     },
-    collectOffers: async function (cfg: PreferenceModel): Promise<void> {
+    collectOffers: async function (cfg: PreferenceModel): Promise<string[]> {
         const paging: PagingDescriptor = { page: 0, chunkSize: 100 }
         const cps = cfg.tags.map(tag => window.storage.queryCapabilities({where: async x => capabilityFilter(tag)(x)}, paging))
         const cpPubList = (await Promise.all(cps)).flat().map(x => x.capabilityPubKey)
-        cpPubList.forEach(cpPub => {
+        return cpPubList.map(cpPub => {
             window.traderApi.collectOffers(
                 "cppub-" + cpPub,
                 {where: async x => x.capabilityPubKey === cpPub},
                 async x => true,
                 async x => true,
                 10)
-            
+            return "cppub-" + cpPub
         })
 
     },
@@ -246,7 +266,7 @@ export const matchingEngine: MatchingEngine = {
                 id: "",
                 bet: [o.content.terms.partyBetAmount, o.content.terms.counterpartyBetAmount],
                 oracles: [{
-                    id: o.content.terms.question.capabilityPubKey,
+                    capabilityPub: o.content.terms.question.capabilityPubKey,
                     oracle: o.content.terms.question.capabilityPubKey,
                     endpoint: "TODO"
                 }],
@@ -262,7 +282,7 @@ export const matchingEngine: MatchingEngine = {
                 id: "",
                 bet: [o.content.terms.partyBetAmount, o.content.terms.counterpartyBetAmount],
                 oracles: [{
-                    id: o.content.terms.question.capabilityPubKey,
+                    capabilityPub: o.content.terms.question.capabilityPubKey,
                     oracle: o.content.terms.question.capabilityPubKey,
                     endpoint: "TODO"
                 }],

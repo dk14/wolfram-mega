@@ -2,13 +2,14 @@ import { Collector, Predicate, TraderApi, TraderStorage, traderApi } from './src
 import { MempoolConfig } from './src/config';
 import { browserPeerAPI, startP2P } from './src/p2p';
 import { OracleId, OracleCapability, OfferMsg, Report, PagingDescriptor } from './src/protocol';
-import { FacilitatorNode, api as ndapi} from './src/node';
+import { Api, FacilitatorNode, api as ndapi} from './src/node';
 import * as btc from "./src/client-api/contracts/generate-btc-tx";
 import Sandbox from "@nyariv/sandboxjs";
 import { IDBPDatabase, openDB } from 'idb';
-import { MatchingEngine, matchingEngine } from './src-web/matching';
+import { CapabilityModel, MatchingEngine, OfferModel, PreferenceModel, matchingEngine } from './src-web/matching';
 import * as bitcoin from "bitcoinjs-lib"
 import { p2pktr } from './src/client-api/contracts/btc/tx';
+import { trackIssuedOffers } from './src-web/stalking';
 
 export type Storage = TraderStorage<TraderQuery<OracleId>, TraderQuery<OracleCapability>, TraderQuery<Report>, TraderQuery<OfferMsg>>
 
@@ -30,6 +31,7 @@ declare global {
         storage: Storage
         btc: BtcApi
         matching: MatchingEngine
+        pool: Api
         spec: string
         address: string
         privateDB: IDBPDatabase<unknown> //security note: secrts will be shared across pages in origin (subdomain, e.g. dk14.github.io)
@@ -597,6 +599,7 @@ try {
     console.log(e)
 }
 
+window.pool = ndapi
 window.traderApi = traderApi(cfg.trader, cfg, ndapi, indexDBstorage, node)
 window.storage = indexDBstorage
 
@@ -606,13 +609,58 @@ window.btc = {
     generateDlcContract: btc.generateDlcContract
 }
 
-})()
 
 window.matching = matchingEngine
-setTimeout(() => {
-    matchingEngine.pickOffer().then(console.log)
+
+setInterval(() => trackIssuedOffers(), 1000)
+
+setTimeout(async () => {
+    
+    const preferences: PreferenceModel = {
+        minOraclePow: 0,
+        minOracleReputation: 0,
+        tags: [],
+        txfee: 0
+    }
+
+    window.matching.collectQuestions(preferences)
+    window.matching.collectOffers(preferences)
+
+    const offer = await window.matching.pickOffer()
+
+    await window.matching.acceptOffer(offer)
+
+    const myOffer = await window.matching.generateOffer(preferences)
+    await window.matching.broadcastOffer(myOffer)
+
+    // custom offer
+    const oracles = await window.storage.queryCapabilities({where: async x => true}, {
+        page: 0,
+        chunkSize: 100
+    })
+
+    const oracle: CapabilityModel = {
+        capabilityPub: oracles[0].capabilityPubKey,
+        oracle: '',
+        endpoint: ''
+    }
+    const myCustomOffer: OfferModel = {
+        id: 'id',
+        bet: [1, 100],
+        oracles: [oracle],
+        question: '?',
+        status: 'matching',
+        role: 'initiator'
+    }
+
+    await window.matching.broadcastOffer(myCustomOffer)
+
+   
+
 
 }, 1000)
 
 
 console.log("Started!")
+
+})()
