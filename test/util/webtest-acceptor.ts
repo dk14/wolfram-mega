@@ -38,11 +38,6 @@ require("../../webapp");
     window.matching.collectQuestions(preferences)
     window.matching.collectOffers(preferences)
 
-    const oracles = await window.storage.queryCapabilities({where: async x => true}, {
-        page: 0,
-        chunkSize: 100
-    })
-
     let offer: OfferModel = undefined
     let i = 0
     while (offer === undefined && i < 30) {
