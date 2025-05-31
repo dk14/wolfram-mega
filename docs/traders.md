@@ -75,6 +75,20 @@ await fetch('./collectReports?tag=' + encodeURIComponent(tag), {
 })
 ```
 
+### Collect offers for matching
+
+```ts
+await fetch('./collectOffers?tag=' + encodeURIComponent(tag), {
+    method: 'post',
+    body: JSON.stringify({
+        cpquery: 'some js to preselect capabilities',
+        cppredicate: 'some js to select capabilities',
+        predicate: 'some js to select offers'
+    }),
+    headers: {'Content-Type': 'application/json'}
+})
+```
+
 ### View collected broadcasts
 
 ```ts
@@ -86,6 +100,52 @@ const endpoints = {
     "offers": "listOffers"
 }
 const data = await (await fetch(`./${endpoints[view]}?pageSize=100&pageNo=${page}`)).json()
+```
+
+## Oracle Malleability Reports
+
+
+### Submit report
+
+Reports have unique pow hash, pow hash is their id. 
+If report is rejected due to low-pow difficulty - trader API will upgrade PoW.
+
+> Note: there is a limitation on the maximum length of the message.
+
+```ts
+const content = { 
+    "type": "fact-disagreees-with-public", 
+    "request": {
+        "capabilityPubKey": "", 
+        "arguments": {} 
+    }
+}
+
+const pow = {
+    "magicNo": 1000, 
+    "difficulty":0, 
+    "algorithm": "SHA256",
+    "hash": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+}
+
+const oraclePubKey = ...
+const msg = { seqNo: 0, cTTL: 0, oraclePubKey, pow, content }
+
+await fetch('./issueReport', {
+    method: 'post',
+    body: JSON.stringify(msg),
+    headers: {'Content-Type': 'application/json'}
+})
+```
+### View issued reports
+```ts
+const issuedReports = await (await fetch(`./listIssuedOffers?pageSize=100&pageNo=${page}`)).json()
+```
+
+### Start broadcasting submitted reports
+
+```ts
+fetch('./broadcastIssuedReports')
 ```
 
 ## Issue offer
@@ -140,64 +200,6 @@ const issuedOffers = await (await fetch(`./listIssuedOffers?pageSize=100&pageNo=
 
 ```ts
 fetch('./broadcastIssuedOffers')
-```
-
-### Collect offers for matching
-
-```ts
-await fetch('./collectOffers?tag=' + encodeURIComponent(tag), {
-    method: 'post',
-    body: JSON.stringify({
-        cpquery: 'some js to preselect capabilities',
-        cppredicate: 'some js to select capabilities',
-        predicate: 'some js to select offers'
-    }),
-    headers: {'Content-Type': 'application/json'}
-})
-```
-## Oracle Malleability Reports
-
-### Submit report
-
-Reports have unique pow hash, pow hash is their id. 
-If report is rejected due to low-pow difficulty - trader API will upgrade PoW.
-
-> Note: there is a limitation on the maximum length of the message.
-
-```ts
-const content = { 
-    "type": "fact-disagreees-with-public", 
-    "request": {
-        "capabilityPubKey": "", 
-        "arguments": {} 
-    }
-}
-
-const pow = {
-    "magicNo": 1000, 
-    "difficulty":0, 
-    "algorithm": "SHA256",
-    "hash": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
-}
-
-const oraclePubKey = ...
-const msg = { seqNo: 0, cTTL: 0, oraclePubKey, pow, content }
-
-await fetch('./issueReport', {
-    method: 'post',
-    body: JSON.stringify(msg),
-    headers: {'Content-Type': 'application/json'}
-})
-```
-### View issued reports
-```ts
-const issuedReports = await (await fetch(`./listIssuedOffers?pageSize=100&pageNo=${page}`)).json()
-```
-
-### Start broadcasting submitted reports
-
-```ts
-fetch('./broadcastIssuedReports')
 ```
 
 ## Collector management
