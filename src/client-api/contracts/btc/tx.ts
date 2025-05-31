@@ -113,6 +113,86 @@ function schnorrSignerMulti(pub1: string, pub2: string, secrets: string[] = []):
     }
 }
 
+
+export interface InteractiveSigner {
+    muSigNonce1(pub1: string, pub2: string, msg: string): Promise<{sessionId1: string; commitment1: string}>
+
+    muSigCommitment2(pub1: string, pub2: string, msg: string): Promise<{sessionId2: string; commitment2: string; nonce2: string}>
+
+    sign1(pub1: string, pub2: string, msg: string, data: {
+        commitment2:string, 
+        nonce2: string,
+        sessionId2: string
+    }):Promise<{
+        nonce1: string;
+        partSig1: string;
+        combinedNonceParity: string
+    }>
+
+    sign2(pub1: string, pub2: string, msg: string, data: {
+        partSig1:string,
+        combinedNonceParity: string,
+        nonce1: string,
+        commitment1: string,
+        sessionId2: string
+    }): Promise<string>   
+}
+
+const remoteSigner: InteractiveSigner = {
+    muSigNonce1: async function (pub1: string, pub2: string, msg: string): Promise<{ sessionId1: string; commitment1: string; }> {
+        return await (await fetch(global.cfg.trader.btcInteractiveSignerEndpoint + "/muSigNonce1", {
+            method: 'post',
+            body: JSON.stringify({
+                pk1: pub1,
+                pk2: pub2,
+                msg
+            }),
+            headers: {'Content-Type': 'application/json'}
+        })).json()
+    },
+    muSigCommitment2: async function (pub1: string, pub2: string, msg: string): Promise<{ sessionId2: string; commitment2: string; nonce2: string; }> {
+        return await (await fetch(global.cfg.trader.btcInteractiveSignerEndpoint + "/muSigCommitment2", {
+            method: 'post',
+            body: JSON.stringify({
+                pk1: pub1,
+                pk2: pub2,
+                msg
+            }),
+            headers: {'Content-Type': 'application/json'}
+        })).json()
+    },
+    sign1: async function (pub1: string, pub2: string, msg: string, session: { commitment2: string; nonce2: string; sessionId2: string; }): Promise<{ nonce1: string; partSig1: string; combinedNonceParity: string; }> {
+        return await (await fetch(global.cfg.trader.btcInteractiveSignerEndpoint + "/sign1", {
+            method: 'post',
+            body: JSON.stringify({
+                pk1: pub1,
+                pk2: pub2,
+                commitment2: session.commitment2,
+                nonce2: session.nonce2,
+                sessionId2: session.sessionId2,
+                msg
+            }),
+            headers: {'Content-Type': 'application/json'}
+        })).json()
+    },
+    sign2: async function (pub1: string, pub2: string, msg: string, session: { partSig1: string; combinedNonceParity: string; nonce1: string; commitment1: string; sessionId2: string; }): Promise<string> {
+        return await (await fetch(global.cfg.trader.btcInteractiveSignerEndpoint + "/sign2", {
+            method: 'post',
+            body: JSON.stringify({
+                pk1: pub1,
+                pk2: pub2,
+                partSig1: session.partSig1,
+                combinedNonceParity: session.combinedNonceParity,
+                nonce1: session.nonce1,
+                commitment1: session.commitment1,
+                sessionId2: session.sessionId2,
+                msg
+            }),
+            headers: {'Content-Type': 'application/json'}
+        })).text()
+    }
+}
+
 export interface PublicSession {
     sessionId1?: string,
     sessionId2?: string,
@@ -126,7 +206,7 @@ export interface PublicSession {
     update: (p: PublicSession) => void
 }
 
-function schnorrSignerInteractive(pub1: string, pub2: string, session: PublicSession): SignerAsync {
+function schnorrSignerInteractive(pub1: string, pub2: string, session: PublicSession, signer = remoteSigner): SignerAsync {
     
     const pkCombined = muSig.pubKeyCombine([Buffer.from(pub1, "hex"), Buffer.from(pub2, "hex")]);
     let pubKeyCombined = convert.intToBuffer(pkCombined.affineX);
@@ -138,17 +218,7 @@ function schnorrSignerInteractive(pub1: string, pub2: string, session: PublicSes
         },
         async signSchnorr(hash: Buffer): Promise<Buffer> {
             if (!session.sessionId1) {
-                const res = await (await fetch(global.cfg.trader.btcInteractiveSignerEndpoint + "/muSigNonce1", {
-                    method: 'post',
-                    body: JSON.stringify({
-                        pk1: pub1,
-                        pk2: pub2,
-                        
-                        msg: hash.toString('hex')
-                    }),
-                    headers: {'Content-Type': 'application/json'}
-                })).json()
-
+                const res = await signer.muSigNonce1(pub1, pub2, hash.toString('hex'))
                 session.sessionId1 = res.sessionId1
                 session.commitment1 = res.commitment1
                 session.update(session)
@@ -156,16 +226,7 @@ function schnorrSignerInteractive(pub1: string, pub2: string, session: PublicSes
             }
             
             if (!session.commitment2) {
-                const res = await (await fetch(global.cfg.trader.btcInteractiveSignerEndpoint + "/muSigCommitment2", {
-                    method: 'post',
-                    body: JSON.stringify({
-                        pk1: pub1,
-                        pk2: pub2,
-                        
-                        msg: hash.toString('hex')
-                    }),
-                    headers: {'Content-Type': 'application/json'}
-                })).json()
+                const res = await signer.muSigCommitment2(pub1, pub2, hash.toString('hex'))
                 session.commitment2 = res.commitment2
                 session.nonce2 = res.nonce2
                 session.sessionId2 = res.sessionId2
@@ -174,18 +235,11 @@ function schnorrSignerInteractive(pub1: string, pub2: string, session: PublicSes
             }
             
             if (!session.nonce1) {
-                const res = await (await fetch(global.cfg.trader.btcInteractiveSignerEndpoint + "/sign1", {
-                    method: 'post',
-                    body: JSON.stringify({
-                        pk1: pub1,
-                        pk2: pub2,
-                        commitment2: session.commitment2,
-                        nonce2: session.nonce2,
-                        sessionId2: session.sessionId2,
-                        msg: hash.toString('hex')
-                    }),
-                    headers: {'Content-Type': 'application/json'}
-                })).json()
+                const res = await signer.sign1(pub1, pub2, hash.toString('hex'), {
+                    commitment2: session.commitment2,
+                    nonce2: session.nonce2,
+                    sessionId2: session.sessionId2,
+                })
 
                 session.nonce1 = res.nonce1
                 session.partSig1 = res.partSig1
@@ -193,23 +247,15 @@ function schnorrSignerInteractive(pub1: string, pub2: string, session: PublicSes
                 session.update(session)
                 throw "incomplete sign"
             }
-            
-            const response = await fetch(global.cfg.trader.btcInteractiveSignerEndpoint + "/sign2", {
-                method: 'post',
-                body: JSON.stringify({
-                    pk1: pub1,
-                    pk2: pub2,
-                    partSig1: session.partSig1,
-                    combinedNonceParity: session.combinedNonceParity,
-                    nonce1: session.nonce1,
-                    commitment1: session.commitment1,
-                    sessionId2: session.sessionId2,
-                    msg: hash.toString('hex')
-                }),
-                headers: {'Content-Type': 'application/json'}
+
+            const res = await signer.sign2(pub1, pub2, hash.toString('hex'), {
+                partSig1: session.partSig1,
+                combinedNonceParity: session.combinedNonceParity,
+                nonce1: session.nonce1,
+                commitment1: session.commitment1,
+                sessionId2: session.sessionId2,
             })
 
-            const res = await response.text()
             return Buffer.from(res, "hex")
         },
         getPublicKey(): Buffer {
