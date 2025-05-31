@@ -18,6 +18,9 @@ if (isBrowser()) {
 
 import {Signer, SignerAsync} from "bitcoinjs-lib/src/psbt.d"
 
+import * as multisigInteractive from './mu-sig-interactive'
+import bs58 from 'bs58'
+
 const net = bitcoin.networks.testnet
 
 
@@ -122,7 +125,7 @@ export interface InteractiveSigner {
     sign1(pub1: string, pub2: string, msg: string, data: {
         commitment2:string, 
         nonce2: string,
-        sessionId2: string
+        sessionId1: string
     }):Promise<{
         nonce1: string;
         partSig1: string;
@@ -161,7 +164,7 @@ const remoteSigner: InteractiveSigner = {
             headers: {'Content-Type': 'application/json'}
         })).json()
     },
-    sign1: async function (pub1: string, pub2: string, msg: string, session: { commitment2: string; nonce2: string; sessionId2: string; }): Promise<{ nonce1: string; partSig1: string; combinedNonceParity: string; }> {
+    sign1: async function (pub1: string, pub2: string, msg: string, session: { commitment2: string; nonce2: string; sessionId1: string; }): Promise<{ nonce1: string; partSig1: string; combinedNonceParity: string; }> {
         return await (await fetch(global.cfg.trader.btcInteractiveSignerEndpoint + "/sign1", {
             method: 'post',
             body: JSON.stringify({
@@ -169,7 +172,7 @@ const remoteSigner: InteractiveSigner = {
                 pk2: pub2,
                 commitment2: session.commitment2,
                 nonce2: session.nonce2,
-                sessionId2: session.sessionId2,
+                sessionId1: session.sessionId1,
                 msg
             }),
             headers: {'Content-Type': 'application/json'}
@@ -193,6 +196,49 @@ const remoteSigner: InteractiveSigner = {
     }
 }
 
+const webSigner: InteractiveSigner = {
+    muSigNonce1: async function (pub1: string, pub2: string, msg: string): Promise<{ sessionId1: string; commitment1: string; }> {
+       return multisigInteractive.muSigNonce1(
+            pub1,
+            pub2,
+            Buffer.from(bs58.decode(await window.privateDB.get("secrets", pub1))).toString("hex").substring(2, 64 + 2),
+            Buffer.from(msg, "hex")
+        )
+    },
+    muSigCommitment2: async function (pub1: string, pub2: string, msg: string): Promise<{ sessionId2: string; commitment2: string; nonce2: string; }> {
+        return multisigInteractive.muSigCommitment2(
+            pub1,
+            pub2,
+            Buffer.from(bs58.decode(await window.privateDB.get("secrets", pub2))).toString("hex").substring(2, 64 + 2),
+            Buffer.from(msg, "hex")
+        )
+    },
+    sign1: async function (pub1: string, pub2: string, msg: string, input: { commitment2: string; nonce2: string; sessionId1: string; }): Promise<{ nonce1: string; partSig1: string; combinedNonceParity: string; }> {
+        return multisigInteractive.sign1(
+            pub1,
+            pub2,
+            input.commitment2,
+            input.nonce2,
+            Buffer.from(bs58.decode(await window.privateDB.get("secrets", pub2))).toString("hex").substring(2, 64 + 2),
+            Buffer.from(msg, "hex"),
+            input.sessionId1
+        )
+    },
+    sign2: async function (pub1: string, pub2: string, msg: string, input: { partSig1: string; combinedNonceParity: string; nonce1: string; commitment1: string; sessionId2: string; }): Promise<string> {
+        return multisigInteractive.sign2(
+            pub1,
+            pub2,
+            input.partSig1,
+            input.combinedNonceParity,
+            input.nonce1,
+            input.commitment1,
+            Buffer.from(bs58.decode(await window.privateDB.get("secrets", pub2))).toString("hex").substring(2, 64 + 2),
+            Buffer.from(msg, "hex"),
+            input.sessionId2
+        )
+    }
+}
+
 export interface PublicSession {
     sessionId1?: string,
     sessionId2?: string,
@@ -206,7 +252,7 @@ export interface PublicSession {
     update: (p: PublicSession) => void
 }
 
-function schnorrSignerInteractive(pub1: string, pub2: string, session: PublicSession, signer = remoteSigner): SignerAsync {
+function schnorrSignerInteractive(pub1: string, pub2: string, session: PublicSession, signer = isBrowser() ? webSigner : remoteSigner): SignerAsync {
     
     const pkCombined = muSig.pubKeyCombine([Buffer.from(pub1, "hex"), Buffer.from(pub2, "hex")]);
     let pubKeyCombined = convert.intToBuffer(pkCombined.affineX);
@@ -238,7 +284,7 @@ function schnorrSignerInteractive(pub1: string, pub2: string, session: PublicSes
                 const res = await signer.sign1(pub1, pub2, hash.toString('hex'), {
                     commitment2: session.commitment2,
                     nonce2: session.nonce2,
-                    sessionId2: session.sessionId2,
+                    sessionId1: session.sessionId1,
                 })
 
                 session.nonce1 = res.nonce1
