@@ -19,7 +19,7 @@ require("../webapp");
 
 
 (async () => {
-    console.log("TEST" + global.initWebapp)
+    console.log("TEST")
     await global.initWebapp
 
     setInterval(() => window.stalking.trackIssuedOffers({
