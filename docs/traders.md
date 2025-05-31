@@ -142,7 +142,7 @@ const issuedOffers = await (await fetch(`./listIssuedOffers?pageSize=100&pageNo=
 fetch('./broadcastIssuedOffers')
 ```
 
-### Collect offers
+### Collect offers for matching
 
 ```ts
 await fetch('./collectOffers?tag=' + encodeURIComponent(tag), {
