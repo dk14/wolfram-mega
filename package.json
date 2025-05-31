@@ -17,6 +17,7 @@
     "btc-signer": "npx tsx src/client-api/utils/btc-signer.ts",
     "gen-keypair": "npx tsx src/client-api/utils/gen-keypair.ts",
     "demo": "npx tsx test/demo.ts",
+    "webtest": "npx tsx test/webtest.ts",
     "build": "tsc -p tsconfig.json && cp wolfram-mega-spec.yaml dist/ && cp index.html dist/ && cp -r cfg dist/",
     "bundle": "npx tsx esbuild.ts"
   },
