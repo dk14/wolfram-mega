@@ -98,13 +98,13 @@ The rule for evolving offer state collaboratively is to always pick the offer wi
 
 # Composite contracts 
 
-Offers in Mega can express any meaningful financial contract. `ContractTerms` (`src/protocol.ts`) is a basic abstract language (akin to Cardano Marlowe) which standardizes description of financial contracts. 
+Offers in Mega can express any meaningful financial contract. `OfferTerms` (`src/protocol.ts`) is a basic abstract language (akin to Cardano Marlowe) which standardizes description of financial contracts. 
 
-Unlike Marlowe, `ContractTerms` is closer to modern quantitative finance, taking two-party binary option as a basis.
+Unlike Marlowe, `OfferTerms` is closer to modern quantitative finance, taking two-party binary option as a basis.
 
-Traders can write their own interpreter for `ContractTerms` since the logic is trivial: binary options which can depend on outcomes of other binary options. 
+Traders can write their own interpreter for `OfferTerms` since the logic is trivial: binary options which can depend on outcomes of other binary options. 
 
-This approach is compatible with Bitcoin DLC, since trading app developers can simply generate a tree of CET transaction straightforwardly from `ContractTerms`. It also allows to generate contracts for any chain.
+This approach is compatible with Bitcoin DLC, since trading app developers can simply generate a tree of CET transaction straightforwardly from `OfferTerms`. It also allows to generate contracts for any chain.
 
 
 ## Example
@@ -124,8 +124,8 @@ Here's composite binary option:
 
 PSEUDOCODE (we leave trivial DSLs to app developers):
 ```ts
-receive(party, 100 + max(20, 0)) //can be implicit in `ContractTerms`
-receive(counterparty, 10 + max(10, 10)) //can be implicit in `ContractTerms`
+receive(party, 100 + max(20, 0)) //can be implicit in `OfferTerms`
+receive(counterparty, 10 + max(10, 10)) //can be implicit in `OfferTerms`
 if (outcome("who's president") === "ME") {
     payTo(party, 10)
     if (outcome("who's the best?") === "I") {
@@ -228,7 +228,7 @@ It is trivial to built "multiParty eDSLs" under this framework too, since one on
 
 ## Schedules 
 
-Schedules (e.g. quantized  `InterestRateSwap`) are  expressed through `ContractTerms.dependsOn` reference meant to specify previous stage in a multi-stage contract. `ContractTerms.dependsOn` can be conditional on the outcome of previous stage, effectively  making such contracts stateful (state would be a set of past outcomes).
+Schedules (e.g. quantized  `InterestRateSwap`) are  expressed through `OfferTerms.dependsOn` reference meant to specify previous stage in a multi-stage contract. `OfferTerms.dependsOn` can be conditional on the outcome of previous stage, effectively  making such contracts stateful (state would be a set of past outcomes).
 
 
 
@@ -243,7 +243,7 @@ For BTC this would require to either:
 - or a consensus of existing parties
 
 ### Exponential explosion
-`ContractTerms` are meant to represent a contract with predictable execution time (Marlowe expressiveness). This approach also ensures that funds won't stuck in an escrow.
+`OfferTerms` are meant to represent a contract with predictable execution time (Marlowe expressiveness). This approach also ensures that funds won't stuck in an escrow.
 
 Careless use, however, can put contracts at the risk of  explosion, over-choicefullness.
 
