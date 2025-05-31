@@ -41,7 +41,8 @@ const bitcoin = __importStar(require("bitcoinjs-lib"));
 const bip371_1 = require("bitcoinjs-lib/src/psbt/bip371");
 const ecc = __importStar(require("tiny-secp256k1"));
 if ((0, util_1.isBrowser)()) {
-    ecc.then(ec => bitcoin.initEccLib(ec));
+    bitcoin.initEccLib(ecc);
+    // (ecc as any).then(ec => bitcoin.initEccLib(ec))
 }
 else {
     bitcoin.initEccLib(ecc);

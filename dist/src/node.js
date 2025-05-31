@@ -44,7 +44,6 @@ const https_1 = __importDefault(require("https"));
 const fs = __importStar(require("fs"));
 const util_1 = require("./util");
 const openapi_enforcer_1 = __importDefault(require("openapi-enforcer"));
-const inspector_1 = require("inspector");
 const openapi_request_validator_1 = __importDefault(require("openapi-request-validator"));
 const js_yaml_1 = __importDefault(require("js-yaml"));
 const regexPem = /.{64}/g;
@@ -160,7 +159,6 @@ const validateBid = async (cfg, bid) => {
             return body.payment_addr === cfg.facilitatorId?.rewardAddress && body.amt_paid_msat === bid.amount && body.state === "SETTLED";
         }
         catch (err) {
-            inspector_1.console.log(err);
             return false;
         }
     }
@@ -322,14 +320,12 @@ exports.api = {
     },
     lookupCapabilities: async (paging, oraclePub) => {
         if (mempool.oracles[oraclePub] === undefined) {
-            inspector_1.console.log("oracle not found " + oraclePub);
             return [];
         }
         return mempool.oracles[oraclePub].capabilies.slice(paging.page * paging.chunkSize, (paging.page + 1) * paging.chunkSize);
     },
     lookupReports: async (paging, oraclePub) => {
         if (mempool.oracles[oraclePub] === undefined) {
-            inspector_1.console.log("oracle not found " + oraclePub);
             return [];
         }
         return mempool.oracles[oraclePub].reports.slice(paging.page * paging.chunkSize, (paging.page + 1) * paging.chunkSize);

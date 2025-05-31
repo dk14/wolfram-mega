@@ -37,13 +37,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const trader_api_1 = require("./src/client-api/trader-api");
-const p2p_1 = require("./src/p2p");
 const node_1 = require("./src/node");
 const btc = __importStar(require("./src/client-api/contracts/generate-btc-tx"));
 const sandboxjs_1 = __importDefault(require("@nyariv/sandboxjs"));
 const idb_1 = require("idb");
 const matching_1 = require("./src-web/matching");
-const bitcoin = __importStar(require("bitcoinjs-lib"));
+const tx_1 = require("./src/client-api/contracts/btc/tx");
 (async () => {
     window.spec = await (await fetch("./../wolfram-mega-spec.yaml")).text();
     const safeEval = (expression, data) => {
@@ -97,8 +96,6 @@ const bitcoin = __importStar(require("bitcoinjs-lib"));
             "btcInteractiveSignerEndpoint": "http://localhost:9593/"
         }
     };
-    console.log("Start P2P service...   " + cfg.p2pPort);
-    (0, p2p_1.startP2P)(cfg);
     const adaptjs = (js) => async (x) => { return safeEval(js, x); };
     const adaptPred = (p) => "(" + p.toString() + ")(this)";
     const adaptQuery = (q) => "(" + q.where.toString() + ")(this)";
@@ -218,17 +215,29 @@ const bitcoin = __importStar(require("bitcoinjs-lib"));
     const pub1 = "cRFAdefAzpxzKduj3F9wf3qSTgA5johBBqPZZT72hh46dgCRr997";
     const pub2 = "cRFAdefAzpxzKduj3F9wf3qSTgA5johBBqPZZT72hh46dgCRr997";
     const pubOracleCp = "cW3z2LN7rwnomrds4cF2PJhbrCmFPkX1Q8KY5Fe6F6myRotHFXrv";
-    window.privateDB.add("secrets", pub1, "e37e4cced6f555a1b2063d645f01ad4d57cc1ffa8c382d28d90561a945dbe13e");
-    window.privateDB.add("secrets", pub2, "7fe828395f6143c295ae162d235c3c4b58c27fa1fd2019e88da55979bba5396e");
-    window.privateDB.add("secrets", pubOracleCp, "07508128697f7a1aca5c3e86292daa4b08f76e68b405e4b4ffe50d066ade55c3");
-    window.address = bitcoin.payments.p2pkh({ pubkey: Buffer.from(pub1, 'hex') }).address;
+    try {
+        await window.privateDB.add("secrets", pub1, "e37e4cced6f555a1b2063d645f01ad4d57cc1ffa8c382d28d90561a945dbe13e");
+        await window.privateDB.add("secrets", pub2, "7fe828395f6143c295ae162d235c3c4b58c27fa1fd2019e88da55979bba5396e");
+        await window.privateDB.add("secrets", pubOracleCp, "07508128697f7a1aca5c3e86292daa4b08f76e68b405e4b4ffe50d066ade55c3");
+    }
+    catch {
+    }
+    try {
+        window.address = (0, tx_1.p2pktr)(pub1).address;
+    }
+    catch {
+    }
     //LOCAL ORACLE
     window.webOracleFacts = await (0, idb_1.openDB)('web-oracle', 1, {
         upgrade(db) {
             db.createObjectStore('answers');
         },
     });
-    window.privateDB.add("secrets", pubOracleCp, "YES");
+    try {
+        await window.webOracleFacts.add("answers", pubOracleCp, "YES");
+    }
+    catch {
+    }
     const db = await (0, idb_1.openDB)('store', 1, {
         upgrade(db) {
             db.createObjectStore('oracles');
@@ -242,32 +251,32 @@ const bitcoin = __importStar(require("bitcoinjs-lib"));
     const indexDBstorage = {
         addOracle: async function (o) {
             const found = await db.get("oracles", o.pubkey);
-            db.put("oracles", o, o.pubkey);
+            await db.put("oracles", o, o.pubkey);
             return found === undefined;
         },
         addCp: async function (cp) {
             const found = await db.get("oracles", cp.capabilityPubKey);
-            db.put("cps", cp, cp.capabilityPubKey);
+            await db.put("cps", cp, cp.capabilityPubKey);
             return found === undefined;
         },
         addReport: async function (r) {
             const found = await db.get("reports", r.pow.hash);
-            db.put("cps", r, r.pow.hash);
+            await db.put("cps", r, r.pow.hash);
             return found === undefined;
         },
         addIssuedReport: async function (r) {
             const found = await db.get("issued-reports", r.pow.hash);
-            db.put("cps", r, r.pow.hash);
+            await db.put("cps", r, r.pow.hash);
             return found === undefined;
         },
         addOffer: async function (o) {
             const found = await db.get("offers", o.pow.hash);
-            db.put("cps", o, o.pow.hash);
+            await db.put("cps", o, o.pow.hash);
             return found === undefined;
         },
         addIssuedOffer: async function (o) {
             const found = await db.get("issued-offers", o.pow.hash);
-            db.put("cps", o, o.pow.hash);
+            await db.put("cps", o, o.pow.hash);
             return found === undefined;
         },
         removeOracles: async function (pubkeys) {
@@ -396,11 +405,15 @@ const bitcoin = __importStar(require("bitcoinjs-lib"));
             }
             return result;
         },
-        allIssuedOffers: function (handler) {
-            throw new Error('Function not implemented.');
+        allIssuedOffers: async function (handler) {
+            (await db.getAll("issued-offers")).forEach(o => {
+                handler(o);
+            });
         },
-        allIssuedReports: function (handler) {
-            throw new Error('Function not implemented.');
+        allIssuedReports: async function (handler) {
+            (await db.getAll("issued-offers")).forEach(o => {
+                handler(o);
+            });
         }
     };
     const remoteStorage = {
@@ -550,6 +563,12 @@ const bitcoin = __importStar(require("bitcoinjs-lib"));
         broadcastMessage: function (command, content) {
         }
     };
+    try {
+        //startP2P(cfg, browserPeerAPI)
+    }
+    catch (e) {
+        console.log(e);
+    }
     window.traderApi = (0, trader_api_1.traderApi)(cfg.trader, cfg, node_1.api, indexDBstorage, node);
     window.storage = indexDBstorage;
     window.btc = {
@@ -559,4 +578,8 @@ const bitcoin = __importStar(require("bitcoinjs-lib"));
     };
 })();
 window.matching = matching_1.matchingEngine;
+setTimeout(() => {
+    matching_1.matchingEngine.pickOffer().then(console.log);
+}, 1000);
+console.log("Started!");
 //# sourceMappingURL=webapp.js.map
