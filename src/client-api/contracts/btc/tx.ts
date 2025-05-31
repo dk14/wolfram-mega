@@ -58,7 +58,7 @@ import { SchnorrApi } from "./schnorr";
 import { Taptree } from "bitcoinjs-lib/src/types";
 import { isBrowser } from "../../../util";
 
-function schnorrSignerSingle(pub: string): SignerAsync {
+function schnorrSignerSingle(pub: string, session: OpeningTxSession = {sigs: []}, out: number = 0): SignerAsync {
     return {
         publicKey: Buffer.from(pub, "hex"),
         network: net,
@@ -66,17 +66,27 @@ function schnorrSignerSingle(pub: string): SignerAsync {
             return null
         },
         async signSchnorr(hash: Buffer): Promise<Buffer> {
-            const response = await fetch(global.cfg.trader.btcSignerEndpoint, {
-                method: 'post',
-                body: JSON.stringify({
-                    pubkeys: [pub],
-                    msg: hash.toString('hex')
-                }),
-                headers: {'Content-Type': 'application/json'}
-            })
+            try {
+                const response = await fetch(global.cfg.trader.btcSignerEndpoint, {
+                    method: 'post',
+                    body: JSON.stringify({
+                        pubkeys: [pub],
+                        msg: hash.toString('hex')
+                    }),
+                    headers: {'Content-Type': 'application/json'}
+                })
+                const signature = Buffer.from(await response.text(), "hex")
+                session.sigs[out] = signature.toString('hex')
+                return signature
+            } catch (e) {
+                if (session.sigs[out] !== undefined) {
+                    return Buffer.from(session.sigs[out], "hex")
+                }
+                throw e
+            }
             
             
-            return Buffer.from(await response.text(), "hex")
+            
             //return schnorr.sign(convert.bufferToInt(secret), hash)
         },
         getPublicKey(): Buffer {
@@ -398,7 +408,12 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
                     await psbt.signInputAsync(i, schnorrSignerSingle(alicePub))
                 } else {
                     try {
-                        await psbt.signInputAsync(i, schnorrSignerSingleWeb(alicePub, session, i))
+                        if (isBrowser()) {
+                            await psbt.signInputAsync(i, schnorrSignerSingleWeb(alicePub, session, i))
+                        } else {
+                            await psbt.signInputAsync(i, schnorrSignerSingle(alicePub, session, i))
+                        }
+                       
                     } catch {
 
                     } 
@@ -410,7 +425,11 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
                     await psbt.signInputAsync(aliceIn.length + i, schnorrSignerSingle(bobPub))
                 } else {
                     try {
-                        await psbt.signInputAsync(aliceIn.length + i, schnorrSignerSingleWeb(bobPub, session, aliceIn.length + i))
+                        if (isBrowser()) {
+                            await psbt.signInputAsync(aliceIn.length + i, schnorrSignerSingleWeb(bobPub, session, aliceIn.length + i))
+                        } else {
+                            await psbt.signInputAsync(aliceIn.length + i, schnorrSignerSingle(bobPub, session, aliceIn.length + i))
+                        }
                     } catch {
 
                     }  
