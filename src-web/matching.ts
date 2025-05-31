@@ -2,7 +2,7 @@ import { TraderApi } from "../src/client-api/trader-api"
 import { AcceptOffer, DependsOn, FactRequest, HashCashPow, Offer, OfferTerms, OracleCapability, OracleId, PagingDescriptor, PartiallySignedTx } from "../src/protocol"
 import { BtcApi, TraderQuery, Storage } from "../webapp"
 
-const randomInt = (n: number): number => {
+export const randomInt = (n: number): number => {
     return Math.floor(Math.random() * (n - 1));
 }
 
@@ -167,7 +167,7 @@ export const matchingEngine: MatchingEngine = {
         }
         const pow: HashCashPow = {
             difficulty: 0,
-            algorithm: "",
+            algorithm: "SHA-256",
             hash: "", //initial id
             magicNo: 0
         }
@@ -227,8 +227,11 @@ export const matchingEngine: MatchingEngine = {
             acceptorId: getOriginatorId()
         }
         offer.content.accept = accept
+        if (!offer.content.addresses) {
+            offer.content.addresses = []
+        }
         offer.content.addresses[1] = window.address
-        offer.pow.hash = offer.pow.hash + "accept" //will be upgraded
+        offer.pow.hash = offer.pow.hash + "accept" + randomInt(100) //will be upgraded
 
 
        window.traderApi.issueOffer(offer)

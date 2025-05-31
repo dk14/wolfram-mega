@@ -1,6 +1,6 @@
 import { UTxO } from "../src/client-api/contracts/btc/tx"
 import { Commitment, Fact, FactRequest, OfferMsg } from "../src/protocol"
-import { PreferenceModel, checkOriginatorId } from "./matching"
+import { PreferenceModel, checkOriginatorId, randomInt } from "./matching"
 import { OracleDataProvider } from "./oracle-data-provider"
 import { ContractInterpreter } from "./transactions"
 
@@ -64,7 +64,7 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
                 const [contract, partial] = await interpreter.genContractTx(inputs, [commitment], order)
 
                 if (partial !== undefined) {
-                    partial.pow.hash = partial.pow.hash + "-signing"
+                    partial.pow.hash = partial.pow.hash + "-signing" + randomInt(100)
                     partial.content.utxos[0] = inputs.utxoAlice.map(x => [x.txid, x.vout])
                     partial.content.utxos[1] = inputs.utxoBob.map(x => [x.txid, x.vout])
                     window.traderApi.issueOffer(partial)

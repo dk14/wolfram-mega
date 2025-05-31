@@ -17,8 +17,9 @@ require("../webapp");
 
 
 (async () => {
-    console.log("TEST")
     await global.initWebapp
+    console.log("\n")
+    console.log("MATCHING TEST")
 
     setInterval(() => window.stalking.trackIssuedOffers({
         "bitcoin-testnet": btcDlcContractInterpreter
@@ -31,17 +32,24 @@ require("../webapp");
         txfee: 0
     }
     
+    console.log("- start collectors")
     window.matching.collectQuestions(preferences)
     window.matching.collectOffers(preferences)
-    await window.matching.broadcastOffer(await window.matching.generateOffer(preferences))
+
+    console.log("- pick offer")
 
     const offer = await window.matching.pickOffer()
 
+    console.log("- accept selected offer")
     await window.matching.acceptOffer(offer)
 
+    console.log("- generate random offer")
     const myOffer = await window.matching.generateOffer(preferences)
+
+    console.log("- broadcast generated offer")
     await window.matching.broadcastOffer(myOffer)
 
+    console.log("- create and broadcast custom offer")
     // custom offer
     const oracles = await window.storage.queryCapabilities({where: async x => true}, {
         page: 0,
