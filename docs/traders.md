@@ -13,6 +13,8 @@ Trader Console UI and REST will be available at:
 
 - http://localhost:7080/
 
+> Security: no ports should be open to public network in this mode. Use virtualization (e.g. virsh)
+
 or run a full demo:
 ```bash
 npm run demo
@@ -21,6 +23,8 @@ npm run demo
 - Oracle Admin: http://localhost:8080/oracle-admin/
 - Mockup Oracle: http://localhost:8080/oracle-endpoint/
 - Trader API: http://localhost:8080/trader-console/
+
+> Security: no ports should be open to public network in this mode. Use virtualization (e.g. virsh)
 
 ## Find Oracle and Capability
 
