@@ -108,7 +108,7 @@ This approach is compatible with Bitcoin DLC, since trading app developers can s
 
 
 ## Example
-Here's binary option:
+Here's non-composite binary option:
 
 ```json
 {
