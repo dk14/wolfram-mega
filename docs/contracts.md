@@ -342,10 +342,6 @@ Client:
 
 [link](https://drive.google.com/file/d/1vABqqvhWD02wjaIzPP_rvGsvGJ-zSSy6/view?usp=sharing)
 
-**P2P Architecture**:
-![image](../image.png)
-
-
 
 ## Persistence
 `src/client-api/client-storage` provides simple implementation of a database holding collected broadcasts.

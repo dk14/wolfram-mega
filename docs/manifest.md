@@ -92,3 +92,5 @@ Securitization of malleability reports. Since PoW is done on reports, reports th
 --------
 
 
+**P2P Architecture**:
+![image](../image.png)
