@@ -167,6 +167,14 @@ const content = {
             "capabilityPubKey":"<pubkey of oracle capability>",
             "arguments":{}
         },
+        "question2": { //optonal, for quorums
+            "capabilityPubKey":"<pubkey of oracle capability>",
+            "arguments":{}
+        },
+        "question3": { //optonal, for quorums
+            "capabilityPubKey":"<pubkey of oracle capability>",
+            "arguments":{}
+        },
         "partyBetsOn":[],
         "counterPartyBetsOn":[],
         "partyBetAmount":0,
