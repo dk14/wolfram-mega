@@ -16,7 +16,7 @@ fetch_mock_1.default.config.allowRelativeUrls = true;
 fetch_mock_1.default.mockGlobal().route("./../wolfram-mega-spec.yaml", "data");
 require("../webapp");
 (async () => {
-    console.log("TEST" + global.initWebapp);
+    console.log("TEST");
     await global.initWebapp;
     setInterval(() => window.stalking.trackIssuedOffers({
         "bitcoin-testnet": transactions_1.btcDlcContractInterpreter
