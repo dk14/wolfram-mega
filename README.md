@@ -41,11 +41,9 @@ Protocol is specifications are in `src/protocol.ts` and `wolfram-mega-spec.yaml`
 ## TODOs
 
 - implement slashing, add slashing and multisigs to mockup oracle
-- mockup database for webapp
 - bind models for webapp
 - detect matching stages for webapp
 - finish peerjs support
-- finish interactive signatures
-- finish webapp matching
+- finish interactive signatures and tx generation for webapp
 - provide optional nodejs backend for webapp
 - add quorums to webapp
