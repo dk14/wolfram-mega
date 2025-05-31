@@ -31,6 +31,8 @@ export interface CapabilityModel {
     capabilityPub: string
     oracle: string
     endpoint: string
+    params?: {[id: string]: string}
+    answer?: string
 }
 
 export interface OfferModel {
