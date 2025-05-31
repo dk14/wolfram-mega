@@ -1,17 +1,25 @@
 import { build } from "esbuild";
 import { nodeModulesPolyfillPlugin } from 'esbuild-plugins-node-modules-polyfill';
+import { wasmLoader } from 'esbuild-plugin-wasm'
 
+const canBeBlank = ['node-fetch', 'path', 'http', 'util', 'net', 'url', 'fs', 'stream', 'zlib', 'https']
 build({
 	entryPoints: ["webapp.ts"],
 	bundle: true,
 	outfile: "bundle.js",
+	format: "esm",
+	sourcemap: true,
 	plugins: [
 		nodeModulesPolyfillPlugin({
 			globals: {
 				process: true,
 				Buffer: true,  
 			},
-            modules: ['crypto', 'process', 'buffer']
+            modules: ['crypto', 'process', 'buffer'].concat(canBeBlank) 
+			
 		}),
+		wasmLoader({
+			mode: 'embedded'
+		})
 	],
 });

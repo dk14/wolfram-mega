@@ -5,7 +5,6 @@ import https from 'https'
 import * as fs from 'fs'
 import { hash, isBrowser } from './util'
 import Enforcer from 'openapi-enforcer'
-import { console } from 'inspector'
 import { MempoolConfig } from "./config"
 import {OracleId, OracleCapability, 
     Commitment, HashCashPow, MsgLike, WithPow, 
@@ -190,7 +189,6 @@ const validateBid = async (cfg: MempoolConfig<any>, bid: Bid): Promise<boolean> 
             )).json()
             return body.payment_addr === cfg.facilitatorId?.rewardAddress && body.amt_paid_msat === bid.amount && body.state === "SETTLED"
         } catch (err) {
-            console.log(err)
             return false
         }
     }
@@ -348,7 +346,6 @@ export const api: Api = {
     },
     lookupCapabilities: async (paging: PagingDescriptor, oraclePub: string): Promise<OracleCapability[]> => {
         if (mempool.oracles[oraclePub] === undefined) {
-            console.log("oracle not found " + oraclePub);
             return [];
         }
         return mempool.oracles[oraclePub].capabilies.slice(paging.page * paging.chunkSize, (paging.page + 1) * paging.chunkSize);
@@ -356,7 +353,6 @@ export const api: Api = {
     },
     lookupReports: async (paging: PagingDescriptor, oraclePub: string): Promise<Report[]> => {
         if (mempool.oracles[oraclePub] === undefined) {
-            console.log("oracle not found " + oraclePub);
             return [];
         }
         return mempool.oracles[oraclePub].reports.slice(paging.page * paging.chunkSize, (paging.page + 1) * paging.chunkSize);

@@ -1,6 +1,6 @@
 import { Collector, Predicate, TraderApi, TraderStorage, traderApi } from './src/client-api/trader-api';
 import { MempoolConfig } from './src/config';
-import { startP2P } from './src/p2p';
+import { browserPeerAPI, startP2P } from './src/p2p';
 import { OracleId, OracleCapability, OfferMsg, Report, PagingDescriptor } from './src/protocol';
 import { FacilitatorNode, api as ndapi} from './src/node';
 import * as btc from "./src/client-api/contracts/generate-btc-tx";
@@ -8,6 +8,7 @@ import Sandbox from "@nyariv/sandboxjs";
 import { IDBPDatabase, openDB } from 'idb';
 import { MatchingEngine, matchingEngine } from './src-web/matching';
 import * as bitcoin from "bitcoinjs-lib"
+import { p2pktr } from './src/client-api/contracts/btc/tx';
 
 export type Storage = TraderStorage<TraderQuery<OracleId>, TraderQuery<OracleCapability>, TraderQuery<Report>, TraderQuery<OfferMsg>>
 
@@ -95,12 +96,6 @@ const cfg: MempoolConfig<any> = {
         "btcInteractiveSignerEndpoint": "http://localhost:9593/"
     }
 }
-
-console.log("Start P2P service...   " + cfg.p2pPort)
-startP2P(cfg)
-
-
-
 
 const adaptjs = (js: string) => async x => {return safeEval(js, x)}
 const adaptPred = <T>(p: Predicate<T, boolean>) => "(" + p.toString() + ")(this)"
@@ -230,11 +225,20 @@ const pub1 = "cRFAdefAzpxzKduj3F9wf3qSTgA5johBBqPZZT72hh46dgCRr997"
 const pub2 = "cRFAdefAzpxzKduj3F9wf3qSTgA5johBBqPZZT72hh46dgCRr997"
 const pubOracleCp = "cW3z2LN7rwnomrds4cF2PJhbrCmFPkX1Q8KY5Fe6F6myRotHFXrv"
 
-window.privateDB.add("secrets", pub1, "e37e4cced6f555a1b2063d645f01ad4d57cc1ffa8c382d28d90561a945dbe13e")
-window.privateDB.add("secrets", pub2, "7fe828395f6143c295ae162d235c3c4b58c27fa1fd2019e88da55979bba5396e")
-window.privateDB.add("secrets", pubOracleCp, "07508128697f7a1aca5c3e86292daa4b08f76e68b405e4b4ffe50d066ade55c3")
+try {
+    await window.privateDB.add("secrets", pub1, "e37e4cced6f555a1b2063d645f01ad4d57cc1ffa8c382d28d90561a945dbe13e")
+    await window.privateDB.add("secrets", pub2, "7fe828395f6143c295ae162d235c3c4b58c27fa1fd2019e88da55979bba5396e")
+    await window.privateDB.add("secrets", pubOracleCp, "07508128697f7a1aca5c3e86292daa4b08f76e68b405e4b4ffe50d066ade55c3") 
+} catch {
 
-window.address = bitcoin.payments.p2pkh({ pubkey: Buffer.from(pub1, 'hex') }).address
+}
+
+try{
+    window.address = p2pktr(pub1).address
+} catch {
+
+}
+
 
 //LOCAL ORACLE
 window.webOracleFacts = await openDB('web-oracle', 1, {
@@ -243,7 +247,11 @@ window.webOracleFacts = await openDB('web-oracle', 1, {
     },
 })
 
-window.privateDB.add("secrets", pubOracleCp, "YES")
+try {
+    await window.webOracleFacts.add("answers", pubOracleCp, "YES")
+} catch {
+
+}
 
 
 const db: IDBPDatabase<unknown> = await openDB('store', 1, {
@@ -260,32 +268,32 @@ const db: IDBPDatabase<unknown> = await openDB('store', 1, {
 const indexDBstorage: Storage = {
     addOracle: async function (o: OracleId): Promise<boolean> {
         const found = await db.get("oracles", o.pubkey)
-        db.put("oracles", o, o.pubkey)
+        await db.put("oracles", o, o.pubkey)
         return found === undefined
     },
     addCp: async function (cp: OracleCapability): Promise<boolean> {
         const found = await db.get("oracles", cp.capabilityPubKey)
-        db.put("cps", cp, cp.capabilityPubKey)
+        await db.put("cps", cp, cp.capabilityPubKey)
         return found === undefined
     },
     addReport: async function (r: Report): Promise<boolean> {
         const found = await db.get("reports", r.pow.hash)
-        db.put("cps", r, r.pow.hash)
+        await db.put("cps", r, r.pow.hash)
         return found === undefined
     },
     addIssuedReport: async function (r: Report): Promise<boolean> {
         const found = await db.get("issued-reports", r.pow.hash)
-        db.put("cps", r, r.pow.hash)
+        await db.put("cps", r, r.pow.hash)
         return found === undefined
     },
     addOffer: async function (o: OfferMsg): Promise<boolean> {
         const found = await db.get("offers", o.pow.hash)
-        db.put("cps", o, o.pow.hash)
+        await db.put("cps", o, o.pow.hash)
         return found === undefined
     },
     addIssuedOffer: async function (o: OfferMsg): Promise<boolean> {
         const found = await db.get("issued-offers", o.pow.hash)
-        db.put("cps", o, o.pow.hash)
+        await db.put("cps", o, o.pow.hash)
         return found === undefined
     },
     removeOracles: async function (pubkeys: string[]): Promise<void> {
@@ -414,11 +422,15 @@ const indexDBstorage: Storage = {
         }
         return result
     },
-    allIssuedOffers: function (handler: (o: OfferMsg) => Promise<void>): Promise<void> {
-        throw new Error('Function not implemented.');
+    allIssuedOffers: async function (handler: (o: OfferMsg) => Promise<void>): Promise<void> {
+        (await db.getAll("issued-offers")).forEach(o => {
+            handler(o)
+        })
     },
-    allIssuedReports: function (handler: (r: Report) => Promise<void>): Promise<void> {
-        throw new Error('Function not implemented.');
+    allIssuedReports: async function (handler: (r: Report) => Promise<void>): Promise<void> {
+        (await db.getAll("issued-offers")).forEach(o => {
+            handler(o)
+        })
     }
 }
 
@@ -578,6 +590,13 @@ const node: FacilitatorNode<string> = {
     }
 }
 
+
+try {
+    //startP2P(cfg, browserPeerAPI)
+} catch (e) {
+    console.log(e)
+}
+
 window.traderApi = traderApi(cfg.trader, cfg, ndapi, indexDBstorage, node)
 window.storage = indexDBstorage
 
@@ -590,3 +609,10 @@ window.btc = {
 })()
 
 window.matching = matchingEngine
+setTimeout(() => {
+    matchingEngine.pickOffer().then(console.log)
+
+}, 1000)
+
+
+console.log("Started!")

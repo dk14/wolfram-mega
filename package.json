@@ -21,16 +21,8 @@
     "bundle": "npx tsx esbuild.ts"
   },
   "browser": {
-    "net": false,
-    "https": false,
-    "fs": false,
     "openapi-enforcer": false,
-    "node-fetch": false,
-    "crypto": "crypto-browserify",
-    "readable-stream": false,
-    "stream": false,
-    "inspector": false,
-    "events": false
+    "p2p-node": false
   },
   "bin": {
     "wf-mega-peer": "./bin/wf-mega-peer"
@@ -45,6 +37,7 @@
     "@istanbuljs/nyc-config-typescript": "^1.0.2",
     "@types/js-yaml": "^4.0.9",
     "esbuild": "0.25.5",
+    "esbuild-plugin-wasm": "^1.1.0",
     "esbuild-plugins-node-modules-polyfill": "^1.7.0",
     "source-map-support": "^0.5.21",
     "ts-node": "^10.9.2",

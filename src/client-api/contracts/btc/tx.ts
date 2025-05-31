@@ -11,7 +11,8 @@ import {
 import * as ecc from 'tiny-secp256k1';
 
 if (isBrowser()) {
-    (ecc as any).then(ec => bitcoin.initEccLib(ec))
+    bitcoin.initEccLib(ecc)
+   // (ecc as any).then(ec => bitcoin.initEccLib(ec))
 } else {
     bitcoin.initEccLib(ecc)
 }
