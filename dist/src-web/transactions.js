@@ -8,7 +8,7 @@ const scan = (arr, reducer, seed) => {
         return [acc, result];
     }, [seed, []])[1];
 };
-const getUtXo = async (offer, c) => {
+const getUtXo = async (offer) => {
     const terms = offer.content.terms;
     //const terms = o.content.terms
     const req = terms.question;
@@ -60,13 +60,15 @@ const genContractTx = async (inputs, c, offer) => {
                     aliceAmountIn: inputs.utxoAlice.map(x => x.value),
                     bobAmountIn: inputs.utxoBob.map(x => x.value),
                     oraclePub: o.content.terms.question.capabilityPubKey,
-                    oraclePub2: undefined,
-                    oraclePub3: undefined,
+                    oraclePub2: o.content.terms.question2?.capabilityPubKey,
+                    oraclePub3: o.content.terms.question3?.capabilityPubKey,
                     outcomes: {
                         "YES": { aliceAmount: terms.partyBetAmount, bobAmount: 0 },
                         "NO": { aliceAmount: 0, bobAmount: terms.counterpartyBetAmount }
                     },
-                    rValue: c.rValueSchnorrHex,
+                    rValue: c[0].rValueSchnorrHex,
+                    rValue2: c[1]?.rValueSchnorrHex,
+                    rValue3: c[2]?.rValueSchnorrHex,
                     alicePub: "",
                     bobPub: "",
                     changeAlice: 0, //aliceAmountIn.sum - partyBetAmount
@@ -146,9 +148,13 @@ exports.btcDlcContractInterpreter = {
         const terms = offer.content.terms;
         const p = {
             cetTxId: lockingTxId.txid,
-            oraclePub: c.req.capabilityPubKey,
+            oraclePub: c[0].req.capabilityPubKey,
+            oraclePub2: c[1]?.req.capabilityPubKey,
+            oraclePub3: c[2]?.req.capabilityPubKey,
             answer: fact.factWithQuestion,
-            rValue: c.rValueSchnorrHex,
+            rValue: c[0].rValueSchnorrHex,
+            rValue2: c[1]?.rValueSchnorrHex,
+            rValue3: c[2]?.rValueSchnorrHex,
             alicePub: offer.content.pubkeys[0],
             bobPub: offer.content.pubkeys[0],
             oracleSignature: fact.signature,

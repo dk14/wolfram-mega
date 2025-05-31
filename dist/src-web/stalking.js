@@ -17,6 +17,8 @@ const trackIssuedOffers = async (interpreters, dataProvider) => {
             const interpreter = interpreters[order.content.blockchain];
             const endpoint = (await window.storage.queryCapabilities({ where: async (x) => x.capabilityPubKey === order.content.terms.question.capabilityPubKey }, pagedescriptor))[0].endpoint;
             const commitment = await dataProvider.getCommitment(endpoint, order.content.terms.question);
+            if (order.content.terms.question2) {
+            }
             if (order.content.finalize) {
                 try {
                     const fact = await dataProvider.getFact(endpoint, commitment);
@@ -31,15 +33,15 @@ const trackIssuedOffers = async (interpreters, dataProvider) => {
                     else {
                         interpreter.submitTx(cet[1].tx);
                     }
-                    const redeem = await interpreter.genRedemtionTx(cetTxId, commitment, fact, order);
+                    const redeem = await interpreter.genRedemtionTx(cetTxId, [commitment], fact, order);
                     interpreter.submitTx(redeem);
                 }
                 catch {
                 }
             }
             else if (order.content.accept) {
-                const inputs = await interpreter.getUtXo(order, commitment);
-                const [contract, partial] = await interpreter.genContractTx(inputs, commitment, order);
+                const inputs = await interpreter.getUtXo(order);
+                const [contract, partial] = await interpreter.genContractTx(inputs, [commitment], order);
                 if (partial !== undefined) {
                     partial.pow.hash = partial.pow.hash + "-signing";
                     partial.content.utxos[0] = inputs.utxoAlice.map(x => [x.txid, x.vout]);
