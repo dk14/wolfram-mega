@@ -1,7 +1,5 @@
 import "fake-indexeddb/auto";
 
-
-
 const { JSDOM } = require('jsdom');
 const jsdom = new JSDOM('<!DOCTYPE html><html><body></body></html>');
 global.window = (jsdom.window as Window & typeof globalThis);
