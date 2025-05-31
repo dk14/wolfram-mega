@@ -25,8 +25,6 @@ require("../webapp");
     setInterval(() => window.stalking.trackIssuedOffers({
         "bitcoin-testnet": btcDlcContractInterpreter
     }, dataProvider), 1000)
-    
-    
         
     const preferences: PreferenceModel = {
         minOraclePow: 0,
@@ -69,9 +67,9 @@ require("../webapp");
 
     await window.matching.broadcastOffer(myCustomOffer)
     console.log("OK!")
+    process.exit(0)
 
 
 })()
-//process.exit(0)
 
 
