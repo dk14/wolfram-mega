@@ -24,10 +24,13 @@ const interpreter: ContractInterpreter = ...
 ## Start stalking accepted offers
 
 ```ts
+import { dataProvider } from './src-web/oracle-data-provider';
+
 setInterval(() => 
     window.stalking.trackIssuedOffers({
-        "my-chain": btcDlcContractInterpreter
-    }
+        "my-chain": interpreter
+    },
+    dataProvider
 ), 1000)
 ```
 
@@ -35,11 +38,13 @@ There is a default intepreter for BTC-DLC:
 
 ```ts
 import { btcDlcContractInterpreter } from './src-web/transactions';
+import { dataProvider } from './src-web/oracle-data-provider';
 
 setInterval(() => 
     window.stalking.trackIssuedOffers({
         "bitcoin-testnet": btcDlcContractInterpreter
-    }
+    },
+    dataProvider
 ), 1000)
 ```
 
