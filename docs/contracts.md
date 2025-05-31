@@ -288,7 +288,7 @@ generateClosingTransaction = (network: string, inputs: ClosingInputs): Promise<C
 
 >network is a link to cardano network params
 
-# Contract Demo (TestNet)
+# Contract Demo (Node.js + TestNet)
 Run mocked services together for contract demo purposes:
 ```
 npm run demo
