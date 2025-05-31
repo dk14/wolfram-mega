@@ -7,7 +7,6 @@
 ```html
 <script src="./bundle.js" type="module"></script>
 ```
-## 
 
 ## Start collectors
 
