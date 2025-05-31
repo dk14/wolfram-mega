@@ -33,13 +33,30 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.startHttp = exports.endpointAPi = void 0;
+exports.startHttp = exports.endpointAPi = exports.webLookup = exports.webSigner = void 0;
 const http = __importStar(require("http"));
 const url = __importStar(require("url"));
 const ws_1 = require("ws");
 const readline = __importStar(require("readline"));
 const fs = __importStar(require("fs"));
+const oracle_auto_signer_1 = require("./oracle-auto-signer");
 var globalSigner = null;
+exports.webSigner = oracle_auto_signer_1.webSign;
+exports.webLookup = {
+    getFact: async function (fr) {
+        try {
+            if (await window.webOracleFacts.get("answers", fr.capabilityPubKey)) {
+                return window.webOracleFacts.get("answers", fr.capabilityPubKey);
+            }
+        }
+        catch {
+        }
+        return "WHAT";
+    },
+    checkCommitment: async function (c) {
+        return true;
+    }
+};
 const endpointAPi = (signerFactory, lookup) => {
     const api = {
         requestNewCapability: async function (question) {
