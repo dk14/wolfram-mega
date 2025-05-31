@@ -90,7 +90,3 @@ The approach is not limited to contracts which require oracles: finding a counte
 Securitization of malleability reports. Since PoW is done on reports, reports themselves can be "securitized" (become tradable) by publishing them (ideally zipped rather hashed) on Bitcoin blockchain using 'OP_RETURN' akin to inscriptions. Unlike with inscriptions, there is no need to "issue NFT asset", since a given report can be evaluated based on its PoW-difficulty * importance, so it can be fungible (just put n satoshis to the output). This would serve as a persitent database of most important reports.
 
 --------
-
-
-**P2P Architecture**:
-![image](../image.png)
