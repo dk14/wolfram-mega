@@ -175,9 +175,11 @@ export interface PartiallySignedTx {
     partialSigs: string[]
 }
 
+export type OfferHashCash = string
+
 export interface DependsOn { //for schedules, aka stateful multi-stage contracts, everything that Marlowe can do
     outome: string,
-    offerRefs: HashCashPow[] //OR condition
+    offerRefs: OfferHashCash[] //OR condition
 }
 
 export interface AcceptOffer {

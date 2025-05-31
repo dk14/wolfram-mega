@@ -42,6 +42,7 @@ Protocol is specifications are in `src/protocol.ts` and `wolfram-mega-spec.yaml`
 
 - mockup database for webapp
 - bind models for webapp
+- detect matching stages for webapp
 - finish peerjs support
 - finish interactive signatures
 - finish webapp matching

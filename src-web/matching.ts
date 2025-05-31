@@ -1,6 +1,6 @@
 import { Or } from "@nyariv/sandboxjs/dist/node/parser"
 import { TraderApi } from "../src/client-api/trader-api"
-import { AcceptOffer, FactRequest, HashCashPow, Offer, OfferTerms, OracleCapability, OracleId, PagingDescriptor, PartiallySignedTx } from "../src/protocol"
+import { AcceptOffer, DependsOn, FactRequest, HashCashPow, Offer, OfferTerms, OracleCapability, OracleId, PagingDescriptor, PartiallySignedTx } from "../src/protocol"
 import { BtcApi, TraderQuery, Storage } from "../webapp"
 import { bitcoin } from "bitcoinjs-lib/src/networks"
 
@@ -48,6 +48,7 @@ export interface OfferModel {
     status: OfferStatus,
     blockchain: string,
     role: 'initiator' | 'acceptor'
+    dependsOn?: DependsOn[]
 }
 
 export interface MatchingEngine {
