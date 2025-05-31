@@ -582,6 +582,34 @@ const oracle_data_provider_1 = require("./src-web/oracle-data-provider");
     };
     window.matching = matching_1.matchingEngine;
     window.stalking = stalking_1.stalkingEngine;
+    const mockPow = {
+        difficulty: 0,
+        algorithm: '',
+        hash: 'MOCK',
+        magicNo: 0
+    };
+    const testOracle = {
+        pubkey: pubOracleCp,
+        seqNo: 0,
+        cTTL: 0,
+        pow: mockPow,
+        bid: { amount: 0, proof: "" },
+        oracleSignature: '',
+        oracleSignatureType: ''
+    };
+    await indexDBstorage.addOracle(testOracle);
+    const testCp = {
+        oraclePubKey: pubOracleCp,
+        capabilityPubKey: pubOracleCp,
+        question: '???',
+        seqNo: 0,
+        cTTL: 0,
+        oracleSignature: '',
+        oracleSignatureType: '',
+        pow: mockPow,
+        endpoint: "weboracle:local"
+    };
+    await indexDBstorage.addCp(testCp);
     setInterval(() => window.stalking.trackIssuedOffers({
         "bitcoin-testnet": transactions_1.btcDlcContractInterpreter
     }, oracle_data_provider_1.dataProvider), 1000);
