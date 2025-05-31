@@ -50,7 +50,7 @@ const myOffer = await window.matching.generateOffer(preferences)
 await window.matching.broadcastOffer(myOffer)
 ```
 
-If counterparty has interpreter - stalking API will negotiate and co-sign transactions through Mega P2P.
+If counterparty has interpreter - stalking API will automatically negotiate and co-sign transactions through Mega P2P.
 
 
 # Contracts Node.js Typescript API (BTC)
