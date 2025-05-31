@@ -14,7 +14,7 @@
 const preferences: PreferenceModel = {
     minOraclePow: 0,
     minOracleReputation: 0,
-    tags: [],
+    tags: ["sports", "world"],
     txfee: 0
 }
 
