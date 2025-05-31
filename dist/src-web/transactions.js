@@ -16,13 +16,13 @@ const scan = (arr, reducer, seed) => {
         return [acc, result];
     }, [seed, []])[1];
 };
-const getUtXo = async (o, c, pref) => {
+const getUtXo = async (o, c) => {
     const terms = o.content.terms;
     const req = terms.question;
     const utxoExplore = async (address) => {
         return (await (await fetch(`https://mempool.space/api/address/${address}/utxo`)).json());
     };
-    const txfee = pref.txfee;
+    const txfee = o.txfee;
     const addressAlice = 'tb1pudlyenkk7426rvsx84j97qddf4tuc8l63suz62xeq4s6j3wmuylq0j54ex';
     const addressBob = 'tb1p0l5zsw2lv9pu99dwzckjxhpufdvvylapl5spn6yd54vhnwa989hq20cvyv';
     const aliceUtxos = await utxoExplore(addressAlice);

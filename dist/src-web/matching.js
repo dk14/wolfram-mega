@@ -29,6 +29,9 @@ exports.matchingEngine = {
             chunkSize: 100
         }));
         const offer = candidates[randomInt(candidates.length)];
+        if (!offer) {
+            throw "no offers found in database";
+        }
         const capability = (await window.storage.queryCapabilities({
             where: async (x) => x.capabilityPubKey === offer.content.terms.question.capabilityPubKey
         }, oneElemPage))[0];
@@ -40,7 +43,7 @@ exports.matchingEngine = {
             id: offer.pow.hash,
             bet: [offer.content.terms.partyBetAmount, offer.content.terms.counterpartyBetAmount],
             oracles: [{
-                    id: "",
+                    capabilityPub: "",
                     oracle: "Wolfram",
                     endpoint: "http://localhost:8080" //can use fact-missing claim as an endpoint too
                 }],
@@ -65,7 +68,7 @@ exports.matchingEngine = {
             id: "aaa",
             bet: [partyBetAmount, counterpartyBetAmount],
             oracles: [{
-                    id: "",
+                    capabilityPub: "",
                     oracle: cp.oraclePubKey,
                     endpoint: "http://localhost:8080" //can use fact-missing claim as an endpoint too
                 }],
@@ -76,6 +79,12 @@ exports.matchingEngine = {
         return model;
     },
     broadcastOffer: async function (o) {
+        if (o.status !== 'matching') {
+            throw "progresssed offers not accepted. status must be 'matching'";
+        }
+        if (o.role !== 'initiator') {
+            throw "you must be initiator; use acceptOffer to accept";
+        }
         const pow = {
             difficulty: 0,
             algorithm: "",
@@ -83,7 +92,7 @@ exports.matchingEngine = {
             magicNo: 0
         };
         const factRequest = {
-            capabilityPubKey: "",
+            capabilityPubKey: o.oracles[0].capabilityPub,
             arguments: {}
         };
         const offerTerms = {
@@ -109,6 +118,12 @@ exports.matchingEngine = {
         });
     },
     acceptOffer: async function (o) {
+        if (o.status !== 'matching') {
+            throw "progresssed offers not accepted. status must be 'matching'";
+        }
+        if (o.role !== 'acceptor') {
+            throw "you must be initiator; use acceptOffer to accept";
+        }
         const offer = (await window.storage.queryOffers({ where: async (x) => x.pow.hash === o.id }, oneElemPage))[0];
         const openingTx = {
             tx: "TODO",
@@ -130,19 +145,23 @@ exports.matchingEngine = {
         window.traderApi.issueOffer(offer);
     },
     collectQuestions: async function (cfg) {
-        cfg.tags.forEach(tag => {
+        const ocollectors = cfg.tags.map(tag => {
             window.traderApi.collectOracles("pref-oracles-" + tag, async (o) => o.tags?.find(x => x === tag) !== undefined, 10);
+            return "pref-oracles-" + tag;
         });
-        cfg.tags.forEach(tag => {
+        const cpcollectors = cfg.tags.map(tag => {
             window.traderApi.collectCapabilities("pref-cps-" + tag, { where: async (x) => true }, async (o) => o.tags?.find(x => x === tag) !== undefined, capabilityFilter(tag), 10);
+            return "pref-cps-" + tag;
         });
+        return ocollectors.concat(cpcollectors);
     },
     collectOffers: async function (cfg) {
         const paging = { page: 0, chunkSize: 100 };
         const cps = cfg.tags.map(tag => window.storage.queryCapabilities({ where: async (x) => capabilityFilter(tag)(x) }, paging));
         const cpPubList = (await Promise.all(cps)).flat().map(x => x.capabilityPubKey);
-        cpPubList.forEach(cpPub => {
+        return cpPubList.map(cpPub => {
             window.traderApi.collectOffers("cppub-" + cpPub, { where: async (x) => x.capabilityPubKey === cpPub }, async (x) => true, async (x) => true, 10);
+            return "cppub-" + cpPub;
         });
     },
     listOrders: async function (p) {
@@ -161,7 +180,7 @@ exports.matchingEngine = {
                 id: "",
                 bet: [o.content.terms.partyBetAmount, o.content.terms.counterpartyBetAmount],
                 oracles: [{
-                        id: o.content.terms.question.capabilityPubKey,
+                        capabilityPub: o.content.terms.question.capabilityPubKey,
                         oracle: o.content.terms.question.capabilityPubKey,
                         endpoint: "TODO"
                     }],
@@ -176,7 +195,7 @@ exports.matchingEngine = {
                 id: "",
                 bet: [o.content.terms.partyBetAmount, o.content.terms.counterpartyBetAmount],
                 oracles: [{
-                        id: o.content.terms.question.capabilityPubKey,
+                        capabilityPub: o.content.terms.question.capabilityPubKey,
                         oracle: o.content.terms.question.capabilityPubKey,
                         endpoint: "TODO"
                     }],

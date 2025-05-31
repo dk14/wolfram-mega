@@ -43,6 +43,7 @@ const sandboxjs_1 = __importDefault(require("@nyariv/sandboxjs"));
 const idb_1 = require("idb");
 const matching_1 = require("./src-web/matching");
 const tx_1 = require("./src/client-api/contracts/btc/tx");
+const stalking_1 = require("./src-web/stalking");
 (async () => {
     window.spec = await (await fetch("./../wolfram-mega-spec.yaml")).text();
     const safeEval = (expression, data) => {
@@ -569,6 +570,7 @@ const tx_1 = require("./src/client-api/contracts/btc/tx");
     catch (e) {
         console.log(e);
     }
+    window.pool = node_1.api;
     window.traderApi = (0, trader_api_1.traderApi)(cfg.trader, cfg, node_1.api, indexDBstorage, node);
     window.storage = indexDBstorage;
     window.btc = {
@@ -576,10 +578,41 @@ const tx_1 = require("./src/client-api/contracts/btc/tx");
         generateCetRedemptionTransaction: btc.generateCetRedemptionTransaction,
         generateDlcContract: btc.generateDlcContract
     };
+    window.matching = matching_1.matchingEngine;
+    setInterval(() => (0, stalking_1.trackIssuedOffers)(), 1000);
+    setTimeout(async () => {
+        const preferences = {
+            minOraclePow: 0,
+            minOracleReputation: 0,
+            tags: [],
+            txfee: 0
+        };
+        window.matching.collectQuestions(preferences);
+        window.matching.collectOffers(preferences);
+        const offer = await window.matching.pickOffer();
+        await window.matching.acceptOffer(offer);
+        const myOffer = await window.matching.generateOffer(preferences);
+        await window.matching.broadcastOffer(myOffer);
+        // custom offer
+        const oracles = await window.storage.queryCapabilities({ where: async (x) => true }, {
+            page: 0,
+            chunkSize: 100
+        });
+        const oracle = {
+            capabilityPub: oracles[0].capabilityPubKey,
+            oracle: '',
+            endpoint: ''
+        };
+        const myCustomOffer = {
+            id: 'id',
+            bet: [1, 100],
+            oracles: [oracle],
+            question: '?',
+            status: 'matching',
+            role: 'initiator'
+        };
+        await window.matching.broadcastOffer(myCustomOffer);
+    }, 1000);
+    console.log("Started!");
 })();
-window.matching = matching_1.matchingEngine;
-setTimeout(() => {
-    matching_1.matchingEngine.pickOffer().then(console.log);
-}, 1000);
-console.log("Started!");
 //# sourceMappingURL=webapp.js.map
