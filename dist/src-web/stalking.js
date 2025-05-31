@@ -1,8 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.trackIssuedOffers = void 0;
-const transactions_1 = require("./transactions");
-const trackIssuedOffers = async () => {
+exports.stalkingEngine = void 0;
+const trackIssuedOffers = async (interpreters) => {
     const pagedescriptor = {
         page: 0,
         chunkSize: 100
@@ -12,6 +11,7 @@ const trackIssuedOffers = async () => {
     }, pagedescriptor));
     allOffers.forEach(async (myOffer) => {
         try {
+            const interpreter = interpreters[myOffer.content.blockchain];
             if (myOffer.content.finalize) {
             }
             else if (myOffer.content.accept) {
@@ -19,15 +19,15 @@ const trackIssuedOffers = async () => {
                 // compare with received transaction
                 const tx = myOffer.content.accept.openingTx.tx;
                 const commitment = undefined; // todo oracle commitment
-                const inputs = await (0, transactions_1.getUtXo)(myOffer, commitment);
-                const [contract, offer] = await (0, transactions_1.genDlcContract)(inputs, myOffer);
-                if (contract.cet[0] === undefined || contract.cet[1] === undefined) {
+                const inputs = await interpreter.getUtXo(myOffer.content.terms, commitment);
+                const [contract, offer] = await interpreter.genContractTx(inputs, myOffer);
+                if (offer !== undefined) {
                     offer.pow.hash = offer.pow.hash + "-signing";
                     window.traderApi.issueOffer(offer);
                 }
                 else {
                     // publish
-                    // finalize
+                    // finalize offer
                 }
             }
         }
@@ -36,5 +36,7 @@ const trackIssuedOffers = async () => {
         }
     });
 };
-exports.trackIssuedOffers = trackIssuedOffers;
+exports.stalkingEngine = {
+    trackIssuedOffers
+};
 //# sourceMappingURL=stalking.js.map

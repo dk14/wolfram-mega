@@ -48,6 +48,7 @@ exports.matchingEngine = {
                     endpoint: "http://localhost:8080" //can use fact-missing claim as an endpoint too
                 }],
             question: capability.question,
+            blockchain: "bitcoin-testnet",
             status: "matching",
             role: 'acceptor'
         };
@@ -73,6 +74,7 @@ exports.matchingEngine = {
                     endpoint: "http://localhost:8080" //can use fact-missing claim as an endpoint too
                 }],
             question: cp.question,
+            blockchain: "bitcoin-testnet",
             status: "matching",
             role: 'initiator'
         };
@@ -134,7 +136,7 @@ exports.matchingEngine = {
             partialSigs: []
         };
         const accept = {
-            chain: "bitcoin-testnet",
+            chain: o.blockchain,
             openingTx: openingTx,
             offerRef: undefined,
             cetTxSet: [],
@@ -185,6 +187,7 @@ exports.matchingEngine = {
                         endpoint: "TODO"
                     }],
                 question: "TODO",
+                blockchain: o.content.blockchain,
                 status: "matching",
                 role: "initiator"
             };
@@ -200,6 +203,7 @@ exports.matchingEngine = {
                         endpoint: "TODO"
                     }],
                 question: "TODO",
+                blockchain: o.content.blockchain,
                 status: "matching",
                 role: "acceptor"
             };

@@ -44,6 +44,7 @@ const idb_1 = require("idb");
 const matching_1 = require("./src-web/matching");
 const tx_1 = require("./src/client-api/contracts/btc/tx");
 const stalking_1 = require("./src-web/stalking");
+const transactions_1 = require("./src-web/transactions");
 (async () => {
     window.spec = await (await fetch("./../wolfram-mega-spec.yaml")).text();
     const safeEval = (expression, data) => {
@@ -579,7 +580,10 @@ const stalking_1 = require("./src-web/stalking");
         generateDlcContract: btc.generateDlcContract
     };
     window.matching = matching_1.matchingEngine;
-    setInterval(() => (0, stalking_1.trackIssuedOffers)(), 1000);
+    window.stalking = stalking_1.stalkingEngine;
+    setInterval(() => window.stalking.trackIssuedOffers({
+        "bitcoin-testnet": transactions_1.btcDlcContractInterpreter
+    }), 1000);
     setTimeout(async () => {
         const preferences = {
             minOraclePow: 0,
@@ -609,6 +613,7 @@ const stalking_1 = require("./src-web/stalking");
             oracles: [oracle],
             question: '?',
             status: 'matching',
+            blockchain: 'bitcoin-testnet',
             role: 'initiator'
         };
         await window.matching.broadcastOffer(myCustomOffer);

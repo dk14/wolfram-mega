@@ -1,14 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.genDlcContract = exports.getUtXo = void 0;
-const errorToResult = (call) => {
-    try {
-        return call();
-    }
-    catch (e) {
-        return e;
-    }
-};
+exports.btcDlcContractInterpreter = void 0;
 const scan = (arr, reducer, seed) => {
     return arr.reduce(([acc, result], value, index) => {
         acc = reducer(acc, value, index);
@@ -16,13 +8,13 @@ const scan = (arr, reducer, seed) => {
         return [acc, result];
     }, [seed, []])[1];
 };
-const getUtXo = async (o, c) => {
-    const terms = o.content.terms;
+const getUtXo = async (terms, c) => {
+    //const terms = o.content.terms
     const req = terms.question;
     const utxoExplore = async (address) => {
         return (await (await fetch(`https://mempool.space/api/address/${address}/utxo`)).json());
     };
-    const txfee = o.txfee;
+    const txfee = terms.txfee;
     const addressAlice = 'tb1pudlyenkk7426rvsx84j97qddf4tuc8l63suz62xeq4s6j3wmuylq0j54ex';
     const addressBob = 'tb1p0l5zsw2lv9pu99dwzckjxhpufdvvylapl5spn6yd54vhnwa989hq20cvyv';
     const aliceUtxos = await utxoExplore(addressAlice);
@@ -48,13 +40,12 @@ const getUtXo = async (o, c) => {
         utxoBob: getMultipleUtxo(bobUtxos)
     };
 };
-exports.getUtXo = getUtXo;
-//updates offer with multisig data; offer should be accepted
-const genDlcContract = async (inputs, o) => {
+const genContractTx = async (inputs, offer) => {
+    const o = structuredClone(offer);
     const terms = o.content.terms;
     const yesSession = o.content.accept.cetTxSet[0];
     const noSession = o.content.accept.cetTxSet[1];
-    const dlc = new Promise(resolveDlc => {
+    const dlcPromise = new Promise(resolveDlc => {
         const yesSessionUpdate = new Promise(async (resolveYes) => {
             const noSessionUpdate = new Promise(async (resolveNo) => {
                 const params = {
@@ -130,7 +121,19 @@ const genDlcContract = async (inputs, o) => {
             noSession.partialSigs[1] = no.partSig2;
         });
     });
-    return [await dlc, o];
+    const dlc = await dlcPromise;
+    if (dlc.cet[0] === 'undefined') {
+        return [dlc, o];
+    }
+    else {
+        return [dlc, undefined];
+    }
 };
-exports.genDlcContract = genDlcContract;
+exports.btcDlcContractInterpreter = {
+    getUtXo: getUtXo,
+    genContractTx: genContractTx,
+    submitTx: function (tx) {
+        throw new Error("Function not implemented.");
+    }
+};
 //# sourceMappingURL=transactions.js.map
