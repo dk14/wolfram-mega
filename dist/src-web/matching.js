@@ -110,7 +110,9 @@ exports.matchingEngine = {
             terms: offerTerms,
             blockchain: "bitcoin-testnet",
             contact: "",
-            originatorId: (0, exports.getOriginatorId)()
+            originatorId: (0, exports.getOriginatorId)(),
+            addresses: [window.address],
+            orderId: randomInt(1200000).toString()
         };
         window.traderApi.issueOffer({
             seqNo: 0,
@@ -143,6 +145,7 @@ exports.matchingEngine = {
             acceptorId: (0, exports.getOriginatorId)()
         };
         offer.content.accept = accept;
+        offer.content.addresses[1] = window.address;
         offer.pow.hash = offer.pow.hash + "accept"; //will be upgraded
         window.traderApi.issueOffer(offer);
     },

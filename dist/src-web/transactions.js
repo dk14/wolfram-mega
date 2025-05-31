@@ -8,18 +8,19 @@ const scan = (arr, reducer, seed) => {
         return [acc, result];
     }, [seed, []])[1];
 };
-const getUtXo = async (terms, c) => {
+const getUtXo = async (offer, c) => {
+    const terms = offer.content.terms;
     //const terms = o.content.terms
     const req = terms.question;
     const utxoExplore = async (address) => {
         return (await (await fetch(`https://mempool.space/api/address/${address}/utxo`)).json());
     };
     const txfee = terms.txfee;
-    const addressAlice = 'tb1pudlyenkk7426rvsx84j97qddf4tuc8l63suz62xeq4s6j3wmuylq0j54ex';
-    const addressBob = 'tb1p0l5zsw2lv9pu99dwzckjxhpufdvvylapl5spn6yd54vhnwa989hq20cvyv';
+    const addressAlice = offer.content.addresses[0];
+    const addressBob = offer.content.addresses[1];
     const aliceUtxos = await utxoExplore(addressAlice);
     const bobUtxos = await utxoExplore(addressBob);
-    const btcBalance = `[balance] alice: ${aliceUtxos.map(x => x.value).reduce((a, b) => (a ?? 0) + (b ?? 0))}, bob: ${bobUtxos.map(x => x.value).reduce((a, b) => (a ?? 0) + (b ?? 0))}`;
+    //const btcBalance = `[balance] alice: ${aliceUtxos.map(x => x.value).reduce((a, b) => (a ?? 0) + (b ?? 0))}, bob: ${bobUtxos.map(x => x.value).reduce((a, b) => (a ?? 0) + (b ?? 0))}`
     const getMultipleUtxo = (utxos) => {
         if (utxos.find(a => a.value > terms.partyBetAmount + txfee / 2)) {
             return [aliceUtxos.find(a => a.value > terms.partyBetAmount + txfee / 2)];
@@ -36,8 +37,12 @@ const getUtXo = async (terms, c) => {
         }
     };
     return {
-        utxoAlice: getMultipleUtxo(aliceUtxos),
-        utxoBob: getMultipleUtxo(bobUtxos)
+        utxoAlice: offer.content.utxos[0] ?
+            offer.content.utxos[0].map(x => { return { txid: x[0], vout: x[1] }; })
+            : getMultipleUtxo(aliceUtxos),
+        utxoBob: offer.content.utxos[1] ?
+            offer.content.utxos[1].map(x => { return { txid: x[0], vout: x[1] }; })
+            : getMultipleUtxo(bobUtxos)
     };
 };
 const genContractTx = async (inputs, c, offer) => {
@@ -45,6 +50,7 @@ const genContractTx = async (inputs, c, offer) => {
     const terms = o.content.terms;
     const yesSession = o.content.accept.cetTxSet[0];
     const noSession = o.content.accept.cetTxSet[1];
+    const openingSession = o.content.accept.openingTx;
     const dlcPromise = new Promise(resolveDlc => {
         const yesSessionUpdate = new Promise(async (resolveYes) => {
             const noSessionUpdate = new Promise(async (resolveNo) => {
@@ -66,6 +72,7 @@ const genContractTx = async (inputs, c, offer) => {
                     changeAlice: 0, //aliceAmountIn.sum - partyBetAmount
                     changeBob: 0,
                     txfee: 0,
+                    openingSession: { sigs: openingSession.partialSigs },
                     session: {
                         "YES": {
                             sessionId1: yesSession.sessionIds[0],
@@ -122,7 +129,7 @@ const genContractTx = async (inputs, c, offer) => {
         });
     });
     const dlc = await dlcPromise;
-    if (dlc.cet[0] === 'undefined') {
+    if (dlc.cet[0] === 'undefined' || dlc.cet[1] === 'undefined') {
         return [dlc, o];
     }
     else {
@@ -132,8 +139,23 @@ const genContractTx = async (inputs, c, offer) => {
 exports.btcDlcContractInterpreter = {
     getUtXo: getUtXo,
     genContractTx: genContractTx,
-    submitTx: function (tx) {
+    submitTx: async function (tx) {
         throw new Error("Function not implemented.");
+    },
+    genRedemtionTx: async function (lockingTxId, c, fact, offer) {
+        const terms = offer.content.terms;
+        const p = {
+            cetTxId: lockingTxId.txid,
+            oraclePub: c.req.capabilityPubKey,
+            answer: fact.factWithQuestion,
+            rValue: c.rValueSchnorrHex,
+            alicePub: offer.content.pubkeys[0],
+            bobPub: offer.content.pubkeys[0],
+            oracleSignature: fact.signature,
+            amount: (terms.partyBetAmount + terms.counterpartyBetAmount) - terms.txfee,
+            txfee: offer.content.terms.txfee
+        };
+        return window.btc.generateCetRedemptionTransaction(p);
     }
 };
 //# sourceMappingURL=transactions.js.map

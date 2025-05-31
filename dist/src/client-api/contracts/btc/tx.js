@@ -83,6 +83,32 @@ function schnorrSignerSingle(pub) {
         }
     };
 }
+function schnorrSignerSingleWeb(pub, session, out) {
+    return {
+        publicKey: Buffer.from(pub, "hex"),
+        network: net,
+        async sign(hash, lowR) {
+            return null;
+        },
+        async signSchnorr(hash) {
+            try {
+                const secret = await window.privateDB.get("secrets", pub);
+                const signature = schnorr.sign(Buffer.from(bs58_1.default.decode(secret)).toString("hex").substring(2, 64 + 2), hash);
+                session.sigs[out] = signature.toString('hex');
+                return signature;
+            }
+            catch {
+                if (session.sigs[out] !== undefined) {
+                    return Buffer.from(session.sigs[out], "hex");
+                }
+                throw "incomplete sign";
+            }
+        },
+        getPublicKey() {
+            return Buffer.from(pub, "hex");
+        }
+    };
+}
 function schnorrSignerMulti(pub1, pub2, secrets = []) {
     const pkCombined = muSig.pubKeyCombine([Buffer.from(pub1, "hex"), Buffer.from(pub2, "hex")]);
     let pubKeyCombined = convert.intToBuffer(pkCombined.affineX);
@@ -233,7 +259,7 @@ function schnorrSignerInteractive(pub1, pub2, session, signer = (0, util_1.isBro
 }
 const txApi = () => {
     return {
-        genOpeningTx: async (aliceIn, bobIn, alicePub, bobPub, aliceAmounts, bobAmounts, changeAlice, changeBob, txfee) => {
+        genOpeningTx: async (aliceIn, bobIn, alicePub, bobPub, aliceAmounts, bobAmounts, changeAlice, changeBob, txfee, session = null) => {
             const psbt = new bitcoin.Psbt({ network: net });
             const aliceP2TR = (0, exports.p2pktr)(alicePub);
             const bobP2TR = (0, exports.p2pktr)(bobPub);
@@ -276,16 +302,42 @@ const txApi = () => {
                 });
             }
             for (let i = 0; i < aliceIn.length; i++) {
-                await psbt.signInputAsync(i, schnorrSignerSingle(alicePub));
+                if (session === null) {
+                    await psbt.signInputAsync(i, schnorrSignerSingle(alicePub));
+                }
+                else {
+                    try {
+                        await psbt.signInputAsync(i, schnorrSignerSingleWeb(alicePub, session, i));
+                    }
+                    catch {
+                    }
+                }
             }
             for (let i = 0; i < bobIn.length; i++) {
-                await psbt.signInputAsync(aliceIn.length + i, schnorrSignerSingle(bobPub));
+                if (session === null) {
+                    await psbt.signInputAsync(aliceIn.length + i, schnorrSignerSingle(bobPub));
+                }
+                else {
+                    try {
+                        await psbt.signInputAsync(aliceIn.length + i, schnorrSignerSingleWeb(bobPub, session, aliceIn.length + i));
+                    }
+                    catch {
+                    }
+                }
             }
-            psbt.finalizeAllInputs();
-            return {
-                txid: psbt.extractTransaction().getId(),
-                hex: psbt.extractTransaction().toHex()
-            };
+            try {
+                psbt.finalizeAllInputs();
+                return {
+                    txid: psbt.extractTransaction().getId(),
+                    hex: psbt.extractTransaction().toHex()
+                };
+            }
+            catch (e) {
+                if (session === null) {
+                    throw e;
+                }
+                return undefined;
+            }
         },
         genClosingTx: async (multiIn, alicePub, bobPub, aliceAmount, bobAmount, txfee) => {
             const psbt = new bitcoin.Psbt({ network: net });
