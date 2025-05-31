@@ -660,9 +660,6 @@ const testOfferMsg: OfferMsg = {
     content: testOffer
 }
 
-await ndapi.publishOffer(cfg, testOfferMsg)
-await window.storage.addOffer(testOfferMsg)
-
 const mockPow: HashCashPow = {
     difficulty: 0,
     algorithm: 'SHA-256',
@@ -696,6 +693,9 @@ const testCp: OracleCapability = {
 await ndapi.announceOracle(cfg, testOracle)
 await ndapi.announceCapability(cfg, testCp)
 await window.storage.addCp(testCp)
+
+await ndapi.publishOffer(cfg, testOfferMsg)
+await window.storage.addOffer(testOfferMsg)
 
 console.log("WebAPI is ready!")
 resolve(window)
