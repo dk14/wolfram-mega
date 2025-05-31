@@ -94,7 +94,43 @@
 
     
  
-        <pre>fact:</pre><pre id="fact"></pre>
+        <pre>fact2:</pre><pre id="fact"></pre>
+
+        <h2>Query Oracle2</h2>
+        
+        <pre>endpoint2:</pre><pre id="endpoint2"></pre>
+        
+        <label for="fact_req2">Fact Request2:</label>
+        <input type="text" id="fact_req2" name="fact_req2" size="40" value='{ "capabilityPubKey": "MCowBQYDK2VwAyEA4A3gTGN6FQz2iBkWPsbMNvYGtrmteU5A0R2r4nTc4IM=", "arguments": {} }'>
+        <input id="get_commitment2" type="button" value="Request Commitment2">
+        <br>
+        <br>
+ 
+        <label for="commitment2">Commitment2:</label>
+        <input type="text" id="commitment2" name="commitment2" size="40" value=''>
+
+    
+ 
+        <pre>fact:</pre><pre id="fact2"></pre>
+
+        <h2>Query Oracle3</h2>
+        
+        <pre>endpoint2:</pre><pre id="endpoint3"></pre>
+        
+        <label for="fact_req3">Fact Request:</label>
+        <input type="text" id="fact_req3" name="fact_req2" size="40" value='{ "capabilityPubKey": "MCowBQYDK2VwAyEA4A3gTGN6FQz2iBkWPsbMNvYGtrmteU5A0R2r4nTc4IM=", "arguments": {} }'>
+        <input id="get_commitment3" type="button" value="Request Commitment3">
+        <br>
+        <br>
+ 
+        <label for="commitment3">Commitment3:</label>
+        <input type="text" id="commitment3" name="commitment3" size="40" value=''>
+
+    
+ 
+        <pre>fact3:</pre><pre id="fact3"></pre>
+
+ 
 
         <hr>
         <h4>Report Oracle</h4>
@@ -347,6 +383,46 @@
 
         document.getElementById('get_commitment').onclick = getCommitment
 
+        const getCommitment2 = async () => {
+            document.getElementById('commitment2').value = ""
+            document.getElementById('fact2').innerHTML = ""
+            const req = JSON.parse(document.getElementById('fact_req2').value)
+            const endpoint = await (await fetch('./capabilityEndpoint?pubkey=' + encodeURIComponent(req.capabilityPubKey))).json()
+            if (endpoint === '') return
+            const commitment = (await fetch(endpoint + '/requestCommitment', {
+	            method: 'post',
+                mode: 'cors',
+	            body: JSON.stringify(req),
+	            headers: {'Content-Type': 'application/json'}
+            })).json()
+            document.getElementById('commitment2').value = JSON.stringify(await commitment)
+
+        }
+
+        getCommitment2()
+
+        document.getElementById('get_commitment2').onclick = getCommitment2
+
+        const getCommitment3 = async () => {
+            document.getElementById('commitment2').value = ""
+            document.getElementById('fact3').innerHTML = ""
+            const req = JSON.parse(document.getElementById('fact_req3').value)
+            const endpoint = await (await fetch('./capabilityEndpoint?pubkey=' + encodeURIComponent(req.capabilityPubKey))).json()
+            if (endpoint === '') return
+            const commitment = (await fetch(endpoint + '/requestCommitment', {
+	            method: 'post',
+                mode: 'cors',
+	            body: JSON.stringify(req),
+	            headers: {'Content-Type': 'application/json'}
+            })).json()
+            document.getElementById('commitment3').value = JSON.stringify(await commitment)
+
+        }
+
+        getCommitment3()
+
+        document.getElementById('get_commitment2').onclick = getCommitment3
+
         document.getElementById('btc_defaults').onclick = async () => {
             document.getElementById('alice_out_addr').value = "e37e4cced6f555a1b2063d645f01ad4d57cc1ffa8c382d28d90561a945dbe13e"
             document.getElementById('bob_out_addr').value = "7fe828395f6143c295ae162d235c3c4b58c27fa1fd2019e88da55979bba5396e"
@@ -364,6 +440,18 @@
             const req = JSON.parse(document.getElementById('fact_req').value)
             req.capabilityPubKey = pub
             document.getElementById('fact_req').value = JSON.stringify(req)
+
+            getCommitment()
+
+            const req2 = JSON.parse(document.getElementById('fact_req2').value)
+            req2.capabilityPubKey = pub
+            document.getElementById('fact_req2').value = JSON.stringify(req2)
+
+            getCommitment2()
+
+            const req3 = JSON.parse(document.getElementById('fact_req3').value)
+            req3.capabilityPubKey = pub
+            document.getElementById('fact_req3').value = JSON.stringify(req3)
 
             getCommitment()
 
@@ -442,6 +530,18 @@
             const req = JSON.parse(document.getElementById('fact_req').value)
             req.capabilityPubKey = pub
             document.getElementById('fact_req').value = JSON.stringify(req)
+
+            getCommitment()
+
+            const req2 = JSON.parse(document.getElementById('fact_req2').value)
+            req2.capabilityPubKey = pub
+            document.getElementById('fact_req2').value = JSON.stringify(req2)
+
+            getCommitment()
+
+            const req3 = JSON.parse(document.getElementById('fact_req3').value)
+            req3.capabilityPubKey = pub
+            document.getElementById('fact_req3').value = JSON.stringify(req3)
 
             getCommitment()
         }
@@ -685,8 +785,12 @@
             const inputs = {   
                 lockedTxId: document.getElementById('otxid').value,         
                 oraclePub: terms.question.capabilityPubKey, 
+                oraclePub2: terms.question2?.capabilityPubKey, 
+                oraclePub3: terms.question3?.capabilityPubKey, 
                 answer: document.getElementById('cet_answer').value, 
                 rValue: JSON.parse(document.getElementById('commitment').value).rValueSchnorrHex,
+                rValue2: JSON.parse(document.getElementById('commitment').value).rValueSchnorrHex,
+                rValue3: JSON.parse(document.getElementById('commitment').value).rValueSchnorrHex,
                 alicePub: document.getElementById('alice_out_addr').value,
                 bobPub: document.getElementById('bob_out_addr').value,
                 aliceAmount: terms.partyBetAmount,
@@ -712,15 +816,23 @@
             const terms = JSON.parse(document.getElementById('terms').value)
             const txfee = parseInt(document.getElementById('txfee').value)
             const fact = JSON.parse(document.getElementById('fact').innerHTML)
+            const fact2 = JSON.parse(document.getElementById('fact2').innerHTML)
+            const fact3 = JSON.parse(document.getElementById('fact3').innerHTML)
 
             const inputs = {   
                 cetTxId: document.getElementById('cetxid').value, 
                 oraclePub: terms.question.capabilityPubKey, 
+                oraclePub2: terms.question2?.capabilityPubKey, 
+                oraclePub3: terms.question3?.capabilityPubKey, 
                 answer: fact.factWithQuestion, 
                 rValue: JSON.parse(document.getElementById('commitment').value).rValueSchnorrHex,
+                rValue2: JSON.parse(document.getElementById('commitment2').value).rValueSchnorrHex,
+                rValue3: JSON.parse(document.getElementById('commitment3').value).rValueSchnorrHex,
                 alicePub: document.getElementById('alice_out_addr').value, 
                 bobPub: document.getElementById('bob_out_addr').value,
-                oracleSignature: fact.signature, 
+                oracleSignature: fact.signature,
+                oracleSignature2: fact2.signature, 
+                oracleSignature3: fact3.signature,  
                 amount: terms.partyBetAmount + terms.counterpartyBetAmount - txfee,
                 txfee
             }
@@ -794,6 +906,46 @@
                 }     
             })()
 
+            const fact2 = (() => {
+                const mock = {
+                    factWithQuestion: terms.partyBetsOn[0],
+                    signatureType: "SHA256",
+                    signature: "NULL"
+                }
+                try {
+                    
+                    const parsed = JSON.parse(document.getElementById('fact2').innerHTML)
+                    if (parsed.factWithQuestion === undefined) {
+                        document.getElementById('fact2').innerHTML = JSON.stringify(mock)
+                        return mock
+                    }
+                    return parsed
+                } catch {
+                    document.getElementById('fact2').innerHTML = JSON.stringify(mock)
+                    return mock
+                }     
+            })()
+
+            const fact3 = (() => {
+                const mock = {
+                    factWithQuestion: terms.partyBetsOn[0],
+                    signatureType: "SHA256",
+                    signature: "NULL"
+                }
+                try {
+                    
+                    const parsed = JSON.parse(document.getElementById('fact3').innerHTML)
+                    if (parsed.factWithQuestion === undefined) {
+                        document.getElementById('fact3').innerHTML = JSON.stringify(mock)
+                        return mock
+                    }
+                    return parsed
+                } catch {
+                    document.getElementById('fact3').innerHTML = JSON.stringify(mock)
+                    return mock
+                }     
+            })()
+
             const scriptTxout = 2
             console.log("script_txout = " + scriptTxout)
 
@@ -828,8 +980,14 @@
                     addr: bob_addr_out
                 },
                 oracleCpPubKey: terms.question.capabilityPubKey,
+                oracleCpPubKey2: terms.question2?.capabilityPubKey,
+                oracleCpPubKey3: terms.question3?.capabilityPubKey,
                 msg: fact.factWithQuestion,
+                msg2: fact2?.factWithQuestion,
+                msg3: fact3?.factWithQuestion,
                 sig: fact.signature,
+                sig: fact2?.signature,
+                sig: fact3?.signature,
                 r: {
                     aliceRedemptionAddr: alice_addr_out,
                     aliceBetsOnMsg: terms.partyBetsOn[0],
@@ -916,6 +1074,42 @@
                     headers: {'Content-Type': 'application/json'}
                 })).json()
                 document.getElementById('fact').innerHTML = JSON.stringify(await fact)
+            }
+        }, 1000) 
+
+        setInterval(async () => {
+            if (document.getElementById('update').checked) {
+                const req2 = JSON.parse(document.getElementById('fact_req2').value)
+                const endpoint = await (await fetch('./capabilityEndpoint?pubkey=' + encodeURIComponent(req2.capabilityPubKey))).json()
+                document.getElementById('endpoint2').innerHTML = endpoint
+                if (endpoint === '') return
+ 
+                const commitment2 = document.getElementById('commitment2').value
+                if (commitment2 === '') return
+                const fact2 = (await fetch(endpoint + '/requestFact', {
+                    method: 'post',
+                    body: commitment2,
+                    headers: {'Content-Type': 'application/json'}
+                })).json()
+                document.getElementById('fact2').innerHTML = JSON.stringify(await fact2)
+            }
+        }, 1000) 
+
+        setInterval(async () => {
+            if (document.getElementById('update').checked) {
+                const req3 = JSON.parse(document.getElementById('fact_req3').value)
+                const endpoint = await (await fetch('./capabilityEndpoint?pubkey=' + encodeURIComponent(req3.capabilityPubKey))).json()
+                document.getElementById('endpoint3').innerHTML = endpoint
+                if (endpoint === '') return
+ 
+                const commitment3 = document.getElementById('commitment3').value
+                if (commitment3 === '') return
+                const fact3 = (await fetch(endpoint + '/requestFact', {
+                    method: 'post',
+                    body: commitment3,
+                    headers: {'Content-Type': 'application/json'}
+                })).json()
+                document.getElementById('fact3').innerHTML = JSON.stringify(await fact3)
             }
         }, 1000) 
 
