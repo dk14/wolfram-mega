@@ -19,6 +19,8 @@ export interface ContractInterpreter {
 
 const interpreter: ContractInterpreter = ...
 ```
+> Use `offer.content.accept`, `PartiallySignedTx` to implement interactive signing for barrier escrows.
+
 ## Start stalking accepted offers
 
 ```ts
