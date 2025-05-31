@@ -269,7 +269,7 @@ Practically, it requires extra-care:
   - this approach allows for typed IO in DSLs: read data-point from oracle, write funds to parties, up to n times. On BTC or any other chain.
   - BTC-DLC: proposed SIGHASH_NOINPUT would additionally allow to compress multiple recursive inlines into a single contract. Compression of higher-kind type.
 
-_This approach works for any Schnorr-enabled blockchain starting with BTC, but it makes smart-contract VMs unneccessary_
+_This approach works for any Schnorr-enabled blockchain starting with BTC, it makes smart-contract VMs unneccessary_
 
 **After such techniques have been applied, only contracts that are aimed at modeling "perpetual motion" would explode.**
 
