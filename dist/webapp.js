@@ -610,8 +610,6 @@ global.initWebapp = new Promise(async (resolve) => {
         pow: testPow,
         content: testOffer
     };
-    await node_1.api.publishOffer(cfg, testOfferMsg);
-    await window.storage.addOffer(testOfferMsg);
     const mockPow = {
         difficulty: 0,
         algorithm: 'SHA-256',
@@ -642,6 +640,8 @@ global.initWebapp = new Promise(async (resolve) => {
     await node_1.api.announceOracle(cfg, testOracle);
     await node_1.api.announceCapability(cfg, testCp);
     await window.storage.addCp(testCp);
+    await node_1.api.publishOffer(cfg, testOfferMsg);
+    await window.storage.addOffer(testOfferMsg);
     console.log("WebAPI is ready!");
     resolve(window);
 });
