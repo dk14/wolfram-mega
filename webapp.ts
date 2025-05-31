@@ -641,7 +641,7 @@ const testOfferTerms: OfferTerms = {
     partyBetsOn: ["YES"],
     counterPartyBetsOn: ["NO"],
     partyBetAmount: 10,
-    counterpartyBetAmount: 200
+    counterpartyBetAmount: 2053
 }
 
 
@@ -682,7 +682,7 @@ await window.storage.addOracle(testOracle)
 const testCp: OracleCapability = {
     oraclePubKey: pubOracleCp,
     capabilityPubKey: pubOracleCp,
-    question: '???',
+    question: 'human extinct?',
     seqNo: 0,
     cTTL: 0,
     oracleSignature: '',

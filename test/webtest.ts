@@ -1,8 +1,10 @@
 import "fake-indexeddb/auto";
+import fs from "fs"
 
-const { JSDOM } = require('jsdom');
-const jsdom = new JSDOM('<!DOCTYPE html><html><body></body></html>');
-global.window = (jsdom.window as Window & typeof globalThis);
+import { JSDOM } from 'jsdom';
+const webpage = fs.readFileSync(__dirname + "/../webapp/index.html").toString("utf-8")
+const jsdom = new JSDOM(webpage, { runScripts: "dangerously" });
+global.window = (jsdom.window as unknown as Window & typeof globalThis);
 global.document = window.document;
 global.localStorage = undefined
 
@@ -10,6 +12,7 @@ import fetchMock from 'fetch-mock';
 import { btcDlcContractInterpreter } from "../src-web/transactions";
 import { PreferenceModel, CapabilityModel, OfferModel, MatchingEngine } from "../src-web/matching";
 import { dataProvider } from "../src-web/oracle-data-provider";
+import assert from "assert";
 fetchMock.config.allowRelativeUrls = true
 fetchMock.mockGlobal().route("./../wolfram-mega-spec.yaml", "data");
 
@@ -72,6 +75,27 @@ require("../webapp");
     }
 
     await window.matching.broadcastOffer(myCustomOffer)
+
+    console.log("\n")
+    console.log("WEBPAGE TEST")
+
+    console.log("- model: data is present")
+    assert.ok(window["model"])
+    assert.ok(window["model"].contracts)
+    assert.ok(window["model"].contracts[0])
+
+    console.log("- view: UI elements are present")
+    assert.strictEqual(document.getElementById("matching").className, "scrollable")
+    assert.strictEqual(document.getElementById("profile").className, "scrollable profile")
+
+    console.log("- controller: fetch or generate offers")
+
+    const pickedOffer = await window["pickOrGenerateOffer"](true)
+    assert.ok(pickedOffer)
+    const generatedOffer = await window["pickOrGenerateOffer"](false)
+    assert.ok(generatedOffer)
+
+    console.log("\n")
     console.log("OK!")
     process.exit(0)
 
