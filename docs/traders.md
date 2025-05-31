@@ -75,6 +75,19 @@ await fetch('./collectReports?tag=' + encodeURIComponent(tag), {
 })
 ```
 
+## View collected broadcasts
+
+```ts
+const view = ... //type of broadcast
+const endpoints = {
+    "oracles": "listOracles",
+    "cps": "listCapabilities",
+    "reports": "listReports",
+    "offers": "listOffers"
+}
+const data = await (await fetch(`./${endpoints[view]}?pageSize=100&pageNo=${page}`)).json()
+```
+
 ## Issue offer
 
 Offers have unique pow hash, pow hash is their id. 
@@ -119,7 +132,10 @@ await fetch('./issueOffer', {
 })
 ```
 
-
+### View issued offers
+```ts
+const data = await (await fetch(`./listIssuedOffers?pageSize=100&pageNo=${page}`)).json()
+```
 ### Start broadcasting issued offers
 
 ```ts
@@ -172,6 +188,10 @@ await fetch('./issueReport', {
     body: JSON.stringify(msg),
     headers: {'Content-Type': 'application/json'}
 })
+```
+### View issued reports
+```ts
+const data = await (await fetch(`./listIssuedOffers?pageSize=100&pageNo=${page}`)).json()
 ```
 
 ### Start broadcasting submitted reports
