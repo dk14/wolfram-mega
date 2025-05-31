@@ -40,6 +40,7 @@ Protocol is specifications are in `src/protocol.ts` and `wolfram-mega-spec.yaml`
 
 ## TODOs
 
+- implement pledges, add quorums and pledges to mockup oracle
 - mockup database for webapp
 - bind models for webapp
 - detect matching stages for webapp
@@ -47,3 +48,4 @@ Protocol is specifications are in `src/protocol.ts` and `wolfram-mega-spec.yaml`
 - finish interactive signatures
 - finish webapp matching
 - provide optional nodejs backend for webapp
+- add quorums to webapp
