@@ -37,10 +37,7 @@ require("../../webapp");
 
 (async () => {
     await global.initWebapp
-    console.log("\n")
-    console.log("Start Initiator")
-    console.log("\n")
-    console.log("----------")
+    console.log("Start...")
 
     startP2P(global.cfg, browserPeerAPI())
 
@@ -89,7 +86,11 @@ require("../../webapp");
         }
     }, 1000)
 
-    console.log("NOT OK!")
+    setTimeout(async () => {
+        console.log("TX NOT GENERATED!")
+        process.exit(255)
+    }, 7000)
+    
 
 })()
 

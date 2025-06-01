@@ -37,13 +37,10 @@ require("../../webapp");
 
 (async () => {
     await global.initWebapp
-    console.log("\n")
-    console.log("Start Acceptor")
-    console.log("\n")
-    console.log("----------")
+    console.log("Start...")
 
-    //global.cfg.hostname = "dk14-peerjs-1586786454-acceptor-test"
-    //startP2P(global.cfg, browserPeerAPI())
+    global.cfg.hostname = "dk14-peerjs-1586786454-acceptor-test"
+    startP2P(global.cfg, browserPeerAPI())
 
     setInterval(() => window.stalking.trackIssuedOffers({
         "bitcoin-testnet": btcDlcContractInterpreter
@@ -59,17 +56,29 @@ require("../../webapp");
     window.matching.collectQuestions(preferences)
     window.matching.collectOffers(preferences)
 
-    let offer: OfferModel = undefined
     let i = 0
-    while (offer === undefined && i < 30) {
-        i++
-        const candidate = await window.matching.pickOffer()
-        if (candidate.bet[1] === 30345){
-            offer = candidate
-        }
-    }
+    try {
+        const offer: OfferModel = await (new Promise((resolve, reject) => {
+            const cancel = setInterval(async () => {
+                i++
+                if (i > 6) {
+                    clearInterval(cancel)
+                    reject("OFFER DID NOT MATCH!")
+                } else {
+                    const candidate = await window.matching.pickOffer()
+                    if (candidate.bet[1] === 30345){
+                        resolve(candidate)
+                    }
+                }
+            }, 500)
+        }))
 
-    await window.matching.acceptOffer(offer)
+        await window.matching.acceptOffer(offer)
+
+    } catch (msg) {
+        console.log(msg)
+        process.exit(255)
+    }
    
     setInterval(async () => {
         const orders = await window.matching.listOrders({page: 0, chunkSize: 100})
@@ -79,7 +88,11 @@ require("../../webapp");
             process.exit(0)
         }
     }, 1000)
-    console.log("NOT OK!")
+
+    setTimeout(async () => {
+        console.log("TX NOT GENERATED!")
+        process.exit(255)
+    }, 7000)
 
 })()
 
