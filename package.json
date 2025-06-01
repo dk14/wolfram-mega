@@ -20,7 +20,7 @@
     "demo": "npx tsx test/demo.ts",
     "webtest": "npx tsx test/webtest.ts",
     "webtest-it": "npx tsx test/webtest-integration.ts",
-    "build": "tsc -p tsconfig.json && cp wolfram-mega-spec.yaml dist/ && cp index.html dist/ && cp -r cfg dist/",
+    "build": "npx tsx esbuild.ts",
     "bundle": "npx tsx esbuild.ts"
   },
   "browser": {
