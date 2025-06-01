@@ -101,20 +101,26 @@ export const checkPow = (pow: HashCashPow, preimage: string): boolean => {
 
 export const checkCapabilitySignature = (cp: OracleCapability): boolean => {
     const signature = cp.oracleSignature
+    const cttl = cp.cTTL
+    cp.cTTL = 0
     const pow = cp.pow
     cp.oracleSignature = ""
     cp.pow = undefined
     const res = createVerify(cp.oracleSignatureType).update(JSON.stringify(cp)).verify(createPemPub(cp.oraclePubKey), signature, 'base64')
     cp.oracleSignature = signature
     cp.pow = pow
+    cp.cTTL = cttl
     return res
 }
 
 export const checkOracleIdSignature = (o: OracleId): boolean => {
     const signature = o.oracleSignature
+    const cttl = o.cTTL
+    o.cTTL = 0
     o.oracleSignature = ""
     const res = createVerify(o.oracleSignatureType).update(JSON.stringify(o)).verify(createPemPub(o.pubkey), signature, 'base64')
     o.oracleSignature = signature
+    o.cTTL = cttl
     return res
 }
 
