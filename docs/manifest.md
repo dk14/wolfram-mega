@@ -3,7 +3,7 @@
 # Aims
 Unlike mainstream solutions (e.g. chainlink), Mega is not concerned with speculative stakes made by resellers of original data. It is not concerned with illusion of security provided by voting with questionable coins that have no other value than the one assigned by stakers themselves.
 
-## Strong identity
+## Strong identity.
 
 (stronger identities allow for weaker assumptions about their malleability)
 
