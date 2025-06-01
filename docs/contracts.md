@@ -67,9 +67,9 @@ Offers in Mega can express any meaningful financial contract. `OfferTerms` (`src
 
 Unlike Marlowe, `OfferTerms` is closer to modern quantitative finance, taking two-party binary option as a basis.
 
-Traders can write their own interpreter for `OfferTerms` since the logic is trivial: binary options which can depend on outcomes of other binary options. 
+Traders can write their own interpreter for `OfferTerms` since the logic is trivial: binary options which can depend on outcomes of other binary options (`OfferTerms.dependsOn`). 
 
-This approach is compatible with Bitcoin DLC, since trading app developers can simply generate a tree of CET transaction straightforwardly from `OfferTerms`. It also allows to generate contracts for any chain.
+This approach is compatible with Bitcoin DLC, since trading app developers can simply generate a tree of CET transactions straightforwardly from `OfferTerms`. It also allows to generate contracts for any chain, given that `OfferTerms` interpreter is written for that chain.
 
 
 ## Example
@@ -79,7 +79,8 @@ Here's non-composite binary option:
 {
     hash: "0000",
     terms: {
-        question: "who's president?"    
+        question: "who's president?" 
+        arguments: {"when", "tomorrow"}   
         partyBetsOn:["ME"],
         counterPartyBetsOn:["YOU"],
         partyBetAmount:100,
