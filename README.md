@@ -40,7 +40,9 @@ Protocol is specifications are in `src/protocol.ts` and `wolfram-mega-spec.yaml`
 
 ## TODOs
 
-- implement slashing, add slashing and multisigs to mockup oracle
+- implement slashing
+- redesign signing for oracle ads (exclude seqNo from signature, to allow anyone to broadcast oracle ads if they upgrade PoW)
+
 - bind models for webapp
 - detect matching stages for webapp
 - finish peerjs support
