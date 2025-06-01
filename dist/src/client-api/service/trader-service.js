@@ -230,7 +230,7 @@ const startTraderService = (cfg, storage = (0, trader_storage_1.traderStorage)(c
                         }
                     }
                     catch (err) {
-                        console.error(err);
+                        console.log(err);
                         if (!res.writableEnded) {
                             try {
                                 if (err.message !== undefined) {

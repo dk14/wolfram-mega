@@ -80,8 +80,6 @@ const server = http.createServer(async (req, res) => {
                             const secret2 = cfg.secrets[input.pubkeys[1]] ?
                                 Buffer.from(bs58_1.default.decode(cfg.secrets[input.pubkeys[1]])).toString("hex").substring(2, 64 + 2)
                                 : input.s[1];
-                            console.log(secret1);
-                            console.log(secret2);
                             const muSignature = multisig.sign(input.pubkeys[0], input.pubkeys[1], secret1, secret2, Buffer.from(input.msg, "hex"));
                             res.end(muSignature);
                         }

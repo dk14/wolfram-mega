@@ -36,11 +36,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.startHttp = exports.endpointAPi = exports.webLookup = exports.webSigner = void 0;
 const http = __importStar(require("http"));
 const url = __importStar(require("url"));
-const ws_1 = require("ws");
-const readline = __importStar(require("readline"));
 const fs = __importStar(require("fs"));
 const oracle_web_signer_1 = require("./oracle-web-signer");
-var globalSigner = null;
 exports.webSigner = oracle_web_signer_1.webSign;
 exports.webLookup = {
     getFact: async function (fr) {
@@ -93,7 +90,7 @@ const endpointAPi = (signerFactory, lookup) => {
     return api;
 };
 exports.endpointAPi = endpointAPi;
-const startHttp = (api, port, wsPort) => {
+const startHttp = (api, port) => {
     const server = http.createServer(async (req, res) => {
         res.statusCode = 200;
         console.log('Request type: ' + req.method + ' Endpoint: ' + req.url);
@@ -152,17 +149,6 @@ const startHttp = (api, port, wsPort) => {
         }
     });
     server.listen(port);
-    const wss = new ws_1.WebSocketServer({ port: wsPort });
-    wss.on('connection', function connection(ws, req) {
-        ws.on('error', console.error);
-        const stream = (0, ws_1.createWebSocketStream)(ws, { encoding: 'utf8' });
-        const rl = readline.createInterface(stream, stream);
-        globalSigner = (msg) => {
-            return new Promise(resolve => {
-                rl.question(JSON.stringify(msg) + "\n", a => resolve(a));
-            });
-        };
-    });
 };
 exports.startHttp = startHttp;
 if (require.main === module) {
@@ -191,8 +177,32 @@ if (require.main === module) {
             return true;
         }
     };
-    const api = (0, exports.endpointAPi)(() => globalSigner, lookup);
-    console.log(`Starting Oracle Mocking Endpoint... HTTP=${cfg.httpPort}, WS=${cfg.wsPort}`);
-    (0, exports.startHttp)(api, cfg.httpPort, cfg.wsPort);
+    const restSigner = async (x) => {
+        if (x[1] === '!RVALUE') {
+            const res = ((await fetch(cfg.signerAddress + "rvalue", {
+                method: 'post',
+                body: JSON.stringify(x[0]),
+                headers: { 'Content-Type': 'application/json' }
+            })).text());
+            return (res);
+        }
+        else if (x[1] === '') {
+            return ((await fetch(cfg.signerAddress + "signCommitment", {
+                method: 'post',
+                body: JSON.stringify(x[0]),
+                headers: { 'Content-Type': 'application/json' }
+            })).text());
+        }
+        else {
+            return ((await fetch(cfg.signerAddress + "signFact?fact=" + encodeURIComponent(x[1]), {
+                method: 'post',
+                body: JSON.stringify(x[0]),
+                headers: { 'Content-Type': 'application/json' }
+            })).text());
+        }
+    };
+    const api = (0, exports.endpointAPi)(() => restSigner, lookup);
+    console.log(`Starting Oracle Mocking Endpoint... HTTP=${cfg.httpPort}`);
+    (0, exports.startHttp)(api, cfg.httpPort);
 }
 //# sourceMappingURL=oracle-endpoint.js.map

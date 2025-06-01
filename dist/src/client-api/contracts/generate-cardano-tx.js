@@ -126,7 +126,7 @@ const generateOpeningTransaction = async (network, inputs) => {
 exports.generateOpeningTransaction = generateOpeningTransaction;
 const generateClosingTransaction = async (network, inputs) => {
     const tx = new helios_1.Tx();
-    const src = fs.readFileSync(__dirname + "/plutus-option.hl").toString();
+    const src = fs.readFileSync(__dirname + pickContract(inputs)).toString();
     const program = helios_1.Program.new(src);
     const uplc = program.compile(false);
     const addr = helios_1.Address.fromHash(uplc.validatorHash);

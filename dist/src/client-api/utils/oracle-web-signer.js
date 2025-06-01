@@ -22,6 +22,12 @@ const webSign = async (x) => {
         const sValue = (0, schnorr_1.schnorrApi)().signatureSValue(secret, kValue, JSON.stringify(commitment)).padStart(64, "0");
         return rValue + sValue;
     }
+    else {
+        const secret = Buffer.from(bs58_1.default.decode(pk)).toString("hex").substring(2, 64 + 2);
+        const kValue = (0, schnorr_1.schnorrApi)().genNonce(secret, commitment.req.capabilityPubKey, "C87AA53824B4D7AE2EB035A2B5BBBCCC080E76CDC6D1692C4B0B62D798E6D906");
+        const sValue = (0, schnorr_1.schnorrApi)().signatureSValue(secret, kValue, x[1]).padStart(64, "0");
+        return sValue;
+    }
 };
 exports.webSign = webSign;
 //# sourceMappingURL=oracle-web-signer.js.map
