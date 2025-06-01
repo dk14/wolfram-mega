@@ -142,7 +142,7 @@ export const generateCetTransaction = async (params: CetParams, vout: number = 0
     
 }
 
-export const generateCetRedemptionTransaction = async (params: CetRedemptionParams): Promise<Hex> => {
+export const generateCetRedemptionTransaction = async (params: CetRedemptionParams, quorumno: number = 1): Promise<Hex> => {
     
     const cetOut = {
         txid:  params.cetTxId,
@@ -164,7 +164,7 @@ export const generateCetRedemptionTransaction = async (params: CetRedemptionPara
         const twistedPk3 = schnorr.adaptorPublic(params.oraclePub3, params.answer3 ?? params.answer, params.rValue3).padStart(64, "0")
 
         return (await tx.genAliceCetRedemptionQuorum(
-            1,
+            quorumno,
             cetOut, 
             twistedPk1,
             twistedPk2, 
