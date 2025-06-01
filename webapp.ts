@@ -1,6 +1,6 @@
 import { Collector, Predicate, TraderApi, TraderStorage, traderApi } from './src/client-api/trader-api';
 import { MempoolConfig } from './src/config';
-import { browserPeerAPI, startP2P } from './src/p2p';
+import { Neighbor, browserPeerAPI, p2pNode, startP2P } from './src/p2p';
 import { OracleId, OracleCapability, OfferMsg, Report, PagingDescriptor, Commitment, Fact, FactRequest, HashCashPow, Offer, OfferTerms } from './src/protocol';
 import { Api, FacilitatorNode, api as ndapi} from './src/node';
 import * as btc from "./src/client-api/contracts/generate-btc-tx";
@@ -108,6 +108,8 @@ const cfg: MempoolConfig<any> = {
         "btcInteractiveSignerEndpoint": "http://localhost:9593/"
     }
 }
+
+global.cfg = cfg
 
 const adaptjs = (js: string) => async x => {return safeEval(js, x)}
 const adaptPred = <T>(p: Predicate<T, boolean>) => "(" + p.toString() + ")(this)"
@@ -587,12 +589,12 @@ const adaptedStorage: Storage = {
     }
 }
 
-const node: FacilitatorNode<string> = {
+const node: FacilitatorNode<Neighbor> = {
     peers: [],
-    discovered: function (peer: string): void {
+    discovered: function (peer: Neighbor): void {
         
     },
-    broadcastPeer: function (peer: string): void {
+    broadcastPeer: function (peer: Neighbor): void {
         
     },
     processApiRequest: async function (command: string, content: string): Promise<void> {
@@ -611,7 +613,8 @@ try {
 }
 
 window.pool = ndapi
-window.traderApi = traderApi(cfg.trader, cfg, ndapi, indexDBstorage, node)
+
+window.traderApi = traderApi(cfg.trader, cfg, ndapi, indexDBstorage, global.isTest ?  p2pNode : node)
 window.storage = indexDBstorage
 
 window.btc = { 

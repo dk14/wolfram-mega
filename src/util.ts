@@ -25,5 +25,5 @@ export const mine = (difficulty: number, preimage: string, algorithm: string) : 
 
 
 export function isBrowser() {
-    return typeof window !== 'undefined' && typeof window.document !== 'undefined';
+    return typeof window !== 'undefined' && typeof window.document !== 'undefined' && !global.isTest
 }

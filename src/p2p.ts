@@ -10,7 +10,8 @@ import fetch from 'node-fetch'
 
 type Socket = {
     remoteAddress?: string,
-    remotePort?: number
+    remotePort?: number,
+    dataConnection?: p2pjs.DataConnection
 }
 
 interface Event {
@@ -29,12 +30,12 @@ interface Peer {
 }
 
 interface PeerApi {
-    createPeer: (server: string, port?: number) => Peer
+    createPeer: (server: string, port?: number, socket?: Socket) => Peer
     createServer: (cfg: MempoolConfig<PeerAddr>, discovered: (addr: PeerAddr, socket?: Socket) => void) => void
 }
 
 export const serverPeerAPI: PeerApi = {
-    createPeer: (server: string, port?: number): Peer => {
+    createPeer: (server: string, port?: number, socket?: Socket): Peer => {
        return  new p2pn.Peer(server, port)
     },
     createServer: (cfg: MempoolConfig<PeerAddr>, discovered: (addr: PeerAddr, socket?: Socket) => void): void => {
@@ -47,51 +48,116 @@ export const serverPeerAPI: PeerApi = {
 
 }
 
-export const browserPeerAPI: PeerApi = {
-    createPeer: (server: string, port?: number): Peer => {
-       const jspeer = new p2pjs.Peer(server)
-       var connection: p2pjs.DataConnection = null
 
-       jspeer.on("connection", (c) => {
-            connection = c
-       })
 
-       const adaptor = {
-            on: (ev: "message" | "connect" | "end", handler: (ev: Event) => void): void => {
-                if (ev === "connect") {
-                    jspeer.on("connection", (c) => {
-                        handler({peer: adaptor})
-                    })
-                } else if (ev === "message") {
-                    connection.on("data", (data: {cmd: string, msg: string}) => {
-                        handler({
-                            command: data.cmd,
-                            data: Buffer.from(data.msg, "base64") 
-                        })
-                    })
-                } else if (ev === "end") {
-                    connection.on("close", () => handler({}))
+
+
+export const browserPeerAPI: () => PeerApi = () => {
+    const jspeer = new p2pjs.Peer(global.cfg.hostname)
+
+    return {
+        createPeer: (server: string, port?: number, socket?: Socket): Peer => {
+
+            if (socket === undefined) {
+                
+                jspeer.connect(server)
+
+                var connection: p2pjs.DataConnection = null
+        
+                const adaptor = {
+                    on: (ev: "message" | "connect" | "end", handler: (ev: Event) => void): void => {
+                        if (ev === "connect") {
+                            jspeer.on("connection", (c) => {
+                                if (c.peer === server) {
+                                    connection = c
+                                    handler({peer: adaptor})
+                                }
+                            })
+                        } else if (ev === "message") {
+                            jspeer.on("connection", (c) => {
+                                if (c.peer === server) {
+                                    connection = c
+                                    c.on("data", (data: {cmd: string, msg: string}) => {
+                                        handler({
+                                            command: data.cmd,
+                                            data: Buffer.from(data.msg, "base64") 
+                                        })
+                                    })
+                                }
+                            })
+                            
+                        } else if (ev === "end") {
+                            jspeer.on("connection", (c) => {
+                                if (c.peer === server) {
+                                    connection = c
+                                    c.on("close", () => handler({}))
+                                }
+                            })
+                        }
+                        
+                    },
+                    send: (cmd: string, msg: Buffer): void => {
+                        if (connection) {
+                            connection.send({
+                                cmd, msg: msg.toString("base64")
+                            })
+                        }
+                    },
+                    server,
+                    port,
+                    disconnect: (): void => {
+                        if (connection) {
+                            connection.close({flush: true})
+                        }
+                    },
+                    connect: (addr: Socket): void => {
+                       
+                    }
                 }
-               
-            },
-            send: (cmd: string, msg: Buffer): void => {
-                connection.send({
-                    cmd, msg: msg.toString("base64")
-                })
-            },
-            server,
-            port,
-            disconnect: (): void => {
-                jspeer.disconnect()
-            },
-            connect: (addr: Socket): void => {
-                jspeer.connect(addr.remoteAddress)
+                return adaptor
+            } else {
+                const adaptor = {
+                    on: (ev: "message" | "connect" | "end", handler: (ev: Event) => void): void => {
+                        if (ev === "connect") {  
+                            handler({peer: adaptor})
+                        } else if (ev === "message") {
+
+                            socket.dataConnection.on("data", (data: {cmd: string, msg: string}) => {
+                                handler({
+                                    command: data.cmd,
+                                    data: Buffer.from(data.msg, "base64") 
+                                })
+                            })  
+                        } else if (ev === "end") {
+                            socket.dataConnection.on("close", () => handler({}))
+                        }
+                    },
+                    send: (cmd: string, msg: Buffer): void => {
+                        socket.dataConnection.send({
+                                cmd, msg: msg.toString("base64")
+                        })    
+                    },
+                    server,
+                    port,
+                    disconnect: (): void => {
+                        if (connection) {
+                            connection.close({flush: true})
+                        }
+                    },
+                    connect: (addr: Socket): void => {
+                       
+                    }
+                }
+                return adaptor
+
             }
+        
+        },
+        createServer: (cfg: MempoolConfig<PeerAddr>, discovered: (addr: PeerAddr, socket?: Socket) => void): void => {
+            jspeer.on("connection", c => {
+                discovered({server: c.peer}, {dataConnection: c})
+            })
         }
-        return adaptor
-    },
-    createServer: (cfg: MempoolConfig<PeerAddr>, discovered: (addr: PeerAddr, socket?: Socket) => void): void => {
-    
     }
 
 }
@@ -99,7 +165,7 @@ export const browserPeerAPI: PeerApi = {
 
 export interface PeerAddr {
     server: string,
-    port: number,
+    port?: number,
     seqNo?: number,
     httpPort?: number
 } 
@@ -195,7 +261,7 @@ export const startP2P = (cfg: MempoolConfig<PeerAddr>, peerApi = serverPeerAPI) 
             return
         }
         try {
-            const p : Peer = peerApi.createPeer(addr.server, addr.port)
+            const p : Peer = peerApi.createPeer(addr.server, addr.port, socket)
             
             p.connect(socket)
             

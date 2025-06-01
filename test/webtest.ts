@@ -1,6 +1,8 @@
 import "fake-indexeddb/auto";
 import fs from "fs"
 
+global.isTest = true
+
 import { JSDOM } from 'jsdom';
 const webpage = fs.readFileSync(__dirname + "/../webapp/index.html").toString("utf-8")
 const jsdom = new JSDOM(webpage, { runScripts: "dangerously" });
@@ -13,8 +15,24 @@ import { btcDlcContractInterpreter } from "../src-web/transactions";
 import { PreferenceModel, CapabilityModel, OfferModel, MatchingEngine } from "../src-web/matching";
 import { dataProvider } from "../src-web/oracle-data-provider";
 import assert from "assert";
+import { browserPeerAPI, startP2P } from "../src/p2p";
 fetchMock.config.allowRelativeUrls = true
 fetchMock.mockGlobal().route("./../wolfram-mega-spec.yaml", "data");
+
+import wrtc from '@roamhq/wrtc';
+RTCPeerConnection = wrtc.RTCPeerConnection;
+RTCIceCandidate = wrtc.RTCIceCandidate;
+RTCSessionDescription = wrtc.RTCSessionDescription;
+
+window.fetch = require('node-fetch');
+window.WebSocket = require('ws');
+window.FileReader = require('filereader');
+
+Blob = require('node-blob');
+const blobToArraybuffer = require('blob-to-arraybuffer');
+Blob.prototype.arrayBuffer = function() {
+    return blobToArraybuffer(this);
+}
 
 require("../webapp");
 
@@ -23,6 +41,8 @@ require("../webapp");
     await global.initWebapp
     console.log("\n")
     console.log("MATCHING TEST")
+
+    startP2P(global.cfg, browserPeerAPI())
 
     setInterval(() => window.stalking.trackIssuedOffers({
         "bitcoin-testnet": btcDlcContractInterpreter
