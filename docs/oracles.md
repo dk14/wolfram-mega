@@ -154,13 +154,14 @@ Separation of responsibilities:
 - only lightweight Mega-node (mempool connected to p2p) with `oracle-api` activated is required from Oracle.
 
 -----
-Exmple of endpoint implementation from `src/client-api/utils/oracle-endpoint`:
+Example of endpoint implementation from `src/client-api/utils/oracle-endpoint`:
 
 ```ts
 //optional, can check proof of payment here
 const canCommit = ... 
 
-//optional, can pledge something on blockchain, add quorum contract
+// optional, can pledge something on blockchain, add quorum contract
+// `src/client-api/contracts/slasher.ts` - MAD-DLC-slashing example
 const generateSLA = ... 
 
 // external signing; example of auto-signer: src/client-api/oracle-auto-signer.ts
@@ -205,4 +206,58 @@ const api: OracleEndpointApi = {
         return fact
     }
 }
+```
+
+
+## Oracle Endpoint MAD-slashing
+
+
+`contract` field in `Commitment` is meant for providing blockchain transactions commiting to SLA.
+
+Slashing (blockchain-ensured Service Layer Agreement) is a secondary feature in Mega, since any fault hurts PoW-aquired identitites.
+
+### Quorum Slashing
+Nevertheless, we provide `slashing.ts` example for `generateSLA` for `contract` commitment field.
+We propose pairwise quorum commitments in `slashing.ts`. In the essence they are special case of binary option. Thus we provide BTC-DLC implementation.
+
+Except SLA binary option would keep initial distribution of funds intact. If Alice puts 5 satochi into an escrow, and Bob puts 10 satochi into an escrow. Then regardless of the outcome, Alice gets 5 satochi and Bob gets 10 satochi.
+
+The trick is: in order to unlock funds, oracles either have to conspire to avoid MAD (which is possible under regular pledge scenario)
+Or they have to agree on data (pairwise).
+ 
+ ```
+ Pledge refunds: partial quorums (2 of 3) refunded partially (e.g. pledge1 and pledge2).
+ Total vote: 100% refund
+ full disagreement - no refund
+ ```
+ 
+> MAD-conspiracy case (multisig) can be omitted by modifying DLC logic. 
+> Oracles can simply send funds into adaptor-signature-locked output, bypassing multisig.
+> This, however, does not exclude conspiracy - since oracles would still be able to agree on data privately, WITHOUT sharing signatures with users.
+> Thus we simply implement standard binary option DLC-contract here.
+
+> Oracle conspiracy, with or without slashing, can be reported in Mega and auto-verified - through either 
+>> `MissingFact` report: oracles avoided slashing through conspiracy but did not provide data
+>> `FactDisagreesWithPublic` report: oracles conspired to provide wrong data
+
+
+### SLA time Slashing
+
+Another example of slashing `contract` field can be useful for is refund slashing: lock funds in DLC, but allow trader to unlock such funds after timeout. In bitcoin this cn be achieved by adding extra unlocking "clause" into unlocking script of DLC CET transaction.
+
+```ts
+const script = `
+OP_IF ${generateTimeLockScript(deadline)}
+    ${pubkeyOracleHex}
+OP_ELSE
+    ${pubkeyTraderHex}
+OP_ENDIF
+OP_CHECKSIG
+`
+```
+
+On other UtXO (or any) blockchains: 
+
+```ts
+const validate = ... || (time > slaTime && verifySignature(TRADER_PUB, TRADER_SIGNATURE))
 ```

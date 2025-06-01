@@ -9,7 +9,7 @@ export interface LookUp {
     getFact: (fr: FactRequest) => Promise<string>
     checkCommitment: (c: FactRequest) => Promise<boolean>
     newCp?: (q: string) => Promise<OracleCapability>
-    genContract?: (c: FactRequest) => Promise<string>
+    genContract?: (c: FactRequest) => Promise<string> //see slasher.ts for example
 }
 
 type Signer = (msg: [Commitment, string]) => Promise<string>
