@@ -7,6 +7,8 @@ interface Datum {
     msg: string
 }
 
+declare var cfg: MempoolConfig<any>
+
 const adaptorOutbound = (c: p2pjs.DataConnection, server: string, resolve: (p: Peer) => void): void => {
     const adaptor = {
         on: (ev: "message" | "connect" | "end", handler: (ev: Event) => void): void => {
@@ -72,10 +74,17 @@ const adaptorInbound = (c: p2pjs.DataConnection, server: string): Peer => {
     return adaptor
 }
 
-export const browserPeerAPI: () => PeerApi = () => {
+export const browserPeerAPI: () => Promise<PeerApi> = async () => {
     console.log("Creating webrtc peer: " + global.cfg.hostname)
-    const jspeer = new p2pjs.Peer(global.cfg.hostname)
+    const jspeer = new p2pjs.Peer(cfg.hostname, cfg.webrtcPeerServer)
 
+    await new Promise(resolve => {
+        jspeer.on('open', function(id) {
+            console.log('My peer ID is: ' + id);
+            resolve(id)
+        });
+    })
+    
     return {
         createPeer: async (server: string, port?: number, socket?: Socket): Promise<Peer> => {
 
@@ -85,7 +94,7 @@ export const browserPeerAPI: () => PeerApi = () => {
 
                 return await new Promise(resolve => {
                     connection.on('open', () => {
-                        console.log("Connection open..." + server)
+                        console.log("Outbound connection open..." + server)
                         adaptorOutbound(connection, server, resolve)
                     })
                 })
@@ -96,6 +105,7 @@ export const browserPeerAPI: () => PeerApi = () => {
         },
         createServer: (cfg: MempoolConfig<PeerAddr>, discovered: (addr: PeerAddr, socket?: Socket) => void): void => {
             jspeer.on("connection", c => {
+                console.log("Inbound connection open..." + c.peer)
                 discovered({server: c.peer}, {dataConnection: c})
             })
         }

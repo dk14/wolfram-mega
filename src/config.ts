@@ -8,6 +8,15 @@ interface FacilitatorId {
     facilitatorRewardIdPow?: HashCashPow // preimage is concat of reward addresses
 }
 
+interface WebRtcPeerServer {
+    key?: string,
+    host: string,
+    port: number,
+    path: string,
+    secure?: boolean,
+    pingInterval?: number
+}
+
 export interface MempoolConfig<PeerAddrT> {
     maxMsgLength: number
     maxOracles: number
@@ -31,5 +40,6 @@ export interface MempoolConfig<PeerAddrT> {
     peerAnnouncementQuota?: number
     p2pPortPublic?: number
     hostnamePublic?: string
+    webrtcPeerServer?: WebRtcPeerServer
 
 }

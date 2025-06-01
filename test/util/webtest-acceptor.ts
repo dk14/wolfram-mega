@@ -1,47 +1,24 @@
-import "fake-indexeddb/auto";
-import fs from "fs"
-global.isTest = true
+import { configure } from "./configure";
+configure
 
-import { JSDOM } from 'jsdom';
-const webpage = fs.readFileSync(__dirname + "/../../webapp/index.html").toString("utf-8")
-const jsdom = new JSDOM(webpage, { runScripts: "dangerously" });
-global.window = (jsdom.window as unknown as Window & typeof globalThis);
-global.document = window.document;
-global.localStorage = undefined
-
-import fetchMock from 'fetch-mock';
 import { btcDlcContractInterpreter } from "../../src-web/transactions";
 import { PreferenceModel, CapabilityModel, OfferModel, MatchingEngine } from "../../src-web/matching";
 import { dataProvider } from "../../src-web/oracle-data-provider";
-import assert from "assert";
-fetchMock.config.allowRelativeUrls = true
-fetchMock.mockGlobal().route("./../../wolfram-mega-spec.yaml", "data");
-
-import wrtc from '@roamhq/wrtc';
 import { startP2P } from "../../src/p2p";
 import { browserPeerAPI } from "../../src/p2p-webrtc";
-RTCPeerConnection = wrtc.RTCPeerConnection;
-RTCIceCandidate = wrtc.RTCIceCandidate;
-RTCSessionDescription = wrtc.RTCSessionDescription;
+import { MempoolConfig } from "../../src/config";
 
-window.fetch = require('node-fetch');
-window.WebSocket = require('ws');
-window.FileReader = require('filereader');
-
-Blob = require('node-blob');
-const blobToArraybuffer = require('blob-to-arraybuffer');
-Blob.prototype.arrayBuffer = function() {
-    return blobToArraybuffer(this);
-}
-
-require("../../webapp");
+declare var cfg: MempoolConfig<any>
 
 (async () => {
     await global.initWebapp
     console.log("Start...")
 
-    global.cfg.hostname = "dk14-peerjs-1586786454-acceptor-test"
-    startP2P(global.cfg, browserPeerAPI())
+    cfg.p2pseed = []
+    cfg.hostname = "acceptor-peer"
+
+    
+    startP2P(global.cfg, await browserPeerAPI())
 
     setInterval(() => window.stalking.trackIssuedOffers({
         "bitcoin-testnet": btcDlcContractInterpreter
@@ -62,7 +39,7 @@ require("../../webapp");
         const offer: OfferModel = await (new Promise((resolve, reject) => {
             const cancel = setInterval(async () => {
                 i++
-                if (i > 6) {
+                if (i > 20) {
                     clearInterval(cancel)
                     reject("OFFER DID NOT MATCH!")
                 } else {
@@ -93,7 +70,7 @@ require("../../webapp");
     setTimeout(async () => {
         console.log("TX NOT GENERATED!")
         process.exit(255)
-    }, 7000)
+    }, 20000)
 
 })()
 

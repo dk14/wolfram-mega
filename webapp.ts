@@ -1,6 +1,6 @@
 import { Collector, Predicate, TraderApi, TraderStorage, traderApi } from './src/client-api/trader-api';
 import { MempoolConfig } from './src/config';
-import { Neighbor, browserPeerAPI, p2pNode, startP2P } from './src/p2p';
+import { Neighbor, p2pNode, startP2P } from './src/p2p';
 import { OracleId, OracleCapability, OfferMsg, Report, PagingDescriptor, Commitment, Fact, FactRequest, HashCashPow, Offer, OfferTerms } from './src/protocol';
 import { Api, FacilitatorNode, api as ndapi} from './src/node';
 import * as btc from "./src/client-api/contracts/generate-btc-tx";
@@ -16,6 +16,7 @@ import { isBrowser } from './src/util';
 
 export type Storage = TraderStorage<TraderQuery<OracleId>, TraderQuery<OracleCapability>, TraderQuery<Report>, TraderQuery<OfferMsg>>
 
+export declare const cfg: MempoolConfig<any>
 
 export interface TraderQuery<T> {
     where: (cp: T) => Promise<boolean>
@@ -74,6 +75,11 @@ const cfg: MempoolConfig<any> = {
     "p2pPort": 8334,
     "hostname": "dk14-peerjs-10101010",
     "isTest": true,
+    "webrtcPeerServer": {
+        host: "0.peerjs.com",
+        port: 443,
+        path: "/",
+    },
     "p2pseed": [
         {"server": "dk14-peerjs-1586786454"},
         {"server": "dk14-peerjs-1586786454-acceptor-test"}
@@ -592,7 +598,7 @@ const adaptedStorage: Storage = {
 
 const node: FacilitatorNode<Neighbor> = {
     peers: [],
-    discovered: function (peer: Neighbor): void {
+    discovered: async function (peer: Neighbor): Promise<void> {
         
     },
     broadcastPeer: function (peer: Neighbor): void {
