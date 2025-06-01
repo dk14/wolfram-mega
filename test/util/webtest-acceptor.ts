@@ -1,5 +1,6 @@
 import "fake-indexeddb/auto";
 import fs from "fs"
+global.isTest = true
 
 import { JSDOM } from 'jsdom';
 const webpage = fs.readFileSync(__dirname + "/../../webapp/index.html").toString("utf-8")
@@ -16,6 +17,22 @@ import assert from "assert";
 fetchMock.config.allowRelativeUrls = true
 fetchMock.mockGlobal().route("./../../wolfram-mega-spec.yaml", "data");
 
+import wrtc from '@roamhq/wrtc';
+import { browserPeerAPI, startP2P } from "../../src/p2p";
+RTCPeerConnection = wrtc.RTCPeerConnection;
+RTCIceCandidate = wrtc.RTCIceCandidate;
+RTCSessionDescription = wrtc.RTCSessionDescription;
+
+window.fetch = require('node-fetch');
+window.WebSocket = require('ws');
+window.FileReader = require('filereader');
+
+Blob = require('node-blob');
+const blobToArraybuffer = require('blob-to-arraybuffer');
+Blob.prototype.arrayBuffer = function() {
+    return blobToArraybuffer(this);
+}
+
 require("../../webapp");
 
 (async () => {
@@ -24,6 +41,9 @@ require("../../webapp");
     console.log("Start Acceptor")
     console.log("\n")
     console.log("----------")
+
+    //global.cfg.hostname = "dk14-peerjs-1586786454-acceptor-test"
+    //startP2P(global.cfg, browserPeerAPI())
 
     setInterval(() => window.stalking.trackIssuedOffers({
         "bitcoin-testnet": btcDlcContractInterpreter
@@ -59,6 +79,7 @@ require("../../webapp");
             process.exit(0)
         }
     }, 1000)
+    console.log("NOT OK!")
 
 })()
 

@@ -72,10 +72,11 @@ const cfg: MempoolConfig<any> = {
     "maxMsgLength": 1000000,
     "httpPort": 8081,
     "p2pPort": 8334,
-    "hostname": "localhost",
+    "hostname": "dk14-peerjs-10101010",
     "isTest": true,
     "p2pseed": [
-        {"server": "dk14-peerjs-1586786454", "port" : 0}
+        {"server": "dk14-peerjs-1586786454"},
+        {"server": "dk14-peerjs-1586786454-acceptor-test"}
     ],
     "oracle": {
         "id": {

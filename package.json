@@ -26,7 +26,8 @@
   "browser": {
     "openapi-enforcer": false,
     "p2p-node": false,
-    "readline": false
+    "readline": false,
+    "@roamhq/wrtc": false
   },
   "bin": {
     "wf-mega-peer": "./bin/wf-mega-peer"

@@ -53,13 +53,14 @@ export const serverPeerAPI: PeerApi = {
 
 
 export const browserPeerAPI: () => PeerApi = () => {
+    console.log("Creating webrtc peer: " + global.cfg.hostname)
     const jspeer = new p2pjs.Peer(global.cfg.hostname)
 
     return {
         createPeer: (server: string, port?: number, socket?: Socket): Peer => {
 
             if (socket === undefined) {
-                
+                console.log("Try to connect to peer..." + server)
                 jspeer.connect(server)
 
                 var connection: p2pjs.DataConnection = null
@@ -69,6 +70,7 @@ export const browserPeerAPI: () => PeerApi = () => {
                         if (ev === "connect") {
                             jspeer.on("connection", (c) => {
                                 if (c.peer === server) {
+                                    console.log("Connected to peer..." + server)
                                     connection = c
                                     handler({peer: adaptor})
                                 }
@@ -101,6 +103,8 @@ export const browserPeerAPI: () => PeerApi = () => {
                             connection.send({
                                 cmd, msg: msg.toString("base64")
                             })
+                        } else {
+                            console.log("Message lost...peer not connected yet" + server)
                         }
                     },
                     server,
@@ -116,6 +120,7 @@ export const browserPeerAPI: () => PeerApi = () => {
                 }
                 return adaptor
             } else {
+                console.log("Inbound connection..." + server)
                 const adaptor = {
                     on: (ev: "message" | "connect" | "end", handler: (ev: Event) => void): void => {
                         if (ev === "connect") {  
