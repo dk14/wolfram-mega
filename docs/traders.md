@@ -295,7 +295,7 @@ const data = await (await fetch(`./${endpoints[view]}?pageSize=100&pageNo=${page
 
 # Oracle quorums
 
-`OfferMsg` ssupports quorums through declaring optional `question2` and `question3` fields in `OfferTerms`. `OfferTerms` also have optional `synonyms` field to adapt incompatible values. e.g.
+`OfferMsg` additionally supports quorums through declaring optional `question2` and `question3` fields in `OfferTerms`. `OfferTerms` also have optional `synonyms` field to adapt incompatible values. e.g.
 
 ```json
 {
@@ -308,21 +308,6 @@ const data = await (await fetch(`./${endpoints[view]}?pageSize=100&pageNo=${page
 > Trader Console contains Bitcoin DLC and Cardano Helios demos, generating binary option contract with improvised oracle quorums.
 
 > Our Bitcoin DLC `OfferTerms` intepreter would generate 3 taproot leafs with `OP_CHECKSIGVERIFY <pub1> OP_CHECKSIGVERIFY <pub2>`
-
-# Oracle Identities
-
-Oracle quorums is secondary, optional, feature in Mega, since the primary, stronger assurance, is individual oracle **identity** acquired through PoW. We simply estimate:
-
-- oracle's identity strength from its PoW-difficulty, 
-- oracle reputation  from  PoW-difficulty of reports filed (by traders) against its `OracleId`.
-
-$identityScore_i = \sum (oraclePow_i  + \sum capabilityPow_{ij}) - \sum reportPow_{ij}$
-
-## Sybyl attacks
-
-This, combined with mempool evictions, prevents even Sybil-attacks: it is more beneficial for a single real-life identity to accumulate PoW under a single `OracleId` rather than shutter it across **small identities** which would be likely `low pow` **evicted** from pool.
-
-$\sum smallId_i(pow_i < mempoolThreshold) < bigId((\sum pow_i) < mempoolThreshold)$
 
 # Golden source
 
@@ -341,3 +326,4 @@ For extra-valuable contracts with a long expiry term, it is recommended to provi
 - or on the hardware wallet itself
 
 It would allow for automatic recovery of non-expired trades (using only private key) if data is lost.
+

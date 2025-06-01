@@ -4,7 +4,7 @@ A p2p fact sharing network
 
 Mega *(from מַגָע, contact)* - is a lightweight infinitely scalable decentralized data marketplace, bringing authentic observers to blockchain.
 
-## Description
+## Design
 
 Mega acts as a p2p oracle advertisement network.
 
@@ -18,6 +18,20 @@ Mega supports advertisement for trading offers. Offer format allows expression o
 
 Trader's contract are private from oracle's supervision. Oracle is not aware of trader's blockchain at all. Pull-based model ([Oracle](oracle.md))
 
+## Strong Oracle Identities
+
+Oracle quorums is secondary, optional, feature in Mega, since the primary, stronger assurance, is individual oracle **identity** acquired through PoW. We simply estimate:
+
+- oracle's identity strength from its PoW-difficulty, 
+- oracle reputation  from  PoW-difficulty of reports filed (by traders) against its `OracleId`.
+
+$identityScore_i = \sum (oraclePow_i  + \sum capabilityPow_{ij}) - \sum reportPow_{ij}$
+
+## Sybyl attacks resistance
+
+This, combined with mempool evictions, provides resistance to Sybil-attacks: it is more beneficial for a single real-life identity to accumulate PoW under a single `OracleId` rather than shutter it across **small identities** which would be likely `low pow` **evicted** from pool.
+
+$\sum smallId_i(pow_i < mempoolThreshold) < bigId((\sum pow_i) < mempoolThreshold)$
 
 ## How it works
 ![image](https://lh7-rt.googleusercontent.com/docsz/AD_4nXeUWfzdI9ARP760J9ZquB5KRgfNXDRj_Z976U3KmiKf23Ky9LqC-alwiwpTZ3IAotH5BUVJAWY0-eE3wDn1mGuCyZwfGgN9suGuc08eIq8k4PihpvsgJnSERdDJwKYL6HlEgFXcFw?key=Rm1gHfOo0ww9LGQzkRjPFZRP)
