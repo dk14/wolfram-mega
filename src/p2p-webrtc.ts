@@ -85,6 +85,7 @@ export const browserPeerAPI: () => PeerApi = () => {
 
                 return await new Promise(resolve => {
                     connection.on('open', () => {
+                        console.log("Connection open..." + server)
                         adaptorOutbound(connection, server, resolve)
                     })
                 })
@@ -92,7 +93,6 @@ export const browserPeerAPI: () => PeerApi = () => {
                 console.log("Inbound connection..." + server)
                 return adaptorInbound(socket.dataConnection, server)
             }
-
         },
         createServer: (cfg: MempoolConfig<PeerAddr>, discovered: (addr: PeerAddr, socket?: Socket) => void): void => {
             jspeer.on("connection", c => {

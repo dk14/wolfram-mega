@@ -64,7 +64,7 @@ export var p2pNode: nd.FacilitatorNode<Neighbor> | undefined = undefined
 
 export var connectionPool: ConnectionPool<PeerAddr> | undefined = undefined
 
-export const startP2P = (cfg: MempoolConfig<PeerAddr>, peerApi = serverPeerAPI) => {
+export const startP2P = async (cfg: MempoolConfig<PeerAddr>, peerApi = serverPeerAPI): Promise<nd.FacilitatorNode<Neighbor>> => {
     var peersAnnounced = 0
 
     var connections = 0
@@ -154,17 +154,14 @@ export const startP2P = (cfg: MempoolConfig<PeerAddr>, peerApi = serverPeerAPI) 
             p.on('connect', onconnect)
             p.on('end', ondisconnect)
 
-            if (socket === undefined) {
+            if (socket === undefined) { //outbound
                 peers.push({peer : p, addr: addr})
             }
-            
-
-            
+                
         } catch (err) {
             console.error(err)
         }
     }
-
 
     function reduceCTTL(content: string): [string, boolean] {
         const msg: mega.MsgLike = JSON.parse(content)
@@ -270,44 +267,12 @@ export const startP2P = (cfg: MempoolConfig<PeerAddr>, peerApi = serverPeerAPI) 
     
     p2pNode = node
     connectionPool = {
-
         list: function (cfg: ConnectionPoolCfg): PeerAddr[] {
             return peers.map(x => x.addr)
         },
         getapi: function (peer: PeerAddr): nd.Api {
             const prefix = `http://${peer.server}:${peer.httpPort ?? 8080}/`
-            const suffix = (paging: mega.PagingDescriptor) => {
-                return `pageNo=${paging.page}&pageSize=${paging.chunkSize}`
-            }
-            return {
-                announceOracle: function (cfg: MempoolConfig<any>, id: mega.OracleId): Promise<('success' | 'duplicate') | ('low pow difficulty' | 'wrong signature' | 'wrong pow' | 'no oracle found' | ['invalid request', string])> {
-                    throw new Error('Function not implemented.');
-                },
-                announceCapability: function (cfg: MempoolConfig<any>, cp: mega.OracleCapability): Promise<('success' | 'duplicate') | ('low pow difficulty' | 'wrong signature' | 'wrong pow' | 'no oracle found' | ['invalid request', string])> {
-                    throw new Error('Function not implemented.');
-                },
-                reportMalleability: function (cfg: MempoolConfig<any>, report: mega.Report): Promise<('success' | 'duplicate') | ('low pow difficulty' | 'wrong signature' | 'wrong pow' | 'no oracle found' | ['invalid request', string])> {
-                    throw new Error('Function not implemented.');
-                },
-                disputeMissingfactClaim: function (dispute: mega.Dispute): Promise<('success' | 'duplicate') | (('low pow difficulty' | 'wrong signature' | 'wrong pow' | 'no oracle found' | ['invalid request', string]) | 'invalid fact' | 'report not found' | 'unknown')> {
-                    throw new Error('Function not implemented.');
-                },
-                publishOffer: function (cfg: MempoolConfig<any>, offer: mega.OfferMsg): Promise<('success' | 'duplicate') | ('low pow difficulty' | 'wrong signature' | 'wrong pow' | 'no oracle found' | ['invalid request', string])> {
-                    throw new Error('Function not implemented.');
-                },
-                lookupOracles: async function (paging: mega.PagingDescriptor): Promise<mega.OracleId[]> {
-                    return (await (await fetch(prefix + "oracles?" + suffix(paging))).json()) as mega.OracleId[]
-                },
-                lookupCapabilities: async function (paging: mega.PagingDescriptor, oraclePub: string): Promise<mega.OracleCapability[]> {
-                    return (await (await fetch(prefix + `capabilities?pubkey=${encodeURIComponent(oraclePub)}&` + suffix(paging))).json()) as mega.OracleCapability[]
-                },
-                lookupReports: async function (paging: mega.PagingDescriptor, oraclePub: string): Promise<mega.Report[]> {
-                    return (await (await fetch(prefix + `reports?pubkey=${encodeURIComponent(oraclePub)}&` + suffix(paging))).json()) as mega.Report[]
-                },
-                lookupOffers: async function (paging: mega.PagingDescriptor, capabilityPubKey: string): Promise<mega.OfferMsg[]> {
-                    return (await (await fetch(prefix + `offers?pubkey=${encodeURIComponent(capabilityPubKey)}&` + suffix(paging))).json()) as mega.OfferMsg[]
-                }
-            }
+            return remoteApi(prefix)
         },
         drop: function (cfg: ConnectionPoolCfg, peer: PeerAddr): void {
             const neighbor = peers.find(x => x.addr === peer)
@@ -328,5 +293,41 @@ export const startP2P = (cfg: MempoolConfig<PeerAddr>, peerApi = serverPeerAPI) 
             broadcastPeer({server: cfg.hostname, port: cfg.p2pPort, seqNo: (cfg.hostSeqNo ?? 0) + seqNo, httpPort: cfg.httpPort}, true)
         }, (cfg.p2pKeepAlive ?? 100000))
     }
+
+    return node
     
 }
+
+const suffix = (paging: mega.PagingDescriptor) => {
+    return `pageNo=${paging.page}&pageSize=${paging.chunkSize}`
+}
+
+export const remoteApi = (prefix: string) => ({
+    announceOracle: async function (cfg: MempoolConfig<any>, id: mega.OracleId): Promise<('success' | 'duplicate') | ('low pow difficulty' | 'wrong signature' | 'wrong pow' | 'no oracle found' | ['invalid request', string])> {
+        return 'low pow difficulty'
+    },
+    announceCapability: async function (cfg: MempoolConfig<any>, cp: mega.OracleCapability): Promise<('success' | 'duplicate') | ('low pow difficulty' | 'wrong signature' | 'wrong pow' | 'no oracle found' | ['invalid request', string])> {
+        return 'low pow difficulty'
+    },
+    reportMalleability: async function (cfg: MempoolConfig<any>, report: mega.Report): Promise<('success' | 'duplicate') | ('low pow difficulty' | 'wrong signature' | 'wrong pow' | 'no oracle found' | ['invalid request', string])> {
+        return 'low pow difficulty'
+    },
+    disputeMissingfactClaim: async function (dispute: mega.Dispute): Promise<('success' | 'duplicate') | (('low pow difficulty' | 'wrong signature' | 'wrong pow' | 'no oracle found' | ['invalid request', string]) | 'invalid fact' | 'report not found' | 'unknown')> {
+        return 'low pow difficulty'
+    },
+    publishOffer: async function (cfg: MempoolConfig<any>, offer: mega.OfferMsg): Promise<('success' | 'duplicate') | ('low pow difficulty' | 'wrong signature' | 'wrong pow' | 'no oracle found' | ['invalid request', string])> {
+        return 'low pow difficulty'
+    },
+    lookupOracles: async function (paging: mega.PagingDescriptor): Promise<mega.OracleId[]> {
+        return (await (await fetch(prefix + "oracles?" + suffix(paging))).json()) as mega.OracleId[]
+    },
+    lookupCapabilities: async function (paging: mega.PagingDescriptor, oraclePub: string): Promise<mega.OracleCapability[]> {
+        return (await (await fetch(prefix + `capabilities?pubkey=${encodeURIComponent(oraclePub)}&` + suffix(paging))).json()) as mega.OracleCapability[]
+    },
+    lookupReports: async function (paging: mega.PagingDescriptor, oraclePub: string): Promise<mega.Report[]> {
+        return (await (await fetch(prefix + `reports?pubkey=${encodeURIComponent(oraclePub)}&` + suffix(paging))).json()) as mega.Report[]
+    },
+    lookupOffers: async function (paging: mega.PagingDescriptor, capabilityPubKey: string): Promise<mega.OfferMsg[]> {
+        return (await (await fetch(prefix + `offers?pubkey=${encodeURIComponent(capabilityPubKey)}&` + suffix(paging))).json()) as mega.OfferMsg[]
+    }
+})
