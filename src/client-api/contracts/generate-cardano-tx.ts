@@ -77,7 +77,7 @@ const pickContract = (inputs: OpeningInputs | ClosingInputs): string => {
 const pickDatum = (inputs: OpeningInputs | ClosingInputs): ListData => {
     const alicePkh = Address.fromBech32(inputs.aliceInput.addr).pubKeyHash
     const BobPkh = Address.fromBech32(inputs.bobInput.addr).pubKeyHash
-
+    
     if (inputs.oracleCpPubKey2 === undefined) {
         return new ListData([new ByteArrayData(alicePkh.bytes),
             new ByteArrayData(BobPkh.bytes),
@@ -97,7 +97,7 @@ const pickDatum = (inputs: OpeningInputs | ClosingInputs): ListData => {
     }
 }
 
-const pickRedeemer = (inputs: ClosingInputs): ListData => {
+const pickRedeemer = (inputs: ClosingInputs): ListData => { 
     if (inputs.oracleCpPubKey2 === undefined) {
         return new ListData([
             new ByteArrayData(stringToArray(inputs.msg)),
@@ -175,7 +175,7 @@ export const generateOpeningTransaction = async (network: string, inputs: Openin
 
 export const generateClosingTransaction = async (network: string, inputs: ClosingInputs): Promise<CborHex> => {
     const tx = new Tx()
-    const src = fs.readFileSync(__dirname + "/plutus-option.hl").toString()
+    const src = fs.readFileSync(__dirname + pickContract(inputs)).toString()
     const program = Program.new(src)
 
     const uplc = program.compile(false)

@@ -68,62 +68,6 @@ if (require.main === module) {
 
     })
 
-    const wsFact = new WebSocket(`ws://localhost:${cfg.oracleEndpointWsPort}/`)
-    await new Promise(resolve => wsFact.on('open', () => resolve(true)))
-    const streamFact = createWebSocketStream(wsFact, { encoding: 'utf8' })
-    streamFact.on('error', console.error);
-    const rlFact = readline.createInterface(streamFact, streamFact)
-
-    rlFact.on('line', (line) => {
-        try {
-            console.log(line)
-            const x: [mega.Commitment, string] = JSON.parse(line)
-            const crypto = cfg.crypto[x[0].req.capabilityPubKey]
-            const commitment = x[0]
-
-            if (x[1] === '!RVALUE') {
-                if (crypto === 'schnorr') {
-                    const secret = Buffer.from(bs58.decode(cfg.capabilityPKs[commitment.req.capabilityPubKey])).toString("hex").substring(2, 64 + 2)
-                    const kValue = schnorrApi().genNonce(secret, commitment.req.capabilityPubKey, "C87AA53824B4D7AE2EB035A2B5BBBCCC080E76CDC6D1692C4B0B62D798E6D906")
-                    const rValue = schnorrApi().getPub(kValue)
-                    streamFact.write(rValue + "\n")
-                }
-                streamFact.write(" " + "\n")
-                
-            } else if (x[1] === '') {
-                if (crypto === 'schnorr') {
-                    const secret = Buffer.from(bs58.decode(cfg.capabilityPKs[commitment.req.capabilityPubKey])).toString("hex").substring(2, 64 + 2)
-                    const kValue = schnorrApi().genNonce(secret, commitment.req.capabilityPubKey, "C87AA53824B4D7AE2EB035A2B5BBBCCC080E76CDC6D1692C4B0B62D798E6D906")
-                    const rValue = schnorrApi().getPub(kValue)
-                    const sValue = schnorrApi().signatureSValue(secret, kValue, JSON.stringify(commitment)).padStart(64, "0")
-                    streamFact.write(rValue + sValue + "\n")
-                } else {
-                    const sig = (crypto === 'ed') ? 
-                    utilcrypto.testOnlySignEd(JSON.stringify(commitment), cfg.capabilityPKs[commitment.req.capabilityPubKey])
-                    : utilcrypto.testOnlySignEd(JSON.stringify(commitment), cfg.capabilityPKs[commitment.req.capabilityPubKey])
-                    
-                    streamFact.write(sig + "\n")
-                }
-                
-            } else {
-                if (crypto === 'schnorr') {
-                    const secret = Buffer.from(bs58.decode(cfg.capabilityPKs[commitment.req.capabilityPubKey])).toString("hex").substring(2, 64 + 2)
-                    const kValue = schnorrApi().genNonce(secret, commitment.req.capabilityPubKey, "C87AA53824B4D7AE2EB035A2B5BBBCCC080E76CDC6D1692C4B0B62D798E6D906")
-                    const sValue = schnorrApi().signatureSValue(secret, kValue, x[1]).padStart(64, "0")
-                    streamFact.write(sValue + "\n")
-                } else {
-                    const sig = (crypto === 'ed') ? 
-                    utilcrypto.testOnlySignEd(x[1], cfg.capabilityPKs[commitment.req.capabilityPubKey])
-                    : utilcrypto.testOnlySign(x[1], cfg.capabilityPKs[commitment.req.capabilityPubKey])
-                    streamFact.write(sig + "\n")
-                }
-                
-            }   
-        } catch (err) {
-            console.error(err)
-        }
-           
-    })
     
 })()
 }

@@ -57,9 +57,6 @@ const cfg: DemoCfg = getcfg(process.argv[2] ?? "cfg/demo.json");
     console.log("##########  Wait for endpoint http..." +  getcfg("../src/client-api/utils/" + cfg.mockOracleCfg).httpPort)
     await waitFor([ 'tcp:localhost:' + getcfg("../src/client-api/utils/" + cfg.mockOracleCfg).httpPort])
 
-    console.log("########## Wait for endpoint ws..." +  getcfg("../src/client-api/utils/" + cfg.mockOracleCfg).wsPort)
-    await waitFor([ 'tcp:localhost:' + getcfg("../src/client-api/utils/" + cfg.mockOracleCfg).wsPort])
-
     console.log("########## Starting signers...")
 
     const signer = spawn("npm", ["run", "auto-signer", cfg.signerCfg]);
@@ -76,6 +73,14 @@ const cfg: DemoCfg = getcfg(process.argv[2] ?? "cfg/demo.json");
     });
     btcSigner.stdout.on('data', async function(data){
         console.log("[BTC-SIGNER]" + data);
+    });
+
+    const endpointSigner = spawn("npm", ["run", "endpoint-signer", cfg.signerCfg]);
+    endpointSigner.stderr.on('error', async function(data){
+        console.log("[ENDPOINT-SIGNER-ERROR]" + data);
+    });
+    endpointSigner.stdout.on('data', async function(data){
+        console.log("[ENDPOINT-SIGNER]" + data);
     });
 
 

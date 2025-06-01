@@ -160,7 +160,7 @@ export const generateCetRedemptionTransaction = async (params: CetRedemptionPara
         const twistedPk3 = schnorr.adaptorPublic(params.oraclePub3, params.answer, params.rValue3).padStart(64, "0")
 
         return (await tx.genAliceCetRedemptionQuorum(
-            params.quorumno,
+            1,
             cetOut, 
             twistedPk1,
             twistedPk2, 

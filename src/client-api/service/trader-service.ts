@@ -193,7 +193,7 @@ export const startTraderService = (cfg: MempoolConfig<PeerAddr>, storage = trade
                         }
 
                     } catch (err) {
-                        console.error(err)
+                        console.log(err)
                         if (!res.writableEnded){
                             try {
                                 if (err.message !== undefined) {

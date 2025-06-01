@@ -9,6 +9,7 @@ import {
     tapTreeFromList,
   } from 'bitcoinjs-lib/src/psbt/bip371';
 import * as ecc from 'tiny-secp256k1';
+import * as tools from 'uint8array-tools';
 
 if (isBrowser()) {
     bitcoin.initEccLib(ecc)
@@ -576,10 +577,9 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
             const adaptorPkCombined3 = muSig.pubKeyCombine([Buffer.from(alicePub, "hex"), Buffer.from(adaptorPub3, "hex")]);
             const adaptorPubKeyCombined3 = convert.intToBuffer(adaptorPkCombined3.affineX);
 
-            const script_asm1 = `${toXOnly(adaptorPubKeyCombined1)} OP_CHECKSIGVERIFY ${toXOnly(adaptorPubKeyCombined2)}  OP_CHECKSIG`;
-            const script_asm2 = `${toXOnly(adaptorPubKeyCombined1)} OP_CHECKSIGVERIFY ${toXOnly(adaptorPubKeyCombined3)}  OP_CHECKSIG`;
-            const script_asm3 = `${toXOnly(adaptorPubKeyCombined2)} OP_CHECKSIGVERIFY ${toXOnly(adaptorPubKeyCombined3)}  OP_CHECKSIG`;
-
+            const script_asm1 = `${adaptorPubKeyCombined1.toString("hex")} OP_CHECKSIGVERIFY ${adaptorPubKeyCombined2.toString("hex")} OP_CHECKSIGVERIFY`;
+            const script_asm2 = `${adaptorPubKeyCombined1.toString("hex")} OP_CHECKSIGVERIFY ${adaptorPubKeyCombined3.toString("hex")} OP_CHECKSIGVERIFY`;
+            const script_asm3 = `${adaptorPubKeyCombined2.toString("hex")} OP_CHECKSIGVERIFY ${adaptorPubKeyCombined3.toString("hex")} OP_CHECKSIGVERIFY`;
 
             psbt.addInput({
                 hash: multiIn.txid,
@@ -602,14 +602,11 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
 
             const script_p2tr = bitcoin.payments.p2tr({
                     internalPubkey: toXOnly(pubKeyCombined),
-                    scriptTree
+                    scriptTree,
+                    network: net
             });
 
-            if (session === null || session === undefined) {
-                await psbt.signInputAsync(0, schnorrSignerMulti(alicePub, bobPub))
-            } else {
-                await psbt.signInputAsync(0, schnorrSignerInteractive(alicePub, bobPub, session))
-            }
+
 
             const script_addr = script_p2tr.address ?? '';
 
@@ -624,6 +621,12 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
                     value: stateAmount
                 });
             }
+
+            if (session === null || session === undefined) {
+                await psbt.signInputAsync(0, schnorrSignerMulti(alicePub, bobPub))
+            } else {
+                await psbt.signInputAsync(0, schnorrSignerInteractive(alicePub, bobPub, session))
+            }
             
             psbt.finalizeAllInputs()
             
@@ -634,7 +637,6 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
         },
         genAliceCetRedemptionQuorum: async (quorumno: 1 | 2 | 3, aliceOracleIn: UTxO, adaptorPub: string, adaptorPub2: string, adaptorPub3: string, alicePub: string, bobPub: string, oracleS: string, oracleS2: string, oracleS3: string, amount: number, txfee: number): Promise<Tx> => {
             const psbt = new bitcoin.Psbt({ network: net})
-            
             const pkCombined = muSig.pubKeyCombine([Buffer.from(alicePub, "hex"), Buffer.from(bobPub, "hex")]);
             const pubKeyCombined = convert.intToBuffer(pkCombined.affineX);
 
@@ -647,10 +649,9 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
             const adaptorPkCombined3 = muSig.pubKeyCombine([Buffer.from(alicePub, "hex"), Buffer.from(adaptorPub3, "hex")]);
             const adaptorPubKeyCombined3 = convert.intToBuffer(adaptorPkCombined3.affineX);
 
-            const script_asm1 = `${toXOnly(adaptorPubKeyCombined1)} OP_CHECKSIGVERIFY ${toXOnly(adaptorPubKeyCombined2)}  OP_CHECKSIG`;
-            const script_asm2 = `${toXOnly(adaptorPubKeyCombined1)} OP_CHECKSIGVERIFY ${toXOnly(adaptorPubKeyCombined3)}  OP_CHECKSIG`;
-            const script_asm3 = `${toXOnly(adaptorPubKeyCombined2)} OP_CHECKSIGVERIFY ${toXOnly(adaptorPubKeyCombined3)}  OP_CHECKSIG`;
-
+            const script_asm1 = `${adaptorPubKeyCombined1.toString("hex")} OP_CHECKSIGVERIFY ${adaptorPubKeyCombined2.toString("hex")} OP_CHECKSIGVERIFY`;
+            const script_asm2 = `${adaptorPubKeyCombined1.toString("hex")} OP_CHECKSIGVERIFY ${adaptorPubKeyCombined3.toString("hex")} OP_CHECKSIGVERIFY`;
+            const script_asm3 = `${adaptorPubKeyCombined2.toString("hex")} OP_CHECKSIGVERIFY ${adaptorPubKeyCombined3.toString("hex")} OP_CHECKSIGVERIFY`;
 
             const redeem1 = {
                 output: bitcoin.script.fromASM(script_asm1),
@@ -696,19 +697,24 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
                 redeem: redeem3
             });
 
+            
+
             if (quorumno == 1) {
                 psbt.addInput({
-                    hash:aliceOracleIn.txid,
-                    index: aliceOracleIn.vout,
+                    hash: aliceOracleIn.txid,
+                    index: 0,
                     witnessUtxo: { value: amount, script: p1.output! },
+                  });
+                  psbt.updateInput(0, {
                     tapLeafScript: [
-                        {
-                            leafVersion: redeem1.redeemVersion,
-                            script: redeem1.output,
-                            controlBlock: p1.witness![p1.witness!.length - 1] // extract control block from witness data
-                        }
-                    ]
-                });
+                      {
+                        leafVersion: redeem1.redeemVersion,
+                        script: redeem1.output,
+                        controlBlock: p1.witness![p1.witness!.length - 1],
+                      },
+                    ],
+                  });
+                
     
             }
 
@@ -751,17 +757,24 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
 
             if (quorumno == 1) {
                 await psbt.signInputAsync(0, schnorrSignerMulti(alicePub, adaptorPub, ["", oracleS]))
-                await psbt.signInputAsync(0, schnorrSignerMulti(alicePub, adaptorPub, ["", oracleS2]))
+                if (adaptorPub !== adaptorPub2) {
+                    await psbt.signInputAsync(0, schnorrSignerMulti(alicePub, adaptorPub2, ["", oracleS2]))
+                }
+                
             }
 
             if (quorumno == 2) {
                 await psbt.signInputAsync(0, schnorrSignerMulti(alicePub, adaptorPub, ["", oracleS]))
-                await psbt.signInputAsync(0, schnorrSignerMulti(alicePub, adaptorPub, ["", oracleS3]))
+                if (adaptorPub !== adaptorPub3) {
+                    await psbt.signInputAsync(0, schnorrSignerMulti(alicePub, adaptorPub3, ["", oracleS3]))
+                }
             }
 
             if (quorumno == 3) {
-                await psbt.signInputAsync(0, schnorrSignerMulti(alicePub, adaptorPub, ["", oracleS2]))
-                await psbt.signInputAsync(0, schnorrSignerMulti(alicePub, adaptorPub, ["", oracleS3]))
+                await psbt.signInputAsync(0, schnorrSignerMulti(alicePub, adaptorPub2, ["", oracleS2]))
+                if (adaptorPub2 !== adaptorPub3) {
+                    await psbt.signInputAsync(0, schnorrSignerMulti(alicePub, adaptorPub3, ["", oracleS3]))
+                } 
             }
 
             psbt.finalizeAllInputs()

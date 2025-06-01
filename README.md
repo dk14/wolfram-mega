@@ -47,3 +47,4 @@ Protocol is specifications are in `src/protocol.ts` and `wolfram-mega-spec.yaml`
 - finish interactive signatures and tx generation for webapp
 - provide optional nodejs backend for webapp
 - add quorums to webapp
+- padding for schnorr rvalues

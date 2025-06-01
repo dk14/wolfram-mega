@@ -14,6 +14,7 @@
     "peer": "npx tsx app.ts",
     "mock-oracle": "npx tsx src/client-api/utils/oracle-endpoint.ts",
     "auto-signer": "npx tsx src/client-api/utils/oracle-auto-signer.ts",
+    "endpoint-signer": "npx tsx src/client-api/utils/oracle-endpoint-signer.ts",
     "btc-signer": "npx tsx src/client-api/utils/btc-signer.ts",
     "gen-keypair": "npx tsx src/client-api/utils/gen-keypair.ts",
     "demo": "npx tsx test/demo.ts",
@@ -58,6 +59,7 @@
     "@types/ws": "^8.18.0",
     "asn1js": "^3.0.6",
     "assert": "^2.1.0",
+    "async-mutex": "^0.5.0",
     "bigi": "^1.4.2",
     "bip-schnorr": "^0.6.7",
     "bip32": "^4.0.0",
@@ -83,6 +85,7 @@
     "schnorr-adaptor-points": "^0.1.0",
     "serve-handler": "^6.1.6",
     "tiny-secp256k1": "^2.2.2",
+    "uint8array-tools": "^0.0.9",
     "url": "^0.11.4",
     "wait-on": "^8.0.3",
     "ws": "^8.18.1"
