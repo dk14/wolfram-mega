@@ -39,12 +39,36 @@
   <script src="https://unpkg.com/darkreader@4.9.105/darkreader.js"></script>
   <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-bash.min.js"></script>
   <script>
-    DarkReader.setFetchMethod(window.fetch)
-    DarkReader.enable({
+
+
+  const conf = {
     brightness: 100,
     contrast: 90,
     sepia: 10
+  }
+  DarkReader.setFetchMethod(window.fetch)
+  
+  DarkReader.enable(conf);
+
+  i = 0;
+
+  window.addEventListener("load", () => {
+
+    document.getElementById("switchLightDarkModeDivBeforeArticle").addEventListener("click", () => {
+      console.log(i)
+      
+      if (i === 0 || i === 1) {
+        console.log("disable")
+        DarkReader.disable(conf);
+      } else {
+        console.log("enable")
+        DarkReader.enable(conf);
+      }
+      i++
+      i%=3
+    })
   });
+  
   </script>
 
 </body>
