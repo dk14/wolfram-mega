@@ -39,7 +39,7 @@ const generateCetTransaction = async (params, vout = 0) => {
     }
 };
 exports.generateCetTransaction = generateCetTransaction;
-const generateCetRedemptionTransaction = async (params) => {
+const generateCetRedemptionTransaction = async (params, quorumno = 1) => {
     const cetOut = {
         txid: params.cetTxId,
         vout: 0
@@ -52,7 +52,7 @@ const generateCetRedemptionTransaction = async (params) => {
         const twistedPk1 = schnorr.adaptorPublic(params.oraclePub, params.answer, params.rValue).padStart(64, "0");
         const twistedPk2 = schnorr.adaptorPublic(params.oraclePub2, params.answer2 ?? params.answer, params.rValue2).padStart(64, "0");
         const twistedPk3 = schnorr.adaptorPublic(params.oraclePub3, params.answer3 ?? params.answer, params.rValue3).padStart(64, "0");
-        return (await tx.genAliceCetRedemptionQuorum(1, cetOut, twistedPk1, twistedPk2, twistedPk3, params.alicePub, params.bobPub, params.oracleSignature, params.oracleSignature2, params.oracleSignature3, params.amount, params.txfee)).hex;
+        return (await tx.genAliceCetRedemptionQuorum(quorumno, cetOut, twistedPk1, twistedPk2, twistedPk3, params.alicePub, params.bobPub, params.oracleSignature, params.oracleSignature2, params.oracleSignature3, params.amount, params.txfee)).hex;
     }
 };
 exports.generateCetRedemptionTransaction = generateCetRedemptionTransaction;
