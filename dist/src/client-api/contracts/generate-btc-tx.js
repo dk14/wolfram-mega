@@ -33,8 +33,8 @@ const generateCetTransaction = async (params, vout = 0) => {
     }
     else {
         const twistedPk1 = schnorr.adaptorPublic(params.oraclePub, params.answer, params.rValue).padStart(64, "0");
-        const twistedPk2 = schnorr.adaptorPublic(params.oraclePub2, params.answer, params.rValue2).padStart(64, "0");
-        const twistedPk3 = schnorr.adaptorPublic(params.oraclePub3, params.answer, params.rValue3).padStart(64, "0");
+        const twistedPk2 = schnorr.adaptorPublic(params.oraclePub2, params.answer2 ?? params.answer, params.rValue2).padStart(64, "0");
+        const twistedPk3 = schnorr.adaptorPublic(params.oraclePub3, params.answer3 ?? params.answer, params.rValue3).padStart(64, "0");
         return (await tx.genAliceCetQuorum(multiIn, params.alicePub, params.bobPub, twistedPk1, twistedPk2, twistedPk3, params.aliceAmount, params.bobAmount, params.txfee, params.session, params.stateAmount)).hex;
     }
 };
@@ -50,8 +50,8 @@ const generateCetRedemptionTransaction = async (params) => {
     }
     else {
         const twistedPk1 = schnorr.adaptorPublic(params.oraclePub, params.answer, params.rValue).padStart(64, "0");
-        const twistedPk2 = schnorr.adaptorPublic(params.oraclePub2, params.answer, params.rValue2).padStart(64, "0");
-        const twistedPk3 = schnorr.adaptorPublic(params.oraclePub3, params.answer, params.rValue3).padStart(64, "0");
+        const twistedPk2 = schnorr.adaptorPublic(params.oraclePub2, params.answer2 ?? params.answer, params.rValue2).padStart(64, "0");
+        const twistedPk3 = schnorr.adaptorPublic(params.oraclePub3, params.answer3 ?? params.answer, params.rValue3).padStart(64, "0");
         return (await tx.genAliceCetRedemptionQuorum(1, cetOut, twistedPk1, twistedPk2, twistedPk3, params.alicePub, params.bobPub, params.oracleSignature, params.oracleSignature2, params.oracleSignature3, params.amount, params.txfee)).hex;
     }
 };
