@@ -15,7 +15,8 @@ import { btcDlcContractInterpreter } from "../src-web/transactions";
 import { PreferenceModel, CapabilityModel, OfferModel, MatchingEngine } from "../src-web/matching";
 import { dataProvider } from "../src-web/oracle-data-provider";
 import assert from "assert";
-import { browserPeerAPI, startP2P } from "../src/p2p";
+import { startP2P } from "../src/p2p";
+import { browserPeerAPI } from "../src/p2p-webrtc";
 fetchMock.config.allowRelativeUrls = true
 fetchMock.mockGlobal().route("./../wolfram-mega-spec.yaml", "data");
 

@@ -82,7 +82,7 @@ export interface Api {
 
 export interface FacilitatorNode<PeerT> { //TODO implement
     peers: PeerT[]
-    discovered: (peer: PeerT) => void
+    discovered: (peer: PeerT) => Promise<void>
     broadcastPeer: (peer: PeerT) => void
 
     processApiRequest: (command: string, content: string) => Promise<void>

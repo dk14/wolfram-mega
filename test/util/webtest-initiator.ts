@@ -18,7 +18,8 @@ fetchMock.config.allowRelativeUrls = true
 fetchMock.mockGlobal().route("./../../wolfram-mega-spec.yaml", "data");
 
 import wrtc from '@roamhq/wrtc';
-import { browserPeerAPI, startP2P } from "../../src/p2p";
+import { startP2P } from "../../src/p2p";
+import { browserPeerAPI } from "../../src/p2p-webrtc";
 RTCPeerConnection = wrtc.RTCPeerConnection;
 RTCIceCandidate = wrtc.RTCIceCandidate;
 RTCSessionDescription = wrtc.RTCSessionDescription;
