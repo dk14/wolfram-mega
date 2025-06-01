@@ -316,7 +316,13 @@ Oracle quorums is secondary, optional, feature in Mega, since the primary, stron
 - oracle's identity strength from its PoW-difficulty, 
 - oracle reputation  from  PoW-difficulty of reports filed (by traders) against its `OracleId`.
 
+$identityScore_i = \sum (oraclePow_i  + \sum capabilityPow_{ij}) - \sum reportPow_{ij}$
+
+## Sybyl attacks
+
 This, combined with mempool evictions, prevents even Sybil-attacks: it is more beneficial for a single real-life identity to accumulate PoW under a single `OracleId` rather than shutter it across **small identities** which would be likely `low pow` **evicted** from pool.
+
+$\sum smallId_i(pow_i < mempoolThreshold) < bigId((\sum pow_i) < mempoolThreshold)$
 
 # Golden source
 
