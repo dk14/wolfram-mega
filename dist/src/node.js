@@ -79,20 +79,26 @@ const checkPow = (pow, preimage) => {
 exports.checkPow = checkPow;
 const checkCapabilitySignature = (cp) => {
     const signature = cp.oracleSignature;
+    const cttl = cp.cTTL;
+    cp.cTTL = 0;
     const pow = cp.pow;
     cp.oracleSignature = "";
     cp.pow = undefined;
     const res = (0, crypto_1.createVerify)(cp.oracleSignatureType).update(JSON.stringify(cp)).verify((0, exports.createPemPub)(cp.oraclePubKey), signature, 'base64');
     cp.oracleSignature = signature;
     cp.pow = pow;
+    cp.cTTL = cttl;
     return res;
 };
 exports.checkCapabilitySignature = checkCapabilitySignature;
 const checkOracleIdSignature = (o) => {
     const signature = o.oracleSignature;
+    const cttl = o.cTTL;
+    o.cTTL = 0;
     o.oracleSignature = "";
     const res = (0, crypto_1.createVerify)(o.oracleSignatureType).update(JSON.stringify(o)).verify((0, exports.createPemPub)(o.pubkey), signature, 'base64');
     o.oracleSignature = signature;
+    o.cTTL = cttl;
     return res;
 };
 exports.checkOracleIdSignature = checkOracleIdSignature;
