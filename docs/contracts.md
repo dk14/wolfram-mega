@@ -6,7 +6,7 @@
 ## Add bundle
 ```bash
 npm run webtest
-npm run bundle
+npm run build
 ```
 
 ```html
