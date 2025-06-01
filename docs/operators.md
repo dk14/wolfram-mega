@@ -1,7 +1,7 @@
 
 ## Test Run
 
-```
+```bash
 git clone <github-repo>
 cd wolfram-mega
 npm install
@@ -17,7 +17,7 @@ P2P network uses [Bitcoin protocol structure](https://en.bitcoin.it/wiki/Protoco
 
 ## Configure
 
-```json
+```js
 {
     "maxOracles": 100,
     "maxCapabilities": 100,

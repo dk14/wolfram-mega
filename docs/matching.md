@@ -148,7 +148,7 @@ if (outcome("who's president") === "ME") {
 OFFERS-TO-RENDER:
 
 STAGE1 (root offer-chunk):
-```json
+```js
 {
     hash: "000001",
     terms: {
@@ -168,7 +168,7 @@ STAGE1 (root offer-chunk):
 Worst-case scenario: party will have 20sat (`partyCompositeCollateralAmount - partyBetAmount`) left in multisig escrow, counterparty will have 10sat  (`counterpartyCompositeCollateralAmount - counterpartyBetAmount`).
 
 STAGE2 (leaf offer-chunks):
-```json
+```js
 {
     hash: "000002",
     dependsOn: [{
@@ -185,7 +185,7 @@ STAGE2 (leaf offer-chunks):
 }
 ```
 
-```json
+```js
 {
     hash: "000003",
     dependsOn: [{
