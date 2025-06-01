@@ -36,7 +36,9 @@ export interface CetParams {
     oraclePub: PubKey,
     oraclePub2: PubKey,
     oraclePub3: PubKey,  
-    answer: Msg, 
+    answer: Msg,
+    answer2?: Msg, 
+    answer3?: Msg,  
     rValue: Hex,
     rValue2?: Hex,
     rValue3?: Hex,
@@ -55,6 +57,8 @@ export interface CetRedemptionParams {
     oraclePub2?: PubKey, 
     oraclePub3?: PubKey,  
     answer: Msg, 
+    answer2?: Msg,
+    answer3?: Msg,
     rValue: Hex,
     rValue2?: Hex,
     rValue3?: Hex,
@@ -120,8 +124,8 @@ export const generateCetTransaction = async (params: CetParams, vout: number = 0
             params.stateAmount)).hex
     } else {
         const twistedPk1 = schnorr.adaptorPublic(params.oraclePub, params.answer, params.rValue).padStart(64, "0")
-        const twistedPk2 = schnorr.adaptorPublic(params.oraclePub2, params.answer, params.rValue2).padStart(64, "0")
-        const twistedPk3 = schnorr.adaptorPublic(params.oraclePub3, params.answer, params.rValue3).padStart(64, "0")
+        const twistedPk2 = schnorr.adaptorPublic(params.oraclePub2, params.answer2 ?? params.answer, params.rValue2).padStart(64, "0")
+        const twistedPk3 = schnorr.adaptorPublic(params.oraclePub3, params.answer3 ?? params.answer, params.rValue3).padStart(64, "0")
         return (await tx.genAliceCetQuorum(
             multiIn, 
             params.alicePub, 
@@ -156,8 +160,8 @@ export const generateCetRedemptionTransaction = async (params: CetRedemptionPara
             params.txfee)).hex
     } else {
         const twistedPk1 = schnorr.adaptorPublic(params.oraclePub, params.answer, params.rValue).padStart(64, "0")
-        const twistedPk2 = schnorr.adaptorPublic(params.oraclePub2, params.answer, params.rValue2).padStart(64, "0")
-        const twistedPk3 = schnorr.adaptorPublic(params.oraclePub3, params.answer, params.rValue3).padStart(64, "0")
+        const twistedPk2 = schnorr.adaptorPublic(params.oraclePub2, params.answer2 ?? params.answer, params.rValue2).padStart(64, "0")
+        const twistedPk3 = schnorr.adaptorPublic(params.oraclePub3, params.answer3 ?? params.answer, params.rValue3).padStart(64, "0")
 
         return (await tx.genAliceCetRedemptionQuorum(
             1,
