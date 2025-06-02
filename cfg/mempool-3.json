@@ -9,6 +9,7 @@
     "p2pPort": 8335,
     "hostname": "localhost",
     "isTest": true,
+    "p2pKeepAlive": 10000,
     "p2pseed": [
         {"server": "localhost", "port" : 8333}
     ]

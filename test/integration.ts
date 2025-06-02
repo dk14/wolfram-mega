@@ -53,6 +53,7 @@ const start = async (portP2P: number, portHttp: number, seed: number[], oraclePo
         "httpPort": portHttp,
         "p2pPort": portP2P,
         "hostname": "localhost",
+        "p2pKeepAlive": 10000,
         "isTest": true,
         "p2pseed": seed.map(port => {return {"server": "localhost", "port" : port}})
     }
@@ -106,6 +107,7 @@ const start = async (portP2P: number, portHttp: number, seed: number[], oraclePo
     return new Promise<Peer>((resolve, reject) => 
         child.stdout.on('data', function(data: string){
             //if (data.includes("[send][cmd:")) { console.log("" + data) }
+            //console.log(portP2P + "|" + data)
             if (!flag) {
                 resolve({
                     proc: child,
@@ -217,7 +219,7 @@ const genOffer = async (cppubkey: string): Promise<nd.OfferMsg> => {
 }
 
 
-const peers = await Promise.all(Array.from(Array(5).keys()).map(i => start(8433 + i, 8090 + i, [8433])))
+const peers = await Promise.all(Array.from(Array(10).keys()).map(i => start(8433 + i, 8090 + i, [8433])))
 
 console.log("Waiting for P2P network...")
 

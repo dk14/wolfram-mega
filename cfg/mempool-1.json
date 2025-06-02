@@ -8,5 +8,8 @@
     "httpPort": 8080,
     "p2pPort": 8333,
     "isTest": true,
+    "hostname": "localhost",
+    "p2pKeepAlive": 10000,
+
     "p2pseed": []
 }

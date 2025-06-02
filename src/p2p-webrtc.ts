@@ -63,7 +63,7 @@ const adaptorInbound = (c: p2pjs.DataConnection, server: string): Peer => {
             c.send({cmd, msg: msg.toString("base64")})    
         },
         server,
-        port: 9,
+        port: 0,
         disconnect: (): void => {
             c.close({flush: true})
         },

@@ -40,7 +40,7 @@ export const serverPeerAPI: PeerApi = {
     },
     createServer: (cfg: MempoolConfig<PeerAddr>, discovered: (addr: PeerAddr, socket?: Socket) => void): void => {
         const server = net.createServer(function(socket: Socket) {
-            console.log("Remote connection")
+            console.log("Inbound connection established: " + socket.remoteAddress + ":" + socket.remotePort)
             discovered({server: socket.remoteAddress!, port: socket.remotePort!, seqNo: 0}, socket)
         });
         server.listen(cfg.p2pPort, cfg.hostname);
@@ -65,9 +65,14 @@ export var p2pNode: nd.FacilitatorNode<Neighbor> | undefined = undefined
 export var connectionPool: ConnectionPool<PeerAddr> | undefined = undefined
 
 export const startP2P = async (cfg: MempoolConfig<PeerAddr>, peerApi = serverPeerAPI): Promise<nd.FacilitatorNode<Neighbor>> => {
+    process.on('uncaughtException', function (err) {
+        console.log(err);
+    });
+
     var peersAnnounced = 0
 
     var connections = 0
+
     const onmessage = (ev: Event) => {
         try {
             node.processApiRequest(ev.command, ev.data.toString('utf8'))
@@ -76,25 +81,24 @@ export const startP2P = async (cfg: MempoolConfig<PeerAddr>, peerApi = serverPee
         }
     }
     
-    const onconnect = (ev: Event) => {
-        connections++
-        const p = peers.find(x => ev.peer === x.peer)!
-        console.log("I'm connected! " + p.addr.server + ":" + p.addr.port);
+    const onconnect = (addr: PeerAddr, s: Socket) => (ev: Event) => {
+        if (!isPeerConnected(addr)) {
+            connections++
+            const p: Neighbor = {peer: ev.peer, addr}
+    
+            console.log("[connected] Await messages from: " + p.addr.server + ":" + p.addr.port);
+            ev.peer.on('message', onmessage)
+            ev.peer.on('end', ondisconnect)
 
-        if (cfg.hostname !== undefined) {
-            broadcastPeer({server: cfg.hostname, port: cfg.p2pPort, seqNo: cfg.hostSeqNo ?? 0}, true)
+            peers.push(p)
+            if (s === undefined) { //outbound
+                broadcastPeer(addr)
+            }
+        } else {
+            console.log("Drop duplicate connection..." + addr.server + ":" + addr.port)
+            ev.peer.disconnect()
+            ondisconnect(ev)
         }
-
-        peers.forEach(peer => {
-            console.log("[send][peer]" + JSON.stringify(peer.addr) + "  ==> " + JSON.stringify(p.addr))
-            p.peer.send('peer', Buffer.from(JSON.stringify(peer.addr), 'utf8'))
-        });
-
-        if (checkDuplicatePeer(p.addr)) {
-            return
-        }
-        broadcastPeer(p.addr)
-        
     }
 
     const peers: Neighbor[] = []
@@ -107,57 +111,87 @@ export const startP2P = async (cfg: MempoolConfig<PeerAddr>, peerApi = serverPee
         }
     }
     
-    cfg.p2pseed.forEach(x => discovered(x))
-
-    function checkDuplicatePeer(addr: PeerAddr): boolean {
+    setInterval(() => {
+        cfg.p2pseed.forEach(x => {
+            if (!peers.find(y => y.addr.server === x.server && y.addr.port === x.port)) {
+                discovered(x)
+            }
+        })
+    }, cfg.p2pKeepAlive)
+    
+    function isPeerDuplicate(addr: PeerAddr): boolean {
         const found = peers.findIndex(x => addr.server === x.addr.server && addr.port === x.addr.port)
         if (found > -1) {
             if ((peers[found].addr.seqNo ?? 0) < (addr.seqNo ?? 0)) {
                 peers[found].addr.seqNo = addr.seqNo
-                console.log("[rebroadcast peer]" + JSON.stringify(addr))
-                broadcastPeer(addr, true)
+                return false
             }
-            console.log("[ignore duplicate peer]" + JSON.stringify(addr))
             return true
         } else {
             return false
         }
     }
 
-    function broadcastPeer(peer: PeerAddr, skipDuplicateCheck: boolean = false): void {
+    function isPeerConnected(addr: PeerAddr): boolean {
+        const found = peers.findIndex(x => addr.server === x.addr.server && addr.port === x.addr.port)
+        if (found > -1) {
+            return true
+        } else {
+            return false
+        }
+    }
+
+    function broadcastPeer(peer: PeerAddr): void {
         peersAnnounced++
         if (peersAnnounced > (cfg.peerAnnouncementQuota ?? 10)) return
-        if (!skipDuplicateCheck && checkDuplicatePeer(peer)) {
-            return
-        }
-        console.log("Discovered: " + peer.server + ":" + peer.port);
+        console.log("Announce: " + peer.server + ":" + peer.port);
         console.log(peers.map(p => p.addr))
         peers.forEach(p => {
-            console.log("[send][peer]" + JSON.stringify(peer) + "  ==> " + JSON.stringify(p.addr))
-            p.peer.send('peer', Buffer.from(JSON.stringify(peer), 'utf8'))
+            if (p.addr.server === peer.server && p.addr.port === peer.port) {
+
+            } else {
+                console.log("[send][peer]" + JSON.stringify(peer) + "  ==> " + JSON.stringify(p.addr))
+                p.peer.send('peer', Buffer.from(JSON.stringify(peer), 'utf8'))
+            }
+            
         });
     }
 
     async function discovered(addr: PeerAddr, socket?: Socket): Promise<void> {
-        if (checkDuplicatePeer(addr)) {
+        if (isPeerDuplicate(addr)) {
+            console.log("[ignore duplicate peer]" + JSON.stringify(addr))
             return
         }
         if (connections > cfg.maxConnections) {
+            console.log("[max connections]" + JSON.stringify(addr))
             return
         }
         try {
-            const p : Peer = await peerApi.createPeer(addr.server, addr.port, socket)
-            
-            p.connect(socket)
-            
-            p.on('message', onmessage)
-            p.on('connect', onconnect)
-            p.on('end', ondisconnect)
-
-            if (socket === undefined) { //outbound
-                peers.push({peer : p, addr: addr})
-            }
+            if (isPeerConnected(addr)) {
+                broadcastPeer(addr)
+            } else {
+                const p : Peer = await peerApi.createPeer(addr.server, addr.port, socket)
                 
+                if (socket === undefined) {
+                    console.log("Attempting outbound connection..." + addr.server + ":" + addr.port)
+                    try {
+                        p.connect(socket)
+                    } catch {
+                        return
+                    }
+                    
+                    p.on('connect', onconnect(addr, socket))
+                } else {
+                    console.log("Accepting inbound connection..." + addr.server + ":" + addr.port)
+                    p.connect(socket)
+                    onconnect(addr, socket)({peer: p})
+                }
+                p.on('end', ondisconnect)
+
+                
+            }
+            
+            
         } catch (err) {
             console.error(err)
         }
@@ -183,7 +217,13 @@ export const startP2P = async (cfg: MempoolConfig<PeerAddr>, peerApi = serverPee
         }
         switch(command) {
             case 'peer': { 
-                await discovered(JSON.parse(content))
+                const peer: PeerAddr = JSON.parse(content)
+                if (peer.server === cfg.hostname && peer.port === cfg.p2pPort) {
+                    //console.log("[ignore turnaround]" + peer.server + ":" + peer.port)
+                } else {
+                    await discovered(peer)
+                }
+                
                 break;
             } 
             case 'oracle': {
@@ -218,7 +258,11 @@ export const startP2P = async (cfg: MempoolConfig<PeerAddr>, peerApi = serverPee
                     const [adjusted, toBroadcast] = reduceCTTL(content)
                     if (toBroadcast) {
                         broadcastMessage(command, adjusted)
+                    } else {
+                       console.log("[report]ignore duplicate")
                     }
+                } else {
+                    console.log("[report]ignore duplicate")
                 }
                 break;
             }
@@ -275,7 +319,7 @@ export const startP2P = async (cfg: MempoolConfig<PeerAddr>, peerApi = serverPee
             return remoteApi(prefix)
         },
         drop: function (cfg: ConnectionPoolCfg, peer: PeerAddr): void {
-            const neighbor = peers.find(x => x.addr === peer)
+            const neighbor = peers.find(x => x.addr.server === peer.server && x.addr.port === peer.port)
             if (neighbor) {
                 neighbor.peer.disconnect()
             }
@@ -288,10 +332,12 @@ export const startP2P = async (cfg: MempoolConfig<PeerAddr>, peerApi = serverPee
 
     if (cfg.hostname !== undefined) {
         var seqNo = 0
-        setInterval(() => {
+        const peerAd = () => {
             seqNo++
-            broadcastPeer({server: cfg.hostname, port: cfg.p2pPort, seqNo: (cfg.hostSeqNo ?? 0) + seqNo, httpPort: cfg.httpPort}, true)
-        }, (cfg.p2pKeepAlive ?? 100000))
+            broadcastPeer({server: cfg.hostname, port: cfg.p2pPort, seqNo: (cfg.hostSeqNo ?? 0) + seqNo, httpPort: cfg.httpPort})
+        }
+        setInterval(peerAd, cfg.p2pKeepAlive ?? 100000)
+        peerAd()
     }
 
     return node
