@@ -38,7 +38,7 @@ setInterval(() => window.stalking.trackIssuedOffers(
 ), 1000)
 ```
 
-There is a default intepreter for BTC-DLC:
+There is a default intepreter for BTC-DLC (MAD version, no HTLC-refunds):
 
 ```ts
 import { btcDlcContractInterpreter } from './src-web/transactions';

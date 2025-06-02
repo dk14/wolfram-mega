@@ -276,7 +276,7 @@ async function doubleSHA256reversed(input: string) {
     const secondHashArray = Array.from(new Uint8Array(secondHashBuffer))
     const secondHashHex = secondHashArray.map(byte => byte.toString(16).padStart(2, '0')).reverse().join('')
     return secondHashHex
-  }
+}
 
 export const generateDlcContract = async (params: DlcParams): Promise<DlcContract> => {
     const openingTx = await generateOpeningTransaction(params)
