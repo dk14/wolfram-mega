@@ -73,12 +73,12 @@ const start = async (portP2P: number, portHttp: number, seed: number[], oraclePo
 
     if (traderPort !== undefined) {
         cfg["trader"] = {
-            "broadcastOfferCycle": 1000,
-            "broadcastReportCycle": 1000,
-            "collectOffersCycle": 1000,
-            "collectReportsCycle": 1000,
-            "collectOracleAdsCycle": 1000,
-            "collectOracleCpCycle": 1000,
+            "broadcastOfferCycle": 3000,
+            "broadcastReportCycle": 3000,
+            "collectOffersCycle": 2000,
+            "collectReportsCycle": 2000,
+            "collectOracleAdsCycle": 2000,
+            "collectOracleCpCycle": 2000,
             "pageSize": 100,
             "maxOraclesPages": 2,
             "maxCpPages": 2,
@@ -218,7 +218,7 @@ const genOffer = async (cppubkey: string): Promise<nd.OfferMsg> => {
 }
 
 
-const peers = await Promise.all(Array.from(Array(10).keys()).map(i => start(8433 + i, 8090 + i, [8433])))
+const peers = await Promise.all(Array.from(Array(3).keys()).map(i => start(8433 + i, 8090 + i, [8433])))
 
 console.log("Waiting for P2P network...")
 

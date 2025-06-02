@@ -117,7 +117,7 @@ export const startP2P = async (cfg: MempoolConfig<PeerAddr>, peerApi = serverPee
                 discovered(x)
             }
         })
-    }, cfg.p2pKeepAlive)
+    }, cfg.p2pKeepAlive ?? 5000)
     
     function isPeerDuplicate(addr: PeerAddr): boolean {
         const found = peers.findIndex(x => addr.server === x.addr.server && addr.port === x.addr.port)
