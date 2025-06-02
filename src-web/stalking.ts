@@ -76,15 +76,17 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
                 const [contract, partial] = await interpreter.genContractTx(inputs, [commitment], order)
 
                 if (partial !== undefined) {
+                    const oldHash = order.pow.hash
                     partial.pow.hash = partial.pow.hash + "-signing" + randomInt(100)
                     if (!partial.content.utxos) {
                         //partial.content.utxos = [undefined, undefined]
                     }
                     //partial.content.utxos[0] = inputs.utxoAlice.map(x => [x.txid, x.vout])
                     //partial.content.utxos[1] = inputs.utxoBob.map(x => [x.txid, x.vout])
-                    console.log(partial.content.accept.cetTxSet)
-                    
-                    window.storage.removeIssuedOffers([order.pow.hash])
+
+
+                    window.traderApi.issueOffer(partial)
+                    window.storage.removeIssuedOffers([oldHash])
                 } else {
                     order.content.accept.cetTxSet[0].tx = contract.cet[0]
                     order.content.accept.cetTxSet[1].tx = contract.cet[1]
@@ -95,7 +97,10 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
                     order.content.finalize = {
                         txid: txId, acceptRef: order.pow, backup: contract.cet[0] + ",,,," + contract.cet[1]
                     }
+                    const oldHash = order.pow.hash
+                    order.pow.hash = order.pow.hash + "-final" + randomInt(100)
                     window.traderApi.issueOffer(order)
+                    window.storage.removeIssuedOffers([oldHash])
                 }   
             }
         } catch (err) {

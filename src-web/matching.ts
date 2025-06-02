@@ -114,7 +114,7 @@ export const checkOriginatorId = (id: string): boolean => {
 
 export const matchingEngine: MatchingEngine = {
     pickOffer: async function (): Promise<OfferModel> {
-        const candidates = (await window.storage.queryOffers({where: async x => true}, {
+        const candidates = (await window.storage.queryOffers({where: async x => !x.content.accept}, {
             page: 0,
             chunkSize: 100
         }))
@@ -239,9 +239,12 @@ export const matchingEngine: MatchingEngine = {
         if (o.role !== 'acceptor') {
             throw "you must be initiator; use acceptOffer to accept"
         }
+        
         const offer = (await window.storage.queryOffers({where: async x => x.pow.hash === o.id}, oneElemPage))[0]
-        console.log(offer)
 
+        if (offer.content.accept) {
+            throw "this offer already accepted"
+        }
         const yesTx: PartiallySignedTx = {
             tx: undefined,
             sessionIds: [],
@@ -284,7 +287,7 @@ export const matchingEngine: MatchingEngine = {
             offer.content.pubkeys = [undefined, undefined]
         }
         offer.content.pubkeys[1] = window.pubkey
-        offer.pow.hash = offer.pow.hash + "accept" + randomInt(100) //will be upgraded
+        offer.pow.hash = offer.pow.hash + "-accept-" + randomInt(100) //will be upgraded
 
        window.traderApi.issueOffer(offer)
     },
