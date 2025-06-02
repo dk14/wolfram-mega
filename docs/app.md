@@ -6,6 +6,8 @@ Mobile trading web-app for BTC test-net.
 
 Design: https://dk14.github.io/wolfram-mega/webapp/
 
+> Serverlless app. P2P-network relies on WebRTC here.
+
 -----
 
 To install a web app from Safari on an Android device, navigate to the website in Safari, tap the "Share" button, select "Add to Home Screen," and then tap "Add" in the popup. This will create a shortcut on your home screen that acts like a native app. 
