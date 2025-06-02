@@ -38,9 +38,13 @@ declare global {
         matching: MatchingEngine
         stalking: StalkingEngine
 
+        txfee: number
+
         pool: Api
         spec: string
         address: string
+        pubkey: string
+
         privateDB: IDBPDatabase<unknown> //security note: secrts will be shared across pages in origin (subdomain, e.g. dk14.github.io)
         webOracleFacts: IDBPDatabase<unknown>
 
@@ -48,7 +52,7 @@ declare global {
     }
 }
 
-
+window.txfee = 2000
 
 global.initWebapp = new Promise(async (resolve) => {
 
@@ -258,6 +262,7 @@ try {
 
 try{
     window.address = p2pktr(pub1).address
+    window.pubkey = pub1
 } catch {
 
 }
@@ -668,8 +673,9 @@ const testOfferTerms: OfferTerms = {
     question: testFactRequest,
     partyBetsOn: ["YES"],
     counterPartyBetsOn: ["NO"],
-    partyBetAmount: 10,
-    counterpartyBetAmount: 2053
+    partyBetAmount: 4000,
+    counterpartyBetAmount: 2087,
+    txfee: 2000
 }
 
 

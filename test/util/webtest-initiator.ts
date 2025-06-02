@@ -20,6 +20,9 @@ declare var cfg: MempoolConfig<any>
     cfg.p2pseed = []
     cfg.p2pseed[0] = {server: "acceptor-peer", port: 0}
     cfg.hostname = "initiator-peer"
+    window.address = "tb1pudlyenkk7426rvsx84j97qddf4tuc8l63suz62xeq4s6j3wmuylq0j54ex" //e37 pub
+    window.pubkey = "e37e4cced6f555a1b2063d645f01ad4d57cc1ffa8c382d28d90561a945dbe13e"
+    window.txfee = 2000
 
     startP2P(cfg, await browserPeerAPI())
     window.traderApi = traderApi(cfg.trader, cfg, api, window.storage, p2pNode)
@@ -50,7 +53,7 @@ declare var cfg: MempoolConfig<any>
     }
     const myCustomOffer: OfferModel = {
         id: 'id',
-        bet: [1, 30345],
+        bet: [4000, 2053],
         oracles: [oracle],
         question: '?',
         status: 'matching',

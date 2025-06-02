@@ -66,17 +66,17 @@ const getUtXo = async (offer: OfferMsg): Promise<Inputs> => {
 
     //const btcBalance = `[balance] alice: ${aliceUtxos.map(x => x.value).reduce((a, b) => (a ?? 0) + (b ?? 0))}, bob: ${bobUtxos.map(x => x.value).reduce((a, b) => (a ?? 0) + (b ?? 0))}`
 
-    const getMultipleUtxo = (utxos: UTxO[]): UTxO[] => {
-        if (utxos.find(a => a.value > terms.partyBetAmount + txfee / 2)) {
-            return [aliceUtxos.find(a => a.value > terms.partyBetAmount + txfee / 2)]
-        } else if (aliceUtxos.length > 0) {
+    const getMultipleUtxo = (utxos: UTxO[], amount: number): UTxO[] => {
+        if (utxos.find(a => a.value > amount + txfee / 2)) {
+            return [utxos.find(a => a.value > amount + txfee / 2)]
+        } else if (utxos.length > 0) {
             utxos.sort((a, b) => a.age - b.age)
-            const i = scan(utxos.map(x => x.value), (a, b) => a + b, 0).findIndex(x => x > terms.partyBetAmount + txfee / 2)
+            const i = scan(utxos.map(x => x.value), (a, b) => a + b, 0).findIndex(x => x > amount + txfee / 2)
 
             if (i !== -1) {
-                return aliceUtxos.slice(0, i + 1)      
+                return utxos.slice(0, i + 1)      
             } else {
-                return undefined
+                throw `not enough funds: ${utxos.map(x => x.value).reduce((a, b) => a + b)} < ${amount + txfee / 2} ${terms.partyBetAmount}`
             }
         }
     }
@@ -85,16 +85,16 @@ const getUtXo = async (offer: OfferMsg): Promise<Inputs> => {
         return {
             utxoAlice: offer.content.utxos[0] ? 
             offer.content.utxos[0].map(x => {return {txid: x[0], vout: x[1]}})
-                : getMultipleUtxo(aliceUtxos),
+                : getMultipleUtxo(aliceUtxos, terms.partyBetAmount),
     
             utxoBob: offer.content.utxos[1] ? 
                 offer.content.utxos[1].map(x => {return {txid: x[0], vout: x[1]}})
-                : getMultipleUtxo(bobUtxos)
+                : getMultipleUtxo(bobUtxos, terms.counterpartyBetAmount)
         }
     } else {
         return {
-            utxoAlice: getMultipleUtxo(aliceUtxos),
-            utxoBob: getMultipleUtxo(bobUtxos)
+            utxoAlice: getMultipleUtxo(aliceUtxos, terms.partyBetAmount),
+            utxoBob: getMultipleUtxo(bobUtxos, terms.counterpartyBetAmount)
         }
     }
 
@@ -126,11 +126,11 @@ const genContractTx = async (inputs: Inputs, c: Commitment[], offer: OfferMsg): 
                     rValue: c[0].rValueSchnorrHex,
                     rValue2: c[1]?.rValueSchnorrHex,
                     rValue3: c[2]?.rValueSchnorrHex,
-                    alicePub: "",
-                    bobPub: "",
-                    changeAlice: 0, //aliceAmountIn.sum - partyBetAmount
-                    changeBob: 0,
-                    txfee: 0,
+                    alicePub: o.content.pubkeys[0],
+                    bobPub: o.content.pubkeys[0],
+                    changeAlice: inputs.utxoAlice.map(x => x.value).reduce((a, b) => a + b) - terms.partyBetAmount,
+                    changeBob: inputs.utxoBob.map(x => x.value).reduce((a, b) => a + b) - terms.counterpartyBetAmount,
+                    txfee: terms.txfee,
                     openingSession: { sigs: openingSession.partialSigs },
                     session: {
                         "YES":  {

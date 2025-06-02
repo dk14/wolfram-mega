@@ -83,7 +83,7 @@ export const generateOpeningTransaction = async (params: OpeningParams): Promise
         params.changeAlice,
         params.changeBob,
         params.txfee,
-        params.openingSession)).hex
+        params.openingSession))?.hex
 }
 
 export const generateClosingTransaction = async (params: ClosingParams): Promise<Hex> => {
@@ -97,7 +97,7 @@ export const generateClosingTransaction = async (params: ClosingParams): Promise
         params.bobPub,
         params.aliceAmount, 
         params.bobAmount,
-        params.txfee)).hex
+        params.txfee))?.hex
 }
 
 // this function can be used to generate oracle's pledge, NOT only CETs
@@ -137,7 +137,7 @@ export const generateCetTransaction = async (params: CetParams, vout: number = 0
             params.bobAmount,
             params.txfee,
             params.session,
-            params.stateAmount)).hex
+            params.stateAmount))?.hex
     }
     
 }
@@ -175,7 +175,7 @@ export const generateCetRedemptionTransaction = async (params: CetRedemptionPara
             params.oracleSignature2,
             params.oracleSignature3,
             params.amount,
-            params.txfee)).hex
+            params.txfee))?.hex
         
     }
 }

@@ -18,7 +18,9 @@ declare var cfg: MempoolConfig<any>
 
     cfg.p2pseed = []
     cfg.hostname = "acceptor-peer"
-
+    window.address = "tb1p0l5zsw2lv9pu99dwzckjxhpufdvvylapl5spn6yd54vhnwa989hq20cvyv"
+    window.pubkey = "7fe828395f6143c295ae162d235c3c4b58c27fa1fd2019e88da55979bba5396e"
+    window.txfee = 2000
     
     startP2P(cfg, await browserPeerAPI())
     window.traderApi = traderApi(cfg.trader, cfg, api, window.storage, p2pNode)
@@ -47,7 +49,7 @@ declare var cfg: MempoolConfig<any>
                     reject("OFFER DID NOT MATCH!")
                 } else {
                     const candidate = await window.matching.pickOffer()
-                    if (candidate.bet[1] === 30345){
+                    if (candidate.bet[1] === 2053){
                         resolve(candidate)
                     }
                 }

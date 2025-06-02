@@ -208,7 +208,8 @@ export const matchingEngine: MatchingEngine = {
             partyBetsOn: [o.betOn ? "YES": "NO"],
             counterPartyBetsOn: [!o.betOn ? "YES": "NO"],
             partyBetAmount: o.bet[0],
-            counterpartyBetAmount: o.bet[1]
+            counterpartyBetAmount: o.bet[1],
+            txfee: window.txfee
         }
 
         const offer: Offer = { 
@@ -219,6 +220,7 @@ export const matchingEngine: MatchingEngine = {
             contact: "",
             originatorId: getOriginatorId(),
             addresses: [window.address],
+            pubkeys: [window.pubkey, undefined],
             orderId: randomInt(1200000).toString()
         }
 
@@ -238,8 +240,28 @@ export const matchingEngine: MatchingEngine = {
             throw "you must be initiator; use acceptOffer to accept"
         }
         const offer = (await window.storage.queryOffers({where: async x => x.pow.hash === o.id}, oneElemPage))[0]
+        console.log(offer)
+
+        const yesTx: PartiallySignedTx = {
+            tx: undefined,
+            sessionIds: [],
+            nonceParity: [],
+            sessionNonces: [],
+            sesionCommitments: [],
+            partialSigs: []
+        }
+
+        const noTx: PartiallySignedTx = {
+            tx: undefined,
+            sessionIds: [],
+            nonceParity: [],
+            sessionNonces: [],
+            sesionCommitments: [],
+            partialSigs: []
+        }
+
         const openingTx: PartiallySignedTx = {
-            tx: "",
+            tx: undefined,
             sessionIds: [],
             nonceParity: [],
             sessionNonces: [],
@@ -250,7 +272,7 @@ export const matchingEngine: MatchingEngine = {
             chain: o.blockchain,
             openingTx: openingTx,
             offerRef: offer.pow,
-            cetTxSet: [],
+            cetTxSet: [yesTx, noTx],
             acceptorId: getOriginatorId()
         }
         offer.content.accept = accept
@@ -258,6 +280,10 @@ export const matchingEngine: MatchingEngine = {
             offer.content.addresses = []
         }
         offer.content.addresses[1] = window.address
+        if (!offer.content.pubkeys) {
+            offer.content.pubkeys = [undefined, undefined]
+        }
+        offer.content.pubkeys[1] = window.pubkey
         offer.pow.hash = offer.pow.hash + "accept" + randomInt(100) //will be upgraded
 
        window.traderApi.issueOffer(offer)
