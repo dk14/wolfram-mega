@@ -50,3 +50,8 @@ Optional `mempool-cfg` config parameters:
 npm i https://github.com/dk14/wolfram-mega
 npx wf-mega-peer <mempool-conf.json>
 ```
+
+## WebRTC bridge (experimental)
+```
+npm run webrtc-bridge <mempool-conf.json>
+```

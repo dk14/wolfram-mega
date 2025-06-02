@@ -20,6 +20,7 @@
     "demo": "npx tsx test/demo.ts",
     "webtest": "npx tsx test/webtest.ts",
     "webtest-it": "npx tsx test/webtest-integration.ts",
+    "webrtc-bridge": "npx tsx test/util/webrtc-bridge.ts",
     "build": "npx tsx esbuild.ts"
   },
   "browser": {
