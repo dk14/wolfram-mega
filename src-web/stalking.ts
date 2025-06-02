@@ -37,7 +37,7 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
 
             const order = structuredClone(candidates[0])
 
-            
+            //TODO validate new state of the order or re-use the original state
 
             console.log("STALKER: FOUND " + order.pow.hash + " <= " + orderPreviousState.pow.hash)
 
