@@ -91,7 +91,6 @@ export const browserPeerAPI: () => Promise<PeerApi> = async () => {
             if (socket === undefined) {
                 console.log("Try to connect to peer..." + server)
                 const connection = jspeer.connect(server)
-
                 return await new Promise(resolve => {
                     connection.on('open', () => {
                         console.log("Outbound connection open..." + server)
@@ -106,7 +105,7 @@ export const browserPeerAPI: () => Promise<PeerApi> = async () => {
         createServer: (cfg: MempoolConfig<PeerAddr>, discovered: (addr: PeerAddr, socket?: Socket) => void): void => {
             jspeer.on("connection", c => {
                 console.log("Inbound connection open..." + c.peer)
-                discovered({server: c.peer}, {dataConnection: c})
+                discovered({server: c.peer, port:0}, {dataConnection: c})
             })
         }
     }

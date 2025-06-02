@@ -13,6 +13,7 @@ import { stalkingEngine, StalkingEngine } from './src-web/stalking';
 import { btcDlcContractInterpreter } from './src-web/transactions';
 import { dataProvider } from './src-web/oracle-data-provider';
 import { isBrowser } from './src/util';
+import { browserPeerAPI } from './src/p2p-webrtc';
 
 export type Storage = TraderStorage<TraderQuery<OracleId>, TraderQuery<OracleCapability>, TraderQuery<Report>, TraderQuery<OfferMsg>>
 
@@ -72,7 +73,8 @@ const cfg: MempoolConfig<any> = {
     "maxConnections": 100,
     "maxMsgLength": 1000000,
     "httpPort": 8081,
-    "p2pPort": 8334,
+    "p2pPort": 0,
+    "p2pKeepAlive": 1000,
     "hostname": "dk14-peerjs-10101010",
     "isTest": true,
     "webrtcPeerServer": {
@@ -98,10 +100,10 @@ const cfg: MempoolConfig<any> = {
     "trader": {
         "broadcastOfferCycle": 1000,
         "broadcastReportCycle": 1000,
-        "collectOffersCycle": 1000,
-        "collectReportsCycle": 1000,
-        "collectOracleAdsCycle": 1000,
-        "collectOracleCpCycle": 1000,
+        "collectOffersCycle": 100,
+        "collectReportsCycle": 100,
+        "collectOracleAdsCycle": 100,
+        "collectOracleCpCycle": 100,
         "pageSize": 100,
         "maxOraclesPages": 2,
         "maxCpPages": 2,
@@ -109,7 +111,7 @@ const cfg: MempoolConfig<any> = {
         "maxOffersPages": 2,
         "maxCollectors": 2,
         "dbPath": "./db",
-        "httpPort": 7080,
+        "httpPort": 0,
         "heliosNetwork": "https://d1t0d7c2nekuk0.cloudfront.net/preview.json",
         "btcSignerEndpoint": "http://localhost:9593/sign",
         "btcInteractiveSignerEndpoint": "http://localhost:9593/"
@@ -336,11 +338,22 @@ const indexDBstorage: Storage = {
     removeIssuedReports: async function (pubkeys: string[]): Promise<void> {
         await Promise.all(pubkeys.map(pub => db.delete("issued-reports", pub)))
     },
-    allOracles: function (q: TraderQuery<OracleId>, opredicate: (cp: OracleId) => Promise<boolean>, handler: (id: OracleId) => Promise<void>): Promise<void> {
-        throw new Error('Function not implemented.');
+    allOracles: async function (q: TraderQuery<OracleId>, opredicate: (cp: OracleId) => Promise<boolean>, handler: (id: OracleId) => Promise<void>): Promise<void> {
+        const oracles = db.transaction('oracles').store
+        for await (const cursor of oracles) {
+            if (q.where(cursor.value) && opredicate(cursor.value)) {
+                handler(cursor.value)
+            }    
+        }
     },
-    allCps: function (q: TraderQuery<OracleCapability>, cppredicate: (cp: OracleCapability) => Promise<boolean>, handler: (id: OracleCapability) => Promise<void>): Promise<void> {
-        throw new Error('Function not implemented.');
+    allCps: async function (q: TraderQuery<OracleCapability>, cppredicate: (cp: OracleCapability) => Promise<boolean>, handler: (id: OracleCapability) => Promise<void>): Promise<void> {
+        const cps = db.transaction('cps').store
+        for await (const cursor of cps) {
+            if (q.where(cursor.value) && cppredicate(cursor.value)) {
+                handler(cursor.value)
+            }    
+        }
+ 
     },
     queryOracles: async function (q: TraderQuery<OracleId>, paging: PagingDescriptor): Promise<OracleId[]> {
         const oracles = db.transaction('oracles').store
@@ -621,7 +634,12 @@ try {
 
 window.pool = ndapi
 
-window.traderApi = traderApi(cfg.trader, cfg, ndapi, indexDBstorage, global.isTest ?  p2pNode : node)
+if (!global.isTest) {
+    startP2P(global.cfg, await browserPeerAPI())
+}
+
+
+window.traderApi = traderApi(cfg.trader, cfg, ndapi, indexDBstorage, global.isTest ? p2pNode : node)
 window.storage = indexDBstorage
 
 window.btc = { 
@@ -636,7 +654,7 @@ window.stalking = stalkingEngine
 
 const testPow: HashCashPow = {
     difficulty: 0,
-    algorithm: 'SHA-256',
+    algorithm: 'SHA256',
     hash: 'TEST-OFFER',
     magicNo: 0
 }
@@ -672,7 +690,7 @@ const testOfferMsg: OfferMsg = {
 
 const mockPow: HashCashPow = {
     difficulty: 0,
-    algorithm: 'SHA-256',
+    algorithm: 'SHA256',
     hash: 'MOCK',
     magicNo: 0
 }
@@ -684,7 +702,7 @@ const testOracle: OracleId = {
     pow: mockPow,
     bid: {amount: 0, proof: ""},
     oracleSignature: '',
-    oracleSignatureType: ''
+    oracleSignatureType: 'SHA256'
 }
 
 await window.storage.addOracle(testOracle)
@@ -696,9 +714,10 @@ const testCp: OracleCapability = {
     seqNo: 0,
     cTTL: 0,
     oracleSignature: '',
-    oracleSignatureType: '',
+    oracleSignatureType: 'SHA256',
     pow: mockPow,
-    endpoint: "weboracle:local"
+    endpoint: "weboracle:local",
+    tags: ["world"]
 }
 await ndapi.announceOracle(cfg, testOracle)
 await ndapi.announceCapability(cfg, testCp)

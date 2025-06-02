@@ -167,7 +167,7 @@ export const matchingEngine: MatchingEngine = {
         }
         const pow: HashCashPow = {
             difficulty: 0,
-            algorithm: "SHA-256",
+            algorithm: "SHA256",
             hash: "", //initial id
             magicNo: 0
         }
@@ -196,6 +196,7 @@ export const matchingEngine: MatchingEngine = {
             orderId: randomInt(1200000).toString()
         }
 
+        window.traderApi.startBroadcastingIssuedOffers()
         window.traderApi.issueOffer({
             seqNo: 0,
             cTTL: 0,
@@ -256,6 +257,7 @@ export const matchingEngine: MatchingEngine = {
         const paging: PagingDescriptor = { page: 0, chunkSize: 100 }
         const cps = cfg.tags.map(tag => window.storage.queryCapabilities({where: async x => capabilityFilter(tag)(x)}, paging))
         const cpPubList = (await Promise.all(cps)).flat().map(x => x.capabilityPubKey)
+        
         return cpPubList.map(cpPub => {
             window.traderApi.collectOffers(
                 "cppub-" + cpPub,

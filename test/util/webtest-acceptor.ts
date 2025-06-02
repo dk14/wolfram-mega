@@ -4,9 +4,11 @@ configure
 import { btcDlcContractInterpreter } from "../../src-web/transactions";
 import { PreferenceModel, CapabilityModel, OfferModel, MatchingEngine } from "../../src-web/matching";
 import { dataProvider } from "../../src-web/oracle-data-provider";
-import { startP2P } from "../../src/p2p";
+import { p2pNode, startP2P } from "../../src/p2p";
 import { browserPeerAPI } from "../../src/p2p-webrtc";
 import { MempoolConfig } from "../../src/config";
+import { traderApi } from "../../src/client-api/trader-api";
+import { api } from "../../src/node";
 
 declare var cfg: MempoolConfig<any>
 
@@ -18,7 +20,8 @@ declare var cfg: MempoolConfig<any>
     cfg.hostname = "acceptor-peer"
 
     
-    startP2P(global.cfg, await browserPeerAPI())
+    startP2P(cfg, await browserPeerAPI())
+    window.traderApi = traderApi(cfg.trader, cfg, api, window.storage, p2pNode)
 
     setInterval(() => window.stalking.trackIssuedOffers({
         "bitcoin-testnet": btcDlcContractInterpreter
@@ -27,7 +30,7 @@ declare var cfg: MempoolConfig<any>
     const preferences: PreferenceModel = {
         minOraclePow: 0,
         minOracleReputation: 0,
-        tags: [],
+        tags: ["world"],
         txfee: 0
     }
     

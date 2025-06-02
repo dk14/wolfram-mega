@@ -1,5 +1,6 @@
 import { configure } from "./util/configure";
 configure
+global.isUnitTestTest = true
 
 import { btcDlcContractInterpreter } from "../src-web/transactions";
 import { PreferenceModel, CapabilityModel, OfferModel, MatchingEngine } from "../src-web/matching";
