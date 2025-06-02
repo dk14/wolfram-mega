@@ -46,6 +46,21 @@ const detectStatus = async (o: Offer, cp: OracleCapability, provider: OracleData
     }
 }
 
+const statusRank = (status: OfferStatus): number => {
+    const map = {
+        'matching' : 1,
+        'accepted' : 2,
+        'oracle committed': 3, 
+        'signing' : 4,
+        'opening tx available' : 5,
+        'tx submitted' : 6,
+        'outcome revealed': 7,
+        'redeem tx available' : 8,
+        'redeemed' : 9
+    }
+    return map[status]
+}
+
 export interface PreferenceModel {
     minOraclePow: number,
     minOracleReputation: number,
@@ -75,7 +90,8 @@ export interface OfferModel {
     status: OfferStatus,
     blockchain: string,
     role: 'initiator' | 'acceptor'
-    dependsOn?: DependsOn[]
+    dependsOn?: DependsOn[],
+    orderId?: string
 }
 
 export interface MatchingEngine {
@@ -336,7 +352,7 @@ export const matchingEngine: MatchingEngine = {
     
         const theirOffers = (await window.storage.queryIssuedOffers({
             where: async x => !checkOriginatorId(x.content.originatorId)}, pagedescriptor))
-
+        
         const myModels = await Promise.all(myOffers.map(async o => {
             const cp = (await window.storage.queryCapabilities({where: async x => x.capabilityPubKey === o.content.terms.question.capabilityPubKey}, pagedescriptor))[0]
             const model: OfferModel = {
@@ -350,7 +366,8 @@ export const matchingEngine: MatchingEngine = {
                 question: cp.question,
                 blockchain: o.content.blockchain,
                 status: await detectStatus(o.content, cp, dataProvider),
-                role: "initiator"
+                role: "initiator",
+                orderId: o.content.orderId
             }
             return model
         }))
@@ -368,10 +385,32 @@ export const matchingEngine: MatchingEngine = {
                 question: cp.question,
                 blockchain: o.content.blockchain,
                 status: await detectStatus(o.content, cp, dataProvider),
-                role: "acceptor"
+                role: "acceptor",
+                orderId: o.content.orderId
             }
             return model
         }))
-        return myModels.concat(theirModels)
+
+        const together = myModels.concat(theirModels)
+        return Object.values(Object.groupBy(together, x => x.orderId)).map(copies => maxBy(copies, x => statusRank(x.status)))
     }
 }
+
+
+function maxBy<T>(arr: T[], fn: (item: T) => number): T | undefined {
+    if (!arr || arr.length === 0) {
+      return undefined;
+    }
+    let maxItem: T = arr[0];
+    let maxValue = fn(maxItem);
+  
+    for (let i = 1; i < arr.length; i++) {
+      const item = arr[i];
+      const value = fn(item);
+      if (value > maxValue) {
+        maxItem = item;
+        maxValue = value;
+      }
+    }
+    return maxItem;
+  }
