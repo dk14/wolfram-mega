@@ -28,7 +28,6 @@ P2P network uses [Bitcoin protocol structure](https://en.bitcoin.it/wiki/Protoco
     "httpPort": 8081,
     "p2pPort": 8334,
     "hostname": "localhost",
-    "isTest": true,
     "p2pseed": [
         {"server": "localhost", "port" : 8333}
     ]
