@@ -48,7 +48,7 @@ declare var cfg: MempoolConfig<any>
                     clearInterval(cancel)
                     reject("OFFER DID NOT MATCH!")
                 } else {
-                    const candidate = await window.matching.pickOffer()
+                    const candidate = await window.matching.pickOffer(preferences)
                     //console.log(candidate)
                     if (candidate.bet[1] === 2053){
                         resolve(candidate)

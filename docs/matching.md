@@ -28,7 +28,7 @@ window.matching.collectOffers(preferences)
 ## Pick collected offer
 
 ```ts
-const offer = await window.matching.pickOffer()
+const offer = await window.matching.pickOffer(preferences)
 ```
 
 ## Accept picked offer

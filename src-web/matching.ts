@@ -95,7 +95,7 @@ export interface OfferModel {
 }
 
 export interface MatchingEngine {
-    pickOffer: () => Promise<OfferModel>
+    pickOffer: (cfg: PreferenceModel) => Promise<OfferModel>
     collectQuestions: (cfg: PreferenceModel) => Promise<string[]>
     collectOffers: (cfg: PreferenceModel) => Promise<string[]>
     generateOffer: (cfg: PreferenceModel) => Promise<OfferModel>
@@ -129,7 +129,8 @@ export const checkOriginatorId = (id: string): boolean => {
 
 
 export const matchingEngine: MatchingEngine = {
-    pickOffer: async function (): Promise<OfferModel> {
+    pickOffer: async function (cfg: PreferenceModel): Promise<OfferModel> {
+        // TODO check preferences
         const candidates = (await window.storage.queryOffers({where: async x => !x.content.accept}, {
             page: 0,
             chunkSize: 100
@@ -167,7 +168,7 @@ export const matchingEngine: MatchingEngine = {
         return model
     },
     generateOffer: async function (cfg: PreferenceModel): Promise<OfferModel> {
-
+        //TODO pick capabilities according to preferences
         const candidates = (await window.storage.queryCapabilities({where: async x => true}, {
             page: 0,
             chunkSize: 100
@@ -308,7 +309,8 @@ export const matchingEngine: MatchingEngine = {
         window.traderApi.startBroadcastingIssuedOffers()
         window.traderApi.issueOffer(offer)
     },
-    collectQuestions: async function (cfg: PreferenceModel): Promise<string[]> {
+    collectQuestions: async function (cfg: PreferenceModel): Promise<string[]> { 
+        //TODO calculate oracle's PoW-strength and reputation
         const ocollectors = cfg.tags.map(tag => {
             window.traderApi.collectOracles("pref-oracles-" + tag, async (o: OracleId) => o.tags?.find(x => x === tag) !== undefined, 10)
             return "pref-oracles-" + tag
@@ -317,7 +319,7 @@ export const matchingEngine: MatchingEngine = {
             window.traderApi.collectCapabilities(
                 "pref-cps-" + tag, 
                 {where: async x => true},
-                async (o: OracleId) => o.tags?.find(x => x === tag) !== undefined,
+                async (o: OracleId) => o.tags?.find(x => x === tag) !== undefined, 
                 capabilityFilter(tag), 
                 10)
             return "pref-cps-" + tag
