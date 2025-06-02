@@ -32,6 +32,9 @@ npm run demo
 
 Collectors collect data from p2p network's mempools into persistent storage
 
+> Design. Collectors are poll-based. The poll is only happening locally: local mempool -> database. 
+> Peers are pushing data to local mempool.
+
 ```ts
 const collectorTag = '<unique id to manage collectors>'
 await fetch('./collectOracles?tag=' + encodeURIComponent(tag), {
