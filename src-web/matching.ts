@@ -1,6 +1,7 @@
 import { TraderApi } from "../src/client-api/trader-api"
 import { AcceptOffer, DependsOn, FactRequest, HashCashPow, Offer, OfferTerms, OracleCapability, OracleId, PagingDescriptor, PartiallySignedTx } from "../src/protocol"
 import { BtcApi, TraderQuery, Storage } from "../webapp"
+import { OracleDataProvider, dataProvider, webOracle } from "./oracle-data-provider";
 
 export const randomInt = (n: number): number => {
     return Math.floor(Math.random() * (n - 1));
@@ -16,8 +17,34 @@ declare global {
 }
 
 export type OfferStatus = 'matching' | 'accepted' | 'oracle committed' | 'signing' 
-| 'opening tx available' | 'tx submitted' | 'waiting for outcome' | 'outcome revealed' | 'redeem tx available' | 'redeemed'
+| 'opening tx available' | 'tx submitted' | 'outcome revealed' | 'redeem tx available' | 'redeemed'
 
+
+const detectStatus = async (o: Offer, cp: OracleCapability, provider: OracleDataProvider): Promise<OfferStatus> => {
+    if (o.accept) {
+        const commitment = await provider.getCommitment(cp.endpoint, o.terms.question)
+        if (commitment) {
+            if (o.accept.openingTx.partialSigs[0]) {
+                if (o.finalize) {
+                    if (o.finalize.txid) {
+                        if (provider.getFact(cp.endpoint, commitment)){
+                            return 'outcome revealed'
+                        }
+                        return 'tx submitted'
+                    }
+                    return 'opening tx available'
+                }
+                return 'signing'
+            }
+            return 'oracle committed'
+        } else {
+            return 'accepted'
+        }
+        
+    } else {
+        return 'matching'
+    }
+}
 
 export interface PreferenceModel {
     minOraclePow: number,
@@ -135,7 +162,6 @@ export const matchingEngine: MatchingEngine = {
         }
 
         const cp = candidates[randomInt(candidates.length)]
-        //pick a question
 
         const partyBetAmountOptions = [1, 100, 200, 500]
         const partyBetAmount = partyBetAmountOptions[randomInt(partyBetAmountOptions.length)]
@@ -213,7 +239,7 @@ export const matchingEngine: MatchingEngine = {
         }
         const offer = (await window.storage.queryOffers({where: async x => x.pow.hash === o.id}, oneElemPage))[0]
         const openingTx: PartiallySignedTx = {
-            tx: "TODO",
+            tx: "",
             sessionIds: [],
             nonceParity: [],
             sessionNonces: [],
@@ -223,7 +249,7 @@ export const matchingEngine: MatchingEngine = {
         const accept: AcceptOffer = {
             chain: o.blockchain,
             openingTx: openingTx,
-            offerRef: undefined,
+            offerRef: offer.pow,
             cetTxSet: [],
             acceptorId: getOriginatorId()
         }
@@ -233,7 +259,6 @@ export const matchingEngine: MatchingEngine = {
         }
         offer.content.addresses[1] = window.address
         offer.pow.hash = offer.pow.hash + "accept" + randomInt(100) //will be upgraded
-
 
        window.traderApi.issueOffer(offer)
     },
@@ -257,7 +282,7 @@ export const matchingEngine: MatchingEngine = {
         const paging: PagingDescriptor = { page: 0, chunkSize: 100 }
         const cps = cfg.tags.map(tag => window.storage.queryCapabilities({where: async x => capabilityFilter(tag)(x)}, paging))
         const cpPubList = (await Promise.all(cps)).flat().map(x => x.capabilityPubKey)
-        
+
         return cpPubList.map(cpPub => {
             window.traderApi.collectOffers(
                 "cppub-" + cpPub,
@@ -282,39 +307,41 @@ export const matchingEngine: MatchingEngine = {
         const theirOffers = (await window.storage.queryIssuedOffers({
             where: async x => checkOriginatorId(x.content.originatorId)}, pagedescriptor))
 
-        const myModels = myOffers.map(o => {
+        const myModels = await Promise.all(myOffers.map(async o => {
+            const cp = (await window.storage.queryCapabilities({where: async x => x.capabilityPubKey === o.content.terms.question.capabilityPubKey}, pagedescriptor))[0]
             const model: OfferModel = {
                 id: "",
                 bet: [o.content.terms.partyBetAmount, o.content.terms.counterpartyBetAmount],
                 oracles: [{
                     capabilityPub: o.content.terms.question.capabilityPubKey,
                     oracle: o.content.terms.question.capabilityPubKey,
-                    endpoint: "TODO"
+                    endpoint: cp.endpoint
                 }],
-                question: "TODO",
+                question: cp.question,
                 blockchain: o.content.blockchain,
-                status: "matching",
+                status: await detectStatus(o.content, cp, dataProvider),
                 role: "initiator"
             }
             return model
-        })
+        }))
 
-        const theirModels = theirOffers.map(o => {
+        const theirModels = await Promise.all(theirOffers.map(async o => {
+            const cp = (await window.storage.queryCapabilities({where: async x => x.capabilityPubKey === o.content.terms.question.capabilityPubKey}, pagedescriptor))[0]
             const model: OfferModel = {
                 id: "",
                 bet: [o.content.terms.partyBetAmount, o.content.terms.counterpartyBetAmount],
                 oracles: [{
                     capabilityPub: o.content.terms.question.capabilityPubKey,
                     oracle: o.content.terms.question.capabilityPubKey,
-                    endpoint: "TODO"
+                    endpoint: cp.endpoint
                 }],
-                question: "TODO",
+                question: cp.question,
                 blockchain: o.content.blockchain,
-                status: "matching",
+                status: await detectStatus(o.content, cp, dataProvider),
                 role: "acceptor"
             }
             return model
-        })
+        }))
         return myModels.concat(theirModels)
     }
 }
