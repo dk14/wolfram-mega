@@ -45,12 +45,6 @@ Optional `mempool-cfg` config parameters:
 
 > Security: don't use `oracle` and `trader` options as a node operator. Their ports should not be open to public. Run separate, isolated instance if you wish to be both: public node and trader.
 
-## Install (optional)
-```
-npm i https://github.com/dk14/wolfram-mega
-npx wf-mega-peer <mempool-conf.json>
-```
-
 ## WebRTC bridge (experimental)
 ```
 npm run webrtc-bridge <mempool-conf.json>
