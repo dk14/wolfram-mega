@@ -1,7 +1,7 @@
 
 import { resolve } from "path"
 import { PublicSession } from "../src/client-api/contracts/btc/tx"
-import { CetRedemptionParams, DlcContract, DlcParams } from "../src/client-api/contracts/generate-btc-tx"
+import { CetRedemptionParams, DlcContract, DlcParams, doubleSHA256reversed } from "../src/client-api/contracts/generate-btc-tx"
 import { Commitment, Fact, OfferMsg, OfferTerms } from "../src/protocol"
 import { PreferenceModel } from "./matching"
 import { off } from "process"
@@ -204,8 +204,8 @@ export const btcDlcContractInterpreter: ContractInterpreter = {
     getUtXo: getUtXo,
     genContractTx: genContractTx,
     submitTx: async function (tx: string): Promise<string> {
-        console.error(tx)
-        return tx
+        //console.error(tx)
+        return doubleSHA256reversed(tx)
     },
     genRedemtionTx: async function (lockingTxId: UTxO, c: Commitment[], fact: Fact, offer: OfferMsg): Promise<string> {
         const terms = offer.content.terms

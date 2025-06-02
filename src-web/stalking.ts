@@ -107,6 +107,7 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
                     order.pow.hash = order.pow.hash + "-final" + randomInt(100)
                     window.traderApi.issueOffer(order)
                     window.storage.removeIssuedOffers([oldHash])
+
                 }   
             }
         } catch (err) {

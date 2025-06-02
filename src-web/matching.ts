@@ -335,7 +335,7 @@ export const matchingEngine: MatchingEngine = {
         
     
         const theirOffers = (await window.storage.queryIssuedOffers({
-            where: async x => checkOriginatorId(x.content.originatorId)}, pagedescriptor))
+            where: async x => !checkOriginatorId(x.content.originatorId)}, pagedescriptor))
 
         const myModels = await Promise.all(myOffers.map(async o => {
             const cp = (await window.storage.queryCapabilities({where: async x => x.capabilityPubKey === o.content.terms.question.capabilityPubKey}, pagedescriptor))[0]

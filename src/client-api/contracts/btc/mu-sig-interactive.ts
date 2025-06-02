@@ -160,21 +160,9 @@ export const sign2 = (pk1, pk2, partSig1Hex, combinedNonceParity, nonce1hex, com
     0
   );
 
-  session2.combinedNonceParity = combinedNonceParity
   const nonceCombined = muSig.sessionNonceCombine(session2, [nonce1, session2.nonce])
-  session2.combinedNonceParity = combinedNonceParity
-  
+ 
   session2.partialSignature = muSig.partialSign(session2, msg, nonceCombined, pubKeyCombined)
-
-  /** 
-  muSig.partialSigVerify(
-    session2,
-    partSig1,
-    nonceCombined,
-    0,
-    pubKeys[0],
-    nonce1
-  );*/
 
   const partSig2 = muSig.partialSign(session2, msg, nonceCombined, pubKeyCombined)
 

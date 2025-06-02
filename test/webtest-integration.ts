@@ -19,7 +19,7 @@ setTimeout(() => {
     });
 
     initiator.stdout.on('data', async function(data){
-        console.log("INITIATOR: " + data);
+        //console.log("INITIATOR: " + data);
         if (data === "OK") {
             if (lastmsg === "OK") {
                 process.exit(0)
@@ -46,7 +46,7 @@ setTimeout(() => {
     });
 
     acceptor.stdout.on('data', async function(data){
-        console.log("ACCEPTOR: " + data);
+        //console.log("ACCEPTOR: " + data);
         if (data === "OK") {
             if (lastmsg === "OK") {
                 console.log("OK")

@@ -267,7 +267,7 @@ interface CompositeDlcContractEnvelope {
     contract: CompositeDlcContract
 }
 
-async function doubleSHA256reversed(input: string) {
+export async function doubleSHA256reversed(input: string) {
     const data = Buffer.from(input, "hex")
     const firstHashBuffer = await crypto.subtle.digest("SHA-256", data)
     const firstHashArray = Array.from(new Uint8Array(firstHashBuffer))

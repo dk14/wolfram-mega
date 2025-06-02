@@ -66,17 +66,19 @@ declare var cfg: MempoolConfig<any>
 
     setInterval(async () => {
         const orders = await window.matching.listOrders({page: 0, chunkSize: 100})
-        const txReady = orders.filter(o => o.status === "opening tx available" && o.bet[1] === 30345).length > 0
+        const txReady = orders.filter(o => o.status === "outcome revealed" && o.bet[1] === 2053).length > 0
         if (txReady) {
+            console.error(await window.matching.listOrders({page: 0, chunkSize: 100}))
+            console.error("OK")
             console.log("OK")
             process.exit(0)
         }
     }, 1000)
 
     setTimeout(async () => {
-        console.log("TX NOT GENERATED!")
+        console.error("TX NOT GENERATED!")
         process.exit(255)
-    }, 20000)
+    }, 30000)
     
 
 })()
