@@ -31,7 +31,7 @@ $identityScore_i = \sum (oraclePow_i  + \sum capabilityPow_{ij}) - \sum reportPo
 
 This, combined with mempool evictions, provides resistance to Sybil-attacks: it is more beneficial for a single real-life identity to accumulate PoW under a single `OracleId` rather than shutter it across **small identities** which would be likely `low pow` **evicted** from pool.
 
-$\sum smallId_i(pow_i < mempoolThreshold) < bigId((\sum pow_i) < mempoolThreshold)$
+$\sum smallId_i(pow_i < mempoolThreshold) < megaId((\sum pow_i) < mempoolThreshold)$
 
 ## How it works
 ![image](https://lh7-rt.googleusercontent.com/docsz/AD_4nXeUWfzdI9ARP760J9ZquB5KRgfNXDRj_Z976U3KmiKf23Ky9LqC-alwiwpTZ3IAotH5BUVJAWY0-eE3wDn1mGuCyZwfGgN9suGuc08eIq8k4PihpvsgJnSERdDJwKYL6HlEgFXcFw?key=Rm1gHfOo0ww9LGQzkRjPFZRP)
