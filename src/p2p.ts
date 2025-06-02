@@ -187,11 +187,11 @@ export const startP2P = async (cfg: MempoolConfig<PeerAddr>, peerApi = serverPee
                     onconnect(addr, socket)({peer: p})
                 }
                 p.on('end', ondisconnect)
-
-                
+                if (cfg.hostname !== undefined) {
+                    broadcastPeer({server: cfg.hostname, port: cfg.p2pPort, seqNo: (cfg.hostSeqNo ?? 0) + seqNo, httpPort: cfg.httpPort})
+                }    
             }
-            
-            
+              
         } catch (err) {
             console.error(err)
         }
