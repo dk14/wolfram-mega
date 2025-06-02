@@ -280,6 +280,9 @@ async function doubleSHA256reversed(input: string) {
 
 export const generateDlcContract = async (params: DlcParams): Promise<DlcContract> => {
     const openingTx = await generateOpeningTransaction(params)
+    if (!openingTx) {
+        return undefined //opening tx co-sgned first; MAD-flavor of DLC;
+    }
     const lockedTxId = await doubleSHA256reversed(openingTx)
     const cet = await Promise.all(Object.keys(params.outcomes).map(answer => 
         generateCetTransaction(Object.assign({}, params, {

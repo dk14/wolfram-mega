@@ -193,7 +193,7 @@ const genContractTx = async (inputs: Inputs, c: Commitment[], offer: OfferMsg): 
     })
     
     const dlc = await dlcPromise
-    if (dlc.cet[0] === 'undefined' || dlc.cet[1] === 'undefined') {
+    if (dlc === undefined || dlc.cet[0] === undefined || dlc.cet[1] === undefined) { //partial sign; warning: opening transaction signed first; should add hashlock ideaally
         return [dlc, o]
     } else {
         return [dlc, undefined]

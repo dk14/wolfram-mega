@@ -52,6 +52,13 @@ setInterval(() => window.stalking.trackIssuedOffers(
 ), 1000)
 ```
 
+> HTLC version (`OP_CHECKLOCKTIMEVERIFY` as in Lightning) would ensure atomicity of signing CET-transactions. 
+> Currently Full HTLC DLC for binary options would require refund transactions to re-establish unconditional MAD after all CETs are co-signed (or alternatively expiration time for a contract).
+
+> proposed `SIGHASH_NOINPUT` (BIP118) would remove the need for HTLC in DLC, if BTC adopts it. CET can be signed before opening tx then.
+
+> Mainnet version of `btcDlcContractInterpreter` interpreter would require either `OP_CHECKLOCKTIMEVERIFY` or `SIGHASH_NOINPUT` (BIP118).
+
 ## Use Matching API to submit offer:
 
 ```ts
@@ -529,7 +536,7 @@ Sample of TestNet BTC transactions created with trader console:
 
 [CET redemption (unlock funds with signed fact)](https://mempool.space/testnet/tx/d816a61c588840463fb8b59eee2cae55c53b5e7d680315aba65d5138225ac710)
 
-BTC DLC Workflow: 
+BTC DLC (MAD-version) Workflow: 
 
 <img src="https://github.com/user-attachments/assets/247c97e7-a945-4b37-9783-48fd85ccc847" alt="drawing" width="400"/>
 

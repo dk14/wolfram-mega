@@ -316,6 +316,7 @@ const indexDBstorage: Storage = {
         return found === undefined
     },
     addOffer: async function (o: OfferMsg): Promise<boolean> {
+        console.log(o)
         const found = await db.get("offers", o.pow.hash)
         await db.put("offers", o, o.pow.hash)
         return found === undefined
@@ -382,7 +383,7 @@ const indexDBstorage: Storage = {
         const result = []
         var i = 0
         for await (const cursor of cps) {
-            if (q.where(cursor.value)) {
+            if (await q.where(cursor.value)) {
                 i++
                 if (i > paging.chunkSize * (paging.page + 1)) {
                     break
@@ -399,7 +400,7 @@ const indexDBstorage: Storage = {
         const result = []
         var i = 0
         for await (const cursor of offers) {
-            if (q.where(cursor.value)) {
+            if (await q.where(cursor.value)) {
                 i++
                 if (i > paging.chunkSize * (paging.page + 1)) {
                     break
@@ -416,7 +417,7 @@ const indexDBstorage: Storage = {
         const result = []
         var i = 0
         for await (const cursor of reports) {
-            if (q.where(cursor.value)) {
+            if (await q.where(cursor.value)) {
                 i++
                 if (i > paging.chunkSize * (paging.page + 1)) {
                     break
@@ -433,7 +434,7 @@ const indexDBstorage: Storage = {
         const result = []
         var i = 0
         for await (const cursor of offers) {
-            if (q.where(cursor.value)) {
+            if (await q.where(cursor.value)) {
                 i++
                 if (i > paging.chunkSize * (paging.page + 1)) {
                     break
@@ -450,7 +451,7 @@ const indexDBstorage: Storage = {
         const result = []
         var i = 0
         for await (const cursor of reports) {
-            if (q.where(cursor.value)) {
+            if (await q.where(cursor.value)) {
                 i++
                 if (i > paging.chunkSize * (paging.page + 1)) {
                     break

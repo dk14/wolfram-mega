@@ -41,7 +41,7 @@ declare var cfg: MempoolConfig<any>
     window.matching.collectQuestions(preferences)
     window.matching.collectOffers(preferences)
 
-    const oracles = await window.storage.queryCapabilities({where: async x => true}, {
+    const oracles = await window.storage.queryCapabilities({where: async x => x.tags[0] === 'world'}, {
         page: 0,
         chunkSize: 100
     })

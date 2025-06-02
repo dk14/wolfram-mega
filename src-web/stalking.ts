@@ -20,11 +20,22 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
 
     const allOffersGrouped: {[key: string]: OfferMsg[]} = Object.groupBy(allOffers, x => x.content.orderId)
 
-    const reattemptMuSig = 10
+    const reattemptMuSig = 10 
     const allOffersFiltered = Object.entries(allOffersGrouped).filter(x => x[1].length < reattemptMuSig).map(x => x[1]).flat()
 
-    allOffersFiltered.forEach(async order => {
+    allOffersFiltered.forEach(async orderPreviousState => {
         try {
+
+            const candidates = await window.storage.queryOffers({where: async x => x.content.accept && x.content.accept.offerRef.hash === orderPreviousState.pow.hash}, pagedescriptor)
+
+            if (candidates.length === 0) {
+                return
+            }
+
+            const order = candidates[0]
+
+            console.log("Stalker discovered progressed state!" + order.pow.hash + " from " + orderPreviousState.pow.hash)
+
             const interpreter = interpreters[order.content.blockchain]
 
             const endpoint = (await window.storage.queryCapabilities(
@@ -34,7 +45,7 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
             const commitment: Commitment = await dataProvider.getCommitment(endpoint, order.content.terms.question)
 
             if (order.content.terms.question2) {
-
+                //quorums
             }
 
             if (order.content.finalize) {
@@ -66,9 +77,14 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
 
                 if (partial !== undefined) {
                     partial.pow.hash = partial.pow.hash + "-signing" + randomInt(100)
-                    partial.content.utxos[0] = inputs.utxoAlice.map(x => [x.txid, x.vout])
-                    partial.content.utxos[1] = inputs.utxoBob.map(x => [x.txid, x.vout])
-                    window.traderApi.issueOffer(partial)
+                    if (!partial.content.utxos) {
+                        //partial.content.utxos = [undefined, undefined]
+                    }
+                    //partial.content.utxos[0] = inputs.utxoAlice.map(x => [x.txid, x.vout])
+                    //partial.content.utxos[1] = inputs.utxoBob.map(x => [x.txid, x.vout])
+                    console.log(partial.content.accept.cetTxSet)
+                    
+                    window.storage.removeIssuedOffers([order.pow.hash])
                 } else {
                     order.content.accept.cetTxSet[0].tx = contract.cet[0]
                     order.content.accept.cetTxSet[1].tx = contract.cet[1]

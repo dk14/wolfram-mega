@@ -194,7 +194,7 @@ export const matchingEngine: MatchingEngine = {
         const pow: HashCashPow = {
             difficulty: 0,
             algorithm: "SHA256",
-            hash: "", //initial id
+            hash: "init-" + randomInt(100), //initial id
             magicNo: 0
         }
 

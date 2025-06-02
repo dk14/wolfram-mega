@@ -219,6 +219,7 @@ export interface Offer {
     addresses?: string[]
     pubkeys?: [string, string],
     utxos?: [[string, number][], [string, number][]]
+    checkLockTimeVerify?: string,
     meta?: string
 }
 

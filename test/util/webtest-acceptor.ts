@@ -49,6 +49,7 @@ declare var cfg: MempoolConfig<any>
                     reject("OFFER DID NOT MATCH!")
                 } else {
                     const candidate = await window.matching.pickOffer()
+                    //console.log(candidate)
                     if (candidate.bet[1] === 2053){
                         resolve(candidate)
                     }
