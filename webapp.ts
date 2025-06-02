@@ -244,16 +244,16 @@ window.privateDB = await openDB('private', 1, {
 });
 
 
-const pub1 = "cRFAdefAzpxzKduj3F9wf3qSTgA5johBBqPZZT72hh46dgCRr997"
-const pub2 = "cRFAdefAzpxzKduj3F9wf3qSTgA5johBBqPZZT72hh46dgCRr997"
-const pubOracleCp = "cW3z2LN7rwnomrds4cF2PJhbrCmFPkX1Q8KY5Fe6F6myRotHFXrv"
+const pub1 = "e37e4cced6f555a1b2063d645f01ad4d57cc1ffa8c382d28d90561a945dbe13e"
+const pub2 = "7fe828395f6143c295ae162d235c3c4b58c27fa1fd2019e88da55979bba5396e"
+const pubOracleCp = "07508128697f7a1aca5c3e86292daa4b08f76e68b405e4b4ffe50d066ade55c3"
 
 try {
-    await window.privateDB.add("secrets", pub1, "e37e4cced6f555a1b2063d645f01ad4d57cc1ffa8c382d28d90561a945dbe13e")
-    await window.privateDB.add("secrets", pub2, "7fe828395f6143c295ae162d235c3c4b58c27fa1fd2019e88da55979bba5396e")
-    await window.privateDB.add("secrets", pubOracleCp, "07508128697f7a1aca5c3e86292daa4b08f76e68b405e4b4ffe50d066ade55c3") 
-} catch {
-
+    await window.privateDB.add("secrets", "cRFAdefAzpxzKduj3F9wf3qSTgA5johBBqPZZT72hh46dgCRr997", pub1)
+    await window.privateDB.add("secrets", "cPCMiHyZQt7UWF9y49CaW7ckT9FaFQj5ChnEbXnF51WwEcp6Agkq", pub2)
+    await window.privateDB.add("secrets", "cW3z2LN7rwnomrds4cF2PJhbrCmFPkX1Q8KY5Fe6F6myRotHFXrv", pubOracleCp) 
+} catch (e) {
+    console.error(e)
 }
 
 try{
@@ -271,7 +271,7 @@ window.webOracleFacts = await openDB('web-oracle', 1, {
 })
 
 try {
-    await window.webOracleFacts.add("answers", pubOracleCp, "YES")
+    await window.webOracleFacts.add("answers", "YES", pubOracleCp)
 } catch {
 
 }

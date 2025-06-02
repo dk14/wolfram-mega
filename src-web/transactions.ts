@@ -52,7 +52,7 @@ const getUtXo = async (offer: OfferMsg): Promise<Inputs> => {
     const req = terms.question
 
     const utxoExplore = async (address: string): Promise<UTxO[]> => {
-       return (await (await fetch (`https://mempool.space/api/address/${address}/utxo`)).json())
+       return (await (await fetch (`https://mempool.space/testnet/api/address/${address}/utxo`)).json())
     }
 
     const txfee = terms.txfee
@@ -81,15 +81,24 @@ const getUtXo = async (offer: OfferMsg): Promise<Inputs> => {
         }
     }
 
-    return {
-        utxoAlice: offer.content.utxos[0] ? 
-        offer.content.utxos[0].map(x => {return {txid: x[0], vout: x[1]}})
-            : getMultipleUtxo(aliceUtxos),
-
-        utxoBob: offer.content.utxos[1] ? 
-            offer.content.utxos[1].map(x => {return {txid: x[0], vout: x[1]}})
-            : getMultipleUtxo(bobUtxos)
+    if (offer.content.utxos) {
+        return {
+            utxoAlice: offer.content.utxos[0] ? 
+            offer.content.utxos[0].map(x => {return {txid: x[0], vout: x[1]}})
+                : getMultipleUtxo(aliceUtxos),
+    
+            utxoBob: offer.content.utxos[1] ? 
+                offer.content.utxos[1].map(x => {return {txid: x[0], vout: x[1]}})
+                : getMultipleUtxo(bobUtxos)
+        }
+    } else {
+        return {
+            utxoAlice: getMultipleUtxo(aliceUtxos),
+            utxoBob: getMultipleUtxo(bobUtxos)
+        }
     }
+
+    
 }
 
 const genContractTx = async (inputs: Inputs, c: Commitment[], offer: OfferMsg): Promise<[DlcContract, OfferMsg?]> => {
@@ -99,7 +108,7 @@ const genContractTx = async (inputs: Inputs, c: Commitment[], offer: OfferMsg): 
     const noSession = o.content.accept.cetTxSet[1]
     const openingSession = o.content.accept.openingTx
 
-    const dlcPromise: Promise<DlcContract> = new Promise(resolveDlc => {
+    const dlcPromise: Promise<DlcContract> = new Promise(async resolveDlc => {
         const yesSessionUpdate: Promise<PublicSession> = new Promise(async resolveYes => {
             const noSessionUpdate: Promise<PublicSession> = new Promise(async resolveNo => {
                 const params: DlcParams = {
@@ -158,16 +167,6 @@ const genContractTx = async (inputs: Inputs, c: Commitment[], offer: OfferMsg): 
 
             })
 
-            const yes = await yesSessionUpdate
-            yesSession.sessionIds[0] = yes.sessionId1
-            yesSession.sesionCommitments[0] = yes.commitment1
-            yesSession.sessionNonces[0] = yes.nonce1
-            yesSession.partialSigs[0] = yes.partSig1
-            yesSession.nonceParity[0] = yes.combinedNonceParity
-            yesSession.sessionIds[1] = yes.sessionId2
-            yesSession.sesionCommitments[1] = yes.commitment2
-            yesSession.sessionNonces[1] = yes.nonce2
-            yesSession.partialSigs[1] = yes.partSig2
 
             const no = await noSessionUpdate
             noSession.sessionIds[0] = no.sessionId1
@@ -181,6 +180,16 @@ const genContractTx = async (inputs: Inputs, c: Commitment[], offer: OfferMsg): 
             noSession.partialSigs[1] = no.partSig2
 
         })
+        const yes = await yesSessionUpdate
+        yesSession.sessionIds[0] = yes.sessionId1
+        yesSession.sesionCommitments[0] = yes.commitment1
+        yesSession.sessionNonces[0] = yes.nonce1
+        yesSession.partialSigs[0] = yes.partSig1
+        yesSession.nonceParity[0] = yes.combinedNonceParity
+        yesSession.sessionIds[1] = yes.sessionId2
+        yesSession.sesionCommitments[1] = yes.commitment2
+        yesSession.sessionNonces[1] = yes.nonce2
+        yesSession.partialSigs[1] = yes.partSig2
     })
     
     const dlc = await dlcPromise

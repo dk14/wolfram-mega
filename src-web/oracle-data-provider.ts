@@ -10,7 +10,7 @@ export const webOracle = endpointAPi(() => webSigner, webLookup)
 
 export const dataProvider: OracleDataProvider = {
     getCommitment: async function (endpoint: string, req: FactRequest): Promise<Commitment> {
-        if (endpoint === "web-oracle:local") {
+        if (endpoint === "weboracle:local") {
            return await webOracle.requestCommitment(req)
         } else {
             const commitment = (await fetch(endpoint + '/requestCommitment', {
@@ -22,7 +22,7 @@ export const dataProvider: OracleDataProvider = {
         }
     },
     getFact: async function (endpoint: string, c: Commitment): Promise<Fact> {
-        if (endpoint === "web-oracle:local") {
+        if (endpoint === "weboracle:local") {
             return await webOracle.requestFact(c)
         } else {
             const fact = (await fetch(endpoint + '/requestFact', {

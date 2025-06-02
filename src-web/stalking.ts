@@ -9,6 +9,7 @@ export interface StalkingEngine {
 }
 
 const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterpreter}, dataProvider: OracleDataProvider) => {
+    
     const pagedescriptor = {
         page: 0,
         chunkSize: 100
@@ -20,7 +21,7 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
     const allOffersGrouped: {[key: string]: OfferMsg[]} = Object.groupBy(allOffers, x => x.content.orderId)
 
     const reattemptMuSig = 10
-    const allOffersFiltered = Object.entries(allOffersGrouped).filter(x => x[1].length > reattemptMuSig).map(x => x[1]).flat()
+    const allOffersFiltered = Object.entries(allOffersGrouped).filter(x => x[1].length < reattemptMuSig).map(x => x[1]).flat()
 
     allOffersFiltered.forEach(async order => {
         try {

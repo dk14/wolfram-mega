@@ -243,7 +243,7 @@ export const matchingEngine: MatchingEngine = {
             sessionIds: [],
             nonceParity: [],
             sessionNonces: [],
-            sesionCommitments: ["TODO"],
+            sesionCommitments: [],
             partialSigs: []
         }
         const accept: AcceptOffer = {
