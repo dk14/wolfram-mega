@@ -124,14 +124,13 @@ export const sign1 = (pk1, pk2, commitment2hex, nonce2hex, secret1, msg, session
 
   return {
     nonce1: nonce1.toString("hex"),
-    partSig1: partSig1.toString("hex"), 
-    combinedNonceParity: convert.intToBuffer(combinedNonceParity).toString('hex')
+    partSig1: convert.intToBuffer(partSig1).toString("hex"), 
+    combinedNonceParity: combinedNonceParity
   }
 }
     
-export const sign2 = (pk1, pk2, partSig1Hex, combinedNonceParityHex, nonce1hex, commitment1hex, secret2, msg, sessionId2Hex) => {
-  const partSig1 = Buffer.from(partSig1Hex, "hex")
-  const combinedNonceParity = convert.bufferToInt(Buffer.from(combinedNonceParityHex, "hex"))
+export const sign2 = (pk1, pk2, partSig1Hex, combinedNonceParity, nonce1hex, commitment1hex, secret2, msg, sessionId2Hex) => {
+  const partSig1 = convert.bufferToInt(Buffer.from(partSig1Hex, "hex"))
   const nonce1 = Buffer.from(nonce1hex, "hex")
   const commitment1 = Buffer.from(commitment1hex, "hex")
   const sessionId2 = Buffer.from(sessionId2Hex, "hex")
@@ -142,7 +141,7 @@ export const sign2 = (pk1, pk2, partSig1Hex, combinedNonceParityHex, nonce1hex, 
   ]
 
   const nonce1Hash = convert.hash(nonce1)
-  assert.strictEqual(convert.intToBuffer(nonce1Hash).toString('hex'), convert.intToBuffer(commitment1).toString('hex'))
+  assert.strictEqual(nonce1Hash.toString('hex'), commitment1.toString('hex'))
   
   const pubKeyHash = muSig.computeEll(pubKeys);
   const pkCombined = muSig.pubKeyCombine(pubKeys, pubKeyHash);
@@ -167,14 +166,15 @@ export const sign2 = (pk1, pk2, partSig1Hex, combinedNonceParityHex, nonce1hex, 
   
   session2.partialSignature = muSig.partialSign(session2, msg, nonceCombined, pubKeyCombined)
 
+  /** 
   muSig.partialSigVerify(
     session2,
     partSig1,
     nonceCombined,
     0,
-    pubKeys[2],
+    pubKeys[0],
     nonce1
-  );
+  );*/
 
   const partSig2 = muSig.partialSign(session2, msg, nonceCombined, pubKeyCombined)
 

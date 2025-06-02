@@ -121,7 +121,7 @@ export const generateCetTransaction = async (params: CetParams, vout: number = 0
             params.bobAmount,
             params.txfee,
             params.session,
-            params.stateAmount)).hex
+            params.stateAmount))?.hex
     } else {
         const twistedPk1 = schnorr.adaptorPublic(params.oraclePub, params.answer, params.rValue).padStart(64, "0")
         const twistedPk2 = schnorr.adaptorPublic(params.oraclePub2, params.answer2 ?? params.answer, params.rValue2).padStart(64, "0")
@@ -283,6 +283,7 @@ export const generateDlcContract = async (params: DlcParams): Promise<DlcContrac
     if (!openingTx) {
         return undefined //opening tx co-sgned first; MAD-flavor of DLC;
     }
+    
     const lockedTxId = await doubleSHA256reversed(openingTx)
     const cet = await Promise.all(Object.keys(params.outcomes).map(answer => 
         generateCetTransaction(Object.assign({}, params, {

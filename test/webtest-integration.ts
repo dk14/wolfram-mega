@@ -33,29 +33,32 @@ setTimeout(() => {
         process.exit(e)
     })
 
-}, 3000)
+}, 1000)
 
 
+setTimeout(() => {
 
+    const acceptor = spawn("npx", ["tsx", "test/util/webtest-acceptor.ts"])
+        
+    acceptor.stderr.on('data', async function(data){
+            console.log("ACCEPTOR-ERR: " + data);
+            //process.exit(255)
+    });
 
-const acceptor = spawn("npx", ["tsx", "test/util/webtest-acceptor.ts"])
-    
-acceptor.stderr.on('data', async function(data){
-        console.log("ACCEPTOR-ERR: " + data);
-        //process.exit(255)
-});
-
-acceptor.stdout.on('data', async function(data){
-    console.log("ACCEPTOR: " + data);
-    if (data === "OK") {
-        if (lastmsg === "OK") {
-            process.exit(0)
-        } else {
-            lastmsg = "OK"
+    acceptor.stdout.on('data', async function(data){
+        console.log("ACCEPTOR: " + data);
+        if (data === "OK") {
+            if (lastmsg === "OK") {
+                console.log("OK")
+                process.exit(0)
+            } else {
+                lastmsg = "OK"
+            }
         }
-    }
-});
+    });
 
-acceptor.on("exit", (e) => {
-    process.exit(e)
-})
+    acceptor.on("exit", (e) => {
+        process.exit(e)
+    })
+
+}, 2000)

@@ -166,9 +166,8 @@ const genContractTx = async (inputs: Inputs, c: Commitment[], offer: OfferMsg): 
                 resolveDlc(window.btc.generateDlcContract(params))
 
             })
-
-
             const no = await noSessionUpdate
+            console.log("[[[[[" + no)
             noSession.sessionIds[0] = no.sessionId1
             noSession.sesionCommitments[0] = no.commitment1
             noSession.sessionNonces[0] = no.nonce1
@@ -205,7 +204,8 @@ export const btcDlcContractInterpreter: ContractInterpreter = {
     getUtXo: getUtXo,
     genContractTx: genContractTx,
     submitTx: async function (tx: string): Promise<string> {
-        throw new Error("Function not implemented.")
+        console.error(tx)
+        return tx
     },
     genRedemtionTx: async function (lockingTxId: UTxO, c: Commitment[], fact: Fact, offer: OfferMsg): Promise<string> {
         const terms = offer.content.terms

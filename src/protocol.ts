@@ -174,7 +174,7 @@ export interface OfferTerms {
 export interface PartiallySignedTx {
     tx: string
     sessionIds: string[]
-    nonceParity: string[]
+    nonceParity: boolean[]
     sessionNonces: string[]
     sesionCommitments: string[]
     partialSigs: string[]

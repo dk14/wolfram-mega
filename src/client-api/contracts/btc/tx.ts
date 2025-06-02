@@ -167,12 +167,12 @@ export interface InteractiveSigner {
     }):Promise<{
         nonce1: string;
         partSig1: string;
-        combinedNonceParity: string
+        combinedNonceParity: boolean
     }>
 
     sign2(pub1: string, pub2: string, msg: string, data: {
         partSig1:string,
-        combinedNonceParity: string,
+        combinedNonceParity: boolean,
         nonce1: string,
         commitment1: string,
         sessionId2: string
@@ -202,7 +202,7 @@ const remoteSigner: InteractiveSigner = {
             headers: {'Content-Type': 'application/json'}
         })).json()
     },
-    sign1: async function (pub1: string, pub2: string, msg: string, session: { commitment2: string; nonce2: string; sessionId1: string; }): Promise<{ nonce1: string; partSig1: string; combinedNonceParity: string; }> {
+    sign1: async function (pub1: string, pub2: string, msg: string, session: { commitment2: string; nonce2: string; sessionId1: string; }): Promise<{ nonce1: string; partSig1: string; combinedNonceParity: boolean; }> {
         return await (await fetch(global.cfg.trader.btcInteractiveSignerEndpoint + "/sign1", {
             method: 'post',
             body: JSON.stringify({
@@ -216,7 +216,7 @@ const remoteSigner: InteractiveSigner = {
             headers: {'Content-Type': 'application/json'}
         })).json()
     },
-    sign2: async function (pub1: string, pub2: string, msg: string, session: { partSig1: string; combinedNonceParity: string; nonce1: string; commitment1: string; sessionId2: string; }): Promise<string> {
+    sign2: async function (pub1: string, pub2: string, msg: string, session: { partSig1: string; combinedNonceParity: boolean; nonce1: string; commitment1: string; sessionId2: string; }): Promise<string> {
         return await (await fetch(global.cfg.trader.btcInteractiveSignerEndpoint + "/sign2", {
             method: 'post',
             body: JSON.stringify({
@@ -251,7 +251,7 @@ const webSigner: InteractiveSigner = {
             Buffer.from(msg, "hex")
         )
     },
-    sign1: async function (pub1: string, pub2: string, msg: string, input: { commitment2: string; nonce2: string; sessionId1: string; }): Promise<{ nonce1: string; partSig1: string; combinedNonceParity: string; }> {
+    sign1: async function (pub1: string, pub2: string, msg: string, input: { commitment2: string; nonce2: string; sessionId1: string; }): Promise<{ nonce1: string; partSig1: string; combinedNonceParity: boolean; }> {
         return multisigInteractive.sign1(
             pub1,
             pub2,
@@ -262,7 +262,7 @@ const webSigner: InteractiveSigner = {
             input.sessionId1
         )
     },
-    sign2: async function (pub1: string, pub2: string, msg: string, input: { partSig1: string; combinedNonceParity: string; nonce1: string; commitment1: string; sessionId2: string; }): Promise<string> {
+    sign2: async function (pub1: string, pub2: string, msg: string, input: { partSig1: string; combinedNonceParity: boolean; nonce1: string; commitment1: string; sessionId2: string; }): Promise<string> {
         return multisigInteractive.sign2(
             pub1,
             pub2,
@@ -286,7 +286,7 @@ export interface PublicSession {
     nonce2?:string,
     partSig1?: string;
     partSig2?:string,
-    combinedNonceParity?:string,
+    combinedNonceParity?:boolean,
     update: (p: PublicSession) => void
 }
 
@@ -294,7 +294,7 @@ export interface OpeningTxSession {
     sigs: string[]
 }
 
-function schnorrSignerInteractive(pub1: string, pub2: string, session: PublicSession, signer = isBrowser() ? webSigner : remoteSigner): SignerAsync {
+function schnorrSignerInteractive(pub1: string, pub2: string, session: PublicSession, signer = (isBrowser() || global.isTest) ? webSigner : remoteSigner): SignerAsync {
     
     const pkCombined = muSig.pubKeyCombine([Buffer.from(pub1, "hex"), Buffer.from(pub2, "hex")]);
     let pubKeyCombined = convert.intToBuffer(pkCombined.affineX);
@@ -409,7 +409,7 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
                     await psbt.signInputAsync(i, schnorrSignerSingle(alicePub))
                 } else {
                     try {
-                        if (isBrowser()) {
+                        if (isBrowser() || global.isTest) {
                             await psbt.signInputAsync(i, schnorrSignerSingleWeb(alicePub, session, i))
                         } else {
                             await psbt.signInputAsync(i, schnorrSignerSingle(alicePub, session, i))
@@ -426,7 +426,7 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
                     await psbt.signInputAsync(aliceIn.length + i, schnorrSignerSingle(bobPub))
                 } else {
                     try {
-                        if (isBrowser()) {
+                        if (isBrowser() || global.isTest) {
                             await psbt.signInputAsync(aliceIn.length + i, schnorrSignerSingleWeb(bobPub, session, aliceIn.length + i))
                         } else {
                             await psbt.signInputAsync(aliceIn.length + i, schnorrSignerSingle(bobPub, session, aliceIn.length + i))
