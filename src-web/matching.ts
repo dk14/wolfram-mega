@@ -101,7 +101,7 @@ export interface MatchingEngine {
     generateOffer: (cfg: PreferenceModel) => Promise<OfferModel>
     broadcastOffer: (o: OfferModel) => Promise<void>
     acceptOffer: (o: OfferModel) => Promise<void>
-    listOrders: (p: PagingDescriptor) => Promise<OfferModel[]>
+    listOrders: (limit: number) => Promise<OfferModel[]>
 }
 
 const capabilityFilter = (tag: string) => {
@@ -340,10 +340,10 @@ export const matchingEngine: MatchingEngine = {
         })
 
     },
-    listOrders: async function (p: PagingDescriptor): Promise<OfferModel[]> {
+    listOrders: async function (limit: number): Promise<OfferModel[]> {
         const pagedescriptor = {
             page: 0,
-            chunkSize: 100
+            chunkSize: limit
         }
 
         const myOffers = (await window.storage.queryIssuedOffers({

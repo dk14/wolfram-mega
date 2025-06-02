@@ -1,8 +1,6 @@
 
 # Contracts API (Web)
-
-**WIP: Web-API is Work in Progress; Nodejs is available**
-
+> Experimental
 ## Add bundle
 ```bash
 npm run webtest
@@ -64,6 +62,12 @@ setInterval(() => window.stalking.trackIssuedOffers(
 ```ts
 const myOffer = await window.matching.generateOffer(preferences)
 await window.matching.broadcastOffer(myOffer)
+```
+
+## List orders
+
+```ts
+await window.matching.listOrders(100)
 ```
 
 If counterparty has interpreter - stalking API will automatically negotiate and co-sign transactions through Mega P2P.
