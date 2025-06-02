@@ -35,4 +35,4 @@ npm run test # coverage should be 100%
 npm run it # should finish with OK!
 ```
 
-Protocol is specifications are in `src/protocol.ts` and `wolfram-mega-spec.yaml`. Protocol reference implementation is in `src/node.ts`. 
+Protocol and specifications are in `src/protocol.ts` and `wolfram-mega-spec.yaml`. Protocol reference implementation is in `src/node.ts`. 
