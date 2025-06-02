@@ -26,15 +26,20 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
     allOffersFiltered.forEach(async orderPreviousState => {
         try {
 
-            const candidates = await window.storage.queryOffers({where: async x => x.content.accept && x.content.accept.offerRef.hash === orderPreviousState.pow.hash}, pagedescriptor)
+            console.log("STALKING: " + orderPreviousState.pow.hash + " +")
+            const candidates = await window.storage.queryOffers({where: async x => x.content.accept && x.content.accept?.offerRef === orderPreviousState.pow.hash}, pagedescriptor)
 
+            console.log((await window.storage.queryOffers({where: async x => true}, pagedescriptor)).map(o => o.pow.hash))
+            
             if (candidates.length === 0) {
                 return
             }
 
-            const order = candidates[0]
+            const order = structuredClone(candidates[0])
 
-            console.log("Stalker discovered progressed state!" + order.pow.hash + " from " + orderPreviousState.pow.hash)
+            
+
+            console.log("STALKER: FOUND " + order.pow.hash + " <= " + orderPreviousState.pow.hash)
 
             const interpreter = interpreters[order.content.blockchain]
 
@@ -76,7 +81,8 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
                 const [contract, partial] = await interpreter.genContractTx(inputs, [commitment], order)
 
                 if (partial !== undefined) {
-                    const oldHash = order.pow.hash
+                    
+                    partial.content.accept.offerRef = partial.pow.hash
                     partial.pow.hash = partial.pow.hash + "-signing" + randomInt(100)
                     if (!partial.content.utxos) {
                         //partial.content.utxos = [undefined, undefined]
@@ -86,7 +92,7 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
 
 
                     window.traderApi.issueOffer(partial)
-                    window.storage.removeIssuedOffers([oldHash])
+                    window.storage.removeIssuedOffers([orderPreviousState.pow.hash])
                 } else {
                     order.content.accept.cetTxSet[0].tx = contract.cet[0]
                     order.content.accept.cetTxSet[1].tx = contract.cet[1]

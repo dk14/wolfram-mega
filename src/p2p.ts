@@ -280,6 +280,7 @@ export const startP2P = async (cfg: MempoolConfig<PeerAddr>, peerApi = serverPee
             }
             case 'offer': {
                 const result = await nd.api.publishOffer(cfg, JSON.parse(content))
+                console.log(result + " " +  JSON.parse(content).pow.hash)
                 if (result == 'success') {
                     broadcastMessage(command, content)
                 } else if (result == 'duplicate') {

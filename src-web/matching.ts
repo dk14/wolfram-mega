@@ -274,7 +274,7 @@ export const matchingEngine: MatchingEngine = {
         const accept: AcceptOffer = {
             chain: o.blockchain,
             openingTx: openingTx,
-            offerRef: offer.pow,
+            offerRef: offer.pow.hash,
             cetTxSet: [yesTx, noTx],
             acceptorId: getOriginatorId()
         }
@@ -289,7 +289,8 @@ export const matchingEngine: MatchingEngine = {
         offer.content.pubkeys[1] = window.pubkey
         offer.pow.hash = offer.pow.hash + "-accept-" + randomInt(100) //will be upgraded
 
-       window.traderApi.issueOffer(offer)
+        window.traderApi.startBroadcastingIssuedOffers()
+        window.traderApi.issueOffer(offer)
     },
     collectQuestions: async function (cfg: PreferenceModel): Promise<string[]> {
         const ocollectors = cfg.tags.map(tag => {

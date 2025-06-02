@@ -199,8 +199,9 @@ export function traderApi<OracleQuery, CpQuery, RpQuery, MatchingQuery, MegaPeer
             var counter = 0
             const timeout = setInterval(async () => {
                 storage.allCps(q, cppredicate, async cp => {
+
                     const ofs = await nodeApi.lookupOffers({
-                        page: getRandomInt(tradercfg.maxReportsPages),
+                        page: getRandomInt(tradercfg.maxOffersPages),
                         chunkSize: tradercfg.pageSize
                     }, cp.capabilityPubKey)
                     const picked = (await Promise.all(ofs.map(async of => {return {of, p: await matchingPredicate(of)}}))).filter(x => x.p).map(x => x.of)

@@ -184,15 +184,15 @@ export type OfferHashCash = string
 
 export interface DependsOn { //for schedules, aka stateful multi-stage contracts, everything that Marlowe can do
     outome: string,
-    offerRefs: OfferHashCash[] //OR condition
+    offerRefs: string[] //OR condition
 }
 
 export interface AcceptOffer {
     chain: string
     openingTx: PartiallySignedTx
-    offerRef: HashCashPow
+    offerRef: string
     cetTxSet: PartiallySignedTx[]
-    previousAcceptRef?: HashCashPow //for sharing precommitments in interactive sign
+    previousAcceptRef?: string //for sharing precommitments in interactive sign
     acceptorId?: string
     acceptorSig?: string
 }

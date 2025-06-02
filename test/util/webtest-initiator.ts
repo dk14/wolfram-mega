@@ -29,12 +29,12 @@ declare var cfg: MempoolConfig<any>
 
     setInterval(() => window.stalking.trackIssuedOffers({
         "bitcoin-testnet": btcDlcContractInterpreter
-    }, dataProvider), 10)
+    }, dataProvider), 1000)
         
     const preferences: PreferenceModel = {
         minOraclePow: 0,
         minOracleReputation: 0,
-        tags: [],
+        tags: ["world"],
         txfee: 0
     }
     

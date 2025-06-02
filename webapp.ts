@@ -102,7 +102,7 @@ const cfg: MempoolConfig<any> = {
         "wsPort": 9081
     },
     "trader": {
-        "broadcastOfferCycle": 5000,
+        "broadcastOfferCycle": 1000,
         "broadcastReportCycle": 1000,
         "collectOffersCycle": 100,
         "collectReportsCycle": 100,
