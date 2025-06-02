@@ -25,7 +25,7 @@ Oracle quorums is secondary, optional, feature in Mega, since the primary, stron
 - oracle's identity strength from its PoW-difficulty, 
 - oracle reputation from PoW-difficulty of reports filed (by traders) against its `OracleId`.
 
-$identityScore_i = \sum (oraclePow_i  + \sum capabilityPow_{ij}) - \sum reportPow_{ij}$
+$identityScore_i = \sum (oraclePow_i  + \sum capabilityPow_{ij}) - \sum malleabilityReportPow_{ij}$
 
 ## Sybyl attacks resistance
 
