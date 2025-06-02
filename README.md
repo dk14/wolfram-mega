@@ -36,16 +36,3 @@ npm run it # should finish with OK!
 ```
 
 Protocol is specifications are in `src/protocol.ts` and `wolfram-mega-spec.yaml`. Protocol reference implementation is in `src/node.ts`. 
-
-
-## TODOs
-
-- implement slashing
-
-- bind models for webapp
-- detect matching stages for webapp
-- finish peerjs support
-- finish interactive signatures and tx generation for webapp
-- provide optional nodejs backend for webapp
-- add quorums to webapp
-- padding for schnorr rvalues
