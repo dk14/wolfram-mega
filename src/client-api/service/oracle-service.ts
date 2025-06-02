@@ -1,6 +1,6 @@
 import Stream from "stream";
 import { MempoolConfig } from "../../config";
-import { api as ndapi } from "../../node";
+import { api as ndapi } from "../../api";
 import { PagingDescriptor } from "../../protocol"
 import { PeerAddr, connectionPool } from "../../p2p";
 import { capabilityStorage } from "../client-storage/capability-storage";

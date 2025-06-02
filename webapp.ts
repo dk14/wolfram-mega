@@ -2,7 +2,7 @@ import { Collector, Predicate, TraderApi, TraderStorage, traderApi } from './src
 import { MempoolConfig } from './src/config';
 import { Neighbor, p2pNode, startP2P } from './src/p2p';
 import { OracleId, OracleCapability, OfferMsg, Report, PagingDescriptor, Commitment, Fact, FactRequest, HashCashPow, Offer, OfferTerms } from './src/protocol';
-import { Api, FacilitatorNode, api as ndapi} from './src/node';
+import { Api, FacilitatorNode, api as ndapi} from './src/api';
 import * as btc from "./src/client-api/contracts/generate-btc-tx";
 import Sandbox from "@nyariv/sandboxjs";
 import { IDBPDatabase, openDB } from 'idb';

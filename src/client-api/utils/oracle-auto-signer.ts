@@ -1,7 +1,7 @@
 import WebSocket, { createWebSocketStream } from 'ws';
 import * as readline from 'readline'
 import * as mega from '../../protocol'
-import * as nd from '../../node'
+import * as nd from '../../api'
 import * as utilcrypto from '../../crypto'
 import * as fs from 'fs'
 import { schnorrApi } from '../contracts/btc/schnorr';

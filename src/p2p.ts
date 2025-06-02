@@ -1,4 +1,4 @@
-import * as nd from './node';
+import * as nd from './api';
 import * as mega from './protocol';
 import * as net from 'net';
 import * as p2pn from 'p2p-node'

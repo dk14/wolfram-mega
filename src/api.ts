@@ -209,7 +209,7 @@ const validateFact = (fact: Fact, req: FactRequest): boolean => {
 export const testOnlyReset = () => { 
     //could've made api a factory, but this is more realistic, 
     //since implementations of Api ackuiring sockets, files, databases and other resources 
-    //are outside of the scope of node.ts module
+    //are outside of the scope of api.ts module
     mempool.oracles = {}
     mempool.offers = []
 }

@@ -1,5 +1,5 @@
 import { MempoolConfig } from "../../config";
-import { api as ndapi, Api } from "../../node";
+import { api as ndapi, Api } from "../../api";
 import { OracleId, PagingDescriptor, OracleCapability } from "../../protocol"
 import { PeerAddr } from "../../p2p";
 import * as http from 'http';

@@ -1,4 +1,4 @@
 {
     "extends": "@istanbuljs/nyc-config-typescript",
-    "include": ["src/node.ts"]
+    "include": ["src/api.ts"]
 }

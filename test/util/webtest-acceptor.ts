@@ -8,7 +8,7 @@ import { p2pNode, startP2P } from "../../src/p2p";
 import { browserPeerAPI } from "../../src/p2p-webrtc";
 import { MempoolConfig } from "../../src/config";
 import { traderApi } from "../../src/client-api/trader-api";
-import { api } from "../../src/node";
+import { api } from "../../src/api";
 
 declare var cfg: MempoolConfig<any>
 

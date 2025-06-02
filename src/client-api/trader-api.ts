@@ -1,4 +1,4 @@
-import { Api, api, FacilitatorNode } from "../node"
+import { Api, api, FacilitatorNode } from "../api"
 import { OfferMsg, OracleCapability, OracleId, PagingDescriptor, Report } from "../protocol"
 import { MempoolConfig } from "../config"
 import { powOverOffer, powOverReport } from "../pow";

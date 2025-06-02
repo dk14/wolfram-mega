@@ -1,4 +1,4 @@
-import { Api } from "../node"
+import { Api } from "../api"
 
 
 export interface ConnectionPoolCfg {

@@ -1,4 +1,4 @@
-import { Api, checkCapabilitySignature } from "../node"
+import { Api, checkCapabilitySignature } from "../api"
 import { OracleCapability, OracleId, Param, Answer, HashCashPow, PagingDescriptor } from "../protocol"
 import { MempoolConfig } from "../config"
 import { powOverOracleCapability, powOverOracleId } from "../pow"

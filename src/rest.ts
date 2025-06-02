@@ -1,4 +1,4 @@
-import * as nd from './node'
+import * as nd from './api'
 import * as mega from './protocol'
 import { testOnlySign, testOnlyGenerateKeyPair} from './crypto'
 import * as http from 'http'

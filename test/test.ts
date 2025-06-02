@@ -1,4 +1,4 @@
-import * as nd from '../src/node';
+import * as nd from '../src/api';
 import * as mega from '../src/protocol';
 import * as assert from 'assert'
 import * as pow from '../src/pow'
