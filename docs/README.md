@@ -16,14 +16,14 @@ Everything is stored in Mega's mempools. No blockchain required for the network.
 
 Mega supports advertisement for trading offers. Offer format allows expression of any meaningful type of contract: from binary options to "perpetual" swaps ([Trader](trader.md)).
 
-Trader's contract are private from oracle's supervision. Oracle is not aware of trader's blockchain at all. Pull-based model ([Oracle](oracle.md))
+Trader's contracts are private from oracle's supervision. Oracle is not aware of trader's blockchain at all. Pull-based model ([Oracle](oracle.md))
 
 ## Strong Oracle Identities
 
-Oracle quorums is secondary, optional, feature in Mega, since the primary, stronger assurance, is individual oracle **identity** acquired through PoW. We simply estimate:
+Oracle quorums is secondary, optional, feature in Mega, since the primary, stronger assurance, is individual oracle's **identity** acquired through PoW. We simply estimate:
 
 - oracle's identity strength from its PoW-difficulty, 
-- oracle reputation  from  PoW-difficulty of reports filed (by traders) against its `OracleId`.
+- oracle reputation from PoW-difficulty of reports filed (by traders) against its `OracleId`.
 
 $identityScore_i = \sum (oraclePow_i  + \sum capabilityPow_{ij}) - \sum reportPow_{ij}$
 
