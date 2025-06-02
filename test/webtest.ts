@@ -16,7 +16,7 @@ require("../webapp");
     console.log("\n")
     console.log("MATCHING TEST")
 
-    startP2P(global.cfg, await browserPeerAPI())
+    //startP2P(global.cfg, await browserPeerAPI())
 
     setInterval(() => window.stalking.trackIssuedOffers({
         "bitcoin-testnet": btcDlcContractInterpreter
