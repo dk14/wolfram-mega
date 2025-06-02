@@ -316,7 +316,6 @@ const indexDBstorage: Storage = {
         return found === undefined
     },
     addOffer: async function (o: OfferMsg): Promise<boolean> {
-        console.log(o)
         const found = await db.get("offers", o.pow.hash)
         await db.put("offers", o, o.pow.hash)
         return found === undefined
