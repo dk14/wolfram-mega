@@ -8,7 +8,7 @@ Mega *(from מַגָע, contact)* - is a lightweight infinitely scalable decentr
 
 Mega acts as a p2p oracle advertisement network.
 
-Mega relies on Proof-Of-Work in order to assign identities to oracles. It models real-life aquisition of identity: though physical effort!
+Mega relies on Proof-Of-Work in order to assign identities to oracles. It models real-life aquisition of identity: through physical effort!
 
 Oracle's reputation is managed as a set of verifiable reports of malleability. Traders also do some PoW (for spam-protection) in order to report malicious oracle. Oracle's credibility can be estimated from a sum of PoW done on reports, or subjectively based on contents of reports ([Manifest](manifest.md)).
 
