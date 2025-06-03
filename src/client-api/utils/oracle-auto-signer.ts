@@ -59,8 +59,10 @@ if (require.main === module) {
             console.log(line)
             const cp: mega.OracleCapability = JSON.parse(line)
             cp.oracleSignature = ""
+            const cppow = cp.pow
             cp.pow = undefined
             cp.oracleSignature = utilcrypto.testOnlySign(JSON.stringify(cp), cfg.oraclePK)
+            cp.pow = cppow
             streamCp.write(JSON.stringify(cp) + "\n")
         } catch (err) {
             console.error(err)

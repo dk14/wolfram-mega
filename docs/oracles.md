@@ -108,12 +108,16 @@ const cps = await (await fetch('./viewStoredCapabilities?pageSize=100&pageNo=0')
 ```
 
 ## How to sign ads as oracle 
- `src/client-api/utils/oracle-endpoint` has an example.
+ `src/client-api/oracle-auto-signer.ts` has an example.
 
 After starting oracle api,
-`ws://host:port/signCp` and `ws://host:port/signAd` would give you streams for signing capability ads and oracle ads respectively. You read a message - you write same message but with oracleSignature.
+`ws://host:port/signCp` and `ws://host:port/signAd` would give you REPL stream for signing capability ads and oracle ads respectively. You read a message - you write same message but with oracleSignature.
 
 The best approach is to sign messages manually unless they only differ in `seqNo` field.
+
+> Oracle capabilities are signed **without** PoW. Anyone can upgrade PoW of oracle's capability. 
+
+> OracleId is signed **with** PoW - only oracle can upgrade its `OracleId` PoW.
 
 ## Signatures
 
@@ -163,7 +167,7 @@ const canCommit = ...
 // `src/client-api/contracts/slasher.ts` - MAD-DLC-slashing example
 const generateSLA = ... 
 
-// external signing; example of auto-signer: src/client-api/oracle-auto-signer.ts
+// external signing; example of auto-signer: src/client-api/oracle-endpoint-signer.ts
 const sign = ...
 
 const api: OracleEndpointApi = {
@@ -206,7 +210,6 @@ const api: OracleEndpointApi = {
     }
 }
 ```
-
 
 ## Oracle Endpoint MAD-slashing
 

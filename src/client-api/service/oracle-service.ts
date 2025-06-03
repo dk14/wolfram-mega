@@ -12,6 +12,7 @@ import WebSocket, { WebSocketServer, createWebSocketStream } from 'ws';
 import * as readline from 'readline'
 import * as fs from 'fs'
 import Sandbox from "@nyariv/sandboxjs";
+import { Mutex } from "async-mutex";
 
 const safeEval = (expression: string, data: any): any => {
     const sandbox = new Sandbox()
@@ -140,21 +141,28 @@ export const startOracleService = (cfg: MempoolConfig<PeerAddr>, storage = capab
         // last opened socket will get active stream
 
         if(reqUrl.pathname == '/ranks') {
-            api.watchMyRankSample(async ev => {  
-                stream.write(JSON.stringify(ev) + "\n")
-                
+            const mutex = new Mutex() 
+            api.watchMyRankSample(async ev => { 
+                mutex.runExclusive(() => { 
+                    stream.write(JSON.stringify(ev) + "\n")
+                })
             })
         } else if(reqUrl.pathname == '/signCp') {
+            const mutex = new Mutex() // just in case two ads will come concurrently (should not happen)
             api.watchSignMyCapabilityBroadcasts(ev => {  
                 return new Promise(resolve => {
-                    rl.question(JSON.stringify(ev) + "\n", a => resolve(JSON.parse(a)))
+                    mutex.runExclusive(() => { 
+                        rl.question(JSON.stringify(ev) + "\n", a => resolve(JSON.parse(a))) //REPL
+                    })
                 })
             })
         } else if(reqUrl.pathname == '/signAd') {
+            const mutex = new Mutex()
             api.watchSignMyOracleBroadcasts(ev => {
                 return new Promise(resolve => {
-                    rl.question(JSON.stringify(ev) + "\n", a => resolve(JSON.parse(a)))
-
+                    mutex.runExclusive(() => {
+                        rl.question(JSON.stringify(ev) + "\n", a => resolve(JSON.parse(a)))
+                    })
                 })
             })
         }
