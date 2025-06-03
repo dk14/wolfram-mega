@@ -39,6 +39,7 @@ jobs:
     - run: git push
 
   version:
+    needs: build
     if: contains(github.event.head_commit.message, 'release patch')
     runs-on: ubuntu-latest
     steps:
@@ -48,5 +49,5 @@ jobs:
     - run: npm version patch
     - run: git add --all
     - run: git diff-index --quiet HEAD || git commit -am "deploy"
-    - run: git push
+    - run: git push --follow-tags
    
