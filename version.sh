@@ -1,1 +1,1 @@
-REPOVERSION=$(echo $(npm pkg get version) | sed 's/.$//' | sed 's/^.//')
+export REPOVERSION=$(echo $(npm pkg get version) | sed 's/.$//' | sed 's/^.//')
