@@ -16,7 +16,6 @@ Oracle Admin UI and REST will be available at:
 
 > Security: no ports should be open to public network in this mode. Use virtualization (e.g. virsh)
 
-
 or run a full demo:
 ```bash
 npm run demo
