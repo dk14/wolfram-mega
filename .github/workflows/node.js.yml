@@ -67,7 +67,7 @@ jobs:
       matrix:
         node-version: [22.15.0]
     permissions:
-      contents: read
+      contents: write
       packages: write
     steps:
     - uses: actions/checkout@v4
