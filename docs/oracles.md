@@ -123,7 +123,7 @@ The best approach is to sign messages manually unless they only differ in `seqNo
 
 Oracle ads and capabilites are signed with root oracle signature.
 
-Commitments and facts are signed with corresponding capability signature.
+Commitments and facts are signed with a corresponding capability signature.
 
 
 Security note:
