@@ -82,18 +82,15 @@ jobs:
       env:
         NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: 'Get Previous tag'
-      id: previoustag
-      uses: "WyriHaximus/github-action-get-previous-tag@v1"
-      with:
-        fallback: 0.0.666
+    - run: | 
+     npmversion=$(echo $(npm pkg get version) | sed 's/.$//' | sed 's/^.//')
     - name: Create Release
       uses: comnoco/create-release-action@v2.0.5
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${{ steps.previoustag.outputs.tag }}
-        release_name: Release ${{ steps.previoustag.outputs.tag }}
+        tag_name: v${{ env.npmversion }}
+        release_name: Release ${{ env.npmversion }}
         body: 'Patch'
         draft: false
         prerelease: false
