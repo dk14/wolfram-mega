@@ -25,16 +25,21 @@ https://dk14.github.io/wolfram-mega/docs/
 
 ## Tests
 
-
 ```
 npm i c8 -g
-npm run test # coverage should be 100%
-npm run it # p2p and APIs
-npm run webtest 
-npm run webtest-it # experimental
+npm run test # protocol, coverage should be 100%
+npm run it # p2p and non-essential client APIs
+npm run webtest # web-app, non-essential
+npm run webtest-it # webrtc and matching, experimental
 ```
+
+> tests should printout "OK!" or exit proccess with error
+
+# Protocol
 
 Protocol and specifications are in `src/protocol.ts` and `wolfram-mega-spec.yaml`. Protocol reference implementation is in `src/api.ts`. 
 
-> Security. Non-essential APIs and apps under `src/client-api`, `webapp`, `src-web` need stricter typescript flavor, testnet integration tests and security audits for crypto-mainnet uses. p2p-network needs real-life performance tests for scaling.
+## Use cases
+ Non-essential APIs and apps are under `src/client-api/`, `webapp/`, `src-web/`. See [docs](https://dk14.github.io/wolfram-mega/docs/).
+> Security. Non-essential APIs need stricter typescript flavor, testnet integration tests and security audits for crypto-mainnet uses. p2p-network needs real-life performance tests for scaling.
 

@@ -549,7 +549,8 @@ import { testOnlyGenerateKeyPair, testOnlySign} from '../src/crypto'
          const cfg2 = structuredClone(cfg)
          cfg2.maxOffers = undefined
          assert.strictEqual(await nd.api.publishOffer(cfg2, offerMsg1), "low pow difficulty")
-    
+        
+         console.log("OK!")
     }
 
 })()
