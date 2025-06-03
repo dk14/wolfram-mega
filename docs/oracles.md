@@ -262,8 +262,7 @@ const api: OracleEndpointApi = {
         //commit to r-value for bitcoin DLC
         commitment.rValueSchnorrHex = await sign([commitment, "!RVALUE"])
 
-        // sign
-        
+        // sign commitment
         commitment.oracleSig = await sign([commitment, ""])
         return commitment
     },
@@ -273,6 +272,7 @@ const api: OracleEndpointApi = {
         const fact: Fact = {
             factWithQuestion: factMsg,
             signatureType: 'SHA256',
+            //sign fact
             signature: await sign([req, factMsg])
         }
         return fact
