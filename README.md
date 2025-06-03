@@ -21,7 +21,7 @@ Everything is stored in Mega's mempoolss. No blockchain required.
 
 https://dk14.github.io/wolfram-mega/docs/
 
-----------
+---------
 
 ## Tests
 
