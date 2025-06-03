@@ -26,9 +26,10 @@ export interface Inputs {
     utxoBob: UTxO[]
 }
 
+//meAlice: Alice is party, Bob is counterparty
 export interface ContractInterpreter {
     getUtXo: (terms: OfferMsg) => Promise<Inputs>
-    genContractTx: (inputs: Inputs, c: Commitment[], offer: OfferMsg) => Promise<[Contract, OfferMsg?]>
+    genContractTx: (inputs: Inputs, c: Commitment[], offer: OfferMsg, meAlice?: boolean) => Promise<[Contract, OfferMsg?]>
     submitTx: (tx: string) => Promise<TxId>
     genRedemtionTx: (lockingTxId: UTxO, c: Commitment[], fact: Fact, offer: OfferMsg) => Promise<string>
 }
@@ -101,12 +102,15 @@ const getUtXo = async (offer: OfferMsg): Promise<Inputs> => {
     
 }
 
-const genContractTx = async (inputs: Inputs, c: Commitment[], offer: OfferMsg): Promise<[DlcContract, OfferMsg?]> => {
+const genContractTx = async (inputs: Inputs, c: Commitment[], offer: OfferMsg, meAlice?: boolean): Promise<[DlcContract, OfferMsg?]> => {
     const o = structuredClone(offer)
     const terms = o.content.terms
     const yesSession = o.content.accept.cetTxSet[0]
     const noSession = o.content.accept.cetTxSet[1]
     const openingSession = o.content.accept.openingTx
+
+    const yesOutcome = terms.partyBetsOn[0]
+    const noOutcome = terms.counterPartyBetsOn[0]
 
     const dlcPromise: Promise<DlcContract> = new Promise(async resolveDlc => {
         const yesSessionUpdate: Promise<PublicSession> = new Promise(async resolveYes => {
@@ -120,8 +124,8 @@ const genContractTx = async (inputs: Inputs, c: Commitment[], offer: OfferMsg): 
                     oraclePub2: o.content.terms.question2?.capabilityPubKey,
                     oraclePub3: o.content.terms.question3?.capabilityPubKey,
                     outcomes: {
-                        "YES": {aliceAmount: terms.partyBetAmount, bobAmount: 0},
-                        "NO": {aliceAmount: 0, bobAmount: terms.counterpartyBetAmount}
+                        yesOutcome: {aliceAmount: terms.partyBetAmount + terms.counterpartyBetAmount, bobAmount: 0},
+                        noOutcome: {aliceAmount: 0, bobAmount: terms.partyBetAmount + terms.counterpartyBetAmount}
                     },
                     rValue: c[0].rValueSchnorrHex,
                     rValue2: c[1]?.rValueSchnorrHex,
@@ -133,7 +137,7 @@ const genContractTx = async (inputs: Inputs, c: Commitment[], offer: OfferMsg): 
                     txfee: terms.txfee,
                     openingSession: { sigs: openingSession.partialSigs },
                     session: {
-                        "YES":  {
+                        yesOutcome: {
                             sessionId1: yesSession.sessionIds[0],
                             sessionId2: yesSession.sessionIds[1],
                             commitment1: yesSession.sesionCommitments[0],
@@ -147,7 +151,7 @@ const genContractTx = async (inputs: Inputs, c: Commitment[], offer: OfferMsg): 
                                 resolveYes(p)
                             }
                         },
-                        "NO":  {
+                        noOutcome: {
                             sessionId1: noSession.sessionIds[0],
                             sessionId2: noSession.sessionIds[1],
                             commitment1: noSession.sesionCommitments[0],
@@ -161,7 +165,18 @@ const genContractTx = async (inputs: Inputs, c: Commitment[], offer: OfferMsg): 
                                 resolveNo(p)
                             }
                         }
-                    }
+                    },
+                    atomic: (() => {
+                        if (meAlice !== undefined) {
+                            return {
+                                meBettingOnYes: meAlice,
+                                yesOutcome,
+                                noOutcome
+                            }   
+                        } else {
+                            return undefined //TODO: should be error for security
+                        } 
+                    })()
                 }
                 resolveDlc(window.btc.generateDlcContract(params))
 

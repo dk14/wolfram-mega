@@ -78,6 +78,7 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
 
                 const inputs = await interpreter.getUtXo(order)
                 
+                // todo: detect trader's role in a contract: party or counterparty, pass as meAlice
                 const [contract, partial] = await interpreter.genContractTx(inputs, [commitment], order)
 
                 if (partial !== undefined) {
