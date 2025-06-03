@@ -6,7 +6,7 @@ Mobile trading web-app for BTC test-net.
 
 Design: https://dk14.github.io/wolfram-mega/webapp/
 
-> Serverlless app. P2P-network relies on WebRTC here.
+> Serverless app. P2P-network relies on WebRTC here.
 
 -----
 
