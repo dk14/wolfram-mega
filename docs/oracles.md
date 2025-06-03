@@ -212,7 +212,7 @@ export interface OracleEndpointApi {
 
 Every capability can have its own endpoint or they can share.
 
-If oracle provides facts through messengers, blockchain or any other means (inluding `fact-missing` report as a hack), then it must be able to manually or chat-bot-automatically send `commitment` and eventually `fact` as json in response to `fact-request`.
+If oracle provides facts through messengers, blockchain or any other means (including `fact-missing` report as a hack), then it must be able to manually or chat-bot-automatically send `commitment` and eventually `fact` as json in response to `fact-request`.
 
 **Commitments are signed and legally binding. Oracle can be reported for not fulfilling (or misfulfilling) the commitment it made.**
 
