@@ -19,6 +19,7 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run it
+      - run: npm webtest
 
   publish-gpr:
     needs: build
@@ -35,6 +36,14 @@ jobs:
           scope: '@dk14'
       - run: npm ci
       - run: npm run build
+      - run: npm version patch
       - run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+      - name: Commit changed files
+        uses: stefanzweifel/git-auto-commit-action@v2.3.0
+        with:
+          commit_message: release patch
+          branch: main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
