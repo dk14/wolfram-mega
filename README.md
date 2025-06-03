@@ -4,7 +4,6 @@ A p2p fact sharing network
 
 Mega *(from מַגָע, contact)* - is a lightweight infinitely scalable decentralized data marketplace, bringing authentic observers to blockchain.
 
-
 ---------
 
 ## Description
@@ -30,7 +29,12 @@ https://dk14.github.io/wolfram-mega/docs/
 ```
 npm i c8 -g
 npm run test # coverage should be 100%
-npm run it # should finish with OK!
+npm run it # p2p and APIs
+npm run webtest 
+npm run webtest-it # experimental
 ```
 
 Protocol and specifications are in `src/protocol.ts` and `wolfram-mega-spec.yaml`. Protocol reference implementation is in `src/api.ts`. 
+
+> Security. Non-essential APIs and apps under `src/client-api`, `webapp`, `src-web` need stricter typescript flavor, testnet integration tests and security audits for crypto-mainnet uses. p2p-network needs real-life performance tests for scaling.
+
