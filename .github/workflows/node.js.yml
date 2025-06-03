@@ -36,6 +36,7 @@ jobs:
     - run: npm run build
     - run: git config user.email "dk14@github.com"
     - run: git config user.name "dk14"
+    - run: git add --all
     - run: git commit -am "deploy"
     - run: git push
       
