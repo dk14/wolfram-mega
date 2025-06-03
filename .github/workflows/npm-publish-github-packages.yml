@@ -16,6 +16,7 @@ jobs:
         with:
           node-version: 20
       - run: npm i c8 -g
+      - run: npm audit
       - run: npm ci
       - run: npm run test
       - run: npm run it
@@ -38,14 +39,8 @@ jobs:
       - run: npm run build
       - run: git config user.email "dk14@github.com"
       - run: git config user.name "dk14"
-      - run: npm version --commit-hooks false --git-tag-version false patch
+      - run: npm version patch
       - run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
-      - name: Commit changed files
-        uses: stefanzweifel/git-auto-commit-action@v2.3.0
-        with:
-          commit_message: release patch
-          branch: main
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - run: git push
