@@ -293,7 +293,7 @@ export const generateDlcContract = async (params: DlcParams): Promise<DlcContrac
     
     const lockedTxId = await doubleSHA256reversed(openingTx)
     const cet = await Promise.all(Object.keys(params.outcomes).map(answer => {
-        if (params.atomic !== undefined) { //require counter-party to partially sign
+        if (params.atomic !== undefined) { //require counter-party to partially sign CET corresponding to my bet
             const atomic = params.atomic
             // if nonces are exchanged (note: nonce2 exchcanged implicitly in 2-party interactive sign)
             if (params.session[atomic.yesOutcome].nonce1 && params.session[atomic.noOutcome].nonce1) {
