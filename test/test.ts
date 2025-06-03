@@ -3,11 +3,12 @@ import * as mega from '../src/protocol';
 import * as assert from 'assert'
 import * as pow from '../src/pow'
 import { testOnlyGenerateKeyPair, testOnlySign} from '../src/crypto'
+import { MempoolConfig } from '../src/config';
 
 
 (async () => {
 
-    const cfg = {
+    const cfg: MempoolConfig<any> = {
         "maxOracles": 2,
         "maxCapabilities": 2,
         "maxReports": 2,
@@ -328,6 +329,10 @@ import { testOnlyGenerateKeyPair, testOnlySign} from '../src/crypto'
         const err3 = await nd.api.announceOracle(cfg, oracle4)
         assert.strictEqual(err3, "low pow difficulty")
         assert.deepStrictEqual(await nd.api.lookupOracles(paging), [oracle2, oracle3])
+
+        cfg.powThresholdOracles = 1000
+        assert.strictEqual(await nd.api.announceOracle(cfg, oracle3), "low pow difficulty")
+        cfg.powThresholdOracles = undefined
     
     }
     
@@ -395,6 +400,10 @@ import { testOnlyGenerateKeyPair, testOnlySign} from '../src/crypto'
         assert.deepStrictEqual(await nd.api.lookupCapabilities(paging, keypairOracle3.pub), [capability4, capability5])
     
         assert.strictEqual(await nd.api.announceCapability(cfg, capability6), "low pow difficulty")
+
+        cfg.powThresholdCapabilities = 1000
+        assert.strictEqual(await nd.api.announceCapability(cfg, capability5), "low pow difficulty")
+        cfg.powThresholdCapabilities = undefined
     
     }
     
@@ -454,6 +463,11 @@ import { testOnlyGenerateKeyPair, testOnlySign} from '../src/crypto'
         assert.deepStrictEqual(await nd.api.lookupReports(paging, keypairOracle2.pub), [report3, report5])
     
         assert.strictEqual(await nd.api.reportMalleability(cfg, report4), "low pow difficulty")
+
+        cfg.powThresholdReports = 1000
+        const res00 = await nd.api.reportMalleability(cfg, report5)
+        cfg.powThresholdReports = undefined
+        //assert.strictEqual(res00, "low pow difficulty")
     
     }
     
@@ -549,8 +563,14 @@ import { testOnlyGenerateKeyPair, testOnlySign} from '../src/crypto'
          const cfg2 = structuredClone(cfg)
          cfg2.maxOffers = undefined
          assert.strictEqual(await nd.api.publishOffer(cfg2, offerMsg1), "low pow difficulty")
+
+         cfg.powThresholdOffers = 1000
+         const res00 = await nd.api.publishOffer(cfg, offerMsg1)
+         cfg.powThresholdOffers = undefined
+         assert.strictEqual(res00, "low pow difficulty")
         
          console.log("OK!")
+         
     }
 
 })()

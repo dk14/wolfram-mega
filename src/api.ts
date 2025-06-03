@@ -137,7 +137,9 @@ const evaluateStrength = (oracle: OracleId, mempool: Mempool): number => {
 }
 
 const checkOracleRank = (cfg: MempoolConfig<any>, oracle: OracleId, mempool: Mempool): boolean => { 
-    
+    if (oracle.pow.difficulty < cfg.powThresholdOracles ?? 0) {
+        return false
+    }
     if (Object.keys(mempool.oracles).length >= cfg.maxOracles) {
         const evict = Object.values(mempool.oracles).find(o => o.id.bid.amount <= oracle.bid.amount && evaluateStrength(o.id, mempool) <= oracle.pow.difficulty)
         /* c8 ignore start */
@@ -162,6 +164,9 @@ const checkOracleRank = (cfg: MempoolConfig<any>, oracle: OracleId, mempool: Mem
 }
 
 const checkCapabilityRank = (cfg: MempoolConfig<any>, cp: OracleCapability, o: Oracle): boolean => {
+    if (cp.pow.difficulty < cfg.powThresholdCapabilities ?? 0) {
+        return false
+    }
     if (o.capabilies.length >= cfg.maxCapabilities) {
         const index = o.capabilies.findIndex(c => c.pow.difficulty <= cp.pow.difficulty)
         if (index > -1) {
@@ -174,6 +179,9 @@ const checkCapabilityRank = (cfg: MempoolConfig<any>, cp: OracleCapability, o: O
 }
 
 const checkReportRank = (cfg: MempoolConfig<any>, report: Report, o: Oracle): boolean => {
+    if (report.pow.difficulty < cfg.powThresholdReports ?? 0) {
+        return false
+    }
     if (o.reports.length >= cfg.maxReports) {
         const index = o.reports.findIndex(r => r.pow.difficulty <= report.pow.difficulty)
         if (index > -1) {
@@ -186,6 +194,9 @@ const checkReportRank = (cfg: MempoolConfig<any>, report: Report, o: Oracle): bo
 }
 
 const checkOfferRank = (cfg: MempoolConfig<any>, offer: OfferMsg, m: Mempool): boolean => {
+    if (offer.pow.difficulty < cfg.powThresholdOffers ?? 0) {
+        return false
+    }
     if (m.offers.length >= (cfg.maxOffers ?? 0)) {
         const index = m.offers.findIndex(r => r.pow.difficulty <= offer.pow.difficulty)
         if (index > -1) {
@@ -293,7 +304,7 @@ export const api: Api = {
         if (cp.pow.difficulty == 0 || checkCapabilitySignature(cp)) {
             if (cp.pow.difficulty == 0 || checkPow(cp.pow, cp.oracleSignature)) {
                 if (checkCapabilityRank(cfg, cp, mempool.oracles[cp.oraclePubKey])) {
-                    const found = mempool.oracles[cp.oraclePubKey].capabilies.find(x => x.capabilityPubKey == cp.capabilityPubKey);
+                    const found = mempool.oracles[cp.oraclePubKey].capabilies.find(x => x.capabilityPubKey === cp.capabilityPubKey);
                     if (found !== undefined) {
                         if (found.seqNo < cp.seqNo && found.pow.difficulty <= cp.pow.difficulty) {
                             found.seqNo = cp.seqNo
@@ -333,7 +344,7 @@ export const api: Api = {
             return "low pow difficulty";
         }
 
-        const found = mempool.oracles[report.oraclePubKey].reports.find(x => x.pow.hash == report.pow.hash);
+        const found = mempool.oracles[report.oraclePubKey].reports.find(x => x.pow.hash === report.pow.hash);
         if (found !== undefined) {
             if (found.seqNo < report.seqNo) {
                 found.seqNo = report.seqNo;

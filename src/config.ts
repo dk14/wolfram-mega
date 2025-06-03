@@ -42,5 +42,9 @@ export interface MempoolConfig<PeerAddrT> {
     hostnamePublic?: string
     webrtcPeerServer?: WebRtcPeerServer
     randomEvictionRate?: number
+    powThresholdOracles?: number
+    powThresholdReports?: number
+    powThresholdOffers?: number
+    powThresholdCapabilities?: number
 
 }

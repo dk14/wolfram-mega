@@ -1,9 +1,9 @@
-import { Api, checkCapabilitySignature } from "../api"
+import { Api, FacilitatorNode, checkCapabilitySignature } from "../api"
 import { OracleCapability, OracleId, Param, Answer, HashCashPow, PagingDescriptor } from "../protocol"
 import { MempoolConfig } from "../config"
 import { powOverOracleCapability, powOverOracleId } from "../pow"
 import { ConnectionPool, ConnectionPoolCfg } from './connection-pool'
-import { p2pNode } from "../p2p"
+import { Neighbor, PeerAddr, connectionPool } from "../p2p"
 
 
 export interface OracleBasicIdentity {
@@ -59,7 +59,7 @@ export interface OracleAd<MegaPeerT>{
     rank: number
 }
 
-export interface OracleControlAPI<MegaPeerT> {
+export interface OracleControlAPI {
     id: () => Promise<OracleId>
     startAdvertising: (cfg: OracleCfg) =>  Promise<void>
     pauseAdvertising: (cfg: OracleCfg) =>  Promise<void>
@@ -72,7 +72,8 @@ export interface OracleControlAPI<MegaPeerT> {
     activateCapability: (capabilityPubKey: string) => Promise<void>
     dropCapability: (capabilityPubKey: string) => Promise<void>
 
-    watchMyRankSample: (subscriber: (event: OracleAd<MegaPeerT>) => Promise<void>) =>  Promise<void>
+    //this requires connections parameter
+    watchMyRankSample: (subscriber: (event: OracleAd<PeerAddr>) => Promise<void>) =>  Promise<void>
 
     watchSignMyOracleBroadcasts: (subscriber: (event: OracleId) => Promise<OracleId>) =>  Promise<void>
     watchSignMyCapabilityBroadcasts: (subscriber: (event: OracleCapability) => Promise<OracleCapability>) =>  Promise<void>
@@ -91,15 +92,24 @@ const defaultPow: OraclePow = {
 
 export function oracleControlApi<Query, MegaPeerT>(
     poolcfg: MempoolConfig<MegaPeerT>, 
-    nodeApi: Api, storage: CapabilityStorage<Query>, 
-    connections: ConnectionPool<MegaPeerT>, 
-    concfg: ConnectionPoolCfg, pow: OraclePow = defaultPow): OracleControlAPI<MegaPeerT> {
+    nodeApi: Api, storage: CapabilityStorage<Query>, p2pNode: FacilitatorNode<Neighbor>,
+    pow: OraclePow = defaultPow,
+    connections?: ConnectionPool<PeerAddr>
+    ): OracleControlAPI {
+
+    if (connections === undefined) {
+        connections = connectionPool
+    }
+
+    const concfg: ConnectionPoolCfg = {
+        maxConnections: poolcfg.maxConnections
+    }
    
     var id : OracleId = null
     var advertiser = null
     var signer: (event: OracleId) => Promise<OracleId> = null
     var cpsigner: (event: OracleCapability) => Promise<OracleCapability> = null
-    var adobserver: (event: OracleAd<MegaPeerT>) => Promise<void> = null
+    var adobserver: (event: OracleAd<PeerAddr>) => Promise<void> = null
 
     const signPowIncCp = async(cp: OracleCapability): Promise<OracleCapability> => {
         if (signer !== null) {
@@ -143,7 +153,7 @@ export function oracleControlApi<Query, MegaPeerT>(
             
             advertiser = async () => {
                 try {
-                    if (adobserver !== null) {
+                    if (adobserver !== null && connections !== undefined) {
                         await Promise.all((connections.list(concfg).map(async con => {
                             const api = connections.getapi(con)
                             const oracles = await api.lookupOracles({
@@ -273,7 +283,7 @@ export function oracleControlApi<Query, MegaPeerT>(
             }
             await storage.dropCapability(capabilityPubKey)
         },
-        watchMyRankSample: function (subscriber: (event: OracleAd<MegaPeerT>) => Promise<void>): Promise<void> {
+        watchMyRankSample: function (subscriber: (event: OracleAd<PeerAddr>) => Promise<void>): Promise<void> {
             adobserver = subscriber
             return
         },

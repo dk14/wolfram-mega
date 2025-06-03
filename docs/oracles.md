@@ -140,6 +140,64 @@ export interface OraclePow {
     powOverOracleCapability: (cp: OracleCapability, difficulty: number, algorithm: string) => Promise<HashCashPow>
 }
 ```
+Oarcle API has default CPU implementation of pow.
+
+# Customize Oracle API
+`src/client-api/oracle-control-api.ts`
+
+```ts
+// implement you own database
+export interface CapabilityStorage<Query> {
+    storeOracleAdSeqNo: (seqNo: number, pow: HashCashPow) => Promise<void>
+    readOracleAdSeqNo: () => Promise<[number, HashCashPow]>
+    addCapability: (cp: OracleCapability) => Promise<void>
+    deactivateCapability: (capabilityPubKey: string) => Promise<void>
+    activateCapability: (capabilityPubKey: string) => Promise<void>
+    dropCapability: (capabilityPubKey: string) => Promise<void>
+    getCapability: (capabilityPubKey: string) =>  Promise<OracleCapability | undefined>
+    listCapabilities: (query: Query, paging: PagingDescriptor) => Promise<OracleCapability[]>
+    listActiveCapabilities: () => Promise<OracleCapability[]>
+    updateCapabilityPow: (capabilityPubKey: string, pow: HashCashPow) => Promise<void>
+}
+
+import { api as ndapi } from "./src/api";
+import { p2pNode } from "./src/p2p";
+
+// customize:
+const cfg: MempoolConfig<PeerAddr> = {
+    ... //regular mempool config
+    "oracle": {
+        "id": {
+            "pubkey": "AAA",
+            "oracleSignatureType" : "SHA256"
+        },
+        "adInterval": 10000, //how often to send ads
+        "adTopN": 10
+    }
+}
+// add your own database
+const storage: CapabilityStorage<YourQueryType> = { ... }
+
+// your own mining
+const miner: OraclePow = { ... }
+
+// create api:
+const oracleApi: OracleControlAPI = oracleControlApi(cfg, ndapi, storage, p2pNode, miner)
+
+// register your signers
+await oracleApi.watchSignMyOracleBroadcasts(oracleIdSigner)
+await oracleApi.watchSignMyCapabilityBroadcasts(oracleAdSigner)
+
+// use api
+await oracleApi.startAdvertising(cfg.oracle)
+
+await oracleApi.addCapability()
+await oracleApi.dropCapability()
+
+await upgradeOraclePow(difficulty) 
+await upgradeCapabilityPow(pub, difficulty)
+```
+
 
 # Oracle Endpoint
 Oracle endpoint has to implement this interface over REST:

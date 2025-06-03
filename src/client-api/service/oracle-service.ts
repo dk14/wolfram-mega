@@ -2,7 +2,7 @@ import Stream from "stream";
 import { MempoolConfig } from "../../config";
 import { api as ndapi } from "../../api";
 import { PagingDescriptor } from "../../protocol"
-import { PeerAddr, connectionPool } from "../../p2p";
+import { PeerAddr, p2pNode } from "../../p2p";
 import { capabilityStorage } from "../client-storage/capability-storage";
 import { ConnectionPoolCfg } from "../connection-pool";
 import { OracleControlAPI, oracleControlApi } from "../oracle-control-api";
@@ -23,10 +23,8 @@ const safeEval = (expression: string, data: any): any => {
 
 export const startOracleService = (cfg: MempoolConfig<PeerAddr>, storage = capabilityStorage(cfg.oracle.dbPath, 1, 100)) => {
 
-    const concfg: ConnectionPoolCfg = {
-        maxConnections: cfg.maxConnections
-    }
-    const api: OracleControlAPI<PeerAddr> = oracleControlApi(cfg, ndapi, storage, connectionPool, concfg)
+
+    const api: OracleControlAPI = oracleControlApi(cfg, ndapi, storage, p2pNode)
     api.startAdvertising(cfg.oracle)
 
     http.createServer(async (req, res) => {
