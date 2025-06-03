@@ -4,8 +4,11 @@
 name: Node.js Package
 
 on:
-  release:
-    types: [created]
+  push:
+    # Sequence of patterns matched against refs/tags
+    tags:
+      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+    branches: [ "main" ]
 
 jobs:
   build:
@@ -21,8 +24,13 @@ jobs:
       - run: npm run test
       - run: npm run it
       - run: npm run webtest
+      on:
+  push:
+    # Sequence of patterns matched against refs/tags
+    tags:
+      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
 
-  publish-gpr:
+  publish:
     needs: build
     runs-on: ubuntu-latest
     permissions:
@@ -39,8 +47,29 @@ jobs:
       - run: npm run build
       - run: git config user.email "dk14@github.com"
       - run: git config user.name "dk14"
-      - run: npm version patch
+      - run: npm version $(echo "{{ github.ref_name }}" | cut -c2-) --no-git-tag-version
+      - run: git push
       - run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
-      - run: git push
+
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Create Release
+        id: create_release
+        uses: comnoco/create-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body: |
+            Changes in this Release
+            - First Change
+            - Second Change
+          draft: false
+          prerelease: false
