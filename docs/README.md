@@ -29,7 +29,7 @@ $identityScore_i = \sum (oraclePow_i  + \sum capabilityPow_{ij}) - \sum malleabi
 
 ## Sybyl attacks resistance
 
-This, combined with mempool evictions, provides resistance to Sybil-attacks: it is more beneficial for a single real-life identity to accumulate PoW under a single `OracleId` rather than shutter it across **small identities** which would be likely `low pow` **evicted** from pool.
+This, combined with mempool evictions, provides resistance to Sybil-attacks: it is more beneficial for a single coherent physical identity to accumulate PoW under a single `OracleId` rather than shutter it across **small identities** which would be likely `low pow` **evicted** from pool.
 
 $(megaId((\sum pow_i) > mempoolThreshold)) > \sum smallId_i(pow_i > mempoolThreshold)$
 
