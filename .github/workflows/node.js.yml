@@ -44,10 +44,32 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
     - run: git config user.email "dk14@github.com"
     - run: git config user.name "dk14"
     - run: npm version patch
     - run: git add --all
     - run: git diff-index --quiet HEAD || git commit -am "deploy"
     - run: git push --follow-tags
+      with:
+        node-version: 20
+        registry-url: https://npm.pkg.github.com/
+        scope: '@dk14'
+    - run: npm ci
+    - run: npm run build
+    - run: npm publish
+      env:
+        NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+    - name: Create Release
+        id: create_release
+        uses: comnoco/create-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body: 'Patch'
+          draft: false
+          prerelease: false
+    
    
