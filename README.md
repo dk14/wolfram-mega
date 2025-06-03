@@ -33,7 +33,7 @@ npm run webtest      # web-app, non-essential
 npm run webtest-it   # webrtc and matching, experimental
 ```
 
-> tests should printout "OK!" or exit proccess with error
+> tests should printout "OK!" or exit process with error
 
 # Protocol
 
