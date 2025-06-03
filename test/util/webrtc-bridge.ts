@@ -18,8 +18,6 @@ process.on('uncaughtException', function (err) {
     console.log("\n\nStart WebRTC...\n\n")
     const webFacil = await startP2P(global.cfg, await browserPeerAPI())
     
-  
-    
     const path = process.argv[2] ?? "cfg/mempool-1.json";
     
     const getcfg = (): MempoolConfig<any> => {
