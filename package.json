@@ -4,7 +4,7 @@
     "type": "git",
     "url": "https://github.com/dk14/wolfram-mega.git"
   },
-  "version": "0.0.10",
+  "version": "0.0.11",
   "description": "A p2p fact sharing network",
   "type": "commonjs",
   "scripts": {
