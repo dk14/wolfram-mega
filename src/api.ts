@@ -1,4 +1,4 @@
-/* c8 ignore start */
+
 import {createVerify, generateKeyPairSync, createSign, sign, createPrivateKey, KeyObject} from 'crypto'
 import fetch from 'node-fetch'
 import https from 'https'
@@ -19,6 +19,8 @@ const regexPem = /.{64}/g;
 export const createPemPub = (base64: string): string => {
     return '-----BEGIN PUBLIC KEY-----\n'+ base64.replace(regexPem, '$&\n') + '\n-----END PUBLIC KEY-----\n'
 }
+
+/* c8 ignore start */
 
 const openapi = !isBrowser() ? Enforcer(__dirname + '/../wolfram-mega-spec.yaml') 
     : new OpenAPIRequestValidator(yaml.load(window.spec))
