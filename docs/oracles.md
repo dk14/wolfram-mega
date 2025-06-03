@@ -210,7 +210,7 @@ export interface OracleEndpointApi {
 }
 ```
 
-Every capability can have its own endpoint.
+Every capability can have its own endpoint or they can share.
 
 If oracle provides facts through messengers, blockchain or any other means (inluding `fact-missing` report as a hack), then it must be able to manually or chat-bot-automatically send `commitment` and eventually `fact` as json in response to `fact-request`.
 
