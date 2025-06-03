@@ -38,7 +38,7 @@ jobs:
       - run: npm run build
       - run: git config user.email "dk14@github.com"
       - run: git config user.name "dk14"
-      - run: npm version patch
+      - run: npm version --commit-hooks false --git-tag-version false patch
       - run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
