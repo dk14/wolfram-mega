@@ -46,6 +46,9 @@ jobs:
       matrix:
         node-version: [22.15.0]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+    permissions:
+      contents: read
+      packages: write
 
     steps:
     - uses: actions/checkout@v4
