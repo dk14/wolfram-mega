@@ -1,0 +1,1 @@
+git commit -am "release" --allow-empty
