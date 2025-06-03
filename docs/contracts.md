@@ -78,9 +78,11 @@ setInterval(() => window.stalking.trackIssuedOffers(
 
 > Mainnet version of `btcDlcContractInterpreter` interpreter would require either `OP_CHECKLOCKTIMEVERIFY` or `SIGHASH_NOINPUT` (BIP118).
 
-> For binary options, MAD-DLC atomicity can also be achieved without`OP_CHECKLOCKTIMEVERIFY`/`SIGHASH_NOINPUT` by making party to not partially sign "YES" clause (counterparty takes all) until counterparty partially signs "NO" (party takes all). It is akin to pre-commitment check in multisig. TODO - implement DLC-MAD-atomicity check.
+Notes:
 
-[european call DLC example](https://dk14.github.io/marlowe-wolfram-webdoc/eurocall)
+> For binary options, MAD-DLC signing atomicity can also be achieved without`OP_CHECKLOCKTIMEVERIFY`/`SIGHASH_NOINPUT` by making party to not partially sign "YES" clause (counterparty takes all) until counterparty partially signs "NO" (party takes all). It is akin to pre-commitment check in multisig. TODO - implement DLC-MAD-atomicity check.
+
+> contracts like [european call DLC](https://dk14.github.io/marlowe-wolfram-webdoc/eurocall), would have to be quantized into binary options.
 
 # Composite contracts 
 
