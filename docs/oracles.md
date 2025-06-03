@@ -242,7 +242,13 @@ Or they have to agree on data (pairwise).
 
 ### SLA time Slashing
 
-Another example of slashing `contract` field can be useful for is refund slashing: lock funds in DLC, but allow trader to unlock such funds after timeout. In bitcoin this cn be achieved by adding extra unlocking "clause" into unlocking script of DLC CET transaction.
+Another example of where the slashing `contract` field can be useful for is refund slashing: 
+
+- lock pledge funds in DLC CET transaction
+- allow trader to unlock such funds after timeout
+- allow oracle to unlock with provided fact
+
+In bitcoin, this can be achieved by adding extra timeout unlocking "sub-clause" (HTLC) into unlocking script of DLC CET transaction.
 
 ```ts
 const script = `
