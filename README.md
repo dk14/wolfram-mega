@@ -27,10 +27,10 @@ https://dk14.github.io/wolfram-mega/docs/
 
 ```
 npm i c8 -g
-npm run test # protocol, coverage should be 100%
-npm run it # p2p and non-essential client APIs
-npm run webtest # web-app, non-essential
-npm run webtest-it # webrtc and matching, experimental
+npm run test         # protocol, coverage should be 100%
+npm run it           # p2p and non-essential client APIs
+npm run webtest      # web-app, non-essential
+npm run webtest-it   # webrtc and matching, experimental
 ```
 
 > tests should printout "OK!" or exit proccess with error
