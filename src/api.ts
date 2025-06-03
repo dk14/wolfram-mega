@@ -141,9 +141,9 @@ const checkOracleRank = (cfg: MempoolConfig<any>, oracle: OracleId, mempool: Mem
         /* c8 ignore start */
         if (cfg.randomEvictionRate) {
             const n = Object.values(mempool.oracles).length
-            const random = Buffer.from(oracle.pow.hash + "123", "hex")
+            const random = Buffer.from(oracle.pow.hash + "1212", "hex")
             const victim = Object.values(mempool.oracles)[random[random.length - 1] % n]
-            const random2 = Buffer.from(victim.id.pow.hash + "123", "hex")
+            const random2 = Buffer.from(victim.id.pow.hash + "1213", "hex")
             if (random2[random2.length - 1] % (1 / cfg.randomEvictionRate) === 0) {
                 delete mempool.oracles[victim.id.pubkey]
                 return true
