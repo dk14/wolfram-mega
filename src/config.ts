@@ -41,5 +41,6 @@ export interface MempoolConfig<PeerAddrT> {
     p2pPortPublic?: number
     hostnamePublic?: string
     webrtcPeerServer?: WebRtcPeerServer
+    randomEvictionRate?: number
 
 }

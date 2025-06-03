@@ -124,9 +124,32 @@ export const checkOracleIdSignature = (o: OracleId): boolean => {
     return res
 }
 
+const evaluateStrength = (oracle: OracleId, mempool: Mempool): number => {
+    const cps = mempool.oracles[oracle.pubkey].capabilies
+    if (cps.length == 0) {
+        return oracle.pow.difficulty
+    } else {
+        return cps.map(cp => cp.pow.difficulty).reduce((a,b) => a + b) + oracle.pow.difficulty
+    }
+     
+}
+
 const checkOracleRank = (cfg: MempoolConfig<any>, oracle: OracleId, mempool: Mempool): boolean => { 
+    
     if (Object.keys(mempool.oracles).length >= cfg.maxOracles) {
-        const evict = Object.values(mempool.oracles).find(o => o.id.bid.amount <= oracle.bid.amount && o.id.pow.difficulty <= oracle.pow.difficulty)
+        const evict = Object.values(mempool.oracles).find(o => o.id.bid.amount <= oracle.bid.amount && evaluateStrength(o.id, mempool) <= oracle.pow.difficulty)
+        /* c8 ignore start */
+        if (cfg.randomEvictionRate) {
+            const n = Object.values(mempool.oracles).length
+            const random = Buffer.from(oracle.pow.hash + "123", "hex")
+            const victim = Object.values(mempool.oracles)[random[random.length - 1] % n]
+            const random2 = Buffer.from(victim.id.pow.hash + "123", "hex")
+            if (random2[random2.length - 1] % (1 / cfg.randomEvictionRate) === 0) {
+                delete mempool.oracles[victim.id.pubkey]
+                return true
+            }
+        }
+        /* c8 ignore end */
         if (evict !== undefined ) {
             delete mempool.oracles[evict.id.pubkey]
             return true
