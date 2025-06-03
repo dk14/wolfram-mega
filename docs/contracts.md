@@ -36,7 +36,28 @@ setInterval(() => window.stalking.trackIssuedOffers(
 ), 1000)
 ```
 
-There is a default intepreter for BTC-DLC (MAD version, no HTLC-refunds):
+> If counterparty has interpreter - stalking API will automatically find accepted offers, negotiate and co-sign transactions through Mega P2P.
+
+## Use Matching API to submit offer
+
+```ts
+const myOffer = await window.matching.generateOffer(preferences)
+await window.matching.broadcastOffer(myOffer)
+```
+
+## List orders
+
+```ts
+await window.matching.listOrders(100)
+```
+Duplicates will be filtered by `orderId` in favor of most recent version
+
+
+## BTC-DLC interpreter
+
+There is a default intepreter for [BTC-DLC](https://adiabat.github.io/dlc.pdf).
+    
+> binary option contracts supported. This is MAD (mutually assured destruction) version of DLC. No HTLC-refunds.
 
 ```ts
 import { btcDlcContractInterpreter } from './src-web/transactions';
@@ -51,26 +72,15 @@ setInterval(() => window.stalking.trackIssuedOffers(
 ```
 
 > HTLC version (`OP_CHECKLOCKTIMEVERIFY` as in Lightning) would ensure atomicity of signing CET-transactions. 
-> Currently Full HTLC DLC for binary options would require refund transactions to re-establish unconditional MAD after all CETs are co-signed (or alternatively expiration time for a contract).
+> Currently, for BTC, full HTLC DLC for binary options would require refund transactions to re-establish unconditional MAD after all CETs are co-signed (or alternatively expiration time for a contract).
 
 > proposed `SIGHASH_NOINPUT` (BIP118) would remove the need for HTLC in DLC, if BTC adopts it. CET can be signed before opening tx then.
 
 > Mainnet version of `btcDlcContractInterpreter` interpreter would require either `OP_CHECKLOCKTIMEVERIFY` or `SIGHASH_NOINPUT` (BIP118).
 
-## Use Matching API to submit offer:
+> For binary options, atomicity can also be achieved on MAD-DLC by making party to not partially sign "YES" clause (counterparty takes all) until counterparty partially signs "NO" (party takes all). It is akin to pre-commitment check in multisig. TODO - implement check.
 
-```ts
-const myOffer = await window.matching.generateOffer(preferences)
-await window.matching.broadcastOffer(myOffer)
-```
-
-## List orders
-
-```ts
-await window.matching.listOrders(100)
-```
-
-If counterparty has interpreter - stalking API will automatically negotiate and co-sign transactions through Mega P2P.
+[european call DLC example](https://dk14.github.io/marlowe-wolfram-webdoc/eurocall)
 
 # Composite contracts 
 
