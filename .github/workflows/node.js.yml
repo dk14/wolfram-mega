@@ -81,6 +81,7 @@ jobs:
     - run: npm publish
       env:
         NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - run: chmod +x version.sh
     - run: ./version.sh
     - name: Create Release
       uses: comnoco/create-release-action@v2.0.5
