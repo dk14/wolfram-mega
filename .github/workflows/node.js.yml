@@ -81,16 +81,14 @@ jobs:
     - run: npm publish
       env:
         NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    - run: | 
-     npmversion=$(echo $(npm pkg get version) | sed 's/.$//' | sed 's/^.//')
+    - run: ./version.sh
     - name: Create Release
       uses: comnoco/create-release-action@v2.0.5
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: v${{ env.npmversion }}
-        release_name: Release ${{ env.npmversion }}
+        tag_name: v${{ env.REPOVERSION }}
+        release_name: Release ${{ env.REPOVERSION }}
         body: 'Patch'
         draft: false
         prerelease: false
