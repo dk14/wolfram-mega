@@ -38,15 +38,15 @@ jobs:
     - run: git diff-index --quiet HEAD || git commit -am "deploy"
     - run: git push
 
-  tag:
+  version:
     if: "!contains(github.event.head_commit.message, 'release patch')"
-      runs-on: ubuntu-latest
-      steps:
-      - uses: actions/checkout@v4
-      - run: npm version patch
-      - run: git config user.email "dk14@github.com"
-      - run: git config user.name "dk14"
-      - run: git add --all
-      - run: git diff-index --quiet HEAD || git commit -am "deploy"
-      - run: git push
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - run: npm version patch
+    - run: git config user.email "dk14@github.com"
+    - run: git config user.name "dk14"
+    - run: git add --all
+    - run: git diff-index --quiet HEAD || git commit -am "deploy"
+    - run: git push
    
