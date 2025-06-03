@@ -20,7 +20,7 @@ Trader's contracts are private from oracle's supervision. Oracle is not aware of
 
 ## Strong Oracle Identities
 
-Oracle quorums is secondary, optional, feature in Mega, since the primary, stronger assurance, is individual oracle's **identity** acquired through PoW. We simply estimate:
+Oracle quorums is secondary, optional, feature in Mega, since the primary, stronger assurance, is individual oracle's **pseudonymous identity** acquired through PoW. We simply estimate:
 
 - oracle's identity strength from its PoW-difficulty, 
 - oracle reputation from PoW-difficulty of reports filed (by traders) against its `OracleId`.
