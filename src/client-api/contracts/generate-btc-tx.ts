@@ -187,6 +187,12 @@ export interface FundDistribution {
     bobAmount: number,
 }
 
+export interface AtomicBonaryOptionMadDlcSign {
+    meBettingOnYes: boolean 
+    yesOutcome: string
+    noOutcome: string
+}
+
 export interface DlcParams {
     aliceIn: UTxO[],
     bobIn: UTxO[],
@@ -208,6 +214,7 @@ export interface DlcParams {
     session: { [id: Msg]: PublicSession; },
     openingSession: OpeningTxSession,
     stateAmount?: number //goes back to multisig, for composite contracts
+    atomic?: AtomicBonaryOptionMadDlcSign
 }
 
 interface ChildDlcParams {
@@ -285,13 +292,31 @@ export const generateDlcContract = async (params: DlcParams): Promise<DlcContrac
     }
     
     const lockedTxId = await doubleSHA256reversed(openingTx)
-    const cet = await Promise.all(Object.keys(params.outcomes).map(answer => 
-        generateCetTransaction(Object.assign({}, params, {
+    const cet = await Promise.all(Object.keys(params.outcomes).map(answer => {
+        if (params.atomic !== undefined) { //require counter-party to partially sign
+            const atomic = params.atomic
+            // if nonces are exchanged (note: nonce2 exchcanged implicitly in 2-party interactive sign)
+            if (params.session[atomic.yesOutcome].nonce1 && params.session[atomic.noOutcome].nonce1) {
+                if (answer == atomic.noOutcome && atomic.meBettingOnYes) {
+                    // I am betting on yes, so I won't partially sign "no" outcome until I see "yes" partially signed
+                    if (!params.session[atomic.yesOutcome].partSig1) {
+                        return undefined
+                    }
+                } else if (answer == atomic.yesOutcome && !atomic.meBettingOnYes) {
+                    // I am betting on no, so I won't partially sign "yes" outcome until I see "no" partially signed
+                    if (!params.session[atomic.noOutcome].partSig1) {
+                        return undefined
+                    }
+                }
+            }     
+        }
+        return generateCetTransaction(Object.assign({}, params, {
             answer, lockedTxId, 
             aliceAmount: params.outcomes[answer].aliceAmount,
             bobAmount: params.outcomes[answer].bobAmount,
             session: params.session[answer]
-        }))))
+        }))
+    }))
     return {openingTx, cet}
 }
 
