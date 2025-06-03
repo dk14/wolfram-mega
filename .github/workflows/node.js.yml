@@ -44,8 +44,8 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - run: git config user.email "dk14@github.com"
-    - run: npm version patch
     - run: git config user.name "dk14"
+    - run: npm version patch
     - run: git add --all
     - run: git diff-index --quiet HEAD || git commit -am "deploy"
     - run: git push
