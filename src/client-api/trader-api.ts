@@ -1,5 +1,5 @@
 import { Api, api, FacilitatorNode } from "../api"
-import { OfferMsg, OracleCapability, OracleId, PagingDescriptor, Report } from "../protocol"
+import { HashCashPow, OfferMsg, OracleCapability, OracleId, PagingDescriptor, Report } from "../protocol"
 import { MempoolConfig } from "../config"
 import { powOverOffer, powOverReport } from "../pow";
 
@@ -89,12 +89,22 @@ export interface TraderCfg {
     btcInteractiveSignerEndpoint?: string
 }
 
+export interface TraderPow {
+    powOverOffer: (offer: OfferMsg, difficulty: number, algorithm: string) => Promise<HashCashPow>
+    powOverReport: (r: Report, difficulty: number, algorithm: string) => Promise<HashCashPow>
+}
+
+const defaultPow: TraderPow = {
+    powOverOffer,
+    powOverReport
+}
+
 export function traderApi<OracleQuery, CpQuery, RpQuery, MatchingQuery, MegaPeerT, Neighbor>(
     tradercfg: TraderCfg,
     poolcfg: MempoolConfig<MegaPeerT>, 
     nodeApi: Api, 
     storage: TraderStorage<OracleQuery, CpQuery, RpQuery, MatchingQuery>,
-    p2pNode: FacilitatorNode<Neighbor>): TraderApi<OracleQuery, CpQuery, boolean> {
+    p2pNode: FacilitatorNode<Neighbor>, pow: TraderPow = defaultPow): TraderApi<OracleQuery, CpQuery, boolean> {
 
     function getRandomInt(max) {
         return Math.floor(Math.random() * max);
@@ -249,7 +259,7 @@ export function traderApi<OracleQuery, CpQuery, RpQuery, MatchingQuery, MegaPeer
                     }
                     while (res === 'low pow difficulty' && o.pow.difficulty < (tradercfg.autoUpgradePowLimit ?? 4)) {
                         console.log('auto-upgrade pow')
-                        const upgraded = await powOverOffer(o, o.pow.difficulty + 1)
+                        const upgraded = await pow.powOverOffer(o, o.pow.difficulty + 1, "SHA256")
                         o.pow = upgraded 
                         res = await api.publishOffer(poolcfg, o) 
                     }
@@ -280,7 +290,7 @@ export function traderApi<OracleQuery, CpQuery, RpQuery, MatchingQuery, MegaPeer
                         storage.removeIssuedReports([r.pow.hash])
                     }
                     while (res === 'low pow difficulty' && r.pow.difficulty < (tradercfg.autoUpgradePowLimit ?? 4)){
-                        const upgraded = await powOverReport(r, r.pow.difficulty + 1)
+                        const upgraded = await pow.powOverReport(r, r.pow.difficulty + 1, "SHA256")
                         r.pow = upgraded
                         res = await api.reportMalleability(poolcfg, r)
                     }

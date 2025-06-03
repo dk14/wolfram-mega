@@ -157,7 +157,7 @@ fetch('./broadcastIssuedReports')
 ## Issue offer
 
 Offers have unique pow hash, pow hash is their id. 
-If offer is rejected due to low-pow difficulty - trader API will upgrade PoW. 
+If offer is rejected due to low-pow difficulty - trader API will try to upgrade PoW. 
 
 >Note: there is a limitation on the maximum length of the message.
 
@@ -243,6 +243,17 @@ const delete = (hash, recordType) => {
     }
     await fetch(`./${endpoints[recordType]}?pubkey=${encodeURIComponent(hash)}`)
 }     
+```
+
+## PoW
+
+examples: `src/pow.ts`
+
+```ts
+export interface TraderPow {
+    powOverOffer: (offer: OfferMsg, difficulty: number, algorithm: string) => Promise<HashCashPow>
+    powOverReport: (r: Report, difficulty: number, algorithm: string) => Promise<HashCashPow>
+}
 ```
 
 ## Oracle Workflow

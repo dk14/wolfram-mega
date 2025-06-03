@@ -79,11 +79,21 @@ export interface OracleControlAPI<MegaPeerT> {
 
 }
 
+export interface OraclePow {
+    powOverOracleId: (o: OracleId, difficulty: number, algorithm: string) => Promise<HashCashPow>
+    powOverOracleCapability: (cp: OracleCapability, difficulty: number, algorithm: string) => Promise<HashCashPow>
+}
+
+const defaultPow: OraclePow = {
+    powOverOracleId,
+    powOverOracleCapability
+}
+
 export function oracleControlApi<Query, MegaPeerT>(
     poolcfg: MempoolConfig<MegaPeerT>, 
     nodeApi: Api, storage: CapabilityStorage<Query>, 
     connections: ConnectionPool<MegaPeerT>, 
-    concfg: ConnectionPoolCfg): OracleControlAPI<MegaPeerT> {
+    concfg: ConnectionPoolCfg, pow: OraclePow = defaultPow): OracleControlAPI<MegaPeerT> {
    
     var id : OracleId = null
     var advertiser = null
@@ -124,7 +134,7 @@ export function oracleControlApi<Query, MegaPeerT>(
                     manifestUri: cfg.id.manifestUri
                 }
                 if (await storage.readOracleAdSeqNo()[1] === undefined) {
-                    id.pow = await powOverOracleId(id, 0)
+                    id.pow = await pow.powOverOracleId(id, 0, "SHA256")
                 } else {
                     id.pow = await storage.readOracleAdSeqNo()[1]
                 }
@@ -212,12 +222,12 @@ export function oracleControlApi<Query, MegaPeerT>(
             return
         },
         upgradeOraclePow: async function (difficulty: number):  Promise<void> {
-            id.pow = await powOverOracleId(id, difficulty)
+            id.pow = await pow.powOverOracleId(id, difficulty, "SHA256")
         },
         upgradeCapabilityPow: async function (capabilityPubKey: string, difficulty: number):  Promise<void> {
             const cp = await storage.getCapability(capabilityPubKey)
             if (cp !== undefined) {
-                storage.updateCapabilityPow(capabilityPubKey, await powOverOracleCapability(cp, difficulty))
+                storage.updateCapabilityPow(capabilityPubKey, await pow.powOverOracleCapability(cp, difficulty, "SHA256"))
             }
         },
         addCapability: async function (cp: OracleBasicCapability):  Promise<void> {

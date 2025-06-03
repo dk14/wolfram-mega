@@ -130,6 +130,17 @@ Security note:
 - signing capability with `capabilityPubKey` not belonging to oracle would allow woner of corresponding private key to make commitments on behalf of oracle.
 - Thus, it is recommended to derive capability private keys from root oracle private key (HD-wallet approach)
 
+## PoW
+
+examples: `src/pow.ts`
+
+```ts
+export interface OraclePow {
+    powOverOracleId: (o: OracleId, difficulty: number, algorithm: string) => Promise<HashCashPow>
+    powOverOracleCapability: (cp: OracleCapability, difficulty: number, algorithm: string) => Promise<HashCashPow>
+}
+```
+
 # Oracle Endpoint
 Oracle endpoint has to implement this interface over REST:
 
