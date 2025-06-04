@@ -498,7 +498,7 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
             });
 
 
-            if (session.hashLock1 && session.hashLock2) {
+            if (session && session.hashLock1 && session.hashLock2) {
                 const script_HTLC = `${adaptorPubKeyCombined.toString("hex")} OP_CHECKSIGVERIFY OP_HASH256 ${session.hashLock1} OP_EQUALVERIFY OP_HASH256 ${session.hashLock2} OP_EQUALVERIFY`;
                 const scriptTree: Taptree = {
                     output: bitcoin.script.fromASM(script_HTLC)
