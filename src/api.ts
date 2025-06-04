@@ -137,7 +137,7 @@ const evaluateStrength = (oracle: OracleId, mempool: Mempool): number => {
 }
 
 const checkOracleRank = (cfg: MempoolConfig<any>, oracle: OracleId, mempool: Mempool): boolean => { 
-    if (oracle.pow.difficulty < cfg.powThresholdOracles ?? 0) {
+    if (oracle.pow.difficulty < (cfg.powThresholdOracles ?? 0)) {
         return false
     }
     if (Object.keys(mempool.oracles).length >= cfg.maxOracles) {
@@ -164,7 +164,7 @@ const checkOracleRank = (cfg: MempoolConfig<any>, oracle: OracleId, mempool: Mem
 }
 
 const checkCapabilityRank = (cfg: MempoolConfig<any>, cp: OracleCapability, o: Oracle): boolean => {
-    if (cp.pow.difficulty < cfg.powThresholdCapabilities ?? 0) {
+    if (cp.pow.difficulty < (cfg.powThresholdCapabilities ?? 0)) {
         return false
     }
     if (o.capabilies.length >= cfg.maxCapabilities) {
@@ -179,7 +179,7 @@ const checkCapabilityRank = (cfg: MempoolConfig<any>, cp: OracleCapability, o: O
 }
 
 const checkReportRank = (cfg: MempoolConfig<any>, report: Report, o: Oracle): boolean => {
-    if (report.pow.difficulty < cfg.powThresholdReports ?? 0) {
+    if (report.pow.difficulty < (cfg.powThresholdReports ?? 0)) {
         return false
     }
     if (o.reports.length >= cfg.maxReports) {
@@ -194,7 +194,7 @@ const checkReportRank = (cfg: MempoolConfig<any>, report: Report, o: Oracle): bo
 }
 
 const checkOfferRank = (cfg: MempoolConfig<any>, offer: OfferMsg, m: Mempool): boolean => {
-    if (offer.pow.difficulty < cfg.powThresholdOffers ?? 0) {
+    if (offer.pow.difficulty < (cfg.powThresholdOffers ?? 0)) {
         return false
     }
     if (m.offers.length >= (cfg.maxOffers ?? 0)) {
