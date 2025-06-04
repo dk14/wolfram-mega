@@ -178,6 +178,8 @@ export interface PartiallySignedTx {
     sessionNonces: string[]
     sesionCommitments: string[]
     partialSigs: string[]
+    hashLocks?: string[]
+    hashUnlocks?: string[]
 }
 
 export type OfferHashCash = string

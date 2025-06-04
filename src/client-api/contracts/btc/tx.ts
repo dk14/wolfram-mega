@@ -618,8 +618,7 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
                     }
                 }
 
-                psbt.finalizeInput(0, customFinalizer);
-                
+                psbt.finalizeInput(0, customFinalizer);   
                 
             } else {
                 psbt.addInput({
@@ -633,9 +632,6 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
 
                 psbt.finalizeAllInputs()
             }
-
-
-            
 
             return {
                 txid: psbt.extractTransaction().getId(),
