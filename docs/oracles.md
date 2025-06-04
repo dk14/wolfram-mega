@@ -342,12 +342,14 @@ If oracle provides facts through messengers, blockchain or any other means (incl
 
 **Commitments are signed and legally binding. Oracle can be reported for not fulfilling (or misfulfilling) the commitment it made.**
 
-It is NOT recommended (STRONGLY discouraged) for Oracles to tie facts or commitments to blockchain contracts. If oracle uses blockchain to fulfill SLA, it should be separate transaction.
+## Blockchain-agnostic
+
+It is NOT recommended (STRONGLY discouraged) for oracles to tie facts or commitments to blockchain contracts. If oracle (optionally) uses blockchain to guarantee SLA fullfillment, it should do so in a separate transaction.
 
 Separation of responsibilities:
 
 - Mega encourages pull-based approach for privacy
-- oracle must NOT KNOW anything about contracts relying on its data - Mega does not share that information. Only `fact-req` is known to oracle. This is strongly recommended in order to prevent naive market manipulation by oracles themselves.
+- oracle must NOT KNOW anything about contracts relying on its data - Mega does not share that information with oracles (even "offers API" in mempools allows for encryption and obfuscation, as well as private p2p). Only `fact-req` is known to oracle. This is strongly recommended in order to prevent naive market manipulation by oracles themselves.
 - moreover, in Mega, oracle does not have to know about blockchain existence either. Mega DOES NOT require oracles to maintain blockchain wallets (full nodes etc).
 - only endpoint, lightweight Mega-node (mempool connected to p2p) with `oracle-api` activated are required from an oracle. 
 - > p2p-node and mining can be delgated for corporate orgs, but then someone else would either have PoW-resources owning id (full proxy) or become foreign advertiser with its own projection of corporate identity (recommended).
