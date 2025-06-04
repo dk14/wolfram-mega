@@ -13,7 +13,21 @@ npm run build
 
 ## Implement your blockchain:
 ```ts
+//non-Utxo blockchains can insecurely specify account number in txid and omit vout
+export interface UTxO {
+    txid: string
+    vout: number
+    value?: number
+    age?: number
+}
+
+export interface Inputs {
+    utxoAlice: UTxO[] //party
+    utxoBob: UTxO[] //counterparty
+}
+
 export interface ContractInterpreter {
+    
     getUtXo: (terms: OfferMsg) => Promise<Inputs>
     genContractTx: (inputs: Inputs, c: Commitment[], offer: OfferMsg) => Promise<[Contract, OfferMsg?]>
     submitTx: (tx: string) => Promise<TxId>
@@ -50,14 +64,14 @@ await window.matching.broadcastOffer(myOffer)
 ```ts
 await window.matching.listOrders(100)
 ```
-Duplicates will be filtered by `orderId` in favor of most recent version
+Duplicates will be filtered by generated `orderId` in favor of most recent version
 
 
 ## BTC-DLC interpreter
 
 There is a default intepreter for [BTC-DLC](https://adiabat.github.io/dlc.pdf).
     
-> binary option contracts supported. This is MAD (mutually assured destruction) version of DLC. No HTLC yet (Win-or-MAD for malicious party).
+> binary option contracts supported. This is MAD (mutually assured destruction) version of DLC. No HTLC yet (Win-or-MAD for malicious party), WIP.
 
 ```ts
 import { btcDlcContractInterpreter } from './src-web/transactions';
@@ -80,13 +94,13 @@ setInterval(() => window.stalking.trackIssuedOffers(
 
 # Composite contracts 
 
-Offers in Mega can express any meaningful financial contract. `OfferTerms` (`src/protocol.ts`) is a basic abstract language (akin to Cardano Marlowe) which standardizes description of financial contracts. 
+Offers in Mega can express any meaningful (finite) financial contract. `OfferTerms` (`src/protocol.ts`) is a basic abstract language (akin to Cardano Marlowe) which standardizes description of financial contracts. 
 
 Unlike Marlowe, `OfferTerms` is closer to modern quantitative finance, taking two-party binary option as a basis.
 
 Traders can write their own interpreter for `OfferTerms` since the logic is trivial: binary options which can depend on outcomes of other binary options (`OfferTerms.dependsOn`). 
 
-This approach is compatible with Bitcoin DLC, since trading app developers can simply generate a tree of CET transactions straightforwardly from `OfferTerms`. It also allows to generate contracts for any chain, given that `OfferTerms` interpreter is written for that chain.
+> This approach is compatible with [Bitcoin DLC](https://adiabat.github.io/dlc.pdf), since trading app developers can simply generate a tree of CET transactions straightforwardly from `OfferTerms`. It also allows to generate contracts for any chain, given that `OfferTerms` interpreter is written for that chain.
 
 
 ## Example
@@ -203,14 +217,14 @@ Two-party offers are generalizable to multi-party (multi leg) offers through add
 
 It simplifies matching, since originator of the offer would not have to care about how many parties would join it. 
 
->In BTC-DLC "bob, carol" would have their own multisig and pre-sign their own CET-transactions, before co-signing CET and opening transaction with alice.
+>In [BTC-DLC](https://adiabat.github.io/dlc.pdf) "bob, carol" would have their own multisig and pre-sign their own CET-transactions, before co-signing CET and opening transaction with alice.
 
 It is trivial to built "multiParty eDSLs" under this framework too, since one only has to take 3-party (n-party) contract and generate 2 (n-1) bilateral contracts:
 
 - one where bob and carol are considered same party
 - another one where bob payouts are simply excluded
 
->In BTC-DLC, inputs-outputs from the same stage - can still be pooled together in order to reduce fees.
+>In [BTC-DLC](https://adiabat.github.io/dlc.pdf), inputs-outputs from the same stage - can still be pooled together in order to reduce fees.
 
 ## Schedules 
 
@@ -271,7 +285,7 @@ Collaterals for composite contracts in Mega are trivial to evaluate: it is simpl
 
 It is recommended to rather bound contract complexity than use meaningless tokens or pools (managed with "automated"  unsound logic) for collaterization. Collaterization must be done in bounded currency, bounded with physical energy. e.g BTC's finite supply of satochis. 
 
-> While Bitcoin DLC allows arbitrary complex contracts, prefering less complex human-interpretable ones is wiser than double-counting your collaterals. Physical energy available to humans is finite - even nuclear powerplant requires human maintainance, while humans themselves are bounded in food and natural resources available.
+> While [Bitcoin DLC](https://adiabat.github.io/dlc.pdf) allows arbitrary complex contracts, prefering less complex human-interpretable ones is wiser than double-counting your collaterals. Physical energy available to humans is finite - even nuclear powerplant requires human maintainance, while humans themselves are bounded in food and natural resources available.
 
 ------
 
@@ -546,7 +560,7 @@ Sample of TestNet BTC transactions created with trader console:
 
 [CET redemption (unlock funds with signed fact)](https://mempool.space/testnet/tx/d816a61c588840463fb8b59eee2cae55c53b5e7d680315aba65d5138225ac710)
 
-BTC DLC (MAD-version) Workflow: 
+[BTC DLC](https://adiabat.github.io/dlc.pdf) (MAD-version) Workflow: 
 
 <img src="https://github.com/user-attachments/assets/247c97e7-a945-4b37-9783-48fd85ccc847" alt="drawing" width="400"/>
 

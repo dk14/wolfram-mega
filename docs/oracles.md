@@ -133,31 +133,30 @@ Security note:
 ## Foreign advertisers (synthetic oracles)
 Some corporate oracles might not wish to do PoW and advertise themselves through Mega P2P, but they would wish to keep Mega-protocol and standard.
 
-They can publish manifest with a list of `OracleCapability` on their website and use protocol without mempools (adopt `OracleCapability`, `Commitment`,`Fact` messages). But unlike regular, website-verified oracle, they would not refer this manifest in `OracleId`, nor create `OracleId` nor advertise it through Mega P2P.
+They can publish manifest (json of `OracleId`) with a list of `OracleCapability` on their website and use protocol without mempools, entity would only adopt `OracleCapability`, `Commitment`,`Fact` messages. Unlike regular, website-verified oracle, they would not create ads `OracleId` nor advertise it through Mega P2P.
 
-They would, however need to be reported independently. 
+**They would, however need to be reported independently. **
 
-In that case, public org can create synthetic (e.g. `Wolfram (foreign advertiser)`) id. 
-It would point to manifest, but unlike with website-veified PoW-oracles - manifest won't point back to synthetic `OracleId`.
+In that case, third-party public org can create synthetic (e.g. `Wolfram (foreign advertiser)`) id. 
+It would point to original manifest on original (e.g. "wolfram.com"), but unlike with website-veified PoW-oracles - manifest won't point back to synthetic `OracleId`.
 
-This would allow, such synthetic oracle to sign foreign capapbilities and propagate reports and offers through Mega P2P. 
+This would allow, such synthetic oracle to sign foreign capapbilities (the ones published by wolfram) and propagate reports and offers through Mega P2P. 
 
-Example: a partner)of Mega-powered trading app who decided to support let's say Wolfram without requiring them to do PoW, becomes such synthetic oracle (foreign advertiser) and would do PoW for adopted capabilities. They won't need Wolfram approval to advertise (unless Wolfram decides to delegate to trusted party): 
+Example: a partner of Mega-powered trading app who decided to support let's say Wolfram without requiring them to do PoW, becomes such synthetic oracle (foreign advertiser) and would do PoW for adopted foreign capabilities. They won't need Wolfram approval to advertise (unless Wolfram decides to delegate to them completely as a trusted party): 
 
-- "broken" manifest back-reference is allowed but would be marked as "foreign advertiser for wolfram.com" for traders. This is the main difference between foreign advertiser and delgated/original domain-verified oracle.
+- "broken" manifest back-reference is allowed but would be marked as "foreign advertiser for wolfram.com" for traders. This is the main difference between foreign advertiser and delegated/original domain-verified oracle.
 - foreign advertiser is only responsible for reputation of such synthetic id. 
-- Foreign advertiser has to trust let's say Wolfram to not be reported, otherwise the PoW advertiser spends would be in vein.
+- Foreign advertiser has to trust let's say Wolfram to not be reported, otherwise the PoW-resources that advertiser spends would be in vein.
 
 Security:
 - synthetic oracle would not have access to private keys or capabiities of original oracle. It can only add capabilities, but won't be able to issue legally binding commitments
 - original oracle is still responsible for commitments
-- reports are filed independently from synthetic oracle
-- synthetic oracle does PoW for its synthetic id and adopted capabilities
+- reports are filed independently from synthetic oracle by traders themselves
+- synthetic oracle does PoW for its synthetic id and adopted capabilities. Rank management is foreign advertiser's responsibility
 
 > Capabilities are not required to be self-signed in Mega. We only verify `OracleId` to `OracleCapability` link in order to compute PoW-rank
 
-- > It is secure since only `Commitment` (signed with `CapabilityPub`) is legally binding.
-
+- > It is secure since only `Commitment` (signed with `CapabilityPub`) is legally binding. Only e.g. wolfram.com can sign such commitment.
 
 ## PoW
 
@@ -169,7 +168,7 @@ export interface OraclePow {
     powOverOracleCapability: (cp: OracleCapability, difficulty: number, algorithm: string) => Promise<HashCashPow>
 }
 ```
-Oarcle API has default CPU implementation of pow.
+Oarcle API has default CPU implementation for pow.
 
 # Customize Oracle API
 `src/client-api/oracle-control-api.ts`
@@ -250,9 +249,10 @@ It is NOT recommended (STRONGLY discouraged) for Oracles to tie facts or commitm
 Separation of responsibilities:
 
 - Mega encourages pull-based approach for privacy
-- oracle should NOT KNOW anything about contracts relying on its data. Only `fact-req` is known to oracle. This is strongly recommended in order to prevent naive market manipulation by oracles themselves.
+- oracle must NOT KNOW anything about contracts relying on its data - Mega does not share that information. Only `fact-req` is known to oracle. This is strongly recommended in order to prevent naive market manipulation by oracles themselves.
 - moreover, in Mega, oracle does not have to know about blockchain existence either. Mega DOES NOT require oracles to maintain blockchain wallets (full nodes etc).
-- only endpoint, lightweight Mega-node (mempool connected to p2p) with `oracle-api` activated are required from an oracle.
+- only endpoint, lightweight Mega-node (mempool connected to p2p) with `oracle-api` activated are required from an oracle. 
+- > p2p-node and mining can be delgated for corporate orgs, but then someone else would either have PoW-resources owning id (full proxy) or become foreign advertiser with its own projection of corporate identity (recommended).
 
 -----
 Example of endpoint implementation from `src/client-api/utils/oracle-endpoint`:
@@ -311,19 +311,19 @@ const api: OracleEndpointApi = {
 
 ## Oracle Endpoint MAD-slashing
 
-
 `contract` field in `Commitment` is meant for providing blockchain transactions commiting to SLA.
 
-Slashing (blockchain-ensured Service Layer Agreement) is a secondary feature in Mega, since any fault hurts PoW-aquired identitites.
+Slashing (blockchain-ensured Service Layer Agreement) is a secondary feature in Mega, since any fault primarily hurts PoW-aquired identitites.
 
 ### Quorum Slashing
 Nevertheless, we provide `slashing.ts` example for `generateSLA` for `contract` commitment field.
-We propose pairwise quorum commitments in `slashing.ts`. In the essence they are special case of binary option. Thus we provide BTC-DLC implementation.
+We propose pairwise quorum commitments in `slashing.ts`. In the essence they are special case of binary option. Thus we provide [BTC-DLC-based](https://adiabat.github.io/dlc.pdf) implementation for a slasher - Descreet Log Contract is perfect for binary options.
 
-Except SLA binary option would keep initial distribution of funds intact. If Alice puts 5 satochi into an escrow, and Bob puts 10 satochi into an escrow. Then regardless of the outcome, Alice gets 5 satochi and Bob gets 10 satochi.
+Unlike vanillabiinary call, SLA binary option would keep initial distribution of funds intact:
+- if Alice puts 5 satochi into an escrow, and Bob puts 10 satochi into an escrow. Then *regardless of the outcome*, Alice gets 5 satochi and Bob gets 10 satochi.
 
-The trick is: in order to unlock funds, oracles either have to conspire to avoid MAD (which is possible under regular pledge scenario)
-Or they have to agree on data (pairwise).
+- The trick is: in order to unlock funds, oracles either have to conspire to avoid MAD (which is possible under regular pledge scenario)
+  - or they have to agree on data (pairwise).
  
  ```
  Pledge refunds: partial quorums (2 of 3) refunded partially (e.g. pledge1 and pledge2).
@@ -333,23 +333,23 @@ Or they have to agree on data (pairwise).
  
 > MAD-conspiracy case (multisig) can be omitted by modifying DLC logic. 
 > Oracles can simply send funds into adaptor-signature-locked output, bypassing multisig.
-> This, however, does not exclude conspiracy - since oracles would still be able to agree on data privately, WITHOUT sharing signatures with users.
+> This, however, does not exclude side-channel conspiracy - since oracles would still be able to agree on data privately, WITHOUT sharing signatures with users.
 > Thus we simply implement standard binary option DLC-contract here.
 
-> Oracle conspiracy, with or without slashing, can be reported in Mega and auto-verified - through either 
+> Oracle conspiracy, with or without (regardless of) slashing, can be reported in Mega and auto-verified - through either 
 >> `MissingFact` report: oracles avoided slashing through conspiracy but did not provide data
 >> `FactDisagreesWithPublic` report: oracles conspired to provide wrong data
 
 
 ### SLA time Slashing
 
-Another example of where the slashing `contract` field can be useful for is refund slashing: 
+Another example, of where the slashing `contract` field can be useful for, is refund slashing: 
 
-- lock pledge funds in DLC CET transaction
-- allow trader to unlock such funds after timeout
+- lock pledge funds in DLC CET transaction (without DLC contract)
+- allow trader to unlock such funds after timeout (HTLC)
 - allow oracle to unlock with provided fact
 
-In bitcoin, this can be achieved by adding extra timeout unlocking "sub-clause" (HTLC) into unlocking script of DLC CET transaction.
+In bitcoin, this can be achieved by adding extra timeout unlocking HTLC "sub-clause" into unlocking script of DLC CET transaction.
 
 ```ts
 const script = `

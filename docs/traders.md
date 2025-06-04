@@ -319,7 +319,7 @@ const data = await (await fetch(`./${endpoints[view]}?pageSize=100&pageNo=${page
     }
 }
 ```
-> Trader Console contains Bitcoin DLC and Cardano Helios demos, generating binary option contract with improvised oracle quorums.
+> Trader Console contains [Bitcoin DLC ](https://adiabat.github.io/dlc.pdf) and [Cardano](https://cardano.org/) Helios demos, generating binary option contract with improvised oracle quorums.
 
 > Our Bitcoin DLC `OfferTerms` intepreter would generate 3 taproot leafs with `OP_CHECKSIGVERIFY <pub1> OP_CHECKSIGVERIFY <pub2>`
 
