@@ -224,7 +224,7 @@ Then legal entity can decide wether they wish to crreate and P2P-advertise PoW-b
 ----
 
 The minimum individual needs is to:
-- implement whatever endpoint (can be messenger) with support for `FactRequest`, `Commitment`, `Fact` messages (`src/protocol.ts`)
+- implement whatever endpoint (can be messenger) with support for `FactRequest`, `Commitment`, `Fact` messages (`src/protocol.ts`), e.g. share jsons manually or through a bot
 - configure and start the node,
 - use oracle-api to PoW-advertise!
 
