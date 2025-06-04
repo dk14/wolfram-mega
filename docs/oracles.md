@@ -192,7 +192,7 @@ export interface Fact { // your attestation
 export interface Commitment {
     req: FactRequest
     contract: string // for slashing and such, can be empty
-    rValueSchnorrHex?: string // commited nonce for BTC-DLC
+    rValueSchnorrHex?: string // committed nonce for BTC-DLC
     oracleSig: string
     factRetentionPeriod?: string // how long would fact be available in your mind/database if any
 }
