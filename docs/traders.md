@@ -15,7 +15,7 @@ Trader Console UI and REST will be available at:
 
 > Security: no ports should be open to public network in this mode. Use virtualization (e.g. virsh)
 
-or run a full demo:
+or run a full demo for plug and play:
 ```bash
 npm run demo
 ```

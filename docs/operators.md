@@ -52,3 +52,27 @@ Optional `mempool-cfg` config parameters:
 ```
 npm run webrtc-bridge <mempool-conf.json>
 ```
+
+## Custom implementations of protocol
+
+reference is in `src/api.ts`, protocol is in `src/protocol.ts`. OpenAPI is in `wolfram-mega-spec.yaml`
+
+```ts
+export interface Api { // Mempool
+
+    //----exposed as P2P and REST POST----
+    announceOracle: (cfg: MempoolConfig<any>, id: OracleId) => Promise<Registered | NotRegistered>
+    announceCapability: (cfg: MempoolConfig<any>, cp: OracleCapability) => Promise<Registered | NotRegistered>
+    reportMalleability: (cfg: MempoolConfig<any>, report: Report) => Promise<ReportAccepted | ReportRejected>
+    disputeMissingfactClaim: (dispute: Dispute) => Promise<DisputeAccepted | DisputeRejected> 
+    publishOffer: (cfg: MempoolConfig<any>, offer: OfferMsg) => Promise<Registered | NotRegistered>
+    //note: it does not dispute time delay/SLA, but it is less crushial for most option contracts
+
+    //----exposed only as REST GET----- 
+    lookupOracles: (paging: PagingDescriptor) => Promise<OracleId[]>
+    lookupCapabilities: (paging: PagingDescriptor, oraclePub: string) => Promise<OracleCapability[]>
+    lookupReports: (paging: PagingDescriptor, oraclePub: string) => Promise<Report[]>
+    lookupOffers: (paging: PagingDescriptor, capabilityPubKey: string) => Promise<OfferMsg[]>
+
+}
+```

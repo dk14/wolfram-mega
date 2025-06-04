@@ -5,8 +5,48 @@
 
 Example: `cfg/mempool-oracle.json`
 
+```ts
+
+export interface OracleBasicIdentity {
+    pubkey: string
+    oracleSignatureType: string
+    manifestUri?: string
+}
+
+export interface OracleCfg {
+    id: OracleBasicIdentity
+    adInterval: number
+    adTopN: number
+    dbPath: string
+    httpPort: number
+    wsPort: number
+}
+```
+
+`cfg/mempool-oracle.json`
+
+```js
+{
+    ...mempool params; see Operators doc
+    "oracle": { //oracle params 
+        "id": {
+            "pubkey": "<your root pubkey>",
+            "oracleSignatureType" : "SHA256"
+        },
+        "adInterval": 10000,
+        "adTopN": 10,
+        "dbPath": "./db/myoracle",
+        "httpPort": 9080,
+        "wsPort": 9081 //for signers
+    }
+}
+```
+
+
+
 ## Start peer with oracle-api enabled
 
+Either:
 ```bash
 npm run peer cfg/mempool-oracle.json
 ```
@@ -16,7 +56,9 @@ Oracle Admin UI and REST will be available at:
 
 > Security: no ports should be open to public network in this mode. Use virtualization (e.g. virsh)
 
-or run a full demo:
+-----
+
+Or run a full demo for plug and play:
 ```bash
 npm run demo
 ```
@@ -27,7 +69,6 @@ npm run demo
 - Oracle Ad Signer would connect to `ws-port:9081` at Oracle Admin
 
 > Security: no ports should be open to public network in this mode. Use virtualization (e.g. virsh)
-
 
 ## Start advertising
 
@@ -49,7 +90,7 @@ const endpoint = "http://..." //can be nostr post, IRC, SESSION messenger or Wha
 const params = [{name: "date", values: [1, 5, 10]}]
 const answers = ["YES", "NO"] // optional for ads, but contract-generators would require it; can be range e.g. "0..100" if contract-generator supports it
 
-const body = { capabilityPubKey, question, endpoint, params, answers }
+const body: OracleBasicCapability = { capabilityPubKey, question, endpoint, params, answers }
 const res = await fetch('./addCapability', {
     method: 'post',
     body: JSON.stringify(body),
@@ -101,11 +142,13 @@ await fetch('./upgradeOraclePow?pubkey=' + encodeURIComponent(capabilityPubKey)
 await (await fetch('./id')).json()
 ```
 
-## List database of registered capabilities
+## List registered capabilities
 
 ```ts
 const cps = await (await fetch('./viewStoredCapabilities?pageSize=100&pageNo=0')).json()
 ```
+
+# Authenticity
 
 ## How to sign ads as oracle 
  `src/client-api/oracle-auto-signer.ts` has an example.
@@ -131,9 +174,9 @@ Security note:
 - Thus, it is recommended to derive capability private keys from root oracle private key (HD-wallet approach)
 
 ## Foreign advertisers (synthetic oracles)
-Some corporate oracles might not wish to do PoW and advertise themselves through Mega P2P, but they would wish to keep Mega-protocol and standard.
+Some corporate oracles might not wish to do PoW in order to advertise themselves through Mega P2P, but they would wish to keep Mega-protocol and standard.
 
-They can publish manifest (json of `OracleId`) with a list of `OracleCapability` on their website and use protocol without mempools, entity would only adopt `OracleCapability`, `Commitment`,`Fact` messages. Unlike regular, website-verified oracle, they would not create ads `OracleId` nor advertise it through Mega P2P.
+They can publish manifest (json of `OracleManifest`) with a list of `OracleCapability` on their website and use protocol without mempools. Legal entity would only adopt `OracleCapability`, `Commitment`,`Fact` messages. Unlike regular, website-verified oracle, they would not create ads for `OracleId`, nor advertise it through Mega P2P.
 
 **They would, however need to be reported independently. **
 
@@ -162,8 +205,19 @@ Security:
 
 ## TLDR
 **The minimum legal entity needs to onboard Mega as an oracle - is to**: 
-- implement http-endpoint according to Mega-standard
+- implement http-endpoint according to Mega-standard (see "Oracle Endpoint" chapter)
 - sign and publish `OracleManifest` (`src/protocol.ts`) on your domain
+
+```ts
+export interface OracleManifest { 
+    domain: string
+    id: OracleId
+    meta: any
+    capapbilities: OracleCapability[]
+    signature: string
+    sinatureType: string
+}
+```
 
 Then legal entity can decide wether they wish to P2P-advertise PoW-based identities directly or delegate or wait for foreign advertisers to pick them up.
 
@@ -172,14 +226,18 @@ Then legal entity can decide wether they wish to P2P-advertise PoW-based identit
 The minimum individual needs is to:
 - implement whatever endpoint (can be messenger) with support for `FactRequest`, `Commitment`, `Fact` messages (`src/protocol.ts`)
 - configure and start the node,
-- use api to PoW-advertise!
+- use oracle-api to PoW-advertise!
 
+> Note: you can implement your own oracle-api based on `src/protocol.ts` and `src/api.ts` (see Operators doc). Oracle API is nothing but a wrapper.
 ----
 
 ```ts
 export interface FactRequest {
     capabilityPubKey: string
-    arguments: { [id: string] : string; } // can be empty if question is concrete
+    // arguments can be empty if question is concrete 
+    // can pre-commit to a range for tickers
+    // e.g. {"date": "today..tomorrow;every(second)"}
+    arguments: { [id: string] : string; } 
     invoice?: string // paid invoice to verify, e.g. BTC-LN invoice
 }
 
@@ -214,7 +272,7 @@ Oarcle API has default CPU implementation for pow.
 `src/client-api/oracle-control-api.ts`
 
 ```ts
-// implement you own database
+// implement you own database (default one is filesystem)
 export interface CapabilityStorage<Query> {
     storeOracleAdSeqNo: (seqNo: number, pow: HashCashPow) => Promise<void>
     readOracleAdSeqNo: () => Promise<[number, HashCashPow]>
@@ -231,7 +289,7 @@ export interface CapabilityStorage<Query> {
 import { api as ndapi } from "./src/api";
 import { p2pNode } from "./src/p2p";
 
-// customize:
+// configuration:
 const cfg: MempoolConfig<PeerAddr> = {
     ... //regular mempool config
     "oracle": {
