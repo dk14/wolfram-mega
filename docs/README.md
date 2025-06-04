@@ -1,6 +1,6 @@
 A p2p fact sharing network
 
-# Wolfram Mega
+# Mega Peers
 
 Mega *(from מַגָע, contact)* - is a lightweight infinitely scalable decentralized data marketplace, bringing authentic observers to blockchain.
 
