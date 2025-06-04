@@ -131,7 +131,7 @@ Actual aquisition of data is happening outside of `Mega` - oracle `Commitment`s 
 
 > Matching offers on Mega is non-essential feature of the protocol. Traders can always bypass Mega p2p and communicate offers outside of mempools. Although, Mega could be safer and more private than "private societies" in messengers which are easy to not just infiltrate, but also manipulate, due to illusion of privacy and anonymity, coming from creators of such messengers. 
 
-> Mega recommends ad-hoc random "hook up" counterparties. I don't manage p2p network, I don't even give you seedlist or mainnet code for btc-contracts, I am lazy to do that. Offers you find in mempools in disparaged chunks of the net are from random irrelevant entities. Only predictions ("bets") they make are relevant. Reality is in exchange.
+> Mega recommends ad-hoc random "hook up" counterparties. I don't manage p2p network, I don't even give you seedlist or mainnet code for btc-contracts, I have other things. Offers you find in mempools in disparaged chunks of the net are from random irrelevant entities. Only predictions ("bets") they make are relevant. Reality is in exchange.
 
 ## Bypassing PoW-evictions
 
