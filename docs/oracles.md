@@ -160,6 +160,44 @@ Security:
 
 - > It is secure since only `Commitment` (signed with `CapabilityPub`) is legally binding. Only e.g. wolfram.com can sign such commitment.
 
+## TLDR
+**The minimum legal entity needs to onboard Mega as an oracle - is to**: 
+- implement http-endpoint according to Mega-standard
+- sign and publish `OracleManifest` (`src/protocol.ts`) on your domain
+
+Then legal entity can decide wether they wish to P2P-advertise PoW-based identities directly or delegate or wait for foreign advertisers to pick them up.
+
+----
+
+The minimum individual needs is to:
+- implement whatever endpoint (can be messenger) with support for `FactRequest`, `Commitment`, `Fact` messages (`src/protocol.ts`)
+- configure and start the node,
+- use api to PoW-advertise!
+
+----
+
+```ts
+export interface FactRequest {
+    capabilityPubKey: string
+    arguments: { [id: string] : string; } // can be empty if question is concrete
+    invoice?: string // paid invoice to verify, e.g. BTC-LN invoice
+}
+
+export interface Fact { //fact you attest to
+    factWithQuestion: string
+    signatureType: string
+    signature: string
+}
+
+export interface Commitment {
+    req: FactRequest
+    contract: string // for slashing and such, can be empty
+    rValueSchnorrHex?: string // commited nonce for BTC-DLC
+    oracleSig: string
+    factRetentionPeriod?: string // how long would fact be available in your mind/database if any
+}
+```
+
 ## PoW
 
 examples: `src/pow.ts`
