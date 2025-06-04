@@ -135,7 +135,7 @@ Actual aquisition of data is happening outside of `Mega` - oracle `Commitment`s 
 
 ## Bypassing PoW-evictions
 
-Mega allows messages with PoW=0 and any hash, unless higher PoW-message arrived. In a private p2p-network of trusted parties - Mega turns into a regular serverless communication protocol. Domain-specific gossiping.
+Mega allows messages with PoW=0 and any hash, unless higher PoW-message arrived. In a private p2p-network of semitrusted parties - Mega turns into a regular serverless communication protocol. Domain-specific gossiping.
 
 >If hash-integrity is required - `powThreshold=1` is a reasonable solution.
 
