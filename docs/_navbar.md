@@ -3,8 +3,8 @@
 - [App](app.md)
 - Getting started
     - [Operators](operators.md)
-    - [Traders](traders.md)
     - [Oracles](oracles.md)
+    - [Traders](traders.md)
     - [Matching](matching.md)
     - [Contracts](contracts.md)
 
