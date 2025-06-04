@@ -150,10 +150,10 @@ const hash = async (msg: string): Promise<string> => {
 
 export const hashLockProvider: HashLockProvider = {
     getHashLock: async function (o: OfferMsg): Promise<string> {
-        return await hash(await hash(o.pow.hash + await window.privateDB.get("secrets", "secret-hash") ?? "insecure!"))
+        return await hash(await hash(o.pow.hash + (await window.privateDB.get("secrets", "secret-hash") ?? "insecure!")))
     },
     getHashUnLock: async function (o: OfferMsg): Promise<string> {
-        return await hash(o.pow.hash + await window.privateDB.get("secrets", "secret-hash") ?? "insecure!")
+        return await hash(o.pow.hash + (await window.privateDB.get("secrets", "secret-hash") ?? "insecure!"))
     }
 }
 

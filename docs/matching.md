@@ -94,3 +94,16 @@ Offers and Reports are allowed to have duplicates, since PoW can be upgraded.
 
 The rule for evolving offer state collaboratively is to always pick the offer with highest PoW difficulty in a most progressed state (longest chain of back-references).
 
+## Bypassing PoW-evictions
+
+Mega allows messages with PoW=0 and any hash, unless higher PoW-message arrived. In a private p2p-network of trusted parties - Mega turns into a regular serverless communication protocol. Domain-specific gossiping.
+
+>If hash-integrity is required - `powThreshold=1` is a reasonable solution.
+
+For public networks - PoW is unavoidable, regardless of type of messaging. Mega, however provides random evictions, which combined with `powThreshold = 0`, effectively allow to allocate `randomEvictionRate` percentage of the pool to messages without PoW. 
+
+This can be used as a fast relay for broadcasting offer negotiation messages, akin to how bitcoin transactions broadcasted. `powThreshold` can be fine-tuned manually in order to avoid spam and propagate necessary messages faster. Simillarly to Nano, PoW-load on traders can be minimized.
+
+Matching can have separate public network (different seedlist) in order to facilitate high order throughtput.
+
+> As mentioned before, Mega is oriented towards meaningful trading. We discorage the mis-uses of algoithmic trading leading towards bloated traffic. High order throughtput has to be justified, e.g. 8 billion humans using Mega to compete in prediction and analysis of environment, as unrealistic as it may appear. NOT a hundred of naive traders running unnecessary meaningless mutually annihilating deals (in perfect hedge), wasting funds and resources on fees.
