@@ -102,7 +102,7 @@ const getUtXo = async (offer: OfferMsg): Promise<Inputs> => {
     
 }
 
-const genContractTx = async (inputs: Inputs, c: Commitment[], offer: OfferMsg, meAlice?: boolean): Promise<[DlcContract, OfferMsg?]> => {
+const genContractTx = async (inputs: Inputs, c: Commitment[], offer: OfferMsg): Promise<[DlcContract, OfferMsg?]> => {
     const o = structuredClone(offer)
     const terms = o.content.terms
     const yesSession = o.content.accept.cetTxSet[0]
@@ -123,10 +123,12 @@ const genContractTx = async (inputs: Inputs, c: Commitment[], offer: OfferMsg, m
                     oraclePub: o.content.terms.question.capabilityPubKey,
                     oraclePub2: o.content.terms.question2?.capabilityPubKey,
                     oraclePub3: o.content.terms.question3?.capabilityPubKey,
-                    outcomes: {
-                        yesOutcome: {aliceAmount: terms.partyBetAmount + terms.counterpartyBetAmount, bobAmount: 0},
-                        noOutcome: {aliceAmount: 0, bobAmount: terms.partyBetAmount + terms.counterpartyBetAmount}
-                    },
+                    outcomes: (() => {
+                        const outcomes = {}
+                        outcomes[yesOutcome] = {aliceAmount: terms.partyBetAmount + terms.counterpartyBetAmount, bobAmount: 0}
+                        outcomes[noOutcome] = {aliceAmount: 0, bobAmount: terms.partyBetAmount + terms.counterpartyBetAmount}
+                        return outcomes
+                    })(),
                     rValue: c[0].rValueSchnorrHex,
                     rValue2: c[1]?.rValueSchnorrHex,
                     rValue3: c[2]?.rValueSchnorrHex,
@@ -136,8 +138,9 @@ const genContractTx = async (inputs: Inputs, c: Commitment[], offer: OfferMsg, m
                     changeBob: inputs.utxoBob.map(x => x.value).reduce((a, b) => a + b) - terms.counterpartyBetAmount,
                     txfee: terms.txfee,
                     openingSession: { sigs: openingSession.partialSigs },
-                    session: {
-                        yesOutcome: {
+                    session: (() => {
+                        const session = {}
+                        session[yesOutcome] = {
                             sessionId1: yesSession.sessionIds[0],
                             sessionId2: yesSession.sessionIds[1],
                             commitment1: yesSession.sesionCommitments[0],
@@ -150,8 +153,8 @@ const genContractTx = async (inputs: Inputs, c: Commitment[], offer: OfferMsg, m
                             update: (p: PublicSession) => {
                                 resolveYes(p)
                             }
-                        },
-                        noOutcome: {
+                        }
+                        session[noOutcome] = {
                             sessionId1: noSession.sessionIds[0],
                             sessionId2: noSession.sessionIds[1],
                             commitment1: noSession.sesionCommitments[0],
@@ -165,24 +168,13 @@ const genContractTx = async (inputs: Inputs, c: Commitment[], offer: OfferMsg, m
                                 resolveNo(p)
                             }
                         }
-                    },
-                    atomic: (() => {
-                        if (meAlice !== undefined) {
-                            return {
-                                meBettingOnYes: meAlice,
-                                yesOutcome,
-                                noOutcome
-                            }   
-                        } else {
-                            return undefined //TODO: should be error for security
-                        } 
+                        return session
                     })()
                 }
                 resolveDlc(window.btc.generateDlcContract(params))
 
             })
             const no = await noSessionUpdate
-            console.log("[[[[[" + no)
             noSession.sessionIds[0] = no.sessionId1
             noSession.sesionCommitments[0] = no.commitment1
             noSession.sessionNonces[0] = no.nonce1

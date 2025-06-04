@@ -113,9 +113,11 @@ const oneElemPage = {
     chunkSize: 1
 }
 
+const tempId = randomInt(1200000).toString()
+
 export const getOriginatorId = (): string => { //TODO generate per trade
     if (localStorage === undefined) {
-        return randomInt(1200000).toString()
+        return tempId
     }
     if (localStorage.getItem("originatorId") === undefined) {
         localStorage.setItem("originatorId", randomInt(1200000).toString())
@@ -257,7 +259,7 @@ export const matchingEngine: MatchingEngine = {
             throw "you must be initiator; use acceptOffer to accept"
         }
         
-        const offer = (await window.storage.queryOffers({where: async x => x.pow.hash === o.id}, oneElemPage))[0]
+        const offer = structuredClone((await window.storage.queryOffers({where: async x => x.pow.hash === o.id}, oneElemPage))[0])
 
         if (offer.content.accept) {
             throw "this offer already accepted"
@@ -399,7 +401,7 @@ export const matchingEngine: MatchingEngine = {
 }
 
 
-function maxBy<T>(arr: T[], fn: (item: T) => number): T | undefined {
+export function maxBy<T>(arr: T[], fn: (item: T) => number): T | undefined {
     if (!arr || arr.length === 0) {
       return undefined;
     }

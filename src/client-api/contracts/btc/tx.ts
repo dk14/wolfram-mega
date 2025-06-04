@@ -322,7 +322,7 @@ function schnorrSignerInteractive(pub1: string, pub2: string, session: PublicSes
                 throw "incomplete sign"
             }
             
-            if (!session.nonce1) {
+            if (!session.partSig1) {
                 const res = await signer.sign1(pub1, pub2, hash.toString('hex'), {
                     commitment2: session.commitment2,
                     nonce2: session.nonce2,

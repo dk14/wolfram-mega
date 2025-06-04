@@ -1,6 +1,6 @@
 import { UTxO } from "../src/client-api/contracts/btc/tx"
 import { Commitment, Fact, FactRequest, OfferMsg } from "../src/protocol"
-import { PreferenceModel, checkOriginatorId, randomInt } from "./matching"
+import { PreferenceModel, checkOriginatorId, getOriginatorId, maxBy, randomInt } from "./matching"
 import { OracleDataProvider } from "./oracle-data-provider"
 import { ContractInterpreter } from "./transactions"
 
@@ -12,7 +12,7 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
     
     const pagedescriptor = {
         page: 0,
-        chunkSize: 100
+        chunkSize: 300
     }
 
     const allOffers = (await window.storage.queryIssuedOffers({
@@ -20,8 +20,44 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
 
     const allOffersGrouped: {[key: string]: OfferMsg[]} = Object.groupBy(allOffers, x => x.content.orderId)
 
-    const reattemptMuSig = 10 
+    const reattemptMuSig = 10
+    //TODO collapse duplicates 
+
+    const rank = (offer: OfferMsg): number => {
+        let rank = 0
+
+        rank += offer.content.accept ? 1 : 0
+        rank += offer.content.finalize ? 1 : 0
+        const sigs1 = offer.content.accept.openingTx
+        rank += sigs1.sesionCommitments[0] ? 1 : 0
+        rank += sigs1.sesionCommitments[1] ? 1 : 0
+        rank += sigs1.sessionNonces[0] ? 1 : 0
+        rank += sigs1.sessionNonces[1] ? 1 : 0
+        rank += sigs1.partialSigs[0] ? 1 : 0
+        rank += sigs1.partialSigs[1] ? 1 : 0
+        const sigs2 = offer.content.accept.cetTxSet[0]
+        rank += sigs2.sesionCommitments[0] ? 1 : 0
+        rank += sigs2.sesionCommitments[1] ? 1 : 0
+        rank += sigs2.sessionNonces[0] ? 1 : 0
+        rank += sigs2.sessionNonces[1] ? 1 : 0
+        rank += sigs2.partialSigs[0] ? 1 : 0
+        rank += sigs2.partialSigs[1] ? 1 : 0
+        const sigs3 = offer.content.accept.cetTxSet[1]
+        rank += sigs3.sesionCommitments[0] ? 1 : 0
+        rank += sigs3.sesionCommitments[1] ? 1 : 0
+        rank += sigs3.sessionNonces[0] ? 1 : 0
+        rank += sigs3.sessionNonces[1] ? 1 : 0
+        rank += sigs3.partialSigs[0] ? 1 : 0
+        rank += sigs3.partialSigs[1] ? 1 : 0
+
+        //console.error(rank)
+        return rank
+    }
+    
+    //const allOffersFiltered = Object.values(allOffersGrouped).map(copies => copies.filter(x => rank(x) === rank(maxBy(copies, x => rank(x))))).flat()
+
     const allOffersFiltered = Object.entries(allOffersGrouped).filter(x => x[1].length < reattemptMuSig).map(x => x[1]).flat()
+
 
     allOffersFiltered.forEach(async orderPreviousState => {
         try {
@@ -35,7 +71,7 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
                 return
             }
 
-            const order = structuredClone(candidates[0])
+            const order = structuredClone(maxBy(candidates, x => rank(x)))
 
             //TODO validate new state of the order or re-use the original state
 
@@ -79,12 +115,14 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
                 const inputs = await interpreter.getUtXo(order)
                 
                 // todo: detect trader's role in a contract: party or counterparty, pass as meAlice
+                //const [contract, partial] = await interpreter.genContractTx(inputs, [commitment], order)
                 const [contract, partial] = await interpreter.genContractTx(inputs, [commitment], order)
+
 
                 if (partial !== undefined) {
                     
                     partial.content.accept.offerRef = partial.pow.hash
-                    partial.pow.hash = partial.pow.hash + "-signing" + randomInt(100)
+                    partial.pow.hash = partial.pow.hash + "-signing" + randomInt(1000)
                     if (!partial.content.utxos) {
                         //partial.content.utxos = [undefined, undefined]
                     }
@@ -93,7 +131,7 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
 
 
                     window.traderApi.issueOffer(partial)
-                    window.storage.removeIssuedOffers([orderPreviousState.pow.hash])
+                    //window.storage.removeIssuedOffers([orderPreviousState.pow.hash])
                 } else {
                     order.content.accept.cetTxSet[0].tx = contract.cet[0]
                     order.content.accept.cetTxSet[1].tx = contract.cet[1]
@@ -107,7 +145,7 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
                     const oldHash = order.pow.hash
                     order.pow.hash = order.pow.hash + "-final" + randomInt(100)
                     window.traderApi.issueOffer(order)
-                    window.storage.removeIssuedOffers([oldHash])
+                    //window.storage.removeIssuedOffers([oldHash])
 
                 }   
             }
@@ -120,4 +158,8 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
 
 export const stalkingEngine: StalkingEngine = {
     trackIssuedOffers
+}
+
+function statusRank(status: any): number {
+    throw new Error("Function not implemented.")
 }
