@@ -73,7 +73,7 @@ const cfg: MempoolConfig<any> = {
     "maxOracles": 100,
     "maxCapabilities": 100,
     "maxReports": 100,
-    "maxOffers": 100,
+    "maxOffers": 500,
     "maxConnections": 100,
     "maxMsgLength": 1000000,
     "httpPort": 8081,
@@ -102,7 +102,7 @@ const cfg: MempoolConfig<any> = {
         "wsPort": 9081
     },
     "trader": {
-        "broadcastOfferCycle": 1000,
+        "broadcastOfferCycle": 5000,
         "broadcastReportCycle": 1000,
         "collectOffersCycle": 100,
         "collectReportsCycle": 100,

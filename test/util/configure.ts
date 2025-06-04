@@ -53,7 +53,7 @@ require('./../../webapp');
         host: "localhost",
         port: 9009,
         path: "/",
-        pingInterval: 500
+        pingInterval: 100
     }
 })
 

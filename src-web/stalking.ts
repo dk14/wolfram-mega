@@ -62,7 +62,7 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
     allOffersFiltered.forEach(async orderPreviousState => {
         try {
 
-            console.log("STALKING: " + orderPreviousState.pow.hash + " +")
+            console.error("STALKING: " + orderPreviousState.pow.hash + " +")
             const candidates = await window.storage.queryOffers({where: async x => x.content.accept && x.content.accept?.offerRef === orderPreviousState.pow.hash}, pagedescriptor)
 
             console.log((await window.storage.queryOffers({where: async x => true}, pagedescriptor)).map(o => o.pow.hash))
@@ -75,7 +75,7 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
 
             //TODO validate new state of the order or re-use the original state
 
-            console.log("STALKER: FOUND " + order.pow.hash + " <= " + orderPreviousState.pow.hash)
+            console.error("STALKER: FOUND " + order.pow.hash + " <= " + orderPreviousState.pow.hash)
 
             const interpreter = interpreters[order.content.blockchain]
 
