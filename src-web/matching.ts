@@ -23,11 +23,17 @@ export type OfferStatus = 'matching' | 'accepted' | 'oracle committed' | 'signin
 const detectStatus = async (o: Offer, cp: OracleCapability, provider: OracleDataProvider): Promise<OfferStatus> => {
     if (o.accept) {
         const commitment = await provider.getCommitment(cp.endpoint, o.terms.question)
-        if (commitment) {
+        if (commitment) { //todo: linearize
             if (o.accept.openingTx.partialSigs[0]) {
                 if (o.finalize) {
                     if (o.finalize.txid) {
                         if (provider.getFact(cp.endpoint, commitment)){
+                            if (o.finalize.redemptionTx) {
+                                if (o.finalize.redemptionTxId) {
+                                    return 'redeemed'
+                                }
+                                return 'redeem tx available'
+                            }
                             return 'outcome revealed'
                         }
                         return 'tx submitted'

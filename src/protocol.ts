@@ -210,7 +210,11 @@ export interface AcceptOffer {
 
 export interface FinalizeOffer {
     txid: string
-    acceptRef: HashCashPow
+    acceptRef: string
+    tx?: string
+    previousFinalRef?: string
+    redemptionTxId?: string
+    redemptionTx?: string
     backup?: string
 }
 

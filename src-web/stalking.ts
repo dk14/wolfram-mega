@@ -20,7 +20,7 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
 
     const allOffersGrouped: {[key: string]: OfferMsg[]} = Object.groupBy(allOffers, x => x.content.orderId)
 
-    const reattemptMuSig = 10
+    const reattemptMuSig = 30
     //TODO collapse duplicates 
 
     const rank = (offer: OfferMsg): number => {
@@ -63,7 +63,12 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
         try {
 
             console.error("STALKING: " + orderPreviousState.pow.hash + " +")
-            const candidates = await window.storage.queryOffers({where: async x => x.content.accept && x.content.accept?.offerRef === orderPreviousState.pow.hash}, pagedescriptor)
+            const candidates = await window.storage.queryOffers({
+                where: async x => 
+                    x.content.accept && x.content.accept?.offerRef === orderPreviousState.pow.hash ||
+                    x.content.finalize && x.content.finalize?.acceptRef === orderPreviousState.pow.hash || 
+                    x.content.finalize && x.content.finalize?.previousFinalRef === orderPreviousState.pow.hash 
+            }, pagedescriptor)
 
             console.log((await window.storage.queryOffers({where: async x => true}, pagedescriptor)).map(o => o.pow.hash))
             
@@ -73,7 +78,7 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
 
             const order = structuredClone(maxBy(candidates, x => rank(x)))
 
-            //TODO validate new state of the order or re-use the original state
+            //TODO ORDER MALLEABILITY: validate new state of the order or re-use the original state
 
             console.error("STALKER: FOUND " + order.pow.hash + " <= " + orderPreviousState.pow.hash)
 
@@ -90,38 +95,66 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
             }
 
             if (order.content.finalize) {
-                try {
+                if (!order.content.accept.openingTx.hashUnlocks[0] || !order.content.accept.openingTx.hashUnlocks[1]) {
+                    // EXCHANGE PREIMAGES
+
+                    if (checkOriginatorId(order.content.originatorId)) {
+                        order.content.accept.openingTx.hashUnlocks[0] = await window.hashLockProvider.getHashLock(order)
+                    } else {
+                        order.content.accept.openingTx.hashUnlocks[1] = await window.hashLockProvider.getHashLock(order)
+                    }
+
+                    
+                    order.content.finalize.previousFinalRef = order.pow.hash
+                    order.pow.hash = order.pow.hash + "-hash" + randomInt(1000)
+                    
+                    window.traderApi.issueOffer(order)
+                    window.storage.removeIssuedOffers([orderPreviousState.pow.hash])  
+
+                } else {
+                    // WAIT FOR ORACLE AND REDEEM
+
                     const fact = await dataProvider.getFact(endpoint, commitment)
+                    if (fact === undefined) {
+                        return
+                    }
+
                     const cetTxId = {
                         txid: order.content.finalize.txid,
                         vout: 0
                     }
-
+    
                     const cet = order.content.accept.cetTxSet
                     if (fact.factWithQuestion === 'YES') {
                         interpreter.submitTx(cet[0].tx)
                     } else {
                         interpreter.submitTx(cet[1].tx)
                     }
-                    
-                    const redeem = await interpreter.genRedemtionTx(cetTxId, [commitment], fact, order)
-                    interpreter.submitTx(redeem)
-                } catch {
 
-                }   
+                    try {
+                        const redeem = await interpreter.genRedemtionTx(cetTxId, [commitment], fact, order)
+                        const txid = await interpreter.submitTx(redeem)
+        
+                        order.content.finalize.previousFinalRef = order.pow.hash
+                        order.content.finalize.redemptionTx = redeem
+                        order.content.finalize.redemptionTxId = txid
+                        order.pow.hash = order.pow.hash + "-redeem" + randomInt(1000)
+                        
+                        window.traderApi.issueOffer(order)
+                        window.storage.removeIssuedOffers([orderPreviousState.pow.hash])  
+                    } catch (e) {
+                        console.error(e)
+                    }
+                }    
 
             } else if (order.content.accept) {
                 //ACCEPTED
 
                 const inputs = await interpreter.getUtXo(order)
-
-                //enrich hashLocks
                 if (order.content.accept.openingTx.hashLocks[1]) {
-                    if (order.content.accept.openingTx.hashLocks[0] == undefined) { //TODO check if trader is originator
+                    if (order.content.accept.openingTx.hashLocks[0] == undefined && checkOriginatorId(order.content.originatorId)) {
                         order.content.accept.openingTx.hashLocks[0] = await window.hashLockProvider.getHashLock(order)
-                        
-                    }
-                    
+                    }   
                 }
 
                 //TODO verify malleability of locks
@@ -139,7 +172,7 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
 
 
                     window.traderApi.issueOffer(partial)
-                    //window.storage.removeIssuedOffers([orderPreviousState.pow.hash])
+                    window.storage.removeIssuedOffers([orderPreviousState.pow.hash])
                 } else {
                     //CO-SIGNED
 
@@ -162,11 +195,11 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
                     const txId = await interpreter.submitTx(contract.openingTx)
 
                     order.content.finalize = {
-                        txid: txId, acceptRef: order.pow, backup: contract.cet[0] + ",,,," + contract.cet[1]
+                        txid: txId, acceptRef: order.pow.hash, backup: contract.cet[0] + ",,,," + contract.cet[1]
                     }
                     order.pow.hash = order.pow.hash + "-final" + randomInt(100)
                     window.traderApi.issueOffer(order)
-                    //window.storage.removeIssuedOffers([orderPreviousState.pow.hash])
+                    window.storage.removeIssuedOffers([orderPreviousState.pow.hash])
 
                 }   
             }

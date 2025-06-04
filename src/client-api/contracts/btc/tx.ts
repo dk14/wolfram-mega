@@ -121,6 +121,29 @@ function schnorrSignerSingleWeb(pub: string, session: OpeningTxSession, out: num
     }
 }
 
+function schnorrSignerMultiWeb(pub1: string, pub2: string, secrets: string[] = []): SignerAsync {
+    
+    const pkCombined = muSig.pubKeyCombine([Buffer.from(pub1, "hex"), Buffer.from(pub2, "hex")]);
+    let pubKeyCombined = convert.intToBuffer(pkCombined.affineX);
+    return {
+        publicKey: pubKeyCombined,
+        network: net,
+        async sign(hash: Buffer, lowR?: boolean): Promise<Buffer> {
+            return null
+        },
+        async signSchnorr(hash: Buffer): Promise<Buffer> {
+            const secret1 = await window.privateDB.get("secrets", pub1) ? Buffer.from(bs58.decode(await window.privateDB.get("secrets", pub1))).toString("hex").substring(2, 64 + 2) : secrets[0]
+            const secret2 = await window.privateDB.get("secrets", pub2) ? Buffer.from(bs58.decode(await window.privateDB.get("secrets", pub2))).toString("hex").substring(2, 64 + 2) : secrets[1]
+
+            const muSignature = multisig.sign(pub1, pub2, secret1, secret2, hash)
+            return Buffer.from(muSignature, "hex")
+        },
+        getPublicKey(): Buffer {
+            return pubKeyCombined
+        }
+    }
+}
+
 function schnorrSignerMulti(pub1: string, pub2: string, secrets: string[] = []): SignerAsync {
     
     const pkCombined = muSig.pubKeyCombine([Buffer.from(pub1, "hex"), Buffer.from(pub2, "hex")]);
@@ -601,7 +624,7 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
                     ]
                 });
 
-                await psbt.signInputAsync(0, schnorrSignerMulti(alicePub, adaptorPub, ["", oracleS]))
+                await psbt.signInputAsync(0, schnorrSignerMultiWeb(alicePub, adaptorPub, ["", oracleS]))
 
                 const customFinalizer = (_inputIndex: number, input: any) => {
                     const scriptSolution = [
@@ -839,25 +862,51 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
             });
 
             if (quorumno == 1) {
-                await psbt.signInputAsync(0, schnorrSignerMulti(alicePub, adaptorPub, ["", oracleS]))
-                if (adaptorPub !== adaptorPub2) {
-                    await psbt.signInputAsync(0, schnorrSignerMulti(alicePub, adaptorPub2, ["", oracleS2]))
+                if (session) {
+                    await psbt.signInputAsync(0, schnorrSignerMultiWeb(alicePub, adaptorPub, ["", oracleS]))
+                } else {
+                    await psbt.signInputAsync(0, schnorrSignerMulti(alicePub, adaptorPub, ["", oracleS]))
                 }
                 
+                if (adaptorPub !== adaptorPub2) {
+                    if (session) {
+                        await psbt.signInputAsync(0, schnorrSignerMultiWeb(alicePub, adaptorPub2, ["", oracleS2]))
+                    } else {
+                        await psbt.signInputAsync(0, schnorrSignerMulti(alicePub, adaptorPub2, ["", oracleS2]))
+                    }
+                }
             }
 
             if (quorumno == 2) {
-                await psbt.signInputAsync(0, schnorrSignerMulti(alicePub, adaptorPub, ["", oracleS]))
+                if (session) {
+                    await psbt.signInputAsync(0, schnorrSignerMultiWeb(alicePub, adaptorPub, ["", oracleS]))
+                } else {
+                    await psbt.signInputAsync(0, schnorrSignerMulti(alicePub, adaptorPub, ["", oracleS]))
+                }
+
                 if (adaptorPub !== adaptorPub3) {
-                    await psbt.signInputAsync(0, schnorrSignerMulti(alicePub, adaptorPub3, ["", oracleS3]))
+                    if (session) {
+                        await psbt.signInputAsync(0, schnorrSignerMultiWeb(alicePub, adaptorPub3, ["", oracleS3]))
+                    } else {
+                        await psbt.signInputAsync(0, schnorrSignerMulti(alicePub, adaptorPub3, ["", oracleS3]))
+                    }
                 }
             }
 
             if (quorumno == 3) {
-                await psbt.signInputAsync(0, schnorrSignerMulti(alicePub, adaptorPub2, ["", oracleS2]))
+                if (session) {
+                    await psbt.signInputAsync(0, schnorrSignerMultiWeb(alicePub, adaptorPub2, ["", oracleS2]))
+                } else {
+                    await psbt.signInputAsync(0, schnorrSignerMulti(alicePub, adaptorPub2, ["", oracleS2]))
+                }
+                
                 if (adaptorPub2 !== adaptorPub3) {
-                    await psbt.signInputAsync(0, schnorrSignerMulti(alicePub, adaptorPub3, ["", oracleS3]))
-                } 
+                    if (session) {
+                        await psbt.signInputAsync(0, schnorrSignerMultiWeb(alicePub, adaptorPub3, ["", oracleS3]))
+                    } else {
+                        await psbt.signInputAsync(0, schnorrSignerMulti(alicePub, adaptorPub3, ["", oracleS3]))
+                    }
+                }
             }
 
             if (session && session.hashLock1 && session.hashLock2) {
@@ -870,7 +919,7 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
                     ];
 
                     const hash_lock_redeem = quorumno === 1 ? redeem1 : (quorumno === 2 ? redeem2 : redeem3)
-                    const hash_lock_p2tr =quorumno === 1 ? p1 : (quorumno === 2 ? p2 : p3)
+                    const hash_lock_p2tr = quorumno === 1 ? p1 : (quorumno === 2 ? p2 : p3)
                     const tapLeafScript = {
                         leafVersion: hash_lock_redeem.redeemVersion,
                         script: hash_lock_redeem.output,

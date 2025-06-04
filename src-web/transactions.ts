@@ -240,6 +240,8 @@ export const btcDlcContractInterpreter: ContractInterpreter = {
                         throw new Error("Session should not be updated during final redemtion")
                     }
                 }
+                session.hashLock1 = offer.content.accept.openingTx.hashLocks[0]
+                session.hashLock2 = offer.content.accept.openingTx.hashLocks[1]
                 session.hashUnLock1 = offer.content.accept.openingTx.hashUnlocks[0]
                 session.hashUnLock2 = offer.content.accept.openingTx.hashUnlocks[1]
                 return session

@@ -66,7 +66,7 @@ declare var cfg: MempoolConfig<any>
 
     setInterval(async () => {
         const orders = await window.matching.listOrders(100)
-        const txReady = orders.filter(o => o.status === "outcome revealed" && o.bet[1] === 2053).length > 0
+        const txReady = orders.filter(o => o.status === "redeemed" && o.bet[1] === 2053).length > 0
         if (txReady) {
             console.error(await window.matching.listOrders(100))
             console.error("OK")
