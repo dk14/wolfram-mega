@@ -130,6 +130,35 @@ Security note:
 - signing capability with `capabilityPubKey` not belonging to oracle would allow woner of corresponding private key to make commitments on behalf of oracle.
 - Thus, it is recommended to derive capability private keys from root oracle private key (HD-wallet approach)
 
+## Foreign advertisers (synthetic oracles)
+Some corporate oracles might not wish to do PoW and advertise themselves through Mega P2P, but they would wish to keep Mega-protocol and standard.
+
+They can publish manifest with a list of `OracleCapability` on their website and use protocol without mempools (adopt `OracleCapability`, `Commitment`,`Fact` messages). But unlike regular, website-verified oracle, they would not refer this manifest in `OracleId`, nor create `OracleId` nor advertise it through Mega P2P.
+
+They would, however need to be reported independently. 
+
+In that case, public org can create synthetic (e.g. `Wolfram (foreign advertiser)`) id. 
+It would point to manifest, but unlike with website-veified PoW-oracles - manifest won't point back to synthetic `OracleId`.
+
+This would allow, such synthetic oracle to sign foreign capapbilities and propagate reports and offers through Mega P2P. 
+
+Example: a partner)of Mega-powered trading app who decided to support let's say Wolfram without requiring them to do PoW, becomes such synthetic oracle (foreign advertiser) and would do PoW for adopted capabilities. They won't need Wolfram approval to advertise (unless Wolfram decides to delegate to trusted party): 
+
+- "broken" manifest back-reference is allowed but would be marked as "foreign advertiser for wolfram.com" for traders. This is the main difference between foreign advertiser and delgated/original domain-verified oracle.
+- foreign advertiser is only responsible for reputation of such synthetic id. 
+- Foreign advertiser has to trust let's say Wolfram to not be reported, otherwise the PoW advertiser spends would be in vein.
+
+Security:
+- synthetic oracle would not have access to private keys or capabiities of original oracle. It can only add capabilities, but won't be able to issue legally binding commitments
+- original oracle is still responsible for commitments
+- reports are filed independently from synthetic oracle
+- synthetic oracle does PoW for its synthetic id and adopted capabilities
+
+> Capabilities are not required to be self-signed in Mega. We only verify `OracleId` to `OracleCapability` link in order to compute PoW-rank
+
+- > It is secure since only `Commitment` (signed with `CapabilityPub`) is legally binding.
+
+
 ## PoW
 
 examples: `src/pow.ts`
