@@ -144,7 +144,7 @@ It would point to original manifest on original (e.g. "wolfram.com"), but unlike
 
 This would allow, such synthetic oracle to sign foreign capapbilities (the ones published by wolfram) and propagate reports and offers through Mega P2P. 
 
-Example: a partner of Mega-powered trading app who decided to support let's say Wolfram without requiring them to do PoW, becomes such synthetic oracle (foreign advertiser) and would do PoW for adopted foreign capabilities. They won't need Wolfram approval to advertise (unless Wolfram decides to delegate to them completely as a trusted party): 
+Example: a partner of Mega-powered trading app who decided to support let's say Wolfram without requiring them to do PoW, becomes such synthetic oracle (foreign advertiser) and would do PoW for adopted foreign capabilities. They will NOT need Wolfram approval to advertise (unless Wolfram decides to delegate to them completely as a trusted party, by publishing special manifest for them).
 
 - "broken" manifest back-reference is allowed but would be marked as "foreign advertiser for wolfram.com" for traders. This is the main difference between foreign advertiser and delegated/original domain-verified oracle.
 - foreign advertiser is only responsible for reputation of such synthetic id. 
