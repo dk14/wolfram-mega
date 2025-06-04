@@ -183,7 +183,7 @@ export interface FactRequest {
     invoice?: string // paid invoice to verify, e.g. BTC-LN invoice
 }
 
-export interface Fact { //fact you attest to
+export interface Fact { // your attestation
     factWithQuestion: string
     signatureType: string
     signature: string
