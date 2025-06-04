@@ -10,6 +10,7 @@ import {
   } from 'bitcoinjs-lib/src/psbt/bip371';
 import * as ecc from 'tiny-secp256k1';
 import * as tools from 'uint8array-tools';
+import { witnessStackToScriptWitness } from 'bitcoinjs-lib/src/psbt/psbtutils';
 
 if (isBrowser()) {
     bitcoin.initEccLib(ecc)
@@ -85,9 +86,7 @@ function schnorrSignerSingle(pub: string, session: OpeningTxSession = {sigs: []}
                 }
                 throw e
             }
-            
-            
-            
+
             //return schnorr.sign(convert.bufferToInt(secret), hash)
         },
         getPublicKey(): Buffer {
@@ -288,6 +287,10 @@ export interface PublicSession {
     partSig2?:string,
     combinedNonceParity?:boolean,
     update: (p: PublicSession) => void
+    hashLock1?:string
+    hashLock2?:string
+    hashUnLock1?:string
+    hashUnlock2?:string
 }
 
 export interface OpeningTxSession {
@@ -494,10 +497,32 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
                 tapInternalKey: Buffer.from(alicePub, "hex")
             });
 
-            psbt.addOutput({
-                address: p2pktr(adaptorPubKeyCombined).address!, 
-                value: aliceAmount + bobAmount - txfee
-            });
+
+            if (session.hashLock1 && session.hashLock2) {
+                const script_HTLC = `${adaptorPubKeyCombined.toString("hex")} OP_CHECKSIGVERIFY OP_HASH256 ${session.hashLock1} OP_EQUALVERIFY OP_HASH256 ${session.hashLock2} OP_EQUALVERIFY`;
+                const scriptTree: Taptree = {
+                    output: bitcoin.script.fromASM(script_HTLC)
+                }
+                const script_p2tr = bitcoin.payments.p2tr({
+                    internalPubkey: toXOnly(pubKeyCombined),
+                    scriptTree,
+                    network: net
+                })
+
+                psbt.addOutput({
+                    address: script_p2tr.address!, 
+                    value: aliceAmount + bobAmount - txfee
+                });
+                
+            } else {
+                psbt.addOutput({
+                    address: p2pktr(adaptorPubKeyCombined).address!, 
+                    value: aliceAmount + bobAmount - txfee
+                });
+            }
+            
+
+            
 
             if (stateAmount !== undefined) {
                 psbt.addOutput({
@@ -528,28 +553,89 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
                 hex: psbt.extractTransaction().toHex()
             }
         },
-        genAliceCetRedemption: async (aliceOracleIn: UTxO, adaptorPub: string, alicePub: string, oracleS: string, amount: number, txfee: number): Promise<Tx> => {
+        genAliceCetRedemption: async (aliceOracleIn: UTxO, adaptorPub: string, alicePub: string, oracleS: string, amount: number, txfee: number, session?: PublicSession, bobPub?: string): Promise<Tx> => {
             const psbt = new bitcoin.Psbt({ network: net})
             const adaptorPkCombined = muSig.pubKeyCombine([Buffer.from(alicePub, "hex"), Buffer.from(adaptorPub, "hex")]);
             const adaptorPubKeyCombined = convert.intToBuffer(adaptorPkCombined.affineX);
-
+            
             const aliceOracleP2TR = p2pktr(adaptorPubKeyCombined)
-
-            psbt.addInput({
-                hash: aliceOracleIn.txid,
-                index: aliceOracleIn.vout,
-                witnessUtxo: { value: amount, script: aliceOracleP2TR.output! },
-                tapInternalKey: Buffer.from(alicePub, "hex")
-            });
 
             psbt.addOutput({
                 address: p2pktr(alicePub).address!, // TODO: generate alice address from oracleMsgHex and oracleR
                 value: amount - txfee
             });
 
-            await psbt.signInputAsync(0, schnorrSignerMulti(alicePub, adaptorPub, ["", oracleS]))
+            if (session && session.hashLock1 && session.hashLock2) {
+                const pkCombined = muSig.pubKeyCombine([Buffer.from(alicePub, "hex"), Buffer.from(bobPub, "hex")]);
+                const pubKeyCombined = convert.intToBuffer(pkCombined.affineX);
 
-            psbt.finalizeAllInputs()
+                const script_HTLC = `${adaptorPubKeyCombined.toString("hex")} OP_CHECKSIGVERIFY OP_HASH256 ${session.hashLock1} OP_EQUALVERIFY OP_HASH256 ${session.hashLock2} OP_EQUALVERIFY`;
+               
+                const hash_lock_redeem = {
+                    output: bitcoin.script.fromASM(script_HTLC),
+                    redeemVersion: 192,
+                };
+    
+                const scriptTree: Taptree = {
+                    output: bitcoin.script.fromASM(script_HTLC)
+                }
+    
+                const hash_lock_p2tr = bitcoin.payments.p2tr({
+                    internalPubkey: toXOnly(toXOnly(pubKeyCombined)),
+                    scriptTree,
+                    redeem: hash_lock_redeem
+                });
+
+                const tapLeafScript = {
+                    leafVersion: hash_lock_redeem.redeemVersion,
+                    script: hash_lock_redeem.output,
+                    controlBlock: hash_lock_p2tr.witness![hash_lock_p2tr.witness!.length - 1]
+                };
+ 
+                psbt.addInput({
+                    hash: aliceOracleIn.txid,
+                    index: aliceOracleIn.vout,
+                    witnessUtxo: { value: amount, script: hash_lock_p2tr.output! },
+                    tapLeafScript: [
+                        tapLeafScript
+                    ]
+                });
+
+                await psbt.signInputAsync(0, schnorrSignerMulti(alicePub, adaptorPub, ["", oracleS]))
+
+                const customFinalizer = (_inputIndex: number, input: any) => {
+                    const scriptSolution = [
+                        input.tapScriptSig[0].signature,
+                        session.hashUnLock1,
+                        session.hashUnlock2
+                    ];
+                    const witness = scriptSolution
+                        .concat(tapLeafScript.script)
+                        .concat(tapLeafScript.controlBlock);
+
+                    return {
+                        finalScriptWitness: witnessStackToScriptWitness(witness)
+                    }
+                }
+
+                psbt.finalizeInput(0, customFinalizer);
+                
+                
+            } else {
+                psbt.addInput({
+                    hash: aliceOracleIn.txid,
+                    index: aliceOracleIn.vout,
+                    witnessUtxo: { value: amount, script: aliceOracleP2TR.output! },
+                    tapInternalKey: Buffer.from(alicePub, "hex")
+                });
+
+                await psbt.signInputAsync(0, schnorrSignerMulti(alicePub, adaptorPub, ["", oracleS]))
+
+                psbt.finalizeAllInputs()
+            }
+
+
+            
 
             return {
                 txid: psbt.extractTransaction().getId(),
