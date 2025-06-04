@@ -111,41 +111,62 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
                 }   
 
             } else if (order.content.accept) {
+                //ACCEPTED
 
                 const inputs = await interpreter.getUtXo(order)
-                
-                // todo: detect trader's role in a contract: party or counterparty, pass as meAlice
-                //const [contract, partial] = await interpreter.genContractTx(inputs, [commitment], order)
-                const [contract, partial] = await interpreter.genContractTx(inputs, [commitment], order)
 
+                //enrich hashLocks
+                if (order.content.accept.openingTx.hashLocks[1]) {
+                    if (order.content.accept.openingTx.hashLocks[0] == undefined) { //TODO check if trader is originator
+                        order.content.accept.openingTx.hashLocks[0] = await window.hashLockProvider.getHashLock(order)
+                        
+                    }
+                    
+                }
+
+                //TODO verify malleability of locks
+                if (!(order.content.accept.openingTx.hashLocks[0] && order.content.accept.openingTx.hashLocks[1])) {
+                    console.error("NO HASHLOCK COMMITMENT!")
+                    return //wait for all locks to be committed
+                }
+                
+                const [contract, partial] = await interpreter.genContractTx(inputs, [commitment], order)
 
                 if (partial !== undefined) {
                     
                     partial.content.accept.offerRef = partial.pow.hash
                     partial.pow.hash = partial.pow.hash + "-signing" + randomInt(1000)
-                    if (!partial.content.utxos) {
-                        //partial.content.utxos = [undefined, undefined]
-                    }
-                    //partial.content.utxos[0] = inputs.utxoAlice.map(x => [x.txid, x.vout])
-                    //partial.content.utxos[1] = inputs.utxoBob.map(x => [x.txid, x.vout])
 
 
                     window.traderApi.issueOffer(partial)
                     //window.storage.removeIssuedOffers([orderPreviousState.pow.hash])
                 } else {
+                    //CO-SIGNED
+
                     order.content.accept.cetTxSet[0].tx = contract.cet[0]
                     order.content.accept.cetTxSet[1].tx = contract.cet[1]
                     order.content.accept.openingTx.tx = contract.openingTx
+
+                    if (!order.content.accept.openingTx.hashUnlocks) {
+                        order.content.accept.openingTx.hashUnlocks = []
+                    }
+                    
+                    if (checkOriginatorId(order.content.originatorId)) {
+                        order.content.accept.openingTx.hashUnlocks[0] = await window.hashLockProvider.getHashLock(order)
+                    } else {
+                        order.content.accept.openingTx.hashUnlocks[1] = await window.hashLockProvider.getHashLock(order)
+                    }
+
+                    console.log("[FINAL LOCKING TX]" + JSON.stringify(order))
                     
                     const txId = await interpreter.submitTx(contract.openingTx)
 
                     order.content.finalize = {
                         txid: txId, acceptRef: order.pow, backup: contract.cet[0] + ",,,," + contract.cet[1]
                     }
-                    const oldHash = order.pow.hash
                     order.pow.hash = order.pow.hash + "-final" + randomInt(100)
                     window.traderApi.issueOffer(order)
-                    //window.storage.removeIssuedOffers([oldHash])
+                    //window.storage.removeIssuedOffers([orderPreviousState.pow.hash])
 
                 }   
             }
@@ -158,8 +179,4 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
 
 export const stalkingEngine: StalkingEngine = {
     trackIssuedOffers
-}
-
-function statusRank(status: any): number {
-    throw new Error("Function not implemented.")
 }

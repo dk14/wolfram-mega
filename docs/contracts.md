@@ -71,26 +71,30 @@ Duplicates will be filtered by generated `orderId` in favor of most recent versi
 
 There is a default intepreter for [BTC-DLC](https://adiabat.github.io/dlc.pdf).
     
-> binary option contracts supported. This is MAD (mutually assured destruction) version of DLC. No HTLC yet (Win-or-MAD for malicious party), WIP.
+> binary option contracts supported (no composition yet). 
+
+> This is MAD (mutually assured destruction) version of DLC. If any of the parties rejects co-signing - their funds will be locked (symmetrically).
 
 ```ts
 import { btcDlcContractInterpreter } from './src-web/transactions';
 import { dataProvider } from './src-web/oracle-data-provider';
 
 setInterval(() => window.stalking.trackIssuedOffers(
-    {p
+    {
         "bitcoin-testnet": btcDlcContractInterpreter
     },
     dataProvider
 ), 1000)
 ```
 
-> HTLC version (`OP_SHA256 OP_EQUAL OP_VERIFY` as in Lightning) would ensure atomicity of signing CET-transactions, CET-transactions would only become spendable after Alice and Bob share their preimages to SHA256-commitments. Note: DLC CET atomicity pre-commitment is not implemented yet.
-> Without this scheme, ["fair exchange protocols"](https://crypto.stackexchange.com/questions/61386/atomic-multi-party-commitments/117171#117171) in singning is broken. Nothing would stop Alice from only signing transaction that she likes. Then if she wins the bet - she'll get the winning, if she loses she loses - but Bob won't win either (Win or MAD).
+> We use HTLC (`OP_SHA256 <lock> OP_EQUAL OP_VERIFY`) to ensure atomicity of co-signing CET-transactions, CET-transactions would only become spendable after Alice and Bob BOTH share their preimages to SHA256-commitments.
+> Without this scheme, ["fair exchange protocols"](https://crypto.stackexchange.com/questions/61386/atomic-multi-party-commitments/117171#117171) in singning would be broken. Nothing would stop Alice from only signing CET-transaction that she likes. Then if she wins the bet - she'll get the winning, if she loses - she loses with revenge: Bob won't win either (Win or MAD). 
 
-> proposed `SIGHASH_NOINPUT` (BIP118) would remove the need for HTLC in DLC, if BTC adopts it. CET can be signed before opening tx then. Signing opening tx can be done atomically - without opening - CET are invalid.
+> Locks provide MAD symmetrically as a worst case outcome of co-signing with revengeful malicious party, no revenge for Alice. Note: MAD refunds are possible after timeout (same as with Bitcoin Lightning) - but we don't provide it for testnet version, since symmetric MAD ensures security already.
 
-> Mainnet version of `btcDlcContractInterpreter` interpreter would require either HTLC or `SIGHASH_NOINPUT` (BIP118).
+> proposed `SIGHASH_NOINPUT` (BIP118) would remove the need for HTLC in DLC (as well as LN), if BTC adopts it. CET-pack can be co-signed before opening tx then. Signing opening tx is done atomically (Schnorr mu-sig) without need to commit deposit. Without opening tx - CET become invalid, since there is no UtXO to fit CET TX's inputs.
+
+> Mainnet version of `btcDlcContractInterpreter` would require either HTLC with `OP_CHECKLOCKTIMEVERIFY` (for non-participation refunds) or `SIGHASH_NOINPUT` (BIP118).
 
 # Composite contracts 
 
@@ -122,7 +126,7 @@ Here's non-composite binary option:
 
 Here's composite binary option:
 
-PSEUDOCODE (we leave trivial DSLs to app developers):
+PSEUDOCODE (we leave trivial DSLs to <s>academics</s> app developers):
 ```ts
 receive(party, 100 + max(20, 0)) //can be implicit in `OfferTerms`
 receive(counterparty, 10 + max(10, 10)) //can be implicit in `OfferTerms`

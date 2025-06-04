@@ -41,9 +41,9 @@ export interface TxApi {
     genOpeningTx(aliceIn: UTxO[], bobIn: UTxO[], alicePub: string, bobPub: string, aliceAmounts: number[], bobAmounts: number[], changeAlice: number, changeBob: number, txfee: number, openingSession?: OpeningTxSession): Promise<Tx>
     genClosingTx(multiIn: UTxO, alicePub: string, bobPub: string, aliceAmount: number, bobAmount: number, txfee: number): Promise<Tx>
     genAliceCet(multiIn: UTxO, alicePub: string, bobPub: string, adaptorPub: string, aliceAmount: number, bobAmount: number, txfee: number, session?: PublicSession, stateAmount?: number): Promise<Tx>
-    genAliceCetRedemption(aliceOracleIn: UTxO, adaptorPubKeyCombined: string, alicePub: string, oracleS: string, amount: number, txfee: number): Promise<Tx>
+    genAliceCetRedemption(aliceOracleIn: UTxO, adaptorPubKeyCombined: string, alicePub: string, oracleS: string, amount: number, txfee: number, session?: PublicSession, bobPub?: string): Promise<Tx>
     genAliceCetQuorum(multiIn: UTxO, alicePub: string, bobPub: string, adaptorPub: string, adaptorPub2: string, adaptorPub3: string,  aliceAmount: number, bobAmount: number, txfee: number, session?: PublicSession, stateAmount?: number): Promise<Tx>
-    genAliceCetRedemptionQuorum(quorumno: number, aliceOracleIn: UTxO, adaptorPubKeyCombined: string, adaptorPubKeyCombined2: string, adaptorPubKeyCombined3: string, alicePub: string, bobPub: string, oracleS: string, oracleS2: string, oracleS3: string, amount: number, txfee: number): Promise<Tx>
+    genAliceCetRedemptionQuorum(quorumno: number, aliceOracleIn: UTxO, adaptorPubKeyCombined: string, adaptorPubKeyCombined2: string, adaptorPubKeyCombined3: string, alicePub: string, bobPub: string, oracleS: string, oracleS2: string, oracleS3: string, amount: number, txfee: number, session?: PublicSession): Promise<Tx>
 
 }
 
@@ -290,7 +290,7 @@ export interface PublicSession {
     hashLock1?:string
     hashLock2?:string
     hashUnLock1?:string
-    hashUnlock2?:string
+    hashUnLock2?:string
 }
 
 export interface OpeningTxSession {
@@ -607,7 +607,7 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
                     const scriptSolution = [
                         input.tapScriptSig[0].signature,
                         session.hashUnLock1,
-                        session.hashUnlock2
+                        session.hashUnLock2
                     ];
                     const witness = scriptSolution
                         .concat(tapLeafScript.script)
@@ -866,7 +866,7 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
                         input.tapScriptSig[0].signature,
                         input.tapScriptSig[1].signature,
                         session.hashUnLock1,
-                        session.hashUnlock2
+                        session.hashUnLock2
                     ];
 
                     const hash_lock_redeem = quorumno === 1 ? redeem1 : (quorumno === 2 ? redeem2 : redeem3)

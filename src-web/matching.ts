@@ -1,5 +1,5 @@
 import { TraderApi } from "../src/client-api/trader-api"
-import { AcceptOffer, DependsOn, FactRequest, HashCashPow, Offer, OfferTerms, OracleCapability, OracleId, PagingDescriptor, PartiallySignedTx } from "../src/protocol"
+import { AcceptOffer, DependsOn, FactRequest, HashCashPow, Offer, OfferMsg, OfferTerms, OracleCapability, OracleId, PagingDescriptor, PartiallySignedTx } from "../src/protocol"
 import { BtcApi, TraderQuery, Storage } from "../webapp"
 import { OracleDataProvider, dataProvider, webOracle } from "./oracle-data-provider";
 
@@ -129,6 +129,27 @@ export const checkOriginatorId = (id: string): boolean => {
     return id === getOriginatorId()
 }
 
+export interface HashLockProvider {
+    getHashLock: (o: OfferMsg) => Promise<string>
+    getHashUnLock: (o: OfferMsg) => Promise<string>
+}
+
+const hash = async (msg: string): Promise<string> => {
+    const data = Buffer.from(msg, "hex")
+    const buffer = await crypto.subtle.digest("SHA-256", data)
+    const array = Array.from(new Uint8Array(buffer))
+    const hex = array.map(byte => byte.toString(16).padStart(2, '0')).join('')
+    return hex
+}
+
+export const hashLockProvider: HashLockProvider = {
+    getHashLock: async function (o: OfferMsg): Promise<string> {
+        return await hash(await hash(o.pow.hash + await window.privateDB.get("secrets", "secret-hash") ?? "insecure!"))
+    },
+    getHashUnLock: async function (o: OfferMsg): Promise<string> {
+        return await hash(o.pow.hash + await window.privateDB.get("secrets", "secret-hash") ?? "insecure!")
+    }
+}
 
 export const matchingEngine: MatchingEngine = {
     pickOffer: async function (cfg: PreferenceModel): Promise<OfferModel> {
@@ -288,7 +309,8 @@ export const matchingEngine: MatchingEngine = {
             nonceParity: [],
             sessionNonces: [],
             sesionCommitments: [],
-            partialSigs: []
+            partialSigs: [],
+            hashLocks: []
         }
         const accept: AcceptOffer = {
             chain: o.blockchain,
@@ -307,6 +329,8 @@ export const matchingEngine: MatchingEngine = {
         }
         offer.content.pubkeys[1] = window.pubkey
         offer.pow.hash = offer.pow.hash + "-accept-" + randomInt(100) //will be upgraded
+
+        offer.content.accept.openingTx.hashLocks[1] = await hashLockProvider.getHashLock(offer)
 
         window.traderApi.startBroadcastingIssuedOffers()
         window.traderApi.issueOffer(offer)

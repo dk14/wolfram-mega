@@ -6,7 +6,7 @@ import { Api, FacilitatorNode, api as ndapi} from './src/api';
 import * as btc from "./src/client-api/contracts/generate-btc-tx";
 import Sandbox from "@nyariv/sandboxjs";
 import { IDBPDatabase, openDB } from 'idb';
-import { CapabilityModel, MatchingEngine, OfferModel, PreferenceModel, matchingEngine } from './src-web/matching';
+import { CapabilityModel, HashLockProvider, MatchingEngine, OfferModel, PreferenceModel, hashLockProvider, matchingEngine } from './src-web/matching';
 import * as bitcoin from "bitcoinjs-lib"
 import { p2pktr } from './src/client-api/contracts/btc/tx';
 import { stalkingEngine, StalkingEngine } from './src-web/stalking';
@@ -47,6 +47,8 @@ declare global {
 
         privateDB: IDBPDatabase<unknown> //security note: secrts will be shared across pages in origin (subdomain, e.g. dk14.github.io)
         webOracleFacts: IDBPDatabase<unknown>
+
+        hashLockProvider: HashLockProvider
 
         test: boolean
     }
@@ -646,6 +648,7 @@ if (!global.isTest) {
 
 window.traderApi = traderApi(cfg.trader, cfg, ndapi, indexDBstorage, global.isTest ? p2pNode : node)
 window.storage = indexDBstorage
+window.hashLockProvider = hashLockProvider
 
 window.btc = { 
     generateClosingTransaction: btc.generateClosingTransaction,

@@ -152,7 +152,9 @@ const genContractTx = async (inputs: Inputs, c: Commitment[], offer: OfferMsg): 
                             combinedNonceParity: yesSession.nonceParity[0],
                             update: (p: PublicSession) => {
                                 resolveYes(p)
-                            }
+                            },
+                            hashLock1: openingSession.hashLocks[0],
+                            hashLock2: openingSession.hashLocks[1]
                         }
                         session[noOutcome] = {
                             sessionId1: noSession.sessionIds[0],
@@ -166,7 +168,9 @@ const genContractTx = async (inputs: Inputs, c: Commitment[], offer: OfferMsg): 
                             combinedNonceParity: noSession.nonceParity[0],
                             update: (p: PublicSession) => {
                                 resolveNo(p)
-                            }
+                            },
+                            hashLock1: openingSession.hashLocks[0],
+                            hashLock2: openingSession.hashLocks[1]
                         }
                         return session
                     })()
@@ -229,7 +233,17 @@ export const btcDlcContractInterpreter: ContractInterpreter = {
             bobPub: offer.content.pubkeys[0],
             oracleSignature: fact.signature,
             amount: (terms.partyBetAmount + terms.counterpartyBetAmount) - terms.txfee,
-            txfee: offer.content.terms.txfee
+            txfee: offer.content.terms.txfee,
+            session: (() => {
+                const session: PublicSession = {
+                    update: function (p: PublicSession): void {
+                        throw new Error("Session should not be updated during final redemtion")
+                    }
+                }
+                session.hashUnLock1 = offer.content.accept.openingTx.hashUnlocks[0]
+                session.hashUnLock2 = offer.content.accept.openingTx.hashUnlocks[1]
+                return session
+            })()
         }
         return window.btc.generateCetRedemptionTransaction(p)
     }

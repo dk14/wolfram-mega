@@ -69,7 +69,8 @@ export interface CetRedemptionParams {
     oracleSignature3?: Hex, 
     quorumno?: 1 | 2 | 3,
     amount: number,
-    txfee: number
+    txfee: number,
+    session?: PublicSession
 }
 
 export const generateOpeningTransaction = async (params: OpeningParams): Promise<Hex> => {
@@ -157,7 +158,9 @@ export const generateCetRedemptionTransaction = async (params: CetRedemptionPara
             params.alicePub,
             params.oracleSignature,
             params.amount,
-            params.txfee)).hex
+            params.txfee,
+            params.session,
+            params.bobPub)).hex
     } else {
         const twistedPk1 = schnorr.adaptorPublic(params.oraclePub, params.answer, params.rValue).padStart(64, "0")
         const twistedPk2 = schnorr.adaptorPublic(params.oraclePub2, params.answer2 ?? params.answer, params.rValue2).padStart(64, "0")
@@ -175,7 +178,8 @@ export const generateCetRedemptionTransaction = async (params: CetRedemptionPara
             params.oracleSignature2,
             params.oracleSignature3,
             params.amount,
-            params.txfee))?.hex
+            params.txfee,
+            params.session))?.hex
         
     }
 }
