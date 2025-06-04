@@ -654,9 +654,11 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
             const adaptorPkCombined3 = muSig.pubKeyCombine([Buffer.from(alicePub, "hex"), Buffer.from(adaptorPub3, "hex")]);
             const adaptorPubKeyCombined3 = convert.intToBuffer(adaptorPkCombined3.affineX);
 
-            const script_asm1 = `${adaptorPubKeyCombined1.toString("hex")} OP_CHECKSIGVERIFY ${adaptorPubKeyCombined2.toString("hex")} OP_CHECKSIGVERIFY`;
-            const script_asm2 = `${adaptorPubKeyCombined1.toString("hex")} OP_CHECKSIGVERIFY ${adaptorPubKeyCombined3.toString("hex")} OP_CHECKSIGVERIFY`;
-            const script_asm3 = `${adaptorPubKeyCombined2.toString("hex")} OP_CHECKSIGVERIFY ${adaptorPubKeyCombined3.toString("hex")} OP_CHECKSIGVERIFY`;
+            const script_HTLCOpt =  session && session.hashLock1 ? ` OP_HASH256 ${session.hashLock1} OP_EQUALVERIFY OP_HASH256 ${session.hashLock2} OP_EQUALVERIFY` : '';
+               
+            const script_asm1 = `${adaptorPubKeyCombined1.toString("hex")} OP_CHECKSIGVERIFY ${adaptorPubKeyCombined2.toString("hex")} OP_CHECKSIGVERIFY` + script_HTLCOpt;
+            const script_asm2 = `${adaptorPubKeyCombined1.toString("hex")} OP_CHECKSIGVERIFY ${adaptorPubKeyCombined3.toString("hex")} OP_CHECKSIGVERIFY` + script_HTLCOpt;
+            const script_asm3 = `${adaptorPubKeyCombined2.toString("hex")} OP_CHECKSIGVERIFY ${adaptorPubKeyCombined3.toString("hex")} OP_CHECKSIGVERIFY` + script_HTLCOpt;
 
             psbt.addInput({
                 hash: multiIn.txid,
@@ -704,15 +706,17 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
             } else {
                 await psbt.signInputAsync(0, schnorrSignerInteractive(alicePub, bobPub, session))
             }
-            
+
             psbt.finalizeAllInputs()
+            
+            
             
             return {
                 txid: psbt.extractTransaction().getId(),
                 hex: psbt.extractTransaction().toHex()
             }
         },
-        genAliceCetRedemptionQuorum: async (quorumno: 1 | 2 | 3, aliceOracleIn: UTxO, adaptorPub: string, adaptorPub2: string, adaptorPub3: string, alicePub: string, bobPub: string, oracleS: string, oracleS2: string, oracleS3: string, amount: number, txfee: number): Promise<Tx> => {
+        genAliceCetRedemptionQuorum: async (quorumno: 1 | 2 | 3, aliceOracleIn: UTxO, adaptorPub: string, adaptorPub2: string, adaptorPub3: string, alicePub: string, bobPub: string, oracleS: string, oracleS2: string, oracleS3: string, amount: number, txfee: number, session?: PublicSession): Promise<Tx> => {
             const psbt = new bitcoin.Psbt({ network: net})
             const pkCombined = muSig.pubKeyCombine([Buffer.from(alicePub, "hex"), Buffer.from(bobPub, "hex")]);
             const pubKeyCombined = convert.intToBuffer(pkCombined.affineX);
@@ -726,9 +730,11 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
             const adaptorPkCombined3 = muSig.pubKeyCombine([Buffer.from(alicePub, "hex"), Buffer.from(adaptorPub3, "hex")]);
             const adaptorPubKeyCombined3 = convert.intToBuffer(adaptorPkCombined3.affineX);
 
-            const script_asm1 = `${adaptorPubKeyCombined1.toString("hex")} OP_CHECKSIGVERIFY ${adaptorPubKeyCombined2.toString("hex")} OP_CHECKSIGVERIFY`;
-            const script_asm2 = `${adaptorPubKeyCombined1.toString("hex")} OP_CHECKSIGVERIFY ${adaptorPubKeyCombined3.toString("hex")} OP_CHECKSIGVERIFY`;
-            const script_asm3 = `${adaptorPubKeyCombined2.toString("hex")} OP_CHECKSIGVERIFY ${adaptorPubKeyCombined3.toString("hex")} OP_CHECKSIGVERIFY`;
+            const script_HTLCOpt =  session && session.hashLock1 ? ` OP_HASH256 ${session.hashLock1} OP_EQUALVERIFY OP_HASH256 ${session.hashLock2} OP_EQUALVERIFY` : '';
+               
+            const script_asm1 = `${adaptorPubKeyCombined1.toString("hex")} OP_CHECKSIGVERIFY ${adaptorPubKeyCombined2.toString("hex")} OP_CHECKSIGVERIFY` + script_HTLCOpt;
+            const script_asm2 = `${adaptorPubKeyCombined1.toString("hex")} OP_CHECKSIGVERIFY ${adaptorPubKeyCombined3.toString("hex")} OP_CHECKSIGVERIFY` + script_HTLCOpt;
+            const script_asm3 = `${adaptorPubKeyCombined2.toString("hex")} OP_CHECKSIGVERIFY ${adaptorPubKeyCombined3.toString("hex")} OP_CHECKSIGVERIFY` + script_HTLCOpt;
 
             const redeem1 = {
                 output: bitcoin.script.fromASM(script_asm1),
@@ -854,7 +860,36 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
                 } 
             }
 
-            psbt.finalizeAllInputs()
+            if (session && session.hashLock1 && session.hashLock2) {
+                const customFinalizer = (_inputIndex: number, input: any) => {
+                    const scriptSolution = [
+                        input.tapScriptSig[0].signature,
+                        input.tapScriptSig[1].signature,
+                        session.hashUnLock1,
+                        session.hashUnlock2
+                    ];
+
+                    const hash_lock_redeem = quorumno === 1 ? redeem1 : (quorumno === 2 ? redeem2 : redeem3)
+                    const hash_lock_p2tr =quorumno === 1 ? p1 : (quorumno === 2 ? p2 : p3)
+                    const tapLeafScript = {
+                        leafVersion: hash_lock_redeem.redeemVersion,
+                        script: hash_lock_redeem.output,
+                        controlBlock: hash_lock_p2tr.witness![hash_lock_p2tr.witness!.length - 1]
+                    };
+                    const witness = scriptSolution
+                        .concat(tapLeafScript.script)
+                        .concat(tapLeafScript.controlBlock);
+
+                    return {
+                        finalScriptWitness: witnessStackToScriptWitness(witness)
+                    }
+                }
+
+                psbt.finalizeInput(0, customFinalizer);  
+            } else {
+                psbt.finalizeAllInputs()
+            }
+
 
             return {
                 txid: psbt.extractTransaction().getId(),
