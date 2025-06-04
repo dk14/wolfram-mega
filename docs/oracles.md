@@ -140,6 +140,8 @@ They can publish manifest (json of `OracleId`) with a list of `OracleCapability`
 In that case, third-party public org can create synthetic (e.g. `Wolfram (foreign advertiser)`) id. 
 It would point to original manifest on original (e.g. "wolfram.com"), but unlike with website-veified PoW-oracles - manifest won't point back to synthetic `OracleId`.
 
+> While original non-advertised `OracleId` is signed with Wolfram signature, foreign advertised `OracleId` is signed with advertiser's signature. Mega does not allow PoW on `OracleId` without signing it together with PoW, thus only `OracleId` signer can upgrade PoW (only signer can advertise). Note: capabilities can be advertised by anyone, including traders themselves ("like" button).
+
 This would allow, such synthetic oracle to sign foreign capapbilities (the ones published by wolfram) and propagate reports and offers through Mega P2P. 
 
 Example: a partner of Mega-powered trading app who decided to support let's say Wolfram without requiring them to do PoW, becomes such synthetic oracle (foreign advertiser) and would do PoW for adopted foreign capabilities. They won't need Wolfram approval to advertise (unless Wolfram decides to delegate to them completely as a trusted party): 
