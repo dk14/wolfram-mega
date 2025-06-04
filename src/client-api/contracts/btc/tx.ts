@@ -311,18 +311,14 @@ function schnorrSignerInteractive(pub1: string, pub2: string, session: PublicSes
                 session.commitment1 = res.commitment1
                 session.update(session)
                 throw "incomplete sign"
-            }
-            
-            if (!session.commitment2) {
+            } else if (!session.commitment2) {
                 const res = await signer.muSigCommitment2(pub1, pub2, hash.toString('hex'))
                 session.commitment2 = res.commitment2
                 session.nonce2 = res.nonce2
                 session.sessionId2 = res.sessionId2
                 session.update(session)
                 throw "incomplete sign"
-            }
-            
-            if (!session.partSig1) {
+            } else if (!session.partSig1) {
                 const res = await signer.sign1(pub1, pub2, hash.toString('hex'), {
                     commitment2: session.commitment2,
                     nonce2: session.nonce2,
@@ -334,17 +330,16 @@ function schnorrSignerInteractive(pub1: string, pub2: string, session: PublicSes
                 session.combinedNonceParity = res.combinedNonceParity
                 session.update(session)
                 throw "incomplete sign"
-            }
-
-            const res = await signer.sign2(pub1, pub2, hash.toString('hex'), {
-                partSig1: session.partSig1,
-                combinedNonceParity: session.combinedNonceParity,
-                nonce1: session.nonce1,
-                commitment1: session.commitment1,
-                sessionId2: session.sessionId2,
-            })
-
-            return Buffer.from(res, "hex")
+            } else {
+                const res = await signer.sign2(pub1, pub2, hash.toString('hex'), {
+                    partSig1: session.partSig1,
+                    combinedNonceParity: session.combinedNonceParity,
+                    nonce1: session.nonce1,
+                    commitment1: session.commitment1,
+                    sessionId2: session.sessionId2,
+                })
+                return Buffer.from(res, "hex")
+            }   
         },
         getPublicKey(): Buffer {
             return pubKeyCombined
