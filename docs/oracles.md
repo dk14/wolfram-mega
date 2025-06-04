@@ -219,7 +219,7 @@ export interface OracleManifest {
 }
 ```
 
-Then legal entity can decide wether they wish to P2P-advertise PoW-based identities directly or delegate or wait for foreign advertisers to pick them up.
+Then legal entity can decide wether they wish to crreate and P2P-advertise PoW-based identity directly or delegate or wait for foreign advertisers to pick manifest up.
 
 ----
 
