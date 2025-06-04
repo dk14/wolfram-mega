@@ -17,6 +17,15 @@ export interface Param {
     values: Value[]
 }
 
+export interface OracleManifest { //for domain verification, publish this json on your website
+    domain: string
+    id: OracleId
+    meta: any
+    capapbilities: OracleCapability[]
+    signature: string
+    sinatureType: string
+}
+
 export interface Commitment {
     req: FactRequest
     contract: string
@@ -71,7 +80,7 @@ export interface OracleId extends MsgLike, WithPow {
     cTTL: number //used for broadcast
 
     pow: HashCashPow
-    manifestUri?: string
+    manifestUri?: string //point to OracleManifest json on a reputable website
 
     bid: Bid
 
