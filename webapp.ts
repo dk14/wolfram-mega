@@ -25,6 +25,7 @@ export interface TraderQuery<T> {
 
 export interface BtcApi {
     generateDlcContract:(params: btc.DlcParams) => Promise<btc.DlcContract>
+    generateChildDlcContract:(params: btc.ChildDlcParams) => Promise<btc.DlcContract>
     generateClosingTransaction: (P: btc.ClosingParams) => Promise<btc.Hex>
     generateCetRedemptionTransaction: (p: btc.CetRedemptionParams) => Promise<btc.Hex>
    
@@ -653,7 +654,8 @@ window.hashLockProvider = hashLockProvider
 window.btc = { 
     generateClosingTransaction: btc.generateClosingTransaction,
     generateCetRedemptionTransaction: btc.generateCetRedemptionTransaction,
-    generateDlcContract: btc.generateDlcContract
+    generateDlcContract: btc.generateDlcContract,
+    generateChildDlcContract: btc.generateChildDlcContract
 }
 
 

@@ -404,28 +404,6 @@ export interface DlcParams {
     stateAmount?: number //goes back to multisig, for composite contracts
 }
 
-interface CompositeDlcParams {
-    subcontracts: { [id: Msg]: CompositeDlcParams }
-    oraclePub: PubKey,
-    oraclePub2: PubKey,
-    oraclePub3: PubKey,  
-    outcomes: { [id: Msg]: FundDistribution; }, 
-    rValue: Hex,
-    rValue2?: Hex,
-    rValue3?: Hex,
-    alicePub: PubKey,
-    bobPub: PubKey,
-    txfee: number,
-    session?: PublicSession,
-    stateAmount: number
-}
-
-export interface CompositeDlcParamsEnvelope {
-    openingParams: DlcParams,
-    compositeCetParams: CompositeDlcParams
-}
-
-
 ```
 
 ### API
@@ -441,23 +419,6 @@ interface DlcContract {
 
 generateDlcContract = (params: DlcParams): Promise<DlcContract> => ...
 ```
-
-
-This would generate multi-stage composite DLC contract (experimental)
-```ts
-interface CompositeDlcContract {
-    subcontracts: { [id: Msg]: [Hex, CompositeDlcContract] }
-}
-
-interface CompositeDlcContractEnvelope {
-    openingTx: Hex
-    contract: CompositeDlcContract
-}
-
-generateCompositeDlcContractEnvelope = (params: CompositeDlcParamsEnvelope): Promise<CompositeDlcContractEnvelope> => ...
-
-```
-
 
 # Contract Typescript API (Node.js Cardano Helios)
 `src/client-api/contracts/generate-cardano-tx`

@@ -214,7 +214,7 @@ export interface DlcParams {
     stateAmount?: number //goes back to multisig, for composite contracts
 }
 
-interface ChildDlcParams {
+export interface ChildDlcParams {
     lockedTxId: TxId,
     oraclePub: PubKey,
     oraclePub2: PubKey,
@@ -226,35 +226,13 @@ interface ChildDlcParams {
     alicePub: PubKey,
     bobPub: PubKey,
     txfee: number,
-    session?: PublicSession,
-    openingTxSession: OpeningTxSession,
+    session: { [id: Msg]: PublicSession; },
+    openingSession: OpeningTxSession,
     stateAmount: number
-}
-
-interface CompositeDlcParams {
-    subcontracts: { [id: Msg]: CompositeDlcParams }
-    oraclePub: PubKey,
-    oraclePub2: PubKey,
-    oraclePub3: PubKey,  
-    outcomes: { [id: Msg]: FundDistribution; }, 
-    rValue: Hex,
-    rValue2?: Hex,
-    rValue3?: Hex,
-    alicePub: PubKey,
-    bobPub: PubKey,
-    txfee: number,
-    session?: PublicSession,
-    openingTxSession: OpeningTxSession,
-    stateAmount: number
-}
-
-export interface CompositeDlcParamsEnvelope {
-    openingParams: DlcParams,
-    compositeCetParams: CompositeDlcParams
 }
 
 export interface DlcContract {
-    openingTx: Hex
+    openingTx?: Hex
     cet: Hex[]
 }
 
@@ -301,31 +279,15 @@ export const generateDlcContract = async (params: DlcParams): Promise<DlcContrac
     return {openingTx, cet}
 }
 
-const generateChildDlcContract = async (params: ChildDlcParams): Promise<ChildDlcContract> => {
+export const generateChildDlcContract = async (params: ChildDlcParams): Promise<DlcContract> => {
     const cet = Object.fromEntries((await Promise.all(Object.keys(params.outcomes).map(async answer => {
         const cet = await generateCetTransaction(Object.assign({}, params, {
             answer, lockedTxId: params.lockedTxId, 
             aliceAmount: params.outcomes[answer].aliceAmount,
-            bobAmount: params.outcomes[answer].bobAmount
+            bobAmount: params.outcomes[answer].bobAmount,
+            session: params.session[answer]
             }), 1)
         return [answer, cet]
     }))))   
     return { cet }
-}
-
-const generateCompositeDlcContract = async (lockedTxId: Hex, params: CompositeDlcParams): Promise<CompositeDlcContract> => {
-    const children = await generateChildDlcContract(Object.assign({}, params, {lockedTxId}))
-    const subcontracts = Object.fromEntries(await Promise.all(Object.keys(children.cet).map(async answer => {
-        const child = children.cet[answer]
-        
-        return [answer, [child, await generateCompositeDlcContract(await doubleSHA256reversed(child), params.subcontracts[answer])]]
-    })))
-    return subcontracts
-}
-
-export const generateCompositeDlcContractEnvelope = async (params: CompositeDlcParamsEnvelope): Promise<CompositeDlcContractEnvelope> => {
-    const openingTx = await generateOpeningTransaction(params.openingParams)
-    const lockedTxId = await doubleSHA256reversed(openingTx)
-    const contract = await generateCompositeDlcContract(lockedTxId, params.compositeCetParams)
-    return { openingTx, contract }
 }

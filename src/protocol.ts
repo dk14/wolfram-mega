@@ -172,7 +172,7 @@ export interface OfferTerms {
     counterPartyBetsOn: Answer[]
     partyBetAmount: number
     counterpartyBetAmount: number
-    dependsOn?: DependsOn[] // AND condition
+    dependsOn?: DependsOn
     partyCompositeCollateralAmount?: number //this is needed to ensure that whole tree of CET-transactions is recovered
     counterpartyCompositeCollateralAmount?: number
     assetPair?: [string, string] // if parties bet assets
@@ -196,6 +196,7 @@ export type OfferHashCash = string
 export interface DependsOn { //for schedules, aka stateful multi-stage contracts, everything that Marlowe can do
     outome: string,
     offerRefs: string[] //OR condition
+    stateTxId?: string // for composite contract aggregation, interpreter needs this param
 }
 
 export interface AcceptOffer {

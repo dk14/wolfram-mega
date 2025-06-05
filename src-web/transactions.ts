@@ -1,7 +1,7 @@
 
 import { resolve } from "path"
 import { PublicSession } from "../src/client-api/contracts/btc/tx"
-import { CetRedemptionParams, DlcContract, DlcParams, doubleSHA256reversed } from "../src/client-api/contracts/generate-btc-tx"
+import { CetRedemptionParams, ChildDlcParams, DlcContract, DlcParams, doubleSHA256reversed } from "../src/client-api/contracts/generate-btc-tx"
 import { Commitment, Fact, OfferMsg, OfferTerms } from "../src/protocol"
 import { PreferenceModel } from "./matching"
 import { off } from "process"
@@ -10,7 +10,7 @@ type TxId = string
 type TxBody = string
 
 export interface Contract {
-    openingTx: TxBody
+    openingTx?: TxBody
     cet: TxBody[]
 }
 
@@ -29,7 +29,7 @@ export interface Inputs {
 //meAlice: Alice is party, Bob is counterparty
 export interface ContractInterpreter {
     getUtXo: (terms: OfferMsg) => Promise<Inputs>
-    genContractTx: (inputs: Inputs, c: Commitment[], offer: OfferMsg, meAlice?: boolean) => Promise<[Contract, OfferMsg?]>
+    genContractTx: (inputs: Inputs, c: Commitment[], offer: OfferMsg, stateTxId?: string) => Promise<[Contract, OfferMsg?]>
     submitTx: (tx: string) => Promise<TxId>
     genRedemtionTx: (lockingTxId: UTxO, c: Commitment[], fact: Fact, offer: OfferMsg) => Promise<string>
 }
@@ -102,7 +102,7 @@ const getUtXo = async (offer: OfferMsg): Promise<Inputs> => {
     
 }
 
-const genContractTx = async (inputs: Inputs, c: Commitment[], offer: OfferMsg): Promise<[DlcContract, OfferMsg?]> => {
+const genContractTx = async (inputs: Inputs, c: Commitment[], offer: OfferMsg, stateTxId?: string): Promise<[DlcContract, OfferMsg?]> => {
     const o = structuredClone(offer)
     const terms = o.content.terms
     const yesSession = o.content.accept.cetTxSet[0]
@@ -175,7 +175,17 @@ const genContractTx = async (inputs: Inputs, c: Commitment[], offer: OfferMsg): 
                         return session
                     })()
                 }
-                resolveDlc(window.btc.generateDlcContract(params))
+                if (!offer.content.terms.dependsOn) {
+                    resolveDlc(window.btc.generateDlcContract(params))
+                } else {
+                    const adaptedParams: ChildDlcParams = {
+                        ...params,
+                        lockedTxId: terms.dependsOn.stateTxId,
+                        stateAmount: params.stateAmount!
+                    }
+                    resolveDlc(window.btc.generateChildDlcContract(adaptedParams))
+                }
+                
 
             })
             const no = await noSessionUpdate

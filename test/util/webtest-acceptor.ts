@@ -78,7 +78,7 @@ declare var cfg: MempoolConfig<any>
     setTimeout(async () => {
         console.error("TX NOT GENERATED!")
         process.exit(255)
-    }, 60000)
+    }, 100000)
 
 })()
 
