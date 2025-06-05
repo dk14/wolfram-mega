@@ -56,7 +56,7 @@ declare var cfg: MempoolConfig<any>
     }
     const myCustomOffer: OfferModel = {
         id: 'id',
-        bet: [4000, 2053], //TODO bug same address
+        bet: [4000, 2053],
         oracles: [oracle],
         question: '?',
         status: 'matching',
