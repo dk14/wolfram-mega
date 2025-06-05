@@ -167,16 +167,16 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
                 let stateTxId = undefined
                 if (order.content.terms.dependsOn) {
                     const candidates = await window.storage.queryOffers({
-                        where: async x => x.pow.hash === order.content.terms.dependsOn.offerRef
+                        where: async x => x.content.orderId === order.content.terms.dependsOn.orderId
                     }, pagedescriptor)
                     if (candidates.length === 0){
-                        console.error("STALKER: AWAIT DEPENDENCY: " + order.pow.hash + " <= " + order.content.terms.dependsOn.offerRef)
+                        console.error("STALKER: AWAIT DEPENDENCY: " + order.content.orderId + " <= " + order.content.terms.dependsOn.orderId)
                         return
                     }
 
                     const parent = maxBy(candidates, x => rank(x)) //maxBy just in case
                     if (!parent.content.finalize) {
-                        console.error("STALKER: AWAIT DEPENDENCY STATE: " + order.pow.hash + " <= " + order.content.terms.dependsOn.offerRef)
+                        console.error("STALKER: AWAIT DEPENDENCY STATE: " + order.content.orderId + " <= " + order.content.terms.dependsOn.orderId)
                     }
                     const idx = parent.content.terms.partyBetsOn.find(x => x === order.content.terms.dependsOn.outcome) ? 0 : 1
                     stateTxId = doubleSHA256reversed(parent.content.accept.cetTxSet[idx].tx)
@@ -206,25 +206,20 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
                     const terms = order.content.terms
                     if (terms.dependsOn && (terms.partyCompositeCollateralAmount + terms.counterpartyCompositeCollateralAmount) > (terms.partyBetAmount + terms.counterpartyBetAmount)) {
                         const dependants = await window.storage.queryOffers({
-                            where: async x => order.pow.hash === x.content.terms.dependsOn.offerRef
+                            where: async x => order.content.orderId === x.content.terms.dependsOn.orderId
                         }, pagedescriptor)
                         const filtered = Object.values(Object.groupBy(dependants, x => x.content.orderId)).map(candidates => maxBy(candidates, x => rank(x)))
                         const orders = filtered.map(x => x.content.orderId).sort()
                         const expected = order.content.dependantOrdersIds.sort()
                         const integrity = orders.map((x,i) => expected[i] === x).reduce((a,b) => a && b)
                         if (!integrity){
-                            console.error("STALKER: AWAIT DEPENDANTS FOR: " + order.pow.hash + " " + orders)
+                            console.error("STALKER: AWAIT DEPENDANTS FOR: " + order.content.orderId + " " + orders)
                             return
                         }
 
-                        const dependants2 = await window.storage.queryOffers({
-                            where: async x => expected.find(id => id === x.content.orderId) !== undefined
-                        }, pagedescriptor)
-                        const filtered2 = Object.values(Object.groupBy(dependants2, x => x.content.orderId)).map(candidates => maxBy(candidates, x => rank(x)))
-
-                        const unlocked = filtered2.map(x => x.content.accept.openingTx.hashUnlocks[0] && x.content.accept.openingTx.hashUnlocks[1]).reduce((a, b) => a && b)
+                        const unlocked = filtered.map(x => x.content.accept.openingTx.hashUnlocks[0] && x.content.accept.openingTx.hashUnlocks[1]).reduce((a, b) => a && b)
                         if (!unlocked) {
-                            console.error("STALKER: AWAIT DEPENDANTS TO UNLOCK HTLC: " + order.pow.hash + " " + orders)
+                            console.error("STALKER: AWAIT DEPENDANTS TO UNLOCK HTLC: " + order.content.orderId + " " + orders)
                             return
                         }
                     }

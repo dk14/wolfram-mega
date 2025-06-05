@@ -97,7 +97,9 @@ export interface OfferModel {
     blockchain: string,
     role: 'initiator' | 'acceptor'
     dependsOn?: DependsOn[],
-    orderId?: string
+    orderId?: string,
+    ifPartyWins?: OfferModel
+    ifCounterPartyWins?: OfferModel
 }
 
 export interface MatchingEngine {
@@ -108,6 +110,12 @@ export interface MatchingEngine {
     broadcastOffer: (o: OfferModel) => Promise<void>
     acceptOffer: (o: OfferModel) => Promise<void>
     listOrders: (limit: number) => Promise<OfferModel[]>
+}
+
+interface RecursiveCompose {
+    orderId: string
+    backRefId: string
+
 }
 
 const capabilityFilter = (tag: string) => {

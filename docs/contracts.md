@@ -151,7 +151,7 @@ OFFERS-TO-RENDER:
 STAGE1 (root offer-chunk):
 ```js
 {
-    hash: "000001",
+    orderId: "000001",
     terms: {
         question: "who's president?"    
         partyBetsOn: ["ME"],
@@ -171,10 +171,10 @@ Worst-case scenario: party will have 20sat (`partyCompositeCollateralAmount - pa
 STAGE2 (leaf offer-chunks):
 ```js
 {
-    hash: "000002",
+    orderId: "000002",
     dependsOn: [{
         outcome: "ME",
-        offerRefs: ["0000001"]
+        orderId: "0000001"
     }],
     terms: {
         question: "who's the best?"    
@@ -188,10 +188,10 @@ STAGE2 (leaf offer-chunks):
 
 ```js
 {
-    hash: "000003",
+    orderId: "000003",
     dependsOn: [{
         outcome: "YOU",
-        offerRefs: ["0000001"]
+        orderId: ["0000001"]
     }],
     terms: {
         question: "who's the best?"    
@@ -203,11 +203,7 @@ STAGE2 (leaf offer-chunks):
 }
 ```
 
-> `dependsOn` is a list - offer depends on ALL of dependent outcomes to fulfill
-
-> `offerRefs` is a list too - offer depends on ANY of the offers to fulfill selected outcome. This approach allows for trivial Merkle-tree-like optimisations in DSLs: same contract can be re-used as a subcontract. It is reverse hash-tree though.
-
- Unlike with Marlowe - money preservation property is ensured in the language design, rather than with SMT-solvers.
+Unlike with Marlowe - money preservation property is ensured in the language design, rather than with SMT-solvers.
 
 > In the composite contract js-eDSL pseudo-code above - `receive` represents full collateral for a participant. It is implicit "syntax sugar" because it's only needed to assert money preservation (eDSL can check that collateral computed as a sum of bets made by a given party (for worst-case outcomes) equals to the number specified in `receive`).
 

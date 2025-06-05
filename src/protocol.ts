@@ -195,7 +195,7 @@ export type OfferHashCash = string
 
 export interface DependsOn { //for schedules, aka stateful multi-stage contracts, everything that Marlowe can do
     outcome: Answer
-    offerRef?: string // undefined means ANY_PREVOUT, a function or recursive call; it is safe to do it, sine dsl would inline any closures (previous observations) required; btc is purely functional
+    orderId?: string // undefined means ANY_PREVOUT, a function or recursive call; it is safe to do it, sine dsl would inline any closures (previous observations) required; btc is purely functional
 }
 
 export interface AcceptOffer {
