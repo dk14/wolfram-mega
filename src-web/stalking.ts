@@ -241,13 +241,16 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
                             return
                         }
 
+                        
                         const unlocked = filtered.map(x => x.content.accept && x.content.accept.openingTx.hashLocks && x.content.accept.openingTx.hashLocks[0] && x.content.accept.openingTx.hashLocks[1]).reduce((a, b) => a && b)
                         if (!unlocked) {
-                            console.error("STALKER: AWAIT DEPENDANTS TO COMMIT HTLC: " + order.content.orderId + " " + ordersIds)
-                            return
+                            //console.error("STALKER: AWAIT DEPENDANTS TO COMMIT HTLC: " + order.content.orderId + " " + ordersIds)
+                            //return
                         } else {
-                            console.error("STALKER: DEPENDANTS COMMITTED" + order.content.orderId + " " + ordersIds)
+                            //console.error("STALKER: DEPENDANTS COMMITTED" + order.content.orderId + " " + ordersIds)
                         }
+                        
+                        
                     }
 
                     if (checkOriginatorId(order.content.originatorId)) {

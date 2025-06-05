@@ -707,7 +707,7 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
             const adaptorPkCombined3 = muSig.pubKeyCombine([Buffer.from(alicePub, "hex"), Buffer.from(adaptorPub3, "hex")]);
             const adaptorPubKeyCombined3 = convert.intToBuffer(adaptorPkCombined3.affineX);
 
-            const script_HTLCOpt =  session && session.hashLock1 ? ` OP_HASH256 ${session.hashLock1} OP_EQUALVERIFY OP_HASH256 ${session.hashLock2} OP_EQUALVERIFY` : '';
+            const script_HTLCOpt = session && session.hashLock1 ? ` OP_HASH256 ${session.hashLock1} OP_EQUALVERIFY OP_HASH256 ${session.hashLock2} OP_EQUALVERIFY` : '';
                
             const script_asm1 = `${adaptorPubKeyCombined1.toString("hex")} OP_CHECKSIGVERIFY ${adaptorPubKeyCombined2.toString("hex")} OP_CHECKSIGVERIFY` + script_HTLCOpt;
             const script_asm2 = `${adaptorPubKeyCombined1.toString("hex")} OP_CHECKSIGVERIFY ${adaptorPubKeyCombined3.toString("hex")} OP_CHECKSIGVERIFY` + script_HTLCOpt;
@@ -742,10 +742,50 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
 
             const script_addr = script_p2tr.address ?? '';
 
-            psbt.addOutput({
-                address: script_addr, 
-                value: aliceAmount + bobAmount - txfee
-            });
+            if (session) {
+
+                psbt.addOutput({
+                    address: script_addr, 
+                    value: aliceAmount + bobAmount - txfee - 200
+                });
+
+                const scriptTree1: Taptree = {
+                    output: bitcoin.script.fromASM(`${alicePub} OP_CHECKSIGVERIFY` + script_HTLCOpt)
+                }
+
+                const script_p2tr1 = bitcoin.payments.p2tr({
+                    internalPubkey: toXOnly(pubKeyCombined),
+                    scriptTree: scriptTree1,
+                    network: net
+                });
+
+                psbt.addOutput({
+                    address: script_p2tr1.address!, 
+                    value: 100
+                });
+
+                const scriptTree2: Taptree = {
+                    output: bitcoin.script.fromASM(`${bobPub} OP_CHECKSIGVERIFY` + script_HTLCOpt)
+                }
+
+                const script_p2tr2 = bitcoin.payments.p2tr({
+                    internalPubkey: toXOnly(pubKeyCombined),
+                    scriptTree: scriptTree2,
+                    network: net
+                });
+
+                psbt.addOutput({
+                    address: script_p2tr2.address!, 
+                    value: 100
+                });
+
+            } else {
+                psbt.addOutput({
+                    address: script_addr, 
+                    value: aliceAmount + bobAmount - txfee
+                });
+            }
+            
 
             if (stateAmount !== undefined) {
                 psbt.addOutput({
