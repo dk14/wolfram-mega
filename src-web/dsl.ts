@@ -8,6 +8,7 @@ export class Dsl {
         const model: OfferModel = {
             id: "",
             bet: [0, 0],
+            betOn: false,
             oracles: [],
             question: "",
             status: "matching",
@@ -97,6 +98,7 @@ export class Dsl {
             next = this.next()
         }
         this.protect = false
-        return this.root
+        //TODO remove 0:0 leafs
+        return this.root.ifCounterPartyWins
     }
 }

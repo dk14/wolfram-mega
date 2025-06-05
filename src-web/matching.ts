@@ -1,3 +1,4 @@
+import { off } from "process";
 import { TraderApi } from "../src/client-api/trader-api"
 import { AcceptOffer, DependsOn, FactRequest, HashCashPow, Offer, OfferMsg, OfferTerms, OracleCapability, OracleId, PagingDescriptor, PartiallySignedTx } from "../src/protocol"
 import { BtcApi, TraderQuery, Storage } from "../webapp"
@@ -259,6 +260,9 @@ export const matchingEngine: MatchingEngine = {
         if (o.role !== 'initiator') {
             throw "you must be initiator; use acceptOffer to accept"
         }
+        if (o.bet[0] === 0 && o.bet[1] === 0) {
+            return undefined
+        }
         const pow: HashCashPow = {
             difficulty: 0,
             algorithm: "SHA256",
@@ -301,7 +305,13 @@ export const matchingEngine: MatchingEngine = {
             o.ifPartyWins.dependsOn.orderId = offer.orderId
             o.ifPartyWins.dependsOn.outcome = offerTerms.partyBetsOn[0]
             const subOrderId = await window.matching.broadcastOffer(o.ifPartyWins)
-            offer.dependantOrdersIds[0] = subOrderId
+            if (subOrderId) {
+                if (!offer.dependantOrdersIds) {
+                    offer.dependantOrdersIds = []
+                }
+                offer.dependantOrdersIds[0] = subOrderId
+            }
+            
         }
 
         if (o.ifCounterPartyWins) {
@@ -309,6 +319,11 @@ export const matchingEngine: MatchingEngine = {
             o.ifCounterPartyWins.dependsOn.orderId = offer.orderId
             o.ifCounterPartyWins.dependsOn.outcome = offerTerms.counterPartyBetsOn[0]
             const subOrderId = await window.matching.broadcastOffer(o.ifCounterPartyWins)
+            if (subOrderId) {
+                if (!offer.dependantOrdersIds) {
+                    offer.dependantOrdersIds = []
+                }
+            }
             offer.dependantOrdersIds[1] = subOrderId
         }
 
