@@ -92,7 +92,7 @@ P2P-messaging log:
 npm run webtest-it trace
 ```
 
-> WebRTC requires internet connection. Current version uses peerjs discovery service which is not always reliable.
+> You supposed to see STALKER logs unless p2p fails. WebRTC requires internet connection. Current version uses peerjs discovery service which is not always reliable.
 
 
 # Matching Protocol
