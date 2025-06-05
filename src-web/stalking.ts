@@ -216,7 +216,13 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
                             console.error("STALKER: AWAIT DEPENDANTS FOR: " + order.pow.hash + " " + orders)
                             return
                         }
-                        const unlocked = filtered.map(x => x.content.accept.openingTx.hashUnlocks[0] && x.content.accept.openingTx.hashUnlocks[1]).reduce((a, b) => a && b)
+
+                        const dependants2 = await window.storage.queryOffers({
+                            where: async x => expected.find(id => id === x.content.orderId) !== undefined
+                        }, pagedescriptor)
+                        const filtered2 = Object.values(Object.groupBy(dependants2, x => x.content.orderId)).map(candidates => maxBy(candidates, x => rank(x)))
+
+                        const unlocked = filtered2.map(x => x.content.accept.openingTx.hashUnlocks[0] && x.content.accept.openingTx.hashUnlocks[1]).reduce((a, b) => a && b)
                         if (!unlocked) {
                             console.error("STALKER: AWAIT DEPENDANTS TO UNLOCK HTLC: " + order.pow.hash + " " + orders)
                             return
