@@ -534,7 +534,37 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
 
                 psbt.addOutput({
                     address: script_p2tr.address!, 
-                    value: aliceAmount + bobAmount - txfee
+                    value: aliceAmount + bobAmount - txfee - 200
+                });
+
+                const script_HTLC_deposit = `${alicePub} OP_CHECKSIGVERIFY OP_HASH256 ${session.hashLock1} OP_EQUALVERIFY OP_HASH256 ${session.hashLock2} OP_EQUALVERIFY`;
+                const scriptTreeDeposit: Taptree = {
+                    output: bitcoin.script.fromASM(script_HTLC_deposit)
+                }
+                const script_p2trDeposit = bitcoin.payments.p2tr({
+                    internalPubkey: toXOnly(pubKeyCombined),
+                    scriptTree: scriptTreeDeposit,
+                    network: net
+                })
+
+                psbt.addOutput({
+                    address: script_p2trDeposit.address!, 
+                    value: 100
+                });
+
+                const script_HTLC_deposit2 = `${bobPub} OP_CHECKSIGVERIFY OP_HASH256 ${session.hashLock1} OP_EQUALVERIFY OP_HASH256 ${session.hashLock2} OP_EQUALVERIFY`;
+                const scriptTreeDeposit2: Taptree = {
+                    output: bitcoin.script.fromASM(script_HTLC_deposit2)
+                }
+                const script_p2trDeposit2 = bitcoin.payments.p2tr({
+                    internalPubkey: toXOnly(pubKeyCombined),
+                    scriptTree: scriptTreeDeposit2,
+                    network: net
+                })
+
+                psbt.addOutput({
+                    address: script_p2trDeposit2.address!, 
+                    value: 100
                 });
                 
             } else {
