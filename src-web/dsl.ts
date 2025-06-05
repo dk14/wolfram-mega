@@ -22,46 +22,47 @@ export class Dsl {
     private root: OfferModel = this.template()
     private cursor: OfferModel = this.root
     private prev: OfferModel = undefined
-    private lastOutcome = false
+    private lastOutcome = undefined
+
+    private flag = false
 
     public pay(idx: 0 | 1, amount: number) {
         // console.log("" + idx + "  " + amount + "  " + JSON.stringify(this.prev))
         if (!this.protect) {
             throw new Error("should not call outside of body; use `new Dsl((dsl) => handler).enumerate()`")
         }
-        if (this.prev === undefined) {
+        if (this.prev === undefined || this.lastOutcome === undefined) {
             new Error("cannot pay unconditionally!")
         }
 
-        if (this.lastOutcome && idx !== 0) {
-            if(this.prev.betOn === undefined) {
-                this.prev.betOn = true
-            } else {
-                throw new Error("Perfect hedge! Trader not allowed to benefit regardless of outcome.")
+        if (this.lastOutcome !== null) {
+            if (this.lastOutcome && idx === 0) {
+                if (this.prev.betOn === undefined || this.prev.betOn === true) {
+                    this.prev.betOn = true
+                } else {
+                    throw new Error("Perfect hedge! Trader not allowed to benefit regardless of outcome.")
+                }
+            }
+    
+            if (!this.lastOutcome && idx === 0) {
+                if(this.prev.betOn === undefined || this.prev.betOn === false) {
+                    this.prev.betOn = false
+                } else {
+                    throw new Error("Perfect hedge! Trader not allowed to benefit regardless of outcome.")
+                }
             }
         }
 
-        if (!this.lastOutcome && idx === 0) {
-            if(this.prev.betOn === undefined) {
-                this.prev.betOn = false
-            } else {
-                throw new Error("Perfect hedge! Trader not allowed to benefit regardless of outcome.")
-            }
+        if (this.flag) {
+            throw new Error("one pay per condition check! and pay before checking out next condition too, please!")
         }
 
         if (idx == 0) {
-            if (this.cursor.bet[1] === null) {
-                throw new Error("one pay per condition check! and pay before checking out next condition too, please!")
-            }
-            this.cursor.bet[1] = null
             this.prev.bet[1] = amount
         } else {
-            if (this.cursor.bet[0] === null) {
-                throw new Error("one pay per condition check! and pay before checking out next condition too, please!")
-            }
-            this.cursor.bet[0] = null
             this.prev.bet[0] = amount
         }
+        this.flag = true
 
         this.collateral += amount
         if (this.collateral > this.budgetBound) {
@@ -72,6 +73,7 @@ export class Dsl {
 
     private enrichAndProgress(aliceOutcome: boolean, pubkey: string) {
         this.lastOutcome = aliceOutcome
+        this.flag = false
         if (aliceOutcome === false) {
             if (this.cursor.ifCounterPartyWins === undefined) {
                 this.cursor.ifCounterPartyWins = this.template()
@@ -211,14 +213,14 @@ if (require.main === module) {
         const model = await (new Dsl(async dsl => {
             const a = 60
             if (dsl.outcome("really?")) {
-                dsl.pay(Dsl.Alice, a + 100) 
+                dsl.pay(Dsl.Bob, a + 100) 
                 if (dsl.outcome("is it?")) {
                     dsl.pay(Dsl.Alice, 40)
                 } else {
                     dsl.pay(Dsl.Bob, 50)
                 } 
             } else {
-                dsl.pay(Dsl.Bob, 20)
+                dsl.pay(Dsl.Alice, 20)
             }
             
         })).enumerateWithBound(300)
