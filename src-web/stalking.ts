@@ -202,8 +202,6 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
                     if (!order.content.accept.openingTx.hashUnlocks) {
                         order.content.accept.openingTx.hashUnlocks = []
                     }
-                    
-                    // TODO verify integrity of children discovered (money preservation for partyCompositeCollateralAmount)
 
                     const terms = order.content.terms
                     if (terms.dependsOn && (terms.partyCompositeCollateralAmount + terms.counterpartyCompositeCollateralAmount) > (terms.partyBetAmount + terms.counterpartyBetAmount)) {
