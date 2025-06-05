@@ -77,8 +77,8 @@ export interface PreferenceModel {
 
 export interface CapabilityModel {
     capabilityPub: string
-    oracle: string
-    endpoint: string
+    oracle?: string
+    endpoint?: string
     params?: {[id: string]: string}
     answer?: string
 }
@@ -111,11 +111,6 @@ export interface MatchingEngine {
     broadcastOffer: (o: OfferModel) => Promise<string>
     acceptOffer: (o: OfferModel) => Promise<void>
     listOrders: (limit: number) => Promise<OfferModel[]>
-}
-
-interface RecursiveCompose {
-    orderId: string
-    backRefId: string
 }
 
 const capabilityFilter = (tag: string) => {
