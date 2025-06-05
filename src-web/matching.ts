@@ -100,6 +100,7 @@ export interface OfferModel {
     orderId?: string,
     ifPartyWins?: OfferModel
     ifCounterPartyWins?: OfferModel
+    recurse?: boolean //internal use
 }
 
 export interface MatchingEngine {
@@ -107,7 +108,7 @@ export interface MatchingEngine {
     collectQuestions: (cfg: PreferenceModel) => Promise<string[]>
     collectOffers: (cfg: PreferenceModel) => Promise<string[]>
     generateOffer: (cfg: PreferenceModel) => Promise<OfferModel>
-    broadcastOffer: (o: OfferModel) => Promise<void>
+    broadcastOffer: (o: OfferModel) => Promise<string>
     acceptOffer: (o: OfferModel) => Promise<void>
     listOrders: (limit: number) => Promise<OfferModel[]>
 }
@@ -161,6 +162,22 @@ export const hashLockProvider: HashLockProvider = {
     },
     getHashUnLock: async function (o: OfferMsg): Promise<string> {
         return await hash(o.pow.hash + (await window.privateDB.get("secrets", "secret-hash") ?? "insecure!"))
+    }
+}
+
+export const evaluatePartyCollateral = async (o?: OfferModel): Promise<number> => { //promise is to avoid stackoverflow
+    if (o === undefined) {
+        return 0
+    } else {
+        return o.bet[0] + Math.max(await evaluatePartyCollateral(o.ifPartyWins), await evaluatePartyCollateral(o.ifCounterPartyWins))
+    }  
+}
+
+export const evaluateCounterPartyCollateral = async (o?: OfferModel): Promise<number> => { //promise is to avoid stackoverflow
+    if (o === undefined) {
+        return 0
+    } else {
+        return o.bet[1] + Math.max(await evaluateCounterPartyCollateral(o.ifPartyWins), await evaluateCounterPartyCollateral(o.ifCounterPartyWins))
     }
 }
 
@@ -237,7 +254,10 @@ export const matchingEngine: MatchingEngine = {
 
         return model
     },
-    broadcastOffer: async function (o: OfferModel): Promise<void> {
+    broadcastOffer: async function (o: OfferModel): Promise<string> {
+        if (o.dependsOn || !o.recurse) {
+            throw "integrity: cannot broadcast dependant offer (`dependsOn` must be undefined"
+        }
         if (o.status !== 'matching') {
             throw "progresssed offers not accepted. status must be 'matching'"
         }
@@ -264,7 +284,9 @@ export const matchingEngine: MatchingEngine = {
             partyBetAmount: o.bet[0],
             counterpartyBetAmount: o.bet[1],
             txfee: window.txfee,
-            dependsOn: o.dependsOn
+            dependsOn: o.dependsOn,
+            partyCompositeCollateralAmount: await evaluatePartyCollateral(o),
+            counterpartyCompositeCollateralAmount: await evaluateCounterPartyCollateral(o)
         }
 
         const offer: Offer = { 
@@ -279,6 +301,22 @@ export const matchingEngine: MatchingEngine = {
             orderId: randomInt(1200000).toString()
         }
 
+        if (o.ifPartyWins) {
+            o.ifPartyWins.recurse = true
+            o.ifPartyWins.dependsOn.orderId = offer.orderId
+            o.ifPartyWins.dependsOn.outcome = offerTerms.partyBetsOn[0]
+            const subOrderId = await window.matching.broadcastOffer(o.ifPartyWins)
+            offer.dependantOrdersIds[0] = subOrderId
+        }
+
+        if (o.ifCounterPartyWins) {
+            o.ifCounterPartyWins.recurse = true
+            o.ifCounterPartyWins.dependsOn.orderId = offer.orderId
+            o.ifCounterPartyWins.dependsOn.outcome = offerTerms.counterPartyBetsOn[0]
+            const subOrderId = await window.matching.broadcastOffer(o.ifCounterPartyWins)
+            offer.dependantOrdersIds[1] = subOrderId
+        }
+
         window.traderApi.startBroadcastingIssuedOffers()
         window.traderApi.issueOffer({
             seqNo: 0,
@@ -286,6 +324,7 @@ export const matchingEngine: MatchingEngine = {
             pow: pow,
             content: offer
         })
+        return o.orderId
     },
     acceptOffer: async function (o: OfferModel): Promise<void> {
         if (o.status !== 'matching') {
