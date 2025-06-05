@@ -24,6 +24,8 @@ declare var cfg: MempoolConfig<any>
     window.pubkey = "e37e4cced6f555a1b2063d645f01ad4d57cc1ffa8c382d28d90561a945dbe13e"
     window.txfee = 2000
 
+    const isComposite = (process.argv[4] ?? "non-composite") === "composite"
+
     startP2P(cfg, await browserPeerAPI())
     window.traderApi = traderApi(cfg.trader, cfg, api, window.storage, p2pNode)
 

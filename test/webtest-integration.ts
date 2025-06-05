@@ -7,9 +7,9 @@ export const configure = true
 
 const peerServer = PeerServer({ port: 9009, path: "/" }); // this requires internet lol
 
-const initiator = spawn("npx", ["tsx", "test/util/webtest-initiator.ts", process.argv[3] ?? "initiator-peer2", process.argv[4] ?? "acceptor-peer2"])
+const initiator = spawn("npx", ["tsx", "test/util/webtest-initiator.ts", process.argv[3] ?? "initiator-peer2", process.argv[4] ?? "acceptor-peer2", process.argv[5] ?? "non-composite"])
     
-//example `npm run webtest-it no-trace initiator-peer2 acceptor-peer2
+//example `npm run webtest-it no-trace initiator-peer2 acceptor-peer2 non-composite
 
 let lastmsg = ""
 
@@ -46,7 +46,7 @@ setTimeout(() => {
 
 setTimeout(() => {
 
-    const acceptor = spawn("npx", ["tsx", "test/util/webtest-acceptor.ts"])
+    const acceptor = spawn("npx", ["tsx", "test/util/webtest-acceptor.ts", process.argv[3] ?? "initiator-peer2", process.argv[4] ?? "acceptor-peer2", process.argv[5] ?? "non-composite"])
         
     acceptor.stderr.on('data', async function(data){
             console.log("ACCEPTOR-E: " + data);
