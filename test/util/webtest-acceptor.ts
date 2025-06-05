@@ -17,7 +17,7 @@ declare var cfg: MempoolConfig<any>
     console.log("Start...")
 
     cfg.p2pseed = []
-    cfg.hostname = "acceptor-peer"
+    cfg.hostname = process.argv[3] ?? "acceptor-peer"
     window.address = "tb1p0l5zsw2lv9pu99dwzckjxhpufdvvylapl5spn6yd54vhnwa989hq20cvyv"
     window.pubkey = "7fe828395f6143c295ae162d235c3c4b58c27fa1fd2019e88da55979bba5396e"
     window.txfee = 2000

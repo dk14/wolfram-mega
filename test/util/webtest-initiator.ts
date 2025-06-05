@@ -18,8 +18,8 @@ declare var cfg: MempoolConfig<any>
     console.log("Start...")
 
     cfg.p2pseed = []
-    cfg.p2pseed[0] = {server: "acceptor-peer", port: 0}
-    cfg.hostname = "initiator-peer"
+    cfg.p2pseed[0] = {server: process.argv[3] ?? "acceptor-peer", port: 0}
+    cfg.hostname = process.argv[2] ?? "initiator-peer2"
     window.address = "tb1pudlyenkk7426rvsx84j97qddf4tuc8l63suz62xeq4s6j3wmuylq0j54ex" //e37 pub
     window.pubkey = "e37e4cced6f555a1b2063d645f01ad4d57cc1ffa8c382d28d90561a945dbe13e"
     window.txfee = 2000

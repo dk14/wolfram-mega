@@ -7,8 +7,10 @@ export const configure = true
 
 const peerServer = PeerServer({ port: 9009, path: "/" }); // this requires internet lol
 
-const initiator = spawn("npx", ["tsx", "test/util/webtest-initiator.ts"])
+const initiator = spawn("npx", ["tsx", "test/util/webtest-initiator.ts", process.argv[3] ?? "initiator-peer2", process.argv[4] ?? "acceptor-peer2"])
     
+//example `npm run webtest-it no-trace initiator-peer2 acceptor-peer2
+
 let lastmsg = ""
 
 const fullLog = process.argv[2] === "trace";
