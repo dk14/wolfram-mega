@@ -96,7 +96,7 @@ export interface OfferModel {
     status: OfferStatus,
     blockchain: string,
     role: 'initiator' | 'acceptor'
-    dependsOn?: DependsOn[],
+    dependsOn?: DependsOn,
     orderId?: string,
     ifPartyWins?: OfferModel
     ifCounterPartyWins?: OfferModel
@@ -115,7 +115,6 @@ export interface MatchingEngine {
 interface RecursiveCompose {
     orderId: string
     backRefId: string
-
 }
 
 const capabilityFilter = (tag: string) => {
@@ -256,6 +255,7 @@ export const matchingEngine: MatchingEngine = {
             capabilityPubKey: o.oracles[0].capabilityPub,
             arguments: {}
         }
+        
 
         const offerTerms: OfferTerms = {
             question: factRequest,
@@ -263,7 +263,8 @@ export const matchingEngine: MatchingEngine = {
             counterPartyBetsOn: [!o.betOn ? "YES": "NO"],
             partyBetAmount: o.bet[0],
             counterpartyBetAmount: o.bet[1],
-            txfee: window.txfee
+            txfee: window.txfee,
+            dependsOn: o.dependsOn
         }
 
         const offer: Offer = { 
