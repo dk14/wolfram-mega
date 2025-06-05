@@ -141,7 +141,7 @@ Mega allows messages with PoW=0 (any hash then, integrity is skipped for PoW=0),
 
 For public networks - PoW is unavoidable, regardless of type of messaging. Mega, however provides random evictions, which combined with `powThreshold = 0`, effectively allow to allocate `randomEvictionRate` percentage of the pool to messages without PoW. 
 
-This can be used as a fast relay for broadcasting offer negotiation messages, akin to how bitcoin transactions broadcasted. `powThreshold` can be fine-tuned manually in order to avoid spam and propagate necessary messages faster. Simillarly to Nano, PoW-load on traders can be minimized.
+This can be used as a fast relay for broadcasting offer negotiation messages, akin to how bitcoin transactions broadcasted. `powThreshold` can be fine-tuned manually in order to avoid spam and propagate necessary messages faster. Simillarly to Nano, PoW-load on participants can be minimized.
 
 Matching can have separate public network (different seedlist) in order to facilitate high order throughtput.
 
