@@ -89,7 +89,7 @@ setInterval(() => window.stalking.trackIssuedOffers(
 
 > We use HTLC (`OP_SHA256 <lock> OP_EQUAL OP_VERIFY`) to ensure atomicity of co-signing CET-transactions, CET-transactions would only become spendable after Alice and Bob BOTH share their preimages to SHA256-commitments.
 > Without this scheme, ["fair exchange protocols"](https://crypto.stackexchange.com/questions/61386/atomic-multi-party-commitments/117171#117171) in singning would be broken. Nothing would stop Alice from only signing CET-transaction that she likes. Then if she wins the bet - she'll get the winning, if she loses - she loses with revenge: Bob won't win either (Win or MAD). 
-> This still requires extra security deposit - because Alice might decide to not give her hash in exchange for Bob's hash. But such deposit would only be locked for the time of signing - it is not locked with oracle's outcome. Thus, it can be redeemed right away. The moment Alice decides to unlock this UtXO - her hash will be known to Bob.
+> This still requires extra security deposit - because Alice might decide to not give her preimage in exchange for Bob's preimage. But such deposit would only be locked for the time of signing - it is not locked with oracle's outcome. Thus, it can be redeemed right away. The moment Alice decides to unlock this UtXO - her hash will be known to Bob.
 
 > Locks provide MAD symmetrically as a worst case outcome of co-signing with revengeful malicious party, no revenge for Alice. Note: MAD refunds are possible after timeout (same as with Bitcoin Lightning) - but we don't provide it for testnet version, since symmetric MAD ensures security already.
 
