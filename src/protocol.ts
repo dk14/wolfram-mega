@@ -194,9 +194,8 @@ export interface PartiallySignedTx {
 export type OfferHashCash = string
 
 export interface DependsOn { //for schedules, aka stateful multi-stage contracts, everything that Marlowe can do
-    outome: string,
-    offerRefs: string[] //OR condition
-    stateTxId?: string // for composite contract aggregation, interpreter needs this param
+    outcome: Answer
+    offerRef?: string // undefined means ANY_PREVOUT, a function or recursive call; it is safe to do it, sine dsl would inline any closures (previous observations) required; btc is purely functional
 }
 
 export interface AcceptOffer {
@@ -232,6 +231,8 @@ export interface Offer {
     originatorId?: string //for matching
     originatorSig?: string //for matching - to check if u really originator
     orderId?: string 
+    dependantOrdersIds?: string[]
+
     addresses?: string[]
     pubkeys?: [string, string],
     utxos?: [[string, number][], [string, number][]]

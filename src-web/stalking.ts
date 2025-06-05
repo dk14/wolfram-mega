@@ -1,4 +1,5 @@
 import { UTxO } from "../src/client-api/contracts/btc/tx"
+import { doubleSHA256reversed } from "../src/client-api/contracts/generate-btc-tx"
 import { Commitment, Fact, FactRequest, OfferMsg } from "../src/protocol"
 import { PreferenceModel, checkOriginatorId, getOriginatorId, maxBy, randomInt } from "./matching"
 import { OracleDataProvider } from "./oracle-data-provider"
@@ -162,8 +163,26 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
                     console.error("NO HASHLOCK COMMITMENT!")
                     return //wait for all locks to be committed
                 }
+
+                let stateTxId = undefined
+                if (order.content.terms.dependsOn) {
+                    const candidates = await window.storage.queryOffers({
+                        where: async x => x.pow.hash === order.content.terms.dependsOn.offerRef
+                    }, pagedescriptor)
+                    if (candidates.length === 0){
+                        console.error("STALKER: AWAIT DEPENDENCY: " + order.pow.hash + " <= " + order.content.terms.dependsOn.offerRef)
+                        return
+                    }
+
+                    const parent = maxBy(candidates, x => rank(x)) //maxBy just in case
+                    if (!parent.content.finalize) {
+                        console.error("STALKER: AWAIT DEPENDENCY STATE: " + order.pow.hash + " <= " + order.content.terms.dependsOn.offerRef)
+                    }
+                    const idx = parent.content.terms.partyBetsOn.find(x => x === order.content.terms.dependsOn.outcome) ? 0 : 1
+                    stateTxId = doubleSHA256reversed(parent.content.accept.cetTxSet[idx].tx)
+                }
                 
-                const [contract, partial] = await interpreter.genContractTx(inputs, [commitment], order)
+                const [contract, partial] = await interpreter.genContractTx(inputs, [commitment], order, stateTxId)
 
                 if (partial !== undefined) {
                     
@@ -184,6 +203,28 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
                         order.content.accept.openingTx.hashUnlocks = []
                     }
                     
+                    // TODO verify integrity of children discovered (money preservation for partyCompositeCollateralAmount)
+
+                    const terms = order.content.terms
+                    if (terms.dependsOn && (terms.partyCompositeCollateralAmount + terms.counterpartyCompositeCollateralAmount) > (terms.partyBetAmount + terms.counterpartyBetAmount)) {
+                        const dependants = await window.storage.queryOffers({
+                            where: async x => order.pow.hash === x.content.terms.dependsOn.offerRef
+                        }, pagedescriptor)
+                        const filtered = Object.values(Object.groupBy(dependants, x => x.content.orderId)).map(candidates => maxBy(candidates, x => rank(x)))
+                        const orders = filtered.map(x => x.content.orderId).sort()
+                        const expected = order.content.dependantOrdersIds.sort()
+                        const integrity = orders.map((x,i) => expected[i] === x).reduce((a,b) => a && b)
+                        if (!integrity){
+                            console.error("STALKER: AWAIT DEPENDANTS FOR: " + order.pow.hash + " " + orders)
+                            return
+                        }
+                        const unlocked = filtered.map(x => x.content.accept.openingTx.hashUnlocks[0] && x.content.accept.openingTx.hashUnlocks[1]).reduce((a, b) => a && b)
+                        if (!unlocked) {
+                            console.error("STALKER: AWAIT DEPENDANTS TO UNLOCK HTLC: " + order.pow.hash + " " + orders)
+                            return
+                        }
+                    }
+
                     if (checkOriginatorId(order.content.originatorId)) {
                         order.content.accept.openingTx.hashUnlocks[0] = await window.hashLockProvider.getHashLock(order)
                     } else {

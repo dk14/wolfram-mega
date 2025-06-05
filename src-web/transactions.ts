@@ -138,6 +138,9 @@ const genContractTx = async (inputs: Inputs, c: Commitment[], offer: OfferMsg, s
                     changeBob: inputs.utxoBob.map(x => x.value).reduce((a, b) => a + b) - terms.counterpartyBetAmount,
                     txfee: terms.txfee,
                     openingSession: { sigs: openingSession.partialSigs },
+                    stateAmount: offer.content.terms.dependsOn ? 
+                        terms.partyCompositeCollateralAmount + terms.counterpartyCompositeCollateralAmount - terms.partyBetAmount - terms.counterpartyBetAmount
+                        : undefined,
                     session: (() => {
                         const session = {}
                         session[yesOutcome] = {
@@ -180,7 +183,7 @@ const genContractTx = async (inputs: Inputs, c: Commitment[], offer: OfferMsg, s
                 } else {
                     const adaptedParams: ChildDlcParams = {
                         ...params,
-                        lockedTxId: terms.dependsOn.stateTxId,
+                        lockedTxId: stateTxId,
                         stateAmount: params.stateAmount!
                     }
                     resolveDlc(window.btc.generateChildDlcContract(adaptedParams))
