@@ -210,7 +210,7 @@ export class Dsl {
 
 if (require.main === module) {
     (async () => {
-        const model = await (new Dsl(async dsl => {
+        const model = await (new Dsl(async dsl => { //TODO cannot re-use same oracle
             const a = 60
             if (dsl.outcome("really?")) {
                 dsl.pay(Dsl.Bob, a + 100) 
@@ -222,10 +222,8 @@ if (require.main === module) {
             } else {
                 dsl.pay(Dsl.Alice, 20)
             }
-            
         })).enumerateWithBound(300)
         console.log(model)
         console.log("OK!")
     })()
-    
 }

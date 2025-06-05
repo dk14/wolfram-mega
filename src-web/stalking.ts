@@ -13,7 +13,7 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
     
     const pagedescriptor = {
         page: 0,
-        chunkSize: 300
+        chunkSize: 700
     }
 
     const allOffers = (await window.storage.queryIssuedOffers({
@@ -29,6 +29,9 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
 
         rank += offer.content.accept ? 1 : 0
         rank += offer.content.finalize ? 1 : 0
+        if (!offer.content.accept) {
+            return rank
+        }
         const sigs1 = offer.content.accept.openingTx
         rank += sigs1.sesionCommitments[0] ? 1 : 0
         rank += sigs1.sesionCommitments[1] ? 1 : 0
@@ -51,12 +54,26 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
         rank += sigs3.partialSigs[0] ? 1 : 0
         rank += sigs3.partialSigs[1] ? 1 : 0
 
-        //console.error(rank)
+        const locks = offer.content.accept.openingTx.hashLocks
+
+        if (locks) {
+            rank += locks[0] ? 1 : 0
+            rank += locks[1] ? 1 : 0
+        }
+
+        const unlocks = offer.content.accept.openingTx.hashUnlocks
+
+        if (unlocks) {
+            rank += unlocks[0] ? 1 : 0
+            rank += unlocks[1] ? 1 : 0
+        }
+
+        rank += offer.content.finalize ? 3 : 0
+
         return rank
     }
     
-    //const allOffersFiltered = Object.values(allOffersGrouped).map(copies => copies.filter(x => rank(x) === rank(maxBy(copies, x => rank(x))))).flat()
-
+    //TODO
     const allOffersFiltered = Object.entries(allOffersGrouped).filter(x => x[1].length < reattemptMuSig).map(x => x[1]).flat()
 
 
@@ -68,7 +85,7 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
                 where: async x => 
                     x.content.accept && x.content.accept?.offerRef === orderPreviousState.pow.hash ||
                     x.content.finalize && x.content.finalize?.acceptRef === orderPreviousState.pow.hash || 
-                    x.content.finalize && x.content.finalize?.previousFinalRef === orderPreviousState.pow.hash 
+                    x.content.finalize && x.content.finalize?.previousFinalRef === orderPreviousState.pow.hash
             }, pagedescriptor)
 
             console.log((await window.storage.queryOffers({where: async x => true}, pagedescriptor)).map(o => o.pow.hash))
@@ -79,7 +96,7 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
 
             const order = structuredClone(maxBy(candidates, x => rank(x)))
 
-            //TODO ORDER MALLEABILITY: validate new state of the order or re-use the original state
+            //TODO ORDER MALLEABILITY: validate new state of the order (trader's signature over original terms without accept/finalize)
 
             console.error("STALKER: FOUND " + order.pow.hash + " <= " + orderPreviousState.pow.hash)
 
@@ -92,7 +109,7 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
             const commitment: Commitment = await dataProvider.getCommitment(endpoint, order.content.terms.question)
 
             if (order.content.terms.question2) {
-                //quorums
+                //TODO: quorums
             }
 
             if (order.content.finalize) {
@@ -169,18 +186,24 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
                     const candidates = await window.storage.queryOffers({
                         where: async x => x.content.orderId === order.content.terms.dependsOn.orderId
                     }, pagedescriptor)
-                    if (candidates.length === 0){
+                    if (candidates.length === 0) {
                         console.error("STALKER: AWAIT DEPENDENCY: " + order.content.orderId + " <= " + order.content.terms.dependsOn.orderId)
                         return
                     }
 
-                    const parent = maxBy(candidates, x => rank(x)) //maxBy just in case
-                    if (!parent.content.finalize) {
+                    const dependency = maxBy(candidates, x => rank(x)) //maxBy just in case
+                    if (!dependency.content.finalize) {
+                                     
+
+                        console.error("STALKER: DEPENDENCY: " + dependency.pow.hash)
+
                         console.error("STALKER: AWAIT DEPENDENCY STATE: " + order.content.orderId + " <= " + order.content.terms.dependsOn.orderId)
                         return
+                    } else {
+                        console.error("STALKER: DEPENDENCY AVAILABLE " + dependency.pow.hash)
                     }
-                    const idx = parent.content.terms.partyBetsOn.find(x => x === order.content.terms.dependsOn.outcome) ? 0 : 1
-                    stateTxId = doubleSHA256reversed(parent.content.accept.cetTxSet[idx].tx)
+                    const idx = dependency.content.terms.partyBetsOn.find(x => x === order.content.terms.dependsOn.outcome) ? 0 : 1
+                    stateTxId = doubleSHA256reversed(dependency.content.accept.cetTxSet[idx].tx)
                 }
                 
                 const [contract, partial] = await interpreter.genContractTx(inputs, [commitment], order, stateTxId)
@@ -204,23 +227,26 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
                         order.content.accept.openingTx.hashUnlocks = []
                     }
 
-                    if (order.content.dependantOrdersIds) {
+                    if (order.content.dependantOrdersIds !== undefined) {
+                        console.error("STALKER: CHECK COMPOSITE ORDER INTEGRITY: " + order.content.orderId + " " + order.pow.hash)
                         const dependants = await window.storage.queryOffers({
-                            where: async x => order.content.orderId === x.content.terms.dependsOn.orderId
+                            where: async x => x.content.terms.dependsOn && order.content.orderId === x.content.terms.dependsOn.orderId
                         }, pagedescriptor)
                         const filtered = Object.values(Object.groupBy(dependants, x => x.content.orderId)).map(candidates => maxBy(candidates, x => rank(x)))
-                        const orders = filtered.map(x => x.content.orderId).sort()
+                        const ordersIds = filtered.map(x => x.content.orderId).sort()
                         const expected = order.content.dependantOrdersIds.sort()
-                        const integrity = orders.map((x,i) => expected[i] === x).reduce((a,b) => a && b)
+                        const integrity = ordersIds.map((x, i) => expected[i] !== undefined && expected[i] === x).reduce((a, b) => a && b)
                         if (!integrity){
-                            console.error("STALKER: AWAIT DEPENDANTS FOR: " + order.content.orderId + " " + orders)
+                            console.error("STALKER: AWAIT DEPENDANTS FOR: " + order.content.orderId + " " + ordersIds)
                             return
                         }
 
-                        const unlocked = filtered.map(x => x.content.accept.openingTx.hashUnlocks[0] && x.content.accept.openingTx.hashUnlocks[1]).reduce((a, b) => a && b)
+                        const unlocked = filtered.map(x => x.content.accept && x.content.accept.openingTx.hashLocks && x.content.accept.openingTx.hashLocks[0] && x.content.accept.openingTx.hashLocks[1]).reduce((a, b) => a && b)
                         if (!unlocked) {
-                            console.error("STALKER: AWAIT DEPENDANTS TO UNLOCK HTLC: " + order.content.orderId + " " + orders)
+                            console.error("STALKER: AWAIT DEPENDANTS TO COMMIT HTLC: " + order.content.orderId + " " + ordersIds)
                             return
+                        } else {
+                            console.error("STALKER: DEPENDANTS COMMITTED" + order.content.orderId + " " + ordersIds)
                         }
                     }
 
@@ -230,7 +256,7 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
                         order.content.accept.openingTx.hashUnlocks[1] = await window.hashLockProvider.getHashLock(order)
                     }
 
-                    console.log("[FINAL LOCKING TX]" + JSON.stringify(order))
+                    console.error("[FINAL LOCKING TX]" + JSON.stringify(order))
                     
                     const txId = await interpreter.submitTx(contract.openingTx)
 

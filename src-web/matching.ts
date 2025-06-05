@@ -266,7 +266,7 @@ export const matchingEngine: MatchingEngine = {
         const pow: HashCashPow = {
             difficulty: 0,
             algorithm: "SHA256",
-            hash: (o.dependsOn ? "depends-": "") + "init-" + randomInt(100), //initial id
+            hash: (o.dependsOn ? "dependant-": "") + ((o.ifPartyWins || o.ifCounterPartyWins) ? "composite-": "") + "init-" + randomInt(100), //initial id
             magicNo: 0
         }
 
@@ -327,8 +327,9 @@ export const matchingEngine: MatchingEngine = {
                 if (!offer.dependantOrdersIds) {
                     offer.dependantOrdersIds = []
                 }
+                offer.dependantOrdersIds[1] = subOrderId
             }
-            offer.dependantOrdersIds[1] = subOrderId
+            
         }
 
         window.traderApi.startBroadcastingIssuedOffers()
@@ -338,14 +339,18 @@ export const matchingEngine: MatchingEngine = {
             pow: pow,
             content: offer
         })
-        return o.orderId
+        return offer.orderId
     },
     acceptOffer: async function (o: OfferModel): Promise<void> {
+        if (o.dependsOn && !o.recurse) {
+            throw new Error("integrity: cannot accept dependant offer (`dependsOn` must be undefined). root offer is required to accept")
+        }
+
         if (o.status !== 'matching') {
-            throw "progresssed offers not accepted. status must be 'matching'"
+            throw new Error("progresssed offers not accepted. status must be 'matching'")
         }
         if (o.role !== 'acceptor') {
-            throw "you must be initiator; use acceptOffer to accept"
+            throw new Error("you must be acceptor; use broadcastOffer to broadcast")
         }
         
         const offer = structuredClone((await window.storage.queryOffers({where: async x => x.pow.hash === o.id}, oneElemPage))[0])
@@ -396,10 +401,34 @@ export const matchingEngine: MatchingEngine = {
             offer.content.pubkeys = [undefined, undefined]
         }
         offer.content.pubkeys[1] = window.pubkey
-        offer.pow.hash = offer.pow.hash + "-accept-" + randomInt(100) //will be upgraded
+        offer.pow.hash = offer.pow.hash + (o.dependsOn ? "depends": "-") + "accept-" + randomInt(100) //will be upgraded
 
         offer.content.accept.openingTx.hashLocks[1] = await hashLockProvider.getHashLock(offer)
 
+        const pagedescriptor = {
+            page: 0,
+            chunkSize: 300
+        }
+
+        if (offer.content.dependantOrdersIds !== undefined) {
+            const dependants = await window.storage.queryOffers({
+                where: async x => x.content.terms.dependsOn && offer.content.orderId === x.content.terms.dependsOn.orderId
+            }, pagedescriptor)
+            const filtered = dependants.filter(x => x.content.accept === undefined)
+            await Promise.all(filtered.map(async dependant => {
+                const model: OfferModel = {
+                    id: dependant.pow.hash,
+                    bet: [dependant.content.terms.partyBetAmount, dependant.content.terms.counterpartyBetAmount],
+                    oracles: [{capabilityPub: dependant.content.terms.question.capabilityPubKey}],
+                    question: dependant.content.terms.question.capabilityPubKey,
+                    status: "matching",
+                    blockchain: dependant.content.blockchain,
+                    role: "acceptor"
+                }
+                model.recurse = true
+                return await window.matching.acceptOffer(model)
+            }))
+        }
         window.traderApi.startBroadcastingIssuedOffers()
         window.traderApi.issueOffer(offer)
     },
