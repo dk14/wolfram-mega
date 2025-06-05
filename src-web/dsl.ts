@@ -178,7 +178,7 @@ export class Dsl {
         return model
     }
 
-    public async enumerate(collateralBound: number): Promise<OfferModel> {
+    public async enumerateWithBound(collateralBound: number): Promise<OfferModel> {
         if (this.protect) {
             throw "Don't call enumerate inside of the body of your script!"
         }
@@ -210,7 +210,7 @@ if (require.main === module) {
     (async () => {
         const model = await (new Dsl(async dsl => {
             const a = 60
-            if (dsl.outcome("really?")) { //TODO add par
+            if (dsl.outcome("really?")) {
                 dsl.pay(Dsl.Alice, a + 100) 
                 if (dsl.outcome("is it?")) {
                     dsl.pay(Dsl.Alice, 40)
@@ -221,7 +221,7 @@ if (require.main === module) {
                 dsl.pay(Dsl.Bob, 20)
             }
             
-        })).enumerate(300)
+        })).enumerateWithBound(300)
         console.log(model)
         console.log("OK!")
     })()
