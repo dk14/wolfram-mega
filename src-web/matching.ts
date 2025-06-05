@@ -251,7 +251,7 @@ export const matchingEngine: MatchingEngine = {
         return model
     },
     broadcastOffer: async function (o: OfferModel): Promise<string> {
-        if (o.dependsOn || !o.recurse) {
+        if (o.dependsOn && !o.recurse) {
             throw "integrity: cannot broadcast dependant offer (`dependsOn` must be undefined"
         }
         if (o.status !== 'matching') {
