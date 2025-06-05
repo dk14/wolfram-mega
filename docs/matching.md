@@ -123,11 +123,11 @@ The rule for evolving offer state collaboratively is to always pick the offer wi
 
 `Offer` has `encryptedDetails` field for custom privacy oriented matching engines. Sharing tx data is optional as well - anything can be in there. 
 
-The key idea is obfuscation - with a bit of PoW, offer pools can be filled with random offers, relating to random oracles and capabilities.
+The key idea is obfuscation - with a bit of PoW, offer pools can be filled with random offers, random negotiations, relating to random oracles and capabilities.
 
 > Offers meant to have high random eviction rate - their PoW should be cheap, since it is only for spam protection.
 
-Actual aquisition of data is happening outside of `Mega` - oracle `Commitment`s are not shared publicly unless trader decides to report malleable oracle.
+Actual aquisition of data is happening outside of `Mega` - oracle `Commitment`s are not shared publicly unless trader decides to report malleable oracle. Certain types of reports, e.g. `fact-disagrees-with-public` consensus can be faked too, only PoW is relevant.
 
 > Matching offers on Mega is non-essential feature of the protocol. Traders can always bypass Mega p2p and communicate offers outside of mempools. Although, Mega could be safer and more private than "private societies" in messengers which are easy to not just infiltrate, but also manipulate, due to illusion of privacy and anonymity, coming from creators of such messengers. 
 
