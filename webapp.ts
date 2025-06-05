@@ -254,11 +254,13 @@ window.privateDB = await openDB('private', 1, {
 const pub1 = "e37e4cced6f555a1b2063d645f01ad4d57cc1ffa8c382d28d90561a945dbe13e"
 const pub2 = "7fe828395f6143c295ae162d235c3c4b58c27fa1fd2019e88da55979bba5396e"
 const pubOracleCp = "07508128697f7a1aca5c3e86292daa4b08f76e68b405e4b4ffe50d066ade55c3"
+const pubOracleCp2 = "cPCMiHyZQt7UWF9y49CaW7ckT9FaFQj5ChnEbXnF51WwEcp6Agkq"
 
 try {
     await window.privateDB.add("secrets", "cRFAdefAzpxzKduj3F9wf3qSTgA5johBBqPZZT72hh46dgCRr997", pub1)
     await window.privateDB.add("secrets", "cPCMiHyZQt7UWF9y49CaW7ckT9FaFQj5ChnEbXnF51WwEcp6Agkq", pub2)
     await window.privateDB.add("secrets", "cW3z2LN7rwnomrds4cF2PJhbrCmFPkX1Q8KY5Fe6F6myRotHFXrv", pubOracleCp) 
+    await window.privateDB.add("secrets", "cPCMiHyZQt7UWF9y49CaW7ckT9FaFQj5ChnEbXnF51WwEcp6Agkq", pubOracleCp2) 
 } catch (e) {
     console.error(e)
 }
@@ -280,6 +282,7 @@ window.webOracleFacts = await openDB('web-oracle', 1, {
 
 try {
     await window.webOracleFacts.add("answers", "YES", pubOracleCp)
+    await window.webOracleFacts.add("answers", "YES", pubOracleCp2)
 } catch {
 
 }
@@ -730,9 +733,26 @@ const testCp: OracleCapability = {
     endpoint: "weboracle:local",
     tags: ["world"]
 }
+
+const testCp2: OracleCapability = {
+    oraclePubKey: pubOracleCp,
+    capabilityPubKey: pubOracleCp2,
+    question: 'human extinct?',
+    seqNo: 0,
+    cTTL: 0,
+    oracleSignature: '',
+    oracleSignatureType: 'SHA256',
+    pow: mockPow,
+    endpoint: "weboracle:local",
+    tags: ["world"]
+}
+
 await ndapi.announceOracle(cfg, testOracle)
 await ndapi.announceCapability(cfg, testCp)
 await window.storage.addCp(testCp)
+
+await ndapi.announceCapability(cfg, testCp2)
+await window.storage.addCp(testCp2)
 
 await ndapi.publishOffer(cfg, testOfferMsg)
 await window.storage.addOffer(testOfferMsg)

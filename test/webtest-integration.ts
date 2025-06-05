@@ -9,7 +9,9 @@ const peerServer = PeerServer({ port: 9009, path: "/" }); // this requires inter
 
 const initiator = spawn("npx", ["tsx", "test/util/webtest-initiator.ts", process.argv[3] ?? "initiator-peer2", process.argv[4] ?? "acceptor-peer2", process.argv[5] ?? "non-composite"])
     
-//example `npm run webtest-it no-trace initiator-peer2 acceptor-peer2 non-composite
+// example `npm run webtest-it no-trace initiator-peer2 acceptor-peer2 non-composite
+
+// npm run webtest-it trace init2327676 init5564545 composite
 
 let lastmsg = ""
 

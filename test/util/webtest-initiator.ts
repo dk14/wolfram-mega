@@ -10,6 +10,7 @@ import { browserPeerAPI } from "../../src/p2p-webrtc";
 import { MempoolConfig } from "../../src/config";
 import { traderApi } from "../../src/client-api/trader-api";
 import { api } from "../../src/api";
+import { Dsl } from "../../src-web/dsl";
 
 declare var cfg: MempoolConfig<any>
 
@@ -55,7 +56,7 @@ declare var cfg: MempoolConfig<any>
     }
     const myCustomOffer: OfferModel = {
         id: 'id',
-        bet: [4000, 2053],
+        bet: [4000, 2053], //TODO bug same address
         oracles: [oracle],
         question: '?',
         status: 'matching',
@@ -63,8 +64,22 @@ declare var cfg: MempoolConfig<any>
         role: 'initiator'
     }
 
+    const myCompositeOffer = await (new Dsl(async dsl => { //TODO dependantOrdersIds not picked up, acceptOffer does not accept children
+        const a = 60
+        if (dsl.outcome(oracles[0].capabilityPubKey)) {
+            dsl.pay(Dsl.Bob, 4000) 
+            if (dsl.outcome(oracles[1].capabilityPubKey)) {
+                dsl.pay(Dsl.Alice, 40)
+            } else {
+                dsl.pay(Dsl.Bob, 50)
+            } 
+        } else {
+            dsl.pay(Dsl.Alice, 2053)
+        }
+        
+    })).enumerateWithBound(140000)
 
-    await window.matching.broadcastOffer(myCustomOffer)
+    await window.matching.broadcastOffer(isComposite ? myCompositeOffer : myCustomOffer)
 
     setInterval(async () => {
         const orders = await window.matching.listOrders(100)

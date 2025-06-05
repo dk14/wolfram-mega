@@ -266,7 +266,7 @@ export const matchingEngine: MatchingEngine = {
         const pow: HashCashPow = {
             difficulty: 0,
             algorithm: "SHA256",
-            hash: "init-" + randomInt(100), //initial id
+            hash: (o.dependsOn ? "depends-": "") + "init-" + randomInt(100), //initial id
             magicNo: 0
         }
 
@@ -302,8 +302,10 @@ export const matchingEngine: MatchingEngine = {
 
         if (o.ifPartyWins) {
             o.ifPartyWins.recurse = true
-            o.ifPartyWins.dependsOn.orderId = offer.orderId
-            o.ifPartyWins.dependsOn.outcome = offerTerms.partyBetsOn[0]
+            o.ifPartyWins.dependsOn = {
+                orderId: offer.orderId,
+                outcome: offerTerms.partyBetsOn[0]
+            }
             const subOrderId = await window.matching.broadcastOffer(o.ifPartyWins)
             if (subOrderId) {
                 if (!offer.dependantOrdersIds) {
@@ -316,8 +318,10 @@ export const matchingEngine: MatchingEngine = {
 
         if (o.ifCounterPartyWins) {
             o.ifCounterPartyWins.recurse = true
-            o.ifCounterPartyWins.dependsOn.orderId = offer.orderId
-            o.ifCounterPartyWins.dependsOn.outcome = offerTerms.counterPartyBetsOn[0]
+            o.ifCounterPartyWins.dependsOn = {
+                orderId: offer.orderId,
+                outcome: offerTerms.counterPartyBetsOn[0]
+            }
             const subOrderId = await window.matching.broadcastOffer(o.ifCounterPartyWins)
             if (subOrderId) {
                 if (!offer.dependantOrdersIds) {

@@ -177,6 +177,7 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
                     const parent = maxBy(candidates, x => rank(x)) //maxBy just in case
                     if (!parent.content.finalize) {
                         console.error("STALKER: AWAIT DEPENDENCY STATE: " + order.content.orderId + " <= " + order.content.terms.dependsOn.orderId)
+                        return
                     }
                     const idx = parent.content.terms.partyBetsOn.find(x => x === order.content.terms.dependsOn.outcome) ? 0 : 1
                     stateTxId = doubleSHA256reversed(parent.content.accept.cetTxSet[idx].tx)
@@ -203,8 +204,7 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
                         order.content.accept.openingTx.hashUnlocks = []
                     }
 
-                    const terms = order.content.terms
-                    if (terms.dependsOn && (terms.partyCompositeCollateralAmount + terms.counterpartyCompositeCollateralAmount) > (terms.partyBetAmount + terms.counterpartyBetAmount)) {
+                    if (order.content.dependantOrdersIds) {
                         const dependants = await window.storage.queryOffers({
                             where: async x => order.content.orderId === x.content.terms.dependsOn.orderId
                         }, pagedescriptor)
