@@ -3,8 +3,9 @@
 
 ```ts
 const maxBudget = 300
+const b = 30
 const model = await (new Dsl(async dsl => {
-    const a = 60
+    const a = 30 + b
     if (dsl.outcome("really?")) {
         dsl.pay(Dsl.Bob, a + 100) 
         if (dsl.outcome("is it?")) {
