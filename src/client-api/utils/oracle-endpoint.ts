@@ -4,6 +4,7 @@ import { OracleEndpointApi } from '../oracle-endpoint-api'
 import { OracleCapability, FactRequest, Commitment, Fact } from '../../protocol'
 import * as fs from 'fs'
 import { webSign } from './oracle-web-signer';
+import { isBrowser } from '../../util';
 
 export interface LookUp {
     getFact: (fr: FactRequest) => Promise<string>
@@ -150,62 +151,64 @@ interface EndpointCfg {
     signerAddress: string
 }
 
-if (require.main === module) {
+if (!isBrowser()) {
+    if (require.main === module) {
 
-    const path = process.argv[2] ?? "cfg/endpoint-test.json";
-
-    const getcfg = (): EndpointCfg => {
-        try {
-            return JSON.parse(fs.readFileSync(__dirname + '/' + path).toString())
-        } catch {
-            return JSON.parse(fs.readFileSync(path).toString())
-        }
-
-    }
-
-    const cfg = getcfg()
-
-    const lookup: LookUp = {
-        getFact: async function (fr: FactRequest): Promise<string> {
-            try {
-                if (cfg.answers[fr.capabilityPubKey]) {
-                    return cfg.answers[fr.capabilityPubKey]
-                }
-            } catch {
-
-            }
-            return "YES"
-        },
-        checkCommitment: async function (c: FactRequest): Promise<boolean> {
-            return true
-        }
-    }
-
-    const restSigner = async (x: [Commitment, string]): Promise<string> => {        
-        if (x[1] === '!RVALUE') {
-            const res = ((await fetch(cfg.signerAddress + "rvalue", {
-                method: 'post',
-                body: JSON.stringify(x[0]),
-                headers: {'Content-Type': 'application/json'}
-            })).text())
-            return(res)
-        } else if (x[1] === '') {
-            return ((await fetch(cfg.signerAddress + "signCommitment", {
-                method: 'post',
-                body: JSON.stringify(x[0]),
-                headers: {'Content-Type': 'application/json'}
-            })).text())
-        } else {
-            return ((await fetch(cfg.signerAddress + "signFact?fact=" + encodeURIComponent(x[1]), {
-                method: 'post',
-                body: JSON.stringify(x[0]),
-                headers: {'Content-Type': 'application/json'}
-            })).text())
-        }
-    }
-    const api = endpointAPi(() => restSigner, lookup)
-
-    console.log(`Starting Oracle Mocking Endpoint... HTTP=${cfg.httpPort}`)
-    startHttp(api, cfg.httpPort)
+        const path = process.argv[2] ?? "cfg/endpoint-test.json";
     
+        const getcfg = (): EndpointCfg => {
+            try {
+                return JSON.parse(fs.readFileSync(__dirname + '/' + path).toString())
+            } catch {
+                return JSON.parse(fs.readFileSync(path).toString())
+            }
+    
+        }
+    
+        const cfg = getcfg()
+    
+        const lookup: LookUp = {
+            getFact: async function (fr: FactRequest): Promise<string> {
+                try {
+                    if (cfg.answers[fr.capabilityPubKey]) {
+                        return cfg.answers[fr.capabilityPubKey]
+                    }
+                } catch {
+    
+                }
+                return "YES"
+            },
+            checkCommitment: async function (c: FactRequest): Promise<boolean> {
+                return true
+            }
+        }
+    
+        const restSigner = async (x: [Commitment, string]): Promise<string> => {        
+            if (x[1] === '!RVALUE') {
+                const res = ((await fetch(cfg.signerAddress + "rvalue", {
+                    method: 'post',
+                    body: JSON.stringify(x[0]),
+                    headers: {'Content-Type': 'application/json'}
+                })).text())
+                return(res)
+            } else if (x[1] === '') {
+                return ((await fetch(cfg.signerAddress + "signCommitment", {
+                    method: 'post',
+                    body: JSON.stringify(x[0]),
+                    headers: {'Content-Type': 'application/json'}
+                })).text())
+            } else {
+                return ((await fetch(cfg.signerAddress + "signFact?fact=" + encodeURIComponent(x[1]), {
+                    method: 'post',
+                    body: JSON.stringify(x[0]),
+                    headers: {'Content-Type': 'application/json'}
+                })).text())
+            }
+        }
+        const api = endpointAPi(() => restSigner, lookup)
+    
+        console.log(`Starting Oracle Mocking Endpoint... HTTP=${cfg.httpPort}`)
+        startHttp(api, cfg.httpPort)
+        
+    }
 }
