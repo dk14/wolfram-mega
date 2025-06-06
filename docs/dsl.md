@@ -28,7 +28,6 @@ Output:
   "bet": [ 160, 20 ],
   "betOn": false,
   "oracles": [{"capabilityPub": "really?"}],
-  "question": "",
   "status": "matching",
   "blockchain": "",
   "role": "initiator",
@@ -37,7 +36,6 @@ Output:
     "bet": [50, 40],
     "betOn": true,
     "oracles": [{ "capabilityPub": "is it?" }],
-    "question": "",
     "status": "matching",
     "blockchain": "",
     "role": "initiator"
