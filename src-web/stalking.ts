@@ -203,7 +203,8 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
                         console.error("STALKER: DEPENDENCY AVAILABLE " + dependency.pow.hash)
                     }
                     const idx = dependency.content.terms.partyBetsOn.find(x => x === order.content.terms.dependsOn.outcome) ? 0 : 1
-                    stateTxId = doubleSHA256reversed(dependency.content.accept.cetTxSet[idx].tx)
+                    stateTxId = await doubleSHA256reversed(dependency.content.accept.cetTxSet[idx].tx)
+                    console.error("STALKER: DEPENDENCY STATE TXID:" + stateTxId)
                 }
                 
                 const [contract, partial] = await interpreter.genContractTx(inputs, [commitment], order, stateTxId)
@@ -230,12 +231,12 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
                     if (order.content.dependantOrdersIds !== undefined) {
                         console.error("STALKER: CHECK COMPOSITE ORDER INTEGRITY: " + order.content.orderId + " " + order.pow.hash)
                         const dependants = await window.storage.queryOffers({
-                            where: async x => x.content.terms.dependsOn && order.content.orderId === x.content.terms.dependsOn.orderId
+                            where: async x => x.content.terms.dependsOn && order.content.orderId === x.content.terms.dependsOn.orderId && x.content.accept !== undefined
                         }, pagedescriptor)
                         const filtered = Object.values(Object.groupBy(dependants, x => x.content.orderId)).map(candidates => maxBy(candidates, x => rank(x)))
                         const ordersIds = filtered.map(x => x.content.orderId).sort()
                         const expected = order.content.dependantOrdersIds.sort()
-                        const integrity = ordersIds.map((x, i) => expected[i] !== undefined && expected[i] === x).reduce((a, b) => a && b)
+                        const integrity = ordersIds[0] ? ordersIds.map((x, i) => expected[i] !== undefined && expected[i] === x).reduce((a, b) => a && b) : false
                         if (!integrity){
                             console.error("STALKER: AWAIT DEPENDANTS FOR: " + order.content.orderId + " " + ordersIds)
                             return

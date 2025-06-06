@@ -64,26 +64,25 @@ declare var cfg: MempoolConfig<any>
         role: 'initiator'
     }
 
-    const myCompositeOffer = await (new Dsl(async dsl => { //TODO dependantOrdersIds not picked up, acceptOffer does not accept children
+    const myCompositeOffer = await (new Dsl(async dsl => {
         const a = 60
         if (dsl.outcome(oracles[0].capabilityPubKey)) {
             dsl.pay(Dsl.Bob, 4000) 
             if (dsl.outcome(oracles[1].capabilityPubKey)) {
-                dsl.pay(Dsl.Alice, 40)
+                dsl.pay(Dsl.Alice, 3000)
             } else {
-                dsl.pay(Dsl.Bob, 50)
+                dsl.pay(Dsl.Bob, 3000)
             } 
         } else {
             dsl.pay(Dsl.Alice, 2053)
         }
-        
     })).enumerateWithBound(140000)
 
     await window.matching.broadcastOffer(isComposite ? myCompositeOffer : myCustomOffer)
 
     setInterval(async () => {
         const orders = await window.matching.listOrders(100)
-        const txReady = orders.filter(o => o.status === "redeemed" && o.bet[1] === 2053).length > 0
+        const txReady = orders.filter(o => o.status === "redeemed" && (o.bet[1] === 2053 || (isComposite && o.bet[1] === 3000))).length > (isComposite ? 1 : 0)
         if (txReady) {
             console.error(await window.matching.listOrders(100))
             console.error("OK")

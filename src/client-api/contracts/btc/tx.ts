@@ -577,7 +577,7 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
 
             
 
-            if (stateAmount !== undefined) {
+            if (stateAmount !== undefined && stateAmount !== 0) {
                 psbt.addOutput({
                     address: p2pktr(pubKeyCombined).address!, 
                     value: stateAmount

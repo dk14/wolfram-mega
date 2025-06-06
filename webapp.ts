@@ -76,7 +76,7 @@ const cfg: MempoolConfig<any> = {
     "maxOracles": 100,
     "maxCapabilities": 100,
     "maxReports": 100,
-    "maxOffers": 500,
+    "maxOffers": 10000,
     "maxConnections": 100,
     "maxMsgLength": 1000000,
     "httpPort": 8081,
@@ -115,7 +115,7 @@ const cfg: MempoolConfig<any> = {
         "maxOraclesPages": 2,
         "maxCpPages": 2,
         "maxReportsPages": 2,
-        "maxOffersPages": 2,
+        "maxOffersPages": 20,
         "maxCollectors": 2,
         "dbPath": "./db",
         "httpPort": 0,
@@ -254,13 +254,12 @@ window.privateDB = await openDB('private', 1, {
 const pub1 = "e37e4cced6f555a1b2063d645f01ad4d57cc1ffa8c382d28d90561a945dbe13e"
 const pub2 = "7fe828395f6143c295ae162d235c3c4b58c27fa1fd2019e88da55979bba5396e"
 const pubOracleCp = "07508128697f7a1aca5c3e86292daa4b08f76e68b405e4b4ffe50d066ade55c3"
-const pubOracleCp2 = "cPCMiHyZQt7UWF9y49CaW7ckT9FaFQj5ChnEbXnF51WwEcp6Agkq"
+const pubOracleCp2 = "7fe828395f6143c295ae162d235c3c4b58c27fa1fd2019e88da55979bba5396e"
 
 try {
     await window.privateDB.add("secrets", "cRFAdefAzpxzKduj3F9wf3qSTgA5johBBqPZZT72hh46dgCRr997", pub1)
     await window.privateDB.add("secrets", "cPCMiHyZQt7UWF9y49CaW7ckT9FaFQj5ChnEbXnF51WwEcp6Agkq", pub2)
     await window.privateDB.add("secrets", "cW3z2LN7rwnomrds4cF2PJhbrCmFPkX1Q8KY5Fe6F6myRotHFXrv", pubOracleCp) 
-    await window.privateDB.add("secrets", "cPCMiHyZQt7UWF9y49CaW7ckT9FaFQj5ChnEbXnF51WwEcp6Agkq", pubOracleCp2) 
 } catch (e) {
     console.error(e)
 }

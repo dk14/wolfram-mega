@@ -15,6 +15,7 @@ declare var cfg: MempoolConfig<any>
 (async () => {
     await global.initWebapp
     console.log("Start...")
+    const isComposite = (process.argv[4] ?? "non-composite") === "composite"
 
     cfg.p2pseed = []
     cfg.hostname = process.argv[3] ?? "acceptor-peer"
@@ -66,14 +67,15 @@ declare var cfg: MempoolConfig<any>
    
     setInterval(async () => {
         const orders = await window.matching.listOrders(100)
-        const txReady = orders.filter(o => o.status === "redeemed" && o.bet[1] === 2053).length > 0
+        const txReady = orders.filter(o => (o.status === "redeemed" && o.bet[1] === 2053) || (o.status === "oracle committed" && isComposite && o.bet[1] === 3000)).length > (isComposite ? 1 : 0)
+        //console.error(await window.matching.listOrders(100))
         if (txReady) {
             console.error(await window.matching.listOrders(100))
             console.error("OK")
             console.log("OK")
             process.exit(0)
         }
-    }, 1000)
+    }, 3000)
 
     setTimeout(async () => {
         console.error("TX NOT GENERATED!")

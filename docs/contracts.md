@@ -71,7 +71,7 @@ Duplicates will be filtered by generated `orderId` in favor of most recent versi
 
 There is a default intepreter for [BTC-DLC](https://adiabat.github.io/dlc.pdf).
     
-> binary option contracts supported (no composition yet). 
+> binary option contracts supported and composition (experimental). 
 
 > This is MAD (mutually assured destruction) version of DLC. If any of the parties rejects co-signing - their funds will be locked (symmetrically).
 
@@ -95,7 +95,7 @@ setInterval(() => window.stalking.trackIssuedOffers(
 
 > proposed `SIGHASH_NOINPUT` (BIP118) would remove the need for HTLC in DLC (as well as LN), if BTC adopts it. CET-pack can be co-signed before opening tx then. Signing opening tx is done atomically (Schnorr mu-sig) without need to commit deposit. Without opening tx - CET become invalid, since there is no UtXO to fit CET TX's inputs.
 
-> Mainnet version of `btcDlcContractInterpreter` would require either HTLC with `OP_CHECKLOCKTIMEVERIFY` (for non-participation refunds) or `SIGHASH_NOINPUT` (BIP118).
+> Mainnet version: since fund distribution of binary option is all-or-nothing - such contract can be represented with one Taproot transaction without DLC or any scripting: collateral either unlocks with Alice and adapted oracle sig  (leaf1) or Bob and adapted oracle sig (leaf2). Atomicity of co-signing would be ensured automatically. Composite contracts woulld still require binary tree of off-chain transactions and hash-time-locking though.
 
 # Composite contracts 
 

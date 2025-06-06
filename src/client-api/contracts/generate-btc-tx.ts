@@ -111,6 +111,7 @@ export const generateCetTransaction = async (params: CetParams, vout: number = 0
         txid:  params.lockedTxId,
         vout
     }
+    
     if (params.oraclePub2 === undefined) {
         const twistedPk = schnorr.adaptorPublic(params.oraclePub, params.answer, params.rValue).padStart(64, "0")
         return (await tx.genAliceCet(
@@ -236,19 +237,6 @@ export interface DlcContract {
     cet: Hex[]
 }
 
-interface ChildDlcContract {
-    cet: { [id: Msg]: Hex; }
-}
-
-interface CompositeDlcContract {
-    subcontracts: { [id: Msg]: [Hex, CompositeDlcContract] }
-}
-
-interface CompositeDlcContractEnvelope {
-    openingTx: Hex
-    contract: CompositeDlcContract
-}
-
 export async function doubleSHA256reversed(input: string) {
     const data = Buffer.from(input, "hex")
     const firstHashBuffer = await crypto.subtle.digest("SHA-256", data)
@@ -286,7 +274,7 @@ export const generateChildDlcContract = async (params: ChildDlcParams): Promise<
             aliceAmount: params.outcomes[answer].aliceAmount,
             bobAmount: params.outcomes[answer].bobAmount,
             session: params.session[answer]
-            }), 1)
+        }), 1)
         return [answer, cet]
     }))))   
     return { cet }

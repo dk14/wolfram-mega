@@ -7,11 +7,15 @@ export const configure = true
 
 const peerServer = PeerServer({ port: 9009, path: "/" }); // this requires internet lol
 
-const initiator = spawn("npx", ["tsx", "test/util/webtest-initiator.ts", process.argv[3] ?? "initiator-peer2", process.argv[4] ?? "acceptor-peer2", process.argv[5] ?? "non-composite"])
-    
-// example `npm run webtest-it no-trace initiator-peer2 acceptor-peer2 non-composite
+const initiatorId = "initiator-" + Math.floor(Math.random() * 1000000)
+const acceptorId = "acceptor-" + Math.floor(Math.random() * 1000000)
 
-// npm run webtest-it trace init2327676 init5564545 composite
+const initiator = spawn("npx", ["tsx", "test/util/webtest-initiator.ts", process.argv[4] ?? initiatorId, process.argv[5] ?? acceptorId, process.argv[3] ?? "non-composite"])
+    
+// npm run webtest-it notrace  
+// npm run webtest-it trace  # more logs
+// npm run webtest-it notrace composite #composite contracts
+// npm run webtest-it trace composite 
 
 let lastmsg = ""
 
@@ -48,7 +52,7 @@ setTimeout(() => {
 
 setTimeout(() => {
 
-    const acceptor = spawn("npx", ["tsx", "test/util/webtest-acceptor.ts", process.argv[3] ?? "initiator-peer2", process.argv[4] ?? "acceptor-peer2", process.argv[5] ?? "non-composite"])
+    const acceptor = spawn("npx", ["tsx", "test/util/webtest-acceptor.ts", process.argv[4] ?? initiatorId, process.argv[5] ?? acceptorId, process.argv[3] ?? "non-composite"])
         
     acceptor.stderr.on('data', async function(data){
             console.log("ACCEPTOR-E: " + data);

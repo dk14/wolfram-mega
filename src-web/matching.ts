@@ -274,7 +274,6 @@ export const matchingEngine: MatchingEngine = {
             capabilityPubKey: o.oracles[0].capabilityPub,
             arguments: {}
         }
-        
 
         const offerTerms: OfferTerms = {
             question: factRequest,
