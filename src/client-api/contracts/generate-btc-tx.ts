@@ -111,7 +111,7 @@ export const generateCetTransaction = async (params: CetParams, vout: number = 0
         txid:  params.lockedTxId,
         vout
     }
-    
+
     if (params.oraclePub2 === undefined) {
         const twistedPk = schnorr.adaptorPublic(params.oraclePub, params.answer, params.rValue).padStart(64, "0")
         return (await tx.genAliceCet(
@@ -268,14 +268,14 @@ export const generateDlcContract = async (params: DlcParams): Promise<DlcContrac
 }
 
 export const generateChildDlcContract = async (params: ChildDlcParams): Promise<DlcContract> => {
-    const cet = Object.fromEntries((await Promise.all(Object.keys(params.outcomes).map(async answer => {
+    const cet = await Promise.all(Object.keys(params.outcomes).map(async answer => {
         const cet = await generateCetTransaction(Object.assign({}, params, {
             answer, lockedTxId: params.lockedTxId, 
             aliceAmount: params.outcomes[answer].aliceAmount,
             bobAmount: params.outcomes[answer].bobAmount,
             session: params.session[answer]
         }), 1)
-        return [answer, cet]
-    }))))   
+        return cet
+    }))
     return { cet }
 }

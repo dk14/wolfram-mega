@@ -13,7 +13,7 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
     
     const pagedescriptor = {
         page: 0,
-        chunkSize: 700
+        chunkSize: 9000
     }
 
     const allOffers = (await window.storage.queryIssuedOffers({
@@ -40,19 +40,19 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
         rank += sigs1.partialSigs[0] ? 1 : 0
         rank += sigs1.partialSigs[1] ? 1 : 0
         const sigs2 = offer.content.accept.cetTxSet[0]
-        rank += sigs2.sesionCommitments[0] ? 1 : 0
-        rank += sigs2.sesionCommitments[1] ? 1 : 0
-        rank += sigs2.sessionNonces[0] ? 1 : 0
-        rank += sigs2.sessionNonces[1] ? 1 : 0
-        rank += sigs2.partialSigs[0] ? 1 : 0
-        rank += sigs2.partialSigs[1] ? 1 : 0
+        rank += sigs2.sesionCommitments[0] ? 3 : 0
+        rank += sigs2.sesionCommitments[1] ? 3 : 0
+        rank += sigs2.sessionNonces[0] ? 3 : 0
+        rank += sigs2.sessionNonces[1] ? 3 : 0
+        rank += sigs2.partialSigs[0] ? 3 : 0
+        rank += sigs2.partialSigs[1] ? 3 : 0
         const sigs3 = offer.content.accept.cetTxSet[1]
-        rank += sigs3.sesionCommitments[0] ? 1 : 0
-        rank += sigs3.sesionCommitments[1] ? 1 : 0
-        rank += sigs3.sessionNonces[0] ? 1 : 0
-        rank += sigs3.sessionNonces[1] ? 1 : 0
-        rank += sigs3.partialSigs[0] ? 1 : 0
-        rank += sigs3.partialSigs[1] ? 1 : 0
+        rank += sigs3.sesionCommitments[0] ? 3 : 0
+        rank += sigs3.sesionCommitments[1] ? 3 : 0
+        rank += sigs3.sessionNonces[0] ? 3 : 0
+        rank += sigs3.sessionNonces[1] ? 3 : 0
+        rank += sigs3.partialSigs[0] ? 3 : 0
+        rank += sigs3.partialSigs[1] ? 3 : 0
 
         const locks = offer.content.accept.openingTx.hashLocks
 
@@ -68,7 +68,7 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
             rank += unlocks[1] ? 1 : 0
         }
 
-        rank += offer.content.finalize ? 3 : 0
+        rank += offer.content.finalize ? 7 : 0
 
         return rank
     }
@@ -116,6 +116,8 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
                 if (!order.content.accept.openingTx.hashUnlocks[0] || !order.content.accept.openingTx.hashUnlocks[1]) {
                     // EXCHANGE PREIMAGES
 
+                    console.error("STALKER: EXCHANGE PREIMAGES")
+
                     if (checkOriginatorId(order.content.originatorId)) {
                         order.content.accept.openingTx.hashUnlocks[0] = await window.hashLockProvider.getHashLock(order)
                     } else {
@@ -134,19 +136,20 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
 
                     const fact = await dataProvider.getFact(endpoint, commitment)
                     if (fact === undefined) {
+                        console.error("STALKER: NO FACT YET")
                         return
                     }
 
                     const cetTxId = {
-                        txid: order.content.finalize.txid,
+                        txid: "",
                         vout: 0
                     }
     
                     const cet = order.content.accept.cetTxSet
                     if (fact.factWithQuestion === 'YES') {
-                        interpreter.submitTx(cet[0].tx)
+                        cetTxId.txid = await interpreter.submitTx(cet[0].tx)
                     } else {
-                        interpreter.submitTx(cet[1].tx)
+                        cetTxId.txid = await interpreter.submitTx(cet[1].tx)
                     }
 
                     try {
@@ -250,8 +253,7 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
                         } else {
                             //console.error("STALKER: DEPENDANTS COMMITTED" + order.content.orderId + " " + ordersIds)
                         }
-                        
-                        
+                    
                     }
 
                     if (checkOriginatorId(order.content.originatorId)) {
@@ -262,7 +264,7 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
 
                     console.error("[FINAL LOCKING TX]" + JSON.stringify(order))
                     
-                    const txId = await interpreter.submitTx(contract.openingTx)
+                    const txId = contract.openingTx ? await interpreter.submitTx(contract.openingTx) : "DEPENDANT"
 
                     order.content.finalize = {
                         txid: txId, acceptRef: order.pow.hash, backup: contract.cet[0] + ",,,," + contract.cet[1]

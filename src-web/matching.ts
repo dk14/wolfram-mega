@@ -25,7 +25,7 @@ const detectStatus = async (o: Offer, cp: OracleCapability, provider: OracleData
     if (o.accept) {
         const commitment = await provider.getCommitment(cp.endpoint, o.terms.question)
         if (commitment) { //todo: linearize
-            if (o.accept.openingTx.partialSigs[0]) {
+            if (o.accept.openingTx.partialSigs[0] || (o.accept.cetTxSet && o.accept.cetTxSet[0].partialSigs[0])) {
                 if (o.finalize) {
                     if (o.finalize.txid) {
                         if (provider.getFact(cp.endpoint, commitment)){
@@ -480,7 +480,7 @@ export const matchingEngine: MatchingEngine = {
         const myModels = await Promise.all(myOffers.map(async o => {
             const cp = (await window.storage.queryCapabilities({where: async x => x.capabilityPubKey === o.content.terms.question.capabilityPubKey}, pagedescriptor))[0]
             const model: OfferModel = {
-                id: "",
+                id: o.pow.hash,
                 bet: [o.content.terms.partyBetAmount, o.content.terms.counterpartyBetAmount],
                 oracles: [{
                     capabilityPub: o.content.terms.question.capabilityPubKey,
@@ -499,7 +499,7 @@ export const matchingEngine: MatchingEngine = {
         const theirModels = await Promise.all(theirOffers.map(async o => {
             const cp = (await window.storage.queryCapabilities({where: async x => x.capabilityPubKey === o.content.terms.question.capabilityPubKey}, pagedescriptor))[0]
             const model: OfferModel = {
-                id: "",
+                id: o.pow.hash,
                 bet: [o.content.terms.partyBetAmount, o.content.terms.counterpartyBetAmount],
                 oracles: [{
                     capabilityPub: o.content.terms.question.capabilityPubKey,

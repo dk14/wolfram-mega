@@ -357,6 +357,7 @@ function schnorrSignerInteractive(pub1: string, pub2: string, session: PublicSes
                 session.update(session)
                 throw "incomplete sign"
             } else {
+                
                 const res = await signer.sign2(pub1, pub2, hash.toString('hex'), {
                     partSig1: session.partSig1,
                     combinedNonceParity: session.combinedNonceParity,
@@ -590,7 +591,7 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
                 try {
                     await psbt.signInputAsync(0, schnorrSignerInteractive(alicePub, bobPub, session))
                 } catch (e) {
-                    if (e ===  "incomplete sign") {
+                    if (e === "incomplete sign") {
                         return undefined
                     } else {
                         throw e

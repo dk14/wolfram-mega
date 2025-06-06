@@ -179,17 +179,15 @@ const genContractTx = async (inputs: Inputs, c: Commitment[], offer: OfferMsg, s
                     })()
                 }
                 if (!offer.content.terms.dependsOn) {
-                    resolveDlc(window.btc.generateDlcContract(params))
+                    resolveDlc(await window.btc.generateDlcContract(params))
                 } else {
                     const adaptedParams: ChildDlcParams = {
                         ...params,
                         lockedTxId: stateTxId,
                         stateAmount: params.stateAmount!
                     }
-                    resolveDlc(window.btc.generateChildDlcContract(adaptedParams))
+                    resolveDlc(await window.btc.generateChildDlcContract(adaptedParams))
                 }
-                
-
             })
             const no = await noSessionUpdate
             noSession.sessionIds[0] = no.sessionId1
@@ -216,7 +214,7 @@ const genContractTx = async (inputs: Inputs, c: Commitment[], offer: OfferMsg, s
     })
     
     const dlc = await dlcPromise
-    if (dlc === undefined || dlc.cet[0] === undefined || dlc.cet[1] === undefined) { //partial sign; warning: opening transaction signed first; should add hashlock ideaally
+    if (dlc === undefined || dlc.cet[0] === undefined || dlc.cet[1] === undefined) {
         return [dlc, o]
     } else {
         return [dlc, undefined]
