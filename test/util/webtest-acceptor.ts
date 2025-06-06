@@ -1,3 +1,7 @@
+import { cfg } from "../../webcfg";
+cfg.p2pseed = []
+cfg.hostname = process.argv[3] ?? "acceptor-peer"
+
 import { configure } from "./configure";
 configure
 
@@ -10,20 +14,16 @@ import { MempoolConfig } from "../../src/config";
 import { traderApi } from "../../src/client-api/trader-api";
 import { api } from "../../src/api";
 
-declare var cfg: MempoolConfig<any>
-
 (async () => {
     await global.initWebapp
     console.log("Start...")
     const isComposite = (process.argv[4] ?? "non-composite") === "composite"
 
-    cfg.p2pseed = []
-    cfg.hostname = process.argv[3] ?? "acceptor-peer"
+    startP2P(global.cfg, await browserPeerAPI())
     window.address = "tb1p0l5zsw2lv9pu99dwzckjxhpufdvvylapl5spn6yd54vhnwa989hq20cvyv"
     window.pubkey = "7fe828395f6143c295ae162d235c3c4b58c27fa1fd2019e88da55979bba5396e"
     window.txfee = 2000
     
-    startP2P(cfg, await browserPeerAPI())
     window.traderApi = traderApi(cfg.trader, cfg, api, window.storage, p2pNode)
 
     setInterval(() => window.stalking.trackIssuedOffers({

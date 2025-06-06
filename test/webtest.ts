@@ -36,7 +36,7 @@ require("../webapp");
 
     console.log("- pick offer")
 
-    const offer = await window.matching.pickOffer()
+    const offer = await window.matching.pickOffer(preferences)
 
     console.log("- accept selected offer")
     await window.matching.acceptOffer(offer)

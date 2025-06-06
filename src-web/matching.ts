@@ -1,20 +1,12 @@
 import { off } from "process";
 import { TraderApi } from "../src/client-api/trader-api"
 import { AcceptOffer, DependsOn, FactRequest, HashCashPow, Offer, OfferMsg, OfferTerms, OracleCapability, OracleId, PagingDescriptor, PartiallySignedTx } from "../src/protocol"
-import { BtcApi, TraderQuery, Storage } from "../webapp"
+import { BtcApi } from "../webapp"
 import { OracleDataProvider, dataProvider, webOracle } from "./oracle-data-provider";
+import { TraderQuery } from "./impl/storage";
 
 export const randomInt = (n: number): number => {
     return Math.floor(Math.random() * n);
-}
-
-declare global {
-    interface Window {
-        traderApi: TraderApi<TraderQuery<OracleId>, TraderQuery<OracleCapability>, boolean>
-        storage: Storage
-        btc: BtcApi
-        matching: MatchingEngine
-    }
 }
 
 export type OfferStatus = 'matching' | 'accepted' | 'oracle committed' | 'signing' 
