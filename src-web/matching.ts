@@ -244,13 +244,13 @@ export const matchingEngine: MatchingEngine = {
     },
     broadcastOffer: async function (o: OfferModel): Promise<string> {
         if (o.dependsOn && !o.recurse) {
-            throw "integrity: cannot broadcast dependant offer (`dependsOn` must be undefined"
+            throw new Error("integrity: cannot broadcast dependant offer (`dependsOn` must be undefined")
         }
         if (o.status !== 'matching') {
-            throw "progresssed offers not accepted. status must be 'matching'"
+            throw new Error("progresssed offers not accepted. status must be 'matching'")
         }
         if (o.role !== 'initiator') {
-            throw "you must be initiator; use acceptOffer to accept"
+            throw new Error("you must be initiator; use acceptOffer to accept")
         }
         if (o.bet[0] === 0 && o.bet[1] === 0) {
             return undefined
