@@ -29,7 +29,7 @@ DSL "transpiler" will erase javascript code, collapsing it into `observe -> pay 
 
 > For other chains - worst-case scenaario will expose oracle messages/signatures and corresponding paid amounts. The calculation logic is erased nevertheless.
 
-No smart-contract/VM is required to run the resulting contract. Target chain only has to be able to understand scritless scripts (support Schnorr), which most modern chains do.
+No smart-contract/VM is required to run the resulting contract. Target chain only has to be able to understand scriptless scripts (support Schnorr), which most modern chains do. 
 
 ### Algorithmic Trading
 
