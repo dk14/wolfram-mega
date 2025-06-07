@@ -1,9 +1,32 @@
 
 # Oracle API
+Oracle API is provides functionality for managing `OracleId`. It allows Oracle to advertise itself in the network.
+
+Oracle advertises:
+- its `OracleId` which is presentation of oracle's physical identity.
+- its capabilities, specifications of features oracle supports: questions it can answer, together with information necesssary for traders to query (e.g. Mega-compatible endpoint).
+
+> Both `OracleId` and capabilities contain proof of work (SHA256) done. Id takes root oracle pubkey as input for PoW, capability takes `oracleSignature` over that capability as input for PoW. 
+
+Oracle API is built on top of operator API (mempools), since both advertising oracles and listening traders are also operating nodes in Mega-P2P.
+
+Oracle API provides:
+- CPU-PoW
+- local capability database
+- interface for signing ads
+- scheduled advertiser
+
+Mega contains reference implementation. Oracles are at liberty to create their own as long as it communicates using standard `src/protocol.ts` messages.
+
+Reference implemntation is exposed as REST-service.
 
 ## Configure
 
+Adding `oracle` parameter in mempool configuration would start local Oracle API REST together with node.
+
 Example: `cfg/mempool-oracle.json`
+
+Basic information about oracle can be specified right in config as `OracleBasicIdentity`.
 
 ```ts
 
@@ -35,7 +58,7 @@ export interface OracleCfg {
         },
         "adInterval": 10000,
         "adTopN": 10,
-        "dbPath": "./db/myoracle",
+        "dbPath": "./db/myoracle", //database
         "httpPort": 9080,
         "wsPort": 9081 //for signers
     }
@@ -72,11 +95,16 @@ npm run demo
 
 ## Start advertising
 
+This will start advertising `OracleId` as well as capabilities found in database.
 ```ts
 fetch('./start')
 ```
 
 ## Register capability
+
+Capability can be registered in a database from minimal `BasicOracleCapability` specification.
+
+Capabilities are signed with  a signature corresponding to original `OracleId` pubkey (root pubkey). Capabilities are identified through their own pubkeys - the ones that are used to sign actual service provider commitments and data (see Endpoints).
 
 >Note: there is a limitation on the maximum length of the message.
 
@@ -98,23 +126,33 @@ const res = await fetch('./addCapability', {
 })
 ```
 
-## Dactivate capability
-Deactivation/Reactivation is the only update on capability, that Mega-mempools support. 
+Capability specifications are typed. Thus, Oracle must specify a finite set of possible answers to the question. For ranges of integers or real numbers, we recommend to enumerate, but if traders support it - you can rely on conventions.
+- "0..3" means [0,1,2,3]
+- "0..2..every0.5" means [0, 0.5, 1.0, 1.5, 2]
 
-Mutation is possible in case when capability is evicted from mempools. Such mutation would put oracle at risk of being reported for capability collision (`ad-collision` report).
+Capability specifications allow parametrized queries characterized by parameter `name` and set of acceptable arguments `values`.
 
-Proper update is to-deactivate old one and activate a new capability with new pubkey.
+## Deactivate capability
+Deactivation/Reactivation is the only type of update of capability spec, that Mega-mempools support. Any other update will be rejected as duplicate.
+
+Mutation of spec is nevertheless possible in case when capability is evicted from mempools. Such mutation would put oracle at risk of being reported for capability collision (`ad-collision` report). It could also cause both versions to exist in mempools.
+
+Deactivation does not evict capabilities from mempools - it only marks endpoint as unavailable for queries.
+
+**Thus, proper update is to-deactivate old one and activate a new capability with newly issued pubkey.**
 
 ```ts
 await fetch('./deactivateCapability?pubkey=' + encodeURIComponent(capabilityPubKey))
 ```
 
 ## Reactivate capability
+If capability was deactivated by mistake or service was temporary unavailable - they can be reactivated.
 ```ts
 await fetch('./activateCapability?pubkey=' + encodeURIComponent(capabilityPubKey))
 ```
 
 ## Drop capability from local storage
+If capability was deactivated due to permanent deprecation - it can be dropped from database.
 
 ```ts
 const capabilityPubKey = document.getElementById('pubkeymanage').value
@@ -138,6 +176,7 @@ await fetch('./upgradeOraclePow?pubkey=' + encodeURIComponent(capabilityPubKey)
 ```
 
 ## View oracle ad
+Contains of `OracleId` advertised (it is created based on `BasicOracleIdentity` configuration)
 ```ts
 await (await fetch('./id')).json()
 ```
@@ -329,6 +368,7 @@ await upgradeCapabilityPow(pub, difficulty)
 Oracle endpoint has to implement this interface over REST:
 
 ```ts
+// see TLDR paragraph for `FactRequest`, `Fact`, `Commitment` interfaces
 export interface OracleEndpointApi {
     requestNewCapability (question: string): Promise<OracleCapability | undefined>
     requestCommitment: (req: FactRequest) => Promise<Commitment | undefined>
