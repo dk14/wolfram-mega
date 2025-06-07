@@ -21,7 +21,7 @@ There are only two constructs:
 - checking observations - inputs from oracles (`dsl.outcome` returns boolean)
 - paying (`dsl.pay`)
 
-Maintaing and progressing state is done in javascript with arbitrary computation available. You can calculate amount of paid output based on observation and any data. Any formula any logic.
+Maintaing and progressing state is done in javascript with arbitrary computation available. You can calculate amount of paid output based on observation and any data known prior to offer submission. Any formula, any logic.
 
 ### Erasures
 
