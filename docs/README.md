@@ -54,7 +54,7 @@ $megaPow = \sum pow_i$
 > For, $\exists i, 0 < pow_i < mempoolThreshold$, $mempoolThreshold$ is sound. Since capacity $operatorCapacity > count (pow_i)$ must be finite, evictions will happen. 
 
 QED.
-> Semantics: mempool capacity is chosen based on resources available to operator and estimate of number of real identities existing in a given market/ecosystem. 
+> Semantics: mempool capacity is chosen based on resources available to operator and an estimate of the number of real identities existing in a given market/ecosystem. 
 
 >E.g. if ecosystem has 1J energy and the minimum perceptible id is 0.1J, then up to 10 identities can be issued.
 
