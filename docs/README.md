@@ -55,7 +55,7 @@ $megaPow = \sum pow_i$
 
 > Semantics: mempool capacity is chosen based on resources available to operator and estimate of number of real identities which can physically exist in a given market/ecosystem. 
 
->E.g. if ecosystem has 1KWh energy and the minimum perceptible id is 0.1KWh, then 10 identities can be issued.
+>E.g. if ecosystem has 1kWh energy and the minimum perceptible id is 0.1kWh, then 10 identities can be issued.
 
 
 ## How it works
