@@ -37,11 +37,11 @@ Meaningful identities are selected based on competition in a mempool with finite
 
 Proof:
 
-**Each weak pow is subject to threshold restriction. Weak pows surviving selection**
+**Each weak pow is subject to threshold restriction. Weak pows surviving selection:**
 
 $weakSelection = \sum (weakPow_i > mempoolThreshold)$
 
-**Sum of weak pow surviving slection (either 0 or sum)**
+**Sum of weak pow surviving selection (either 0 or sum):**
 
 $strongSelection = megaPow > mempoolThreshold$,
 where
@@ -49,11 +49,11 @@ $megaPow = \sum pow_i$
 
 **Property $ strongSelection > weakSelection $ is satisified for sound threshold.**
 
-**Property $ strongSelection \geq weakSelection $ is satisfied in general (completeness).**
+**Property $ strongSelection \geq weakSelection $ is satisfied universally (completeness).**
 
-> For, $\exists i, 0 < pow_i < mempoolThreshold$, $mempoolThreshold$ is sound. Since capacity $operatorCapacity > count (pow_i)$ must be finite, rejections will happen. 
+> For, $\exists i, 0 < pow_i < mempoolThreshold$, $mempoolThreshold$ is sound. Since capacity $operatorCapacity > count (pow_i)$ must be finite, evictions will happen. 
 
-> Semantics: mempool capacity is chosen based on resources available to operator and estimate of number of real identities which can physically exist in a given market/ecosystem. 
+> Semantics: mempool capacity is chosen based on resources available to operator and estimate of number of real identities existing in a given market/ecosystem. 
 
 >E.g. if ecosystem has 1J energy and the minimum perceptible id is 0.1J, then up to 10 identities can be issued.
 
