@@ -25,13 +25,29 @@ Oracle quorums is secondary, optional, feature in Mega, since the primary, stron
 - oracle's identity strength from its PoW-difficulty, 
 - oracle reputation from PoW-difficulty of reports filed (by traders) against its `OracleId`.
 
-$identityScore_i = \sum (oraclePow_i  + \sum capabilityPow_{ij}) - \sum malleabilityReportPow_{ij}$
+$identityStrength_i = \sum (oraclePow_i  + \sum capabilityPow_{ij})$
+
+$identityScore_i = identityStrength_i - \sum malleabilityReportPow_{ijk}$
 
 ## Sybyl attacks resistance
 
-This, combined with mempool evictions, provides resistance to Sybil-attacks: it is more beneficial for a single coherent physical identity to accumulate PoW under a single `OracleId` rather than shutter it across **small identities** which would be likely `low pow` **evicted** from pool.
+This, combined with mempool evictions, provides resistance to Sybil-attacks: it is more beneficial for a single coherent physical identity to accumulate PoW under a single `OracleId` rather than shutter it across **small identities** which would be likely `low pow` **evicted** from pool. Meaningful identities are selected based on competition in a mempool with finite capacity.
 
-$(megaId((\sum pow_i) > mempoolThreshold)) > \sum smallId_i(pow_i > mempoolThreshold)$
+**Each weak pow is subject to restriction:**
+
+$weakSelection = \sum (weakPow_i > mempoolThreshold)$
+
+**Sum of weak pow is subject to:**
+
+$strongSelection = megaPow > mempoolThreshold$,
+where
+$megaPow = \sum pow_i$
+
+**Property $ strongSelection > weakSelection $ is satisified for sound threshold.**
+
+**Property $ strongSelection \geq weakSelection $ is satisfied in general (completeness).**
+
+
 
 ## How it works
 ![image](https://lh7-rt.googleusercontent.com/docsz/AD_4nXeUWfzdI9ARP760J9ZquB5KRgfNXDRj_Z976U3KmiKf23Ky9LqC-alwiwpTZ3IAotH5BUVJAWY0-eE3wDn1mGuCyZwfGgN9suGuc08eIq8k4PihpvsgJnSERdDJwKYL6HlEgFXcFw?key=Rm1gHfOo0ww9LGQzkRjPFZRP)
