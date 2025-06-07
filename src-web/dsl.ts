@@ -1,5 +1,10 @@
 import { OfferModel } from "./matching"
 
+type CacheEntry  = {
+    id: string
+    yes: string[]
+    no: string[]
+}
 
 export class Dsl {
 
@@ -107,8 +112,14 @@ export class Dsl {
 
     private counter = 0
 
+
+    private memoize: CacheEntry[] = []
+
     public outcome(pubkey: string, yes: string[], no: string[]): boolean {
+        yes.sort()
+        no.sort()
         this.counter++
+
         if (!this.protect) {
             throw "should not call outside of body; use `new Dsl((dsl) => handler).enumerate()`"
         }
@@ -118,9 +129,15 @@ export class Dsl {
             this.state[pubkeyUnique] = [max + 1, null]
             throw "uninitialized"
         } else {
+            if (this.memoize.find(x => x.id === pubkey && JSON.stringify(x.yes) === JSON.stringify(yes) && JSON.stringify(x.no) === JSON.stringify(no)) !== undefined) {
+                throw new Error("Cannot query same observation twice. Save it into const instead: const obs1 = observe(...)")
+            }
             this.enrichAndProgress(this.state[pubkeyUnique][1], pubkeyUnique, yes, no)
+            this.memoize.push({
+                id: pubkey, yes, no
+            })
             return this.state[pubkeyUnique][1]
-        }
+        }  
     }
 
     private next(): boolean {
@@ -197,6 +214,7 @@ export class Dsl {
             try {
                 this.collateral = 0
                 this.budgetBound = collateralBound
+                this.memoize = []
                 this.counter = 0
                 await this.body(this)
             } catch (e) {
@@ -221,11 +239,15 @@ if (require.main === module) {
             const a = 60
             if (dsl.outcome("really?", ["YES"], ["NO"])) {
                 dsl.pay(Dsl.Bob, a + 100) 
-                if (dsl.outcome("is it?", ["YES"], ["NO"])) {
+                const out1 = dsl.outcome("is it?", ["YES"], ["NO"])
+                if (out1) {
                     dsl.pay(Dsl.Alice, 40)
-                    if (dsl.outcome("is it?", ["YES"], ["NO"])) {
-                        dsl.pay(Dsl.Alice, 40)
+                    if (dsl.outcome("is it?", ["DON'T KNOW"], ["NO"])) {
+                        if (!out1) {
+                            dsl.pay(Dsl.Bob, 40)
+                        }
                     }
+                    
                 } else {
                     dsl.pay(Dsl.Bob, 50)
                 } 

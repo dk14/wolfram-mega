@@ -20,7 +20,7 @@ const model = await (new Dsl(async dsl => {
     const a = 30 + b
     if (dsl.outcome("really?", ["YES"], ["NO"])) {
         dsl.pay(Dsl.Bob, a + 100) 
-        if (dsl.outcome("is it?", ["YES"], ["NO"])) {
+        if (dsl.outcome("is it?", ["YES"], ["NO", "3..40"])) {
             dsl.pay(Dsl.Alice, 40)
         } else {
             dsl.pay(Dsl.Bob, 50)
@@ -76,6 +76,10 @@ DSL "transpiler" will erase javascript code, collapsing it into `observe -> pay 
 > For other chains - worst-case scenario will expose oracle messages/signatures and corresponding paid amounts. The calculation logic is erased nevertheless.
 
 No smart-contract/VM is required to run the resulting contract. Target chain only has to be able to understand scriptless scripts (support Schnorr), which most modern chains do. 
+
+### Outcomes
+
+All outcomes specified in either yes or no of `dsl.outcome(pubkey, yesoutcomes, nooutcomes`) must have distinct semantics. Otherwise typesafety of "not querying the same outcome twice" would be broken.
 
 ### State
 
@@ -136,3 +140,19 @@ Heuristic branch optimizations are already in Typescript transpiler and Javascri
 Custom assertions in your contracts can, however benefit from SMT in case contract generation depends on complex external environment itself (e.g. backtracking). Discreet is compatible with it, you can rebuild an expression for solver from `OfferModel`.
 
 Otherwise - you can make custom assertions for your contract just by throwing an exception!
+
+### Optimisations
+
+Discreet outputs most optimal contract theoretically possible.
+
+Backends are allowed to optimize ranges and such - by interpreting "0..100" as Schnorr sum of messages.
+
+Memoization is meaningless for blockchain-contracts, since collateral is ever decreasing, every state is unique.  Breaking this rule - kills collaterization making contracts follow arbitrary non-intended logic.
+
+> One could imagine a contract with homogenous transition, e.g. certain "command" from oracle generating 5 satochi payout to Alice every time oracle issues it. The catch here is that every observation is unque too. If oracle has to give answer to the same question twice - then 5+5 satochi is required to pay. That is why querying same fact twice is disallowed in DSL.
+
+Repetition of collateral state over the contract lifetime - would require refill from party/counterparty, thus contract can be either stuck, refunded or restarted with new collateral depending on participant action.
+
+This is equivalent to "early termination" clause, which itself is equivalent to creation of a new contract. There is no need to automatically ensure connection between previous contract and its "continuation", since facts from oracles are not in control of such link.
+
+Money is state, not data. Facts can only re-distribute money in collateral (barrier escrow), they cannot add more money.
