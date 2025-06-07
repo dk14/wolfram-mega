@@ -9,9 +9,11 @@ It is based on modern quantitative finance and renders to a tree of binary optio
 
 It is typesafe. It provides checks and restrictions that allow you to eliminate known types of redundancies in contracts ("perfect hedges"), thus maximising trading liquidity - you only collaterize what's necceessary.
 
-`OfferModel` it outputs also allows for trivial evaluations of collaterals, nothing left to meaningless statistical speculation.
+`OfferModel` it outputs also allows for trivial evaluations of collaterals. 
 
 > Matching has `evaluatePartyCollateral`, `evaluateCounterPartyCollateral` functions for introspection. Broadcasting `OfferModel` would automatically evaluate those.
+
+> Evaluations, not estimations. We rely on nondeterministic tautology - everything is known, nothing left to meaningless statistical speculation (confidence intervals). You don't know the outcome - that's where the risk comes, not in DSL. You suppose to predict outcome yourself, not hope for it based on statistical positive re-inforcement. Otherwise it's gambling.
 
 ## Language
 
