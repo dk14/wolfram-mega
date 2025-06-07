@@ -88,3 +88,16 @@ Output:
   }
 }
 ```
+## Technical Notes
+
+### Applicability of SMT solvers
+
+SMT solvers can only benefit the interpreter in terms of fast fail in linting. 
+
+However, since all possible outomes have to be enumerated anyways - it does not make practical sense to lint it with SMT dolver, since even with SMT solver applied - successful validation would require to enumerate possibilities. Therefore SMT is not applied to interpreter.
+
+Heuristic branch optimizations are already in Typescript transpiler and Javascript engines. Since Discreett is an amedded DSL, your code already benefits from such optimizations.
+
+Custom assertions in your contracts can, however benefit from SMT in case contract generation depends on complex external environment itself (e.g. backtracking). Discreet is compatible with it, you can rebuild an expression for solver from `OfferModel`.
+
+Otherwise - you can make custom assertions for your contract just by throwing an exception!
