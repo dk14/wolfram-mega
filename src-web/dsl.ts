@@ -151,7 +151,7 @@ export class Dsl {
         return true
     }
 
-    private body: (dsl: Dsl) => void
+    private body: (dsl: Dsl) => Promise<void>
 
     public constructor(body: (dsl: Dsl) => Promise<void>) {
         this.body = body
