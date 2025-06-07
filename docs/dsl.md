@@ -35,9 +35,9 @@ No smart-contract/VM is required to run the resulting contract. Target chain onl
 
 DSL allows for querying non-oracle data-sources, e.g. price hisory. 
 
-They however will only be queryied once, before execution of contract. It is useful to analyze and check market data in algorithmic trading.
+They however will only be queryied once, prior to submission of contract. Such queries can be useful to analyze and check market data in algorithmic trading.
 
-DSL enumerates all possible outcomes, thus removing the need for random walk - if your strategy explodes, the only thing you can do is to specify types properly (e.g. ranges of outcomes you can interpret as human). Backtrack like a boss.
+DSL enumerates all possible outcomes, thus removing the need for random walk - if your strategy explodes, the only thing you can do is to specify types properly, ranges of outcomes you can yourself interpret as human and time periods you would be able to foresee yourself, no one else will do it for you. Backtrack like a boss.
 
 
 ## Guarantees
