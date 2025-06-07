@@ -1,7 +1,9 @@
 
 > Draft
 
-Discreet eDSL (purposeful misspelling) is an instrument to easily build contracts compatible with Mega offers and matching. 
+Discreet eDSL is an instrument to easily build contracts compatible with Mega offers and matching. 
+
+> "Discreet" misspelled on purpose
 
 It gives you `OfferModel`, which matching engine turns into `OfferTerms`. The language is super-easy and embedded into TypeScript.
 
@@ -53,7 +55,7 @@ Output:
 }
 ```
 
-`OfferModel` it outputs also allows for trivial evaluations of collaterals. 
+`OfferModel` "transpiler" outputs also allows for trivial evaluations of collaterals. 
 
 > Matching has `evaluatePartyCollateral`, `evaluateCounterPartyCollateral` functions for introspection. Broadcasting `OfferModel` would automatically evaluate those.
 
@@ -77,30 +79,41 @@ No smart-contract/VM is required to run the resulting contract. Target chain onl
 
 ### State
 
-Discrete is as powerful as Cardano Marlowe. It allows stateful contracts.
+Discrete is at least as powerful as Cardano Marlowe. It allows stateful contracts.
 
 Consequently, schedules, every ACTUS instrument can be implemented.
 
-> Outcomes are binary in Discreet, so interest rate drivers and such have to be enumerated and adapted. We recommend to quantize derivatives manually - to give meaning to numbers. Multiplications between observation have to be done in "multiplication table" form. Since recursion is supported - `mul` on outcomes and `binaryToInteger` wrappers might become part of standard library in the future.
 
-### Recusrion
+#### Numeric observations
 
-Discreet allows for recusrion. `outcome` and `pay` can be in recusrsive calls as well, but subject to standard Dicreet typesafety restrictions: no "perfect hedges".
+ Outcomes are binary in Discreet, so interest rate drivers and such have to be enumerated and adapted. We recommend to quantize derivatives manually - to give meaning to numbers. 
+
+> If automation is preferred, multiplications between binary-encoded  observations have to be done by converting set of outcomes into integer: `parseInt([outcome(...), outcome(...)].concat.map(b => b ? '1' : '0'), 2)`.
+
+### Recursion
+
+Discreet allows for recursion. `outcome` and `pay` can be in recusrsive calls as well, but subject to standard Dicreet typesafety restrictions: no "perfect hedges".
 
 Every contract has a limit on maximum collateral (`enumerateWithBound(maxBudget)`), thus payout recursion is bounded. Halting problem is "solved".
 
 
 ### Algorithmic Trading
 
-DSL allows for additionally querying non-oracle data-sources, e.g. price history. 
+#### Past 
+DSL allows for additionally querying non-oracle data-sources for past data, e.g. price history. 
 
-Such extra-sources however will only be queryed prior to submission of contract and set in stone "on-chain". Such queries can be useful to analyze and check market data in algorithmic trading in order to automatically decide the immutable terms.
+Such extra-sources however will only be queryed prior to submission of contract and set in stone "on-chain". Such past queries can be useful to analyze and check market data in algorithmic trading in order to automatically decide the immutable terms.
 
+> note: backtracking does not account for novel data, so foreseeing actual events is more important
+
+#### Future
 DSL enumerates all possible outcomes, thus removing the need for random walk. 
 
-> backtracking does not account for novel data, so foreseeing actual events is more important
 
-> if your strategy explodes numerically, the only thing you can do is to specify types properly, ranges of outcomes you can yourself interpret as human and time periods you would be able to foresee yourself, no one else will do it for you (human trader is a real oracle - "oracles" in contract are just attestants). Forecast like a boss.
+
+> if your strategy explodes numerically, the only thing you can do is to specify types properly, ranges of outcomes you can yourself interpret as human and time periods you would be able to foresee yourself. 
+
+> no one else will do it for you: human trader is a real oracle - "oracles" in contract are just attestants. Forecast like a boss.
 
 
 ## Guarantees
