@@ -31,13 +31,17 @@ $identityScore_i = identityStrength_i - \sum malleabilityReportPow_{ijk}$
 
 ## Sybyl attacks resistance
 
-This, combined with mempool evictions, provides resistance to Sybil-attacks: it is more beneficial for a single coherent physical identity to accumulate PoW under a single `OracleId` rather than shutter it across **small identities** which would be likely `low pow` **evicted** from pool. Meaningful identities are selected based on competition in a mempool with finite capacity.
+This, combined with mempool evictions, provides resistance to Sybil-attacks: it is more beneficial for a single coherent physical identity to accumulate PoW under a single `OracleId` rather than shutter it across **small identities** which would be likely `low pow` **evicted** from pool. 
 
-**Each weak pow is subject to restriction:**
+Meaningful identities are selected based on competition in a mempool with finite capacity.
+
+Proof:
+
+**Each weak pow is subject to threshold restriction. Weak pows surviving selection**
 
 $weakSelection = \sum (weakPow_i > mempoolThreshold)$
 
-**Sum of weak pow is subject to:**
+**Sum of weak pow surviving slection (either 0 or sum)**
 
 $strongSelection = megaPow > mempoolThreshold$,
 where
@@ -47,6 +51,11 @@ $megaPow = \sum pow_i$
 
 **Property $ strongSelection \geq weakSelection $ is satisfied in general (completeness).**
 
+> For, $\exists i, 0 < pow_i < mempoolThreshold$, $mempoolThreshold$ is sound. Since capacity $operatorCapacity > count (pow_i)$ must be finite, rejections will happen. 
+
+> Semantics: mempool capacity is chosen based on resources available to operator and estimate of number of real identities which can physically exist in a given market/ecosystem. 
+
+>E.g. if ecosystem has 1KWh energy and the minimum perceptible id is 0.1KWh, then 10 identities can be issued.
 
 
 ## How it works
