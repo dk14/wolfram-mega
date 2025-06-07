@@ -97,23 +97,26 @@ export class Dsl {
         }
         if (this.prev) {
             this.prev.oracles[0] = {
-                capabilityPub: pubkey
+                capabilityPub: pubkey.replaceAll(/-###-.*/g, "")
             }
         }
         
     }
 
+    private counter = 0
+
     public outcome(pubkey: string): boolean {
         if (!this.protect) {
             throw "should not call outside of body; use `new Dsl((dsl) => handler).enumerate()`"
         }
-        if (this.state[pubkey] === undefined) {
+        const pubkeyUnique = pubkey + "-###-" + this.counter
+        if (this.state[pubkeyUnique] === undefined) {
             const max = Object.values(this.state).length === 0 ? -1 : Math.max(...Object.values(this.state).map(x => x[0]))
-            this.state[pubkey] = [max + 1, null]
+            this.state[pubkeyUnique] = [max + 1, null]
             throw "uninitialized"
         } else {
-            this.enrichAndProgress(this.state[pubkey][1], pubkey)
-            return this.state[pubkey][1]
+            this.enrichAndProgress(this.state[pubkeyUnique][1], pubkeyUnique)
+            return this.state[pubkeyUnique][1]
         }
     }
 
@@ -191,6 +194,7 @@ export class Dsl {
             try {
                 this.collateral = 0
                 this.budgetBound = collateralBound
+                this.counter = 0
                 await this.body(this)
             } catch (e) {
                 if (e === "uninitialized") {
@@ -216,6 +220,9 @@ if (require.main === module) {
                 dsl.pay(Dsl.Bob, a + 100) 
                 if (dsl.outcome("is it?")) {
                     dsl.pay(Dsl.Alice, 40)
+                    if (dsl.outcome("is it??")) {
+                        dsl.pay(Dsl.Alice, 40)
+                    }
                 } else {
                     dsl.pay(Dsl.Bob, 50)
                 } 

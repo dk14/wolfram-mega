@@ -31,6 +31,13 @@ DSL "transpiler" will erase javascript code, collapsing it into `observe -> pay 
 
 No smart-contract/VM is required to run the resulting contract. Target chain only has to be able to understand scriptless scripts (support Schnorr), which most modern chains do. 
 
+### Recusrion
+
+Discreet allows for recusrion. `outcome` and `pay` can be in recusrsive calls as well, but subject to standard typesafety restrictions: no "perfect hedges".
+
+Every contract has a limit maximum collateral (`enumerateWithBound(maxBudget)`), thus payout recursion is bounded. Halting problem is "solved".
+
+
 ### Algorithmic Trading
 
 DSL allows for querying non-oracle data-sources, e.g. price hisory. 
