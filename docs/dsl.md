@@ -41,7 +41,7 @@ DSL enumerates all possible outcomes, thus removing the need for random walk - i
 ## Guarantees
 - money preservation: all outputs of transaction equal sum of all inputs
     - judgemental gurantee by design - Mega `OfferTerms` does not require money inputs to be specified - they are calculated automatically.
-    - `OfferTerms` has `partyCompositeCollateralAmount`, `counterpartyCompositeCollateralAmount` fields that allow to auto-refund parties if collateral remained in a leaf. Fully tractable spending.
+    - `OfferTerms` has `partyCompositeCollateralAmount`, `counterpartyCompositeCollateralAmount` fields that allow to auto-refund if collateral remained in a leaf. Fully tractable spending.
 - finite and predictable execution time. 
     - > Longest chain of `dsl.outcome` is the worst-case amount of transactions necessary
 
