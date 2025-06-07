@@ -24,7 +24,7 @@ import { Dsl } from "../../src-web/dsl";
     console.log("Start...")
 
     startP2P(global.cfg, await browserPeerAPI())
-    
+
     window.address = "tb1pudlyenkk7426rvsx84j97qddf4tuc8l63suz62xeq4s6j3wmuylq0j54ex" //e37 pub
     window.pubkey = "e37e4cced6f555a1b2063d645f01ad4d57cc1ffa8c382d28d90561a945dbe13e"
     window.txfee = 2000
@@ -69,9 +69,9 @@ import { Dsl } from "../../src-web/dsl";
 
     const myCompositeOffer = await (new Dsl(async dsl => {
         const a = 60
-        if (dsl.outcome(oracles[0].capabilityPubKey)) {
+        if (dsl.outcome(oracles[0].capabilityPubKey, ["YES"], ["NO"])) {
             dsl.pay(Dsl.Bob, 4000) 
-            if (dsl.outcome(oracles[1].capabilityPubKey)) {
+            if (dsl.outcome(oracles[1].capabilityPubKey, ["YES"], ["NO"])) {
                 dsl.pay(Dsl.Alice, 3000)
             } else {
                 dsl.pay(Dsl.Bob, 3000)

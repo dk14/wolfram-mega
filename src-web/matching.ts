@@ -91,6 +91,8 @@ export interface OfferModel {
     role: 'initiator' | 'acceptor'
     dependsOn?: DependsOn,
     orderId?: string,
+    yesOutcomes?: string[],
+    noOutcomes?: string[],
     ifPartyWins?: OfferModel
     ifCounterPartyWins?: OfferModel
     recurse?: boolean //internal use

@@ -71,7 +71,7 @@ export class Dsl {
 
     }
 
-    private enrichAndProgress(aliceOutcome: boolean, pubkey: string) {
+    private enrichAndProgress(aliceOutcome: boolean, pubkey: string, yes: string[], no: string[]) {
         this.lastOutcome = aliceOutcome
         this.flag = false
         if (aliceOutcome === false) {
@@ -99,13 +99,16 @@ export class Dsl {
             this.prev.oracles[0] = {
                 capabilityPub: pubkey.replaceAll(/-###-.*/g, "")
             }
+            this.prev.yesOutcomes = yes
+            this.prev.noOutcomes = no
         }
         
     }
 
     private counter = 0
 
-    public outcome(pubkey: string): boolean {
+    public outcome(pubkey: string, yes: string[], no: string[]): boolean {
+        this.counter++
         if (!this.protect) {
             throw "should not call outside of body; use `new Dsl((dsl) => handler).enumerate()`"
         }
@@ -115,7 +118,7 @@ export class Dsl {
             this.state[pubkeyUnique] = [max + 1, null]
             throw "uninitialized"
         } else {
-            this.enrichAndProgress(this.state[pubkeyUnique][1], pubkeyUnique)
+            this.enrichAndProgress(this.state[pubkeyUnique][1], pubkeyUnique, yes, no)
             return this.state[pubkeyUnique][1]
         }
     }
@@ -214,13 +217,13 @@ export class Dsl {
 
 if (require.main === module) {
     (async () => {
-        const model = await (new Dsl(async dsl => { //TODO cannot re-use same oracle
+        const model = await (new Dsl(async dsl => {
             const a = 60
-            if (dsl.outcome("really?")) {
+            if (dsl.outcome("really?", ["YES"], ["NO"])) {
                 dsl.pay(Dsl.Bob, a + 100) 
-                if (dsl.outcome("is it?")) {
+                if (dsl.outcome("is it?", ["YES"], ["NO"])) {
                     dsl.pay(Dsl.Alice, 40)
-                    if (dsl.outcome("is it??")) {
+                    if (dsl.outcome("is it?", ["YES"], ["NO"])) {
                         dsl.pay(Dsl.Alice, 40)
                     }
                 } else {

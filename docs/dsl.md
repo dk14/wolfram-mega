@@ -31,6 +31,14 @@ DSL "transpiler" will erase javascript code, collapsing it into `observe -> pay 
 
 No smart-contract/VM is required to run the resulting contract. Target chain only has to be able to understand scriptless scripts (support Schnorr), which most modern chains do. 
 
+### State
+
+Discrete is as powerful as Cardano Marlowe. It allows stateful contracts.
+
+Consequently, schedules, every ACTUS instrument can be implemented.
+
+> Outcomes are binary in Discreet, so interest rate drivers and such have to be enumerated and adapted. We recommend to quantize derivatives manually - to give meaning to numbers. Multiplications between observation have to be done in "multiplication table" form. Since recursion is supported - `mul` on outcomes and `binary to integer` wrappers might become part of standard library in the future.
+
 ### Recusrion
 
 Discreet allows for recusrion. `outcome` and `pay` can be in recusrsive calls as well, but subject to standard typesafety restrictions: no "perfect hedges".
@@ -40,9 +48,9 @@ Every contract has a limit maximum collateral (`enumerateWithBound(maxBudget)`),
 
 ### Algorithmic Trading
 
-DSL allows for querying non-oracle data-sources, e.g. price hisory. 
+DSL allows for querying non-oracle data-sources, e.g. price history. 
 
-They however will only be queryied once, prior to submission of contract. Such queries can be useful to analyze and check market data in algorithmic trading.
+They however will only be queryed once, prior to submission of contract. Such queries can be useful to analyze and check market data in algorithmic trading in order to automatically decide the terms.
 
 DSL enumerates all possible outcomes, thus removing the need for random walk - if your strategy explodes, the only thing you can do is to specify types properly, ranges of outcomes you can yourself interpret as human and time periods you would be able to foresee yourself, no one else will do it for you. Backtrack like a boss.
 
@@ -61,9 +69,9 @@ const maxBudget = 300
 const b = 30
 const model = await (new Dsl(async dsl => {
     const a = 30 + b
-    if (dsl.outcome("really?")) {
+    if (dsl.outcome("really?", ["YES"], ["NO"])) {
         dsl.pay(Dsl.Bob, a + 100) 
-        if (dsl.outcome("is it?")) {
+        if (dsl.outcome("is it?", ["YES"], ["NO"])) {
             dsl.pay(Dsl.Alice, 40)
         } else {
             dsl.pay(Dsl.Bob, 50)
