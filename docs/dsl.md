@@ -55,7 +55,7 @@ Output:
 }
 ```
 
-`OfferModel` "transpiler" outputs also allows for trivial evaluations of collaterals. 
+`OfferModel` "transpiler" output also allows for evaluations of collaterals. 
 
 > Matching has `evaluatePartyCollateral`, `evaluateCounterPartyCollateral` functions for introspection. Broadcasting `OfferModel` would automatically evaluate those.
 
