@@ -112,6 +112,8 @@ const genContractTx = async (inputs: Inputs, c: Commitment[], offer: OfferMsg, s
     const yesOutcome = terms.partyBetsOn[0]
     const noOutcome = terms.counterPartyBetsOn[0]
 
+    const autoRefundWinner = ((o.content.dependantOrdersIds && o.content.dependantOrdersIds[0]) ? 0 : ((terms.partyCompositeCollateralAmount ?? terms.partyBetAmount) + (terms.counterpartyCompositeCollateralAmount ?? terms.counterpartyBetAmount) - terms.partyBetAmount - terms.counterpartyBetAmount))
+
     const dlcPromise: Promise<DlcContract> = new Promise(async resolveDlc => {
         const yesSessionUpdate: Promise<PublicSession> = new Promise(async resolveYes => {
             const noSessionUpdate: Promise<PublicSession> = new Promise(async resolveNo => {
@@ -125,8 +127,8 @@ const genContractTx = async (inputs: Inputs, c: Commitment[], offer: OfferMsg, s
                     oraclePub3: o.content.terms.question3?.capabilityPubKey,
                     outcomes: (() => {
                         const outcomes = {}
-                        outcomes[yesOutcome] = {aliceAmount: terms.partyBetAmount + terms.counterpartyBetAmount, bobAmount: 0}
-                        outcomes[noOutcome] = {aliceAmount: 0, bobAmount: terms.partyBetAmount + terms.counterpartyBetAmount}
+                        outcomes[yesOutcome] = {aliceAmount: terms.partyBetAmount + terms.counterpartyBetAmount + autoRefundWinner, bobAmount: 0}
+                        outcomes[noOutcome] = {aliceAmount: 0, bobAmount: terms.partyBetAmount + terms.counterpartyBetAmount + autoRefundWinner}
                         return outcomes
                     })(),
                     rValue: c[0].rValueSchnorrHex,
@@ -138,8 +140,8 @@ const genContractTx = async (inputs: Inputs, c: Commitment[], offer: OfferMsg, s
                     changeBob: inputs.utxoBob.map(x => x.value).reduce((a, b) => a + b) - terms.counterpartyBetAmount,
                     txfee: terms.txfee,
                     openingSession: { sigs: openingSession.partialSigs },
-                    stateAmount: offer.content.terms.dependsOn ? 
-                        terms.partyCompositeCollateralAmount + terms.counterpartyCompositeCollateralAmount - terms.partyBetAmount - terms.counterpartyBetAmount
+                    stateAmount: o.content.terms.dependsOn ? 
+                        ((o.content.dependantOrdersIds && o.content.dependantOrdersIds[0]) ? terms.partyCompositeCollateralAmount + terms.counterpartyCompositeCollateralAmount - terms.partyBetAmount - terms.counterpartyBetAmount : undefined)
                         : undefined,
                     session: (() => {
                         const session = {}
@@ -179,6 +181,8 @@ const genContractTx = async (inputs: Inputs, c: Commitment[], offer: OfferMsg, s
                     })()
                 }
                 if (!offer.content.terms.dependsOn) {
+                    //console.error(terms)
+                    //console.error(params)
                     resolveDlc(await window.btc.generateDlcContract(params))
                 } else {
                     const adaptedParams: ChildDlcParams = {
@@ -186,6 +190,8 @@ const genContractTx = async (inputs: Inputs, c: Commitment[], offer: OfferMsg, s
                         lockedTxId: stateTxId,
                         stateAmount: params.stateAmount!
                     }
+                    //console.error(terms)
+                    //console.error(adaptedParams)
                     resolveDlc(await window.btc.generateChildDlcContract(adaptedParams))
                 }
             })
@@ -231,6 +237,8 @@ export const btcDlcContractInterpreter: ContractInterpreter = {
     },
     genRedemtionTx: async function (lockingTxId: UTxO, c: Commitment[], fact: Fact, offer: OfferMsg): Promise<string> {
         const terms = offer.content.terms
+        const autoRefundWinner = ((offer.content.dependantOrdersIds && offer.content.dependantOrdersIds[0]) ? 0 : ((terms.partyCompositeCollateralAmount ?? terms.partyBetAmount) + (terms.counterpartyCompositeCollateralAmount ?? terms.counterpartyBetAmount) - terms.partyBetAmount - terms.counterpartyBetAmount))
+
         const p: CetRedemptionParams = {
             cetTxId: lockingTxId.txid,
             oraclePub: c[0].req.capabilityPubKey,
@@ -243,7 +251,7 @@ export const btcDlcContractInterpreter: ContractInterpreter = {
             alicePub: offer.content.pubkeys[0],
             bobPub: offer.content.pubkeys[0],
             oracleSignature: fact.signature,
-            amount: (terms.partyBetAmount + terms.counterpartyBetAmount) - terms.txfee,
+            amount: (terms.partyBetAmount + terms.counterpartyBetAmount) - terms.txfee + autoRefundWinner,
             txfee: offer.content.terms.txfee,
             session: (() => {
                 const session: PublicSession = {
