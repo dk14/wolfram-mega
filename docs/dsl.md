@@ -25,7 +25,7 @@ Maintaing and progressing state is done in javascript with arbitrary computation
 
 ### Erasures
 
-DSL "transpiler" will erase javascript code, collapsing it into `observe -> pay -> ... -> observe -> pay` chains. If rendered to Bitcoin DLC - it makes contract logic 100% private - only paid amounts are visible on-chain. 
+DSL "transpiler" will erase javascript code, collapsing it into `observe -> pay -> ... -> observe -> pay` chains. If rendered to Bitcoin DLC - it makes contract logic 100% private - only paid amounts are visible on-chain, not why they paid.
 
 > For other chains - worst-case scenaario will expose oracle messages/signatures and corresponding paid amounts. The calculation logic is erased nevertheless.
 
