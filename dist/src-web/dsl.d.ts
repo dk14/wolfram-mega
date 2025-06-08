@@ -1,5 +1,5 @@
 import { OfferModel } from "./matching";
-type Handler = {
+type PaymentHandler = {
     pay: (idx: 0 | 1, amount: number) => void;
     party: (party: string) => ({
         pays: (counterparty: string) => ({
@@ -47,29 +47,50 @@ export declare class Dsl {
         outcome: (pubkey: string, from: number, to: number, step?: number, args?: {
             [id: string]: string;
         }) => {
-            enumerate: (handler: (n: number) => void) => void;
-            enumerateWithAccount: (payhandler: (h: Handler, n: number) => void) => void;
+            evaluate: (handler: (n: number) => void) => void;
+            evaluateWithPaymentCtx: (payhandler: (h: PaymentHandler, n: number) => void) => void;
+            value: () => number;
+            valueWithPaymentCtx: () => [number, PaymentHandler];
         };
     };
     set: {
         outcome: (pubkey: string, set: string[], args?: {
             [id: string]: string;
         }) => {
-            enumerate: (handler: (n: string) => void) => void;
-            enumerateWithAccount: (payhandler: (h: Handler, n: string) => void) => void;
+            evaluate: (handler: (n: string) => void) => void;
+            evaluateWithPaymentCtx: (payhandler: (h: PaymentHandler, n: string) => void) => void;
+            value: () => string;
+            valueWithPaymentCtx: () => [string, PaymentHandler];
         };
         outcomeT: <T>(pubkey: string, set: T[], renderer: (x: T) => string, parser: (s: string) => T, args?: {
             [id: string]: string;
         }) => {
-            enumerate: (handler: (n: T) => void) => void;
-            enumerateWithAccount: (payhandler: (h: Handler, n: T) => void) => void;
+            evaluate: (handler: (n: T) => void) => void;
+            evaluateWithPaymentCtx: (payhandler: (h: PaymentHandler, n: T) => void) => void;
+            value: () => T;
+            valueWithPaymentCtx: () => [T, PaymentHandler];
         };
     };
     if: (pubkey: string, yes: string[], no: string[], args?: {
         [id: string]: string;
     }) => {
-        then: (handler: (handle: Handler) => void) => {
-            else: (handler: (handle: Handler) => void) => void;
+        then: (handler: (handle: PaymentHandler) => void) => {
+            breakout: {
+                pay: (idx: 0 | 1, amount: number) => void;
+                party: (party: string) => {
+                    pays: (counterparty: string) => {
+                        amount: (amount: number) => void;
+                    };
+                };
+            };
+            else: (handler: (handle: PaymentHandler) => void) => {
+                pay: (idx: 0 | 1, amount: number) => void;
+                party: (party: string) => {
+                    pays: (counterparty: string) => {
+                        amount: (amount: number) => void;
+                    };
+                };
+            };
         };
     };
     private multiflag;

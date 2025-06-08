@@ -39,7 +39,7 @@ class Dsl {
                     this.prev.betOn = true;
                 }
                 else {
-                    throw new Error("Perfect hedge! Trader not allowed to benefit regardless of outcome.");
+                    throw new Error("Perfect hedge! Trader not allowed to benefit regardless of outcome. Your trade is overcollaterized!");
                 }
             }
             if (!this.lastOutcome && idx === 0) {
@@ -47,7 +47,7 @@ class Dsl {
                     this.prev.betOn = false;
                 }
                 else {
-                    throw new Error("Perfect hedge! Trader not allowed to benefit regardless of outcome.");
+                    throw new Error("Perfect hedge! Trader not allowed to benefit regardless of outcome. Your trade is overcollaterized!");
                 }
             }
         }
@@ -116,12 +116,16 @@ class Dsl {
             throw "uninitialized";
         }
         else {
-            if (this.memoize.find(x => x.id === pubkey && JSON.stringify(x.yes) === JSON.stringify(yes) && JSON.stringify(x.no) === JSON.stringify(no)) !== undefined) {
+            if (this.memoize.find(x => x.id === pubkey && JSON.stringify(x.yes.sort()) === JSON.stringify(yes.sort()) && JSON.stringify(x.no.sort()) === JSON.stringify(no.sort()) && JSON.stringify(x.args) === JSON.stringify(args)) !== undefined) {
                 throw new Error("Cannot query same observation twice. Save it into const instead: const obs1 = observe(...)");
+            }
+            const contradiction = this.memoize.find(x => x.id === pubkey && JSON.stringify(x.yes.sort()) === JSON.stringify(no.sort()) && JSON.stringify(x.no.sort()) === JSON.stringify(yes.sort()) && JSON.stringify(x.args) === JSON.stringify(args));
+            if (contradiction !== undefined) {
+                throw new Error("Cannot query the opposite of checked observation. Save it into const and inverse instead: const obs1 = !observe(...)");
             }
             this.enrichAndProgress(this.state[pubkeyUnique][1], pubkeyUnique, yes, no, args);
             this.memoize.push({
-                id: pubkey, yes, no
+                id: pubkey, yes, no, args, pubkeyUnique
             });
             return this.state[pubkeyUnique][1];
         }
@@ -219,7 +223,7 @@ class Dsl {
     });
     numeric = {
         outcome: (pubkey, from, to, step = 1, args = {}) => ({
-            enumerate: (handler) => {
+            evaluate: (handler) => {
                 let numbers = [];
                 for (let i = from; i <= to; i += step) {
                     numbers.push(i);
@@ -230,7 +234,7 @@ class Dsl {
                     }
                 });
             },
-            enumerateWithAccount: (payhandler) => {
+            evaluateWithPaymentCtx: (payhandler) => {
                 let numbers = [];
                 for (let i = from; i <= to; i += step) {
                     numbers.push(i);
@@ -238,36 +242,140 @@ class Dsl {
                 numbers.forEach(n => {
                     this.if(pubkey, [n.toString()], numbers.filter(x => x !== n).map(x => x.toString()), args).then(h => payhandler(h, n));
                 });
+            },
+            value: () => {
+                let numbers = [];
+                for (let i = from; i <= to; i += step) {
+                    numbers.push(i);
+                }
+                const results = numbers.map(n => {
+                    if (this.outcome(pubkey, [n.toString()], numbers.filter(x => x !== n).map(x => x.toString()), args)) {
+                        return n;
+                    }
+                    else {
+                        return null;
+                    }
+                });
+                const res = results.find(x => x !== null);
+                if (res === undefined) {
+                    throw "skip"; //can be undefined during init
+                }
+                return res;
+            },
+            valueWithPaymentCtx: () => {
+                let numbers = [];
+                for (let i = from; i <= to; i += step) {
+                    numbers.push(i);
+                }
+                const results = numbers.map(n => {
+                    const out = this.if(pubkey, [n.toString()], numbers.filter(x => x !== n).map(x => x.toString()), args)
+                        .then(() => { }).breakout;
+                    if (out === undefined) {
+                        return null;
+                    }
+                    else {
+                        return [n, out];
+                    }
+                });
+                const res = results.find(x => x !== null);
+                if (res === undefined) {
+                    throw "skip"; //can be undefined during init
+                }
+                return res;
             }
         })
     };
     set = {
         outcome: (pubkey, set, args = {}) => ({
-            enumerate: (handler) => {
+            evaluate: (handler) => {
                 set.forEach(n => {
                     if (this.outcome(pubkey, [n], set.filter(x => x !== n).map(x => x), args)) {
                         handler(n);
                     }
                 });
             },
-            enumerateWithAccount: (payhandler) => {
+            evaluateWithPaymentCtx: (payhandler) => {
                 set.forEach(n => {
                     this.if(pubkey, [n], set.filter(x => x !== n), args).then(h => payhandler(h, n));
                 });
+            },
+            value: () => {
+                const results = set.map(n => {
+                    if (this.outcome(pubkey, [n.toString()], set.filter(x => x !== n).map(x => x.toString()), args)) {
+                        return n;
+                    }
+                    else {
+                        return null;
+                    }
+                });
+                const res = results.find(x => x !== null);
+                if (res === undefined) {
+                    throw "skip";
+                }
+                return res;
+            },
+            valueWithPaymentCtx: () => {
+                const results = set.map(n => {
+                    const out = this.if(pubkey, [n.toString()], set.filter(x => x !== n).map(x => x.toString()), args)
+                        .then(() => { }).breakout;
+                    if (out === undefined) {
+                        return null;
+                    }
+                    else {
+                        return [n, out];
+                    }
+                });
+                const res = results.find(x => x !== null);
+                if (res === undefined) {
+                    throw "skip"; //can be undefined during init
+                }
+                return res;
             }
         }),
         outcomeT: (pubkey, set, renderer, parser, args = {}) => ({
-            enumerate: (handler) => {
+            evaluate: (handler) => {
                 set.forEach(n => {
                     if (this.outcome(pubkey, [renderer(n)], set.filter(x => renderer(x) !== renderer(n)).map(x => renderer(x)), args)) {
                         handler(n);
                     }
                 });
             },
-            enumerateWithAccount: (payhandler) => {
+            evaluateWithPaymentCtx: (payhandler) => {
                 set.forEach(n => {
                     this.if(pubkey, [renderer(n)], set.filter(x => renderer(x) !== renderer(n)).map(x => renderer(x))).then(h => payhandler(h, n));
                 });
+            },
+            value: () => {
+                const results = set.map(n => {
+                    if (this.outcome(pubkey, [n.toString()], set.filter(x => x !== n).map(x => x.toString()), args)) {
+                        return n;
+                    }
+                    else {
+                        return null;
+                    }
+                });
+                const res = results.find(x => x !== null);
+                if (res === undefined) {
+                    throw "skip";
+                }
+                return res;
+            },
+            valueWithPaymentCtx: () => {
+                const results = set.map(n => {
+                    const out = this.if(pubkey, [n.toString()], set.filter(x => x !== n).map(x => x.toString()), args)
+                        .then(() => { }).breakout;
+                    if (out === undefined) {
+                        return null;
+                    }
+                    else {
+                        return [n, out];
+                    }
+                });
+                const res = results.find(x => x !== null);
+                if (res === undefined) {
+                    throw "skip"; //can be undefined during init
+                }
+                return res;
             }
         })
     };
@@ -311,6 +419,7 @@ class Dsl {
                         })
                     })
                 };
+                const breakout = observation ? funds : undefined;
                 if (observation) {
                     handler(funds);
                     if (party !== undefined && sum !== 0) {
@@ -323,6 +432,7 @@ class Dsl {
                     }
                 }
                 return {
+                    breakout,
                     else: (handler) => {
                         let counterparty = undefined;
                         let sum = 0;
@@ -363,6 +473,7 @@ class Dsl {
                                 })
                             })
                         };
+                        const breakout2 = !observation ? funds : undefined;
                         if (!observation) {
                             handler(funds);
                             if (counterparty !== undefined && sum !== 0) {
@@ -374,6 +485,7 @@ class Dsl {
                                 }
                             }
                         }
+                        return breakout2;
                     }
                 };
             }
@@ -418,7 +530,7 @@ class Dsl {
                 await this.body(this);
             }
             catch (e) {
-                if (e === "uninitialized") {
+                if (e === "uninitialized" || e === "skip") {
                 }
                 else {
                     throw e;
@@ -450,15 +562,15 @@ if (require.main === module) {
                             funds.pay(Dsl.Alice, 10);
                         });
                     }
-                    dsl.numeric.outcome("price?", 0, 5).enumerate(n => {
+                    dsl.numeric.outcome("price?", 0, 5).evaluate(n => {
                         dsl.pay(Dsl.Alice, n + 1);
                     });
-                    dsl.set.outcome("which?", ["lol", "okay", "yaay"]).enumerate(point => {
+                    dsl.set.outcome("which?", ["lol", "okay", "yaay"]).evaluate(point => {
                         if (point === "lol") {
                             dsl.pay(Dsl.Alice, 30);
                         }
                     });
-                    dsl.set.outcomeT("which?", ["lol", "okay", "yaaylol"], x => x, x => x).enumerate(point => {
+                    dsl.set.outcomeT("which?", ["lol", "okay", "yaaylol"], x => x, x => x).evaluate(point => {
                         if (point === "lol") {
                             dsl.pay(Dsl.Alice, 30);
                         }
@@ -487,7 +599,8 @@ if (require.main === module) {
                 }).else(account => {
                     account.party("carol").pays("alice").amount(30);
                 });
-                dsl.numeric.outcome("price?", 0, 5).enumerateWithAccount((account, n) => {
+                dsl.numeric.outcome("price?", 0, 2).value();
+                dsl.numeric.outcome("price?", 0, 5).evaluateWithPaymentCtx((account, n) => {
                     account.party("alice").pays("carol").amount(n - 2);
                 });
             }
