@@ -6,7 +6,7 @@ const canBeBlank = ['module', 'node-fetch', 'path', 'http', 'util', 'net', 'url'
 build({
 	entryPoints: ["webapp.ts"],
 	bundle: true,
-	outfile: "bundle.js",
+	outfile: "mega-peers.min.js",
 	format: "esm",
 	sourcemap: true,
 	plugins: [

@@ -22,7 +22,7 @@
     "webtest-it-composite": "npx tsx test/webtest-integration.ts notrace composite",
     "webrtc-bridge": "npx tsx test/util/webrtc-bridge.ts",
     "webtest-dsl": "npx tsx src-web/dsl.ts",
-    "build": "npx tsx esbuild.ts"
+    "build": "npx tsc --build && npx tsx esbuild.ts"
   },
   "browser": {
     "openapi-enforcer": false,
@@ -30,8 +30,12 @@
     "readline": false,
     "@roamhq/wrtc": false
   },
+  "exports": {
+    "./app": "./dist/",
+    ".": "./dist/src/"
+  },
   "bin": {
-    "wf-mega-peer": "./bin/wf-mega-peer"
+    "mega-peer": "./dist/app.js"
   },
   "keywords": [
     "p2p",
@@ -99,13 +103,8 @@
   },
   "files": [
     "dist",
-    "src",
     "cfg",
-    ".",
-    "README.md",
-    "app.ts",
-    "index.html",
-    "bin"
+    "README.md"
   ],
   "optionalDependencies": {
     "bufferutil": "^4.0.9"

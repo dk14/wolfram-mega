@@ -3,7 +3,7 @@ import { MempoolConfig } from "../../config";
 import { api as ndapi } from "../../api";
 import { PagingDescriptor } from "../../protocol"
 import { PeerAddr, p2pNode } from "../../p2p";
-import { capabilityStorage } from "../client-storage/capability-storage";
+import { capabilityStorage, CapabilityQuery } from "../client-storage/capability-storage";
 import { ConnectionPoolCfg } from "../connection-pool";
 import { OracleControlAPI, oracleControlApi } from "../oracle-control-api";
 import * as http from 'http';
