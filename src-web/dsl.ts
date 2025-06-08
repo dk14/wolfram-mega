@@ -91,7 +91,7 @@ export class Dsl {
 
     }
 
-    private enrichAndProgress(aliceOutcome: boolean, pubkey: string, yes: string[], no: string[]) {
+    private enrichAndProgress(aliceOutcome: boolean, pubkey: string, yes: string[], no: string[], args: {[id: string]: string} = {}) {
         this.lastOutcome = aliceOutcome
         this.flag = false
         if (aliceOutcome === false) {
@@ -117,7 +117,8 @@ export class Dsl {
         }
         if (this.prev) {
             this.prev.oracles[0] = {
-                capabilityPub: pubkey.replaceAll(/-###-.*/g, "")
+                capabilityPub: pubkey.replaceAll(/-###-.*/g, ""),
+                params: args
             }
             this.prev.yesOutcomes = yes
             this.prev.noOutcomes = no
@@ -130,7 +131,7 @@ export class Dsl {
 
     private memoize: CacheEntry[] = []
 
-    public outcome(pubkey: string, yes: string[], no: string[]): boolean {
+    public outcome(pubkey: string, yes: string[], no: string[], args: {[id: string]: string} = {}): boolean {
         yes.sort()
         no.sort()
         this.counter++
@@ -147,7 +148,7 @@ export class Dsl {
             if (this.memoize.find(x => x.id === pubkey && JSON.stringify(x.yes) === JSON.stringify(yes) && JSON.stringify(x.no) === JSON.stringify(no)) !== undefined) {
                 throw new Error("Cannot query same observation twice. Save it into const instead: const obs1 = observe(...)")
             }
-            this.enrichAndProgress(this.state[pubkeyUnique][1], pubkeyUnique, yes, no)
+            this.enrichAndProgress(this.state[pubkeyUnique][1], pubkeyUnique, yes, no, args)
             this.memoize.push({
                 id: pubkey, yes, no
             })
@@ -263,14 +264,14 @@ export class Dsl {
     })
 
     public numeric = {
-        outcome: (pubkey: string, from: number, to: number, step: number = 1) => ({
+        outcome: (pubkey: string, from: number, to: number, step: number = 1, args: {[id: string]: string} = {}) => ({
             enumerate: (handler: (n: number) => void) => {
                 let numbers = []
                 for (let i = from; i <= to; i += step) {
                     numbers.push(i)
                 }
                 numbers.forEach(n => {
-                    if (this.outcome(pubkey, [n.toString()], numbers.filter(x => x !== n).map(x => x.toString()))) {
+                    if (this.outcome(pubkey, [n.toString()], numbers.filter(x => x !== n).map(x => x.toString()), args)) {
                         handler(n)
                     }
                 })
@@ -281,7 +282,7 @@ export class Dsl {
                     numbers.push(i)
                 }
                 numbers.forEach(n => {
-                    this.if(pubkey, [n.toString()], numbers.filter(x => x !== n).map(x => x.toString())).then(h => payhandler(h, n))
+                    this.if(pubkey, [n.toString()], numbers.filter(x => x !== n).map(x => x.toString()), args).then(h => payhandler(h, n))
                 })
             }
             
@@ -289,25 +290,25 @@ export class Dsl {
     }
 
     public set = {
-        outcome: (pubkey: string, set:string[]) => ({
+        outcome: (pubkey: string, set:string[], args: {[id: string]: string} = {}) => ({
             enumerate: (handler: (n: string) => void) => {
                 set.forEach(n => {
-                    if (this.outcome(pubkey, [n], set.filter(x => x !== n).map(x => x))) {
+                    if (this.outcome(pubkey, [n], set.filter(x => x !== n).map(x => x), args)) {
                         handler(n)
                     }
                 })
             },
             enumerateWithAccount: (payhandler: (h: Handler, n: string) => void) => {
                 set.forEach(n => {
-                    this.if(pubkey, [n], set.filter(x => x !== n)).then(h => payhandler(h, n))
+                    this.if(pubkey, [n], set.filter(x => x !== n), args).then(h => payhandler(h, n))
                 })
             }
             
         }),
-        outcomeT: <T>(pubkey: string, set:T[], renderer: (x: T) => string, parser: (s: string) => T) => ({
+        outcomeT: <T>(pubkey: string, set:T[], renderer: (x: T) => string, parser: (s: string) => T, args: {[id: string]: string} = {}) => ({
             enumerate: (handler: (n: T) => void) => {
                 set.forEach(n => {
-                    if (this.outcome(pubkey, [renderer(n)], set.filter(x => renderer(x) !== renderer(n)).map(x => renderer(x)))) {
+                    if (this.outcome(pubkey, [renderer(n)], set.filter(x => renderer(x) !== renderer(n)).map(x => renderer(x)), args)) {
                         handler(n)
                     }
                 })
@@ -320,8 +321,8 @@ export class Dsl {
         })
     }
 
-    public if = (pubkey: string, yes: string[], no: string[]) => {
-        const observation = this.outcome(pubkey, yes, no)
+    public if = (pubkey: string, yes: string[], no: string[], args: {[id: string]: string} = {}) => {
+        const observation = this.outcome(pubkey, yes, no, args)
         return {
             then: (handler: (handle: Handler) => void) => {
                 let party: 0 | 1 = undefined
@@ -431,7 +432,7 @@ export class Dsl {
         const ids = new Set()
         const uniquepairs = pairs.filter((id) => !ids.has(JSON.stringify(id)) && ids.add(JSON.stringify(id)))
         const mutex = new Mutex()
-        return Promise.all(uniquepairs.map(async pair => { 
+        const res: [string, string, OfferModel][] = await Promise.all(uniquepairs.map(async pair => { 
             return await mutex.runExclusive(async () => {
                 this.selected = pair
                 const subcontract = await this.enumerateWithBound(collateralBound)
@@ -439,7 +440,7 @@ export class Dsl {
             })
         }))
         this.multiflag = false
-        
+        return res
     }
 
     public async enumerateWithBound(collateralBound: number): Promise<OfferModel> {
