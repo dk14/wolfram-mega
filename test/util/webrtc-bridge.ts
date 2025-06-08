@@ -1,3 +1,8 @@
+import { cfg } from "../../webcfg";
+cfg.p2pseed = []
+cfg.hostname = "dk14-peerjs-1586786454"
+
+
 import { configure } from "./configure";
 configure
 
