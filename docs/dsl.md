@@ -82,20 +82,13 @@ No smart-contract/VM is required to run the resulting contract. Target chain onl
 
 ### Outcomes
 
-All outcomes specified in either yes or no of `dsl.outcome(pubkey, yesoutcomes, nooutcomes`) must have distinct semantics. Otherwise typesafety of "not querying the same outcome twice" would be broken.
+All outcomes specified in either yes or no of `dsl.outcome(pubkey, yesoutcomes, nooutcomes`) must have distinct semantics. Otherwise typesafety of "not querying the same outcome twice" would be broken. 
 
 ### State
 
 Discrete is at least as powerful as Cardano Marlowe. It allows stateful contracts.
 
 Consequently, schedules, every ACTUS instrument can be implemented.
-
-
-#### Numeric observations
-
- Outcomes are binary in Discreet, so interest rate drivers and such have to be enumerated and adapted. We recommend to quantize derivatives manually - to give meaning to numbers. 
-
-> If automation is preferred, multiplications between binary-encoded  observations have to be done by converting set of outcomes into integer: `parseInt([outcome(...), outcome(...)].concat.map(b => b ? '1' : '0'), 2)`.
 
 ### Recursion
 
@@ -123,10 +116,49 @@ const multi = await (new Dsl (async dsl => {
 
 DSL is not responsible for asset pairs, since asset pair is assumed to be fixed between parties per (composite) contract - you specify asset pair in matching etc. Allowing one party to have several assets in a contract is equivalent to having several parties, e.g. "alice-usd", "alice-btc".
 
+### Numeric observations
+
+ Outcomes are binary in Discreet, so interest rate drivers and such have to be enumerated and adapted. We recommend to quantize derivatives manually - to give meaning to numbers. 
+
+If automation is preferred:
+
+```ts
+dsl.numeric.outcome("price?", 0, 5).enumerate(n => {
+    dsl.pay(Dsl.Alice, n + 1)
+})
+```
+
+Multi-party:
+
+```ts
+const step = 1
+dsl.numeric.outcome("price?", 0, 5, step).enumerateWithAccount((account, price) => {
+    account.party("alice").pays("carol").amount(price - 2)
+})
+```
+
+> Note: only `pay`s must be integers (they get rounded to nearest if you don't round them properly), since sats are integers. All internal computations can be done with any type of number: "real", rational, "complex", matricies, quaternions, dedekind nonsense cuts, functors, group generators, monoids/semigroups, combinatorial groups, topoi etc.
+
+### Set observations
+
+```ts
+dsl.set.outcome("which?", ["lol", "okay", "yaay"]).enumerate(point => {
+    if (point === "lol") {
+        dsl.pay(Dsl.Alice, 30)
+    } 
+})
+
+dsl.set.outcomeT<string>("which?", ["lol", "okay", "yaaylol"], x => x, x => x).enumerate(point => {
+    if (point === "lol") {
+        dsl.pay(Dsl.Alice, 30)
+    } 
+})
+```
+
 ### Algorithmic Trading
 
 #### Past 
-DSL allows for additionally querying non-oracle data-sources for past data, e.g. price history. 
+DSL additionally allows for querying extra non-oracle data-sources for past data, e.g. price history. 
 
 Such extra-sources however will only be queryed prior to submission of contract and set in stone "on-chain". Such past queries can be useful to analyze and check market data in algorithmic trading in order to automatically decide the immutable terms.
 
@@ -168,6 +200,8 @@ Otherwise - you can make custom assertions for your contract just by throwing an
 Discreet outputs most optimal contract theoretically possible.
 
 Backends are allowed to optimize ranges and such - by interpreting "0..100" as Schnorr sum of messages. They can also optimize subsequent unque matches of the same fact ("100 = 20", "100 = 30" etc, e.g. turn a set of binary options to a european call) into a single pack of CET-transactions rather than a binary tree, which would reduce amount of transactions needed to redeem the funds in worst case.
+
+Contracts paying 0 to both parties can be eliminated on backend.
 
 And that's it.
 
