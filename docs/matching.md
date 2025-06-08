@@ -78,6 +78,12 @@ const myCustomOffer: OfferModel = {
 await window.matching.broadcastOffer(myCustomOffer)
 
 ```
+## List orders
+
+```ts
+await window.matching.listOrders(30)
+```
+
 ## Auto-negotiation
 Stalker API can negotiate blockchain-transactions for an accepted offer using a given blockchain interpreter (see Contracts doc) and publish transactions on-chain if needed:
 

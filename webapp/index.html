@@ -494,6 +494,18 @@ Address: <font color="blue">n3W8YyK59F6vQe34uQ8n835L627k2J</font> <img src="./as
                 yesSvg.onclick = () => {
                     if (document.getElementById("confirm_orders").checked) {
                         const confirmed = confirm("Bet " + offer.bet[0] + " sat on '" + offer.question + "'")
+                        if (confirmed) {
+                            if (offer.role ===  'originator') {
+                                window.matching.broadcastOffer(offer)
+                            } else {
+                                if (!offer.betOn) {
+                                    window.matching.acceptOffer(offer)
+                                } else {
+                                    console.log("Needs opposite position to accept")
+                                }
+                            }
+                            
+                        }
                     } 
                 }
 
@@ -504,6 +516,18 @@ Address: <font color="blue">n3W8YyK59F6vQe34uQ8n835L627k2J</font> <img src="./as
                 noSvg.onclick = () => {
                     if (document.getElementById("confirm_orders").checked) {
                         const confirmed = confirm("Bet " + offer.bet[1] + " sat against '" + offer.question + "'")
+                        if (confirmed) {
+                            if (offer.role ===  'originator') {
+                                window.matching.broadcastOffer(offer)
+                            } else {
+                                if (offer.betOn) {
+                                    window.matching.acceptOffer(offer)
+                                } else {
+                                    console.log("Needs opposite position to accept")
+                                }
+                                
+                            }  
+                        }
                     }
                 }
                     
@@ -583,9 +607,19 @@ Address: <font color="blue">n3W8YyK59F6vQe34uQ8n835L627k2J</font> <img src="./as
                 where.appendChild(panel)
             }
 
+            
+
             model.contracts.forEach(contract => {
                 renderContractPreview(document.getElementById("contracts"), contract)
             })
+
+            setInterval(async () => {
+                document.getElementById("contracts").innerHTML = "";
+                (await window.matching.listOrders(20)).forEach(contract => {
+                    renderContractPreview(document.getElementById("contracts"), contract)
+                })
+            }, 1000)
+            
             
 
             const renderProfile = () => {
