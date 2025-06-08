@@ -41,6 +41,22 @@ export declare class Dsl {
             amount: (amount: number) => void;
         };
     };
+    numeric: {
+        outcome: (pubkey: string, from: number, to: number, step?: number) => {
+            enumerate: (handler: (n: number) => void) => void;
+            enumerateWithAccount: (payhandler: (h: Handler, n: number) => void) => void;
+        };
+    };
+    set: {
+        outcome: (pubkey: string, set: string[]) => {
+            enumerate: (handler: (n: string) => void) => void;
+            enumerateWithAccount: (payhandler: (h: Handler, n: string) => void) => void;
+        };
+        outcomeT: <T>(pubkey: string, set: T[], renderer: (x: T) => string, parser: (s: string) => T) => {
+            enumerate: (handler: (n: T) => void) => void;
+            enumerateWithAccount: (payhandler: (h: Handler, n: T) => void) => void;
+        };
+    };
     if: (pubkey: string, yes: string[], no: string[]) => {
         then: (handler: (handle: Handler) => void) => {
             else: (handler: (handle: Handler) => void) => void;

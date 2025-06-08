@@ -30,6 +30,9 @@ class Dsl {
         if (this.prev === undefined || this.lastOutcome === undefined) {
             new Error("cannot pay unconditionally!");
         }
+        if (amount <= 0) {
+            throw Error("Pay amount must be positive! found: " + amount);
+        }
         if (this.lastOutcome !== null) {
             if (this.lastOutcome && idx === 0) {
                 if (this.prev.betOn === undefined || this.prev.betOn === true) {
@@ -52,15 +55,15 @@ class Dsl {
             throw new Error("one pay per condition check! and pay before checking out next condition too, please!");
         }
         if (idx == 0) {
-            this.prev.bet[1] = amount;
+            this.prev.bet[1] = Math.round(amount);
         }
         else {
-            this.prev.bet[0] = amount;
+            this.prev.bet[0] = Math.round(amount);
         }
         this.flag = true;
         this.collateral += amount;
         if (this.collateral > this.budgetBound) {
-            throw new Error(`exceeded budget ${this.budgetBound} for outcome:` + JSON.stringify(this.state));
+            throw new Error(`exceeded budget ${this.budgetBound} for outcomes:` + JSON.stringify(this.state));
         }
     }
     enrichAndProgress(aliceOutcome, pubkey, yes, no) {
@@ -206,6 +209,60 @@ class Dsl {
             }
         })
     });
+    numeric = {
+        outcome: (pubkey, from, to, step = 1) => ({
+            enumerate: (handler) => {
+                let numbers = [];
+                for (let i = from; i <= to; i += step) {
+                    numbers.push(i);
+                }
+                numbers.forEach(n => {
+                    if (this.outcome(pubkey, [n.toString()], numbers.filter(x => x !== n).map(x => x.toString()))) {
+                        handler(n);
+                    }
+                });
+            },
+            enumerateWithAccount: (payhandler) => {
+                let numbers = [];
+                for (let i = from; i <= to; i += step) {
+                    numbers.push(i);
+                }
+                numbers.forEach(n => {
+                    this.if(pubkey, [n.toString()], numbers.filter(x => x !== n).map(x => x.toString())).then(h => payhandler(h, n));
+                });
+            }
+        })
+    };
+    set = {
+        outcome: (pubkey, set) => ({
+            enumerate: (handler) => {
+                set.forEach(n => {
+                    if (this.outcome(pubkey, [n], set.filter(x => x !== n).map(x => x))) {
+                        handler(n);
+                    }
+                });
+            },
+            enumerateWithAccount: (payhandler) => {
+                set.forEach(n => {
+                    this.if(pubkey, [n], set.filter(x => x !== n)).then(h => payhandler(h, n));
+                });
+            }
+        }),
+        outcomeT: (pubkey, set, renderer, parser) => ({
+            enumerate: (handler) => {
+                set.forEach(n => {
+                    if (this.outcome(pubkey, [renderer(n)], set.filter(x => renderer(x) !== renderer(n)).map(x => renderer(x)))) {
+                        handler(n);
+                    }
+                });
+            },
+            enumerateWithAccount: (payhandler) => {
+                set.forEach(n => {
+                    this.if(pubkey, [renderer(n)], set.filter(x => renderer(x) !== renderer(n)).map(x => renderer(x))).then(h => payhandler(h, n));
+                });
+            }
+        })
+    };
     if = (pubkey, yes, no) => {
         const observation = this.outcome(pubkey, yes, no);
         return {
@@ -253,7 +310,7 @@ class Dsl {
                             this.pay(party, sum);
                         }
                         else {
-                            this.pay(party === 0 ? 1 : 0, sum);
+                            this.pay(party === 0 ? 1 : 0, -sum);
                         }
                     }
                 }
@@ -301,7 +358,12 @@ class Dsl {
                         if (!observation) {
                             handler(funds);
                             if (counterparty !== undefined && sum !== 0) {
-                                this.pay(counterparty, sum);
+                                if (sum > 0) {
+                                    this.pay(party, sum);
+                                }
+                                else {
+                                    this.pay(party === 0 ? 1 : 0, -sum);
+                                }
                             }
                         }
                     }
@@ -379,6 +441,19 @@ if (require.main === module) {
                             funds.pay(Dsl.Alice, 10);
                         });
                     }
+                    dsl.numeric.outcome("price?", 0, 5).enumerate(n => {
+                        dsl.pay(Dsl.Alice, n + 1);
+                    });
+                    dsl.set.outcome("which?", ["lol", "okay", "yaay"]).enumerate(point => {
+                        if (point === "lol") {
+                            dsl.pay(Dsl.Alice, 30);
+                        }
+                    });
+                    dsl.set.outcomeT("which?", ["lol", "okay", "yaaylol"], x => x, x => x).enumerate(point => {
+                        if (point === "lol") {
+                            dsl.pay(Dsl.Alice, 30);
+                        }
+                    });
                 }
                 else {
                     dsl.pay(Dsl.Bob, 50);
@@ -387,7 +462,7 @@ if (require.main === module) {
             else {
                 dsl.pay(Dsl.Alice, 20);
             }
-        })).enumerateWithBound(300);
+        })).enumerateWithBound(400);
         console.log(model);
         const multi = await (new Dsl(async (dsl) => {
             if (dsl.outcome("really?", ["YES"], ["NO"])) {
@@ -402,6 +477,9 @@ if (require.main === module) {
                     account.party("carol").pays("alice").amount(5);
                 }).else(account => {
                     account.party("carol").pays("alice").amount(30);
+                });
+                dsl.numeric.outcome("price?", 0, 5).enumerateWithAccount((account, n) => {
+                    account.party("alice").pays("carol").amount(n - 2);
                 });
             }
         })).multiple("alice", "bob", "carol").enumerateWithBoundMulti(5000);
