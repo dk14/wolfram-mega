@@ -33,6 +33,9 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
+const webcfg_1 = require("../../webcfg");
+webcfg_1.cfg.p2pseed = [];
+webcfg_1.cfg.hostname = "dk14-peerjs-1586786454";
 const configure_1 = require("./configure");
 configure_1.configure;
 const p2p_1 = require("../../src/p2p");
