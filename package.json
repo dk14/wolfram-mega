@@ -52,7 +52,8 @@
   },
   "bin": {
     "mega-peer": "mega-peer.js",
-    "mega-demo": "mega-demo.js"
+    "mega-demo": "mega-demo.js",
+    "mega-bridge": "mega-bridge.js"
   },
   "keywords": [
     "p2p",
