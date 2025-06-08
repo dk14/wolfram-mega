@@ -145,7 +145,7 @@ const fundFactory = (accumulatedFund: number, refillFund: number, refillBenefici
 }
 
 ```
-> Note: This is made up soso example for legacy funds (e.g. hedge funds). Mega encourages safe tractable funding, where the only risk is the outcome itself (project completed or not), rather than uninterpretable alienated complexity of the fund itself. Thus connections have to be tractable, either: one beneficiary, possibly several contributors. Or: one contributor, possibly several beneficiaries. 
+> Note: This is made up soso example for legacy funds (e.g. hedge funds), to learn from their mistakes. Mega encourages safe tractable funding, where the only risk is the outcome itself (project completed or not), rather than uninterpretable alienated complexity of the fund itself. Thus connections have to be tractable, either: one beneficiary, possibly several contributors. Or: one contributor, possibly several beneficiaries. 
 
 > Not many to many. Many-to-many (p2p) forms naturally in the market, **individual deals meantime are naturally !!one-to-possibly-many!!**. Contracts are written by individuals, not the "market itself", e.g. internet does not tell you what to do, you connect to internet and decide. Take active role, reach out to environment, lol!
 
