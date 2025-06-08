@@ -149,6 +149,10 @@ const fundFactory = (accumulatedFund: number, refillFund: number, refillBenefici
 
 > Not many to many. Many-to-many (p2p) forms naturally in the market, **individual deals are naturally !!one-to-possibly-many!!**. Contracts are written by individuals, not the "market itself", e.g. internet does not tell you what to do, you connect to internet and decide. Take active role, reach out to environment, lol!
 
+> Queries: from Oracle-perspective, it is strongly recommended to not tie the query to the "contract" semantically, e.g. it should not be "payout allowed?", it should be "street is cleaner" or dirtier whatever preference. 
+
+> Exercise: enjoy rewriting this fund into 1-to-1 deal between you and the actual contributor, rather than an abstract beneficiary.
+
 
 ### Cross-currency (assets)
 
