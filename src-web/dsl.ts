@@ -8,6 +8,15 @@ type CacheEntry  = {
 }
 
 
+type Handler = {
+    pay: (idx: 0 | 1, amount: number) => void
+    party: (party: string) => ({
+        pays: (counterparty: string) => ({
+            amount: (amount: number) => void
+        })
+    })
+}
+
 export class Dsl {
 
     private state: {[pubkey: string]: [number, boolean]} = {}
@@ -225,20 +234,120 @@ export class Dsl {
     }
 
     public party = (party: string) => ({
-        pays: (counterparty: string) => (amount: number) => {
-            if (!this.multiparty.find(x => x === party)){
-                throw Error("party " + party + " not registered! Use .multiple to register parties")
-            }
-            if (!this.multiparty.find(x => x === counterparty)){
-                throw Error("counterparty " + counterparty + " not registered! Use .multiple to register parties")
-            }
-            if (this.isSelected0(party) && this.isSelected1(counterparty)) {
-                this.pay(0, amount)
-            } else if (this.isSelected0(counterparty) && this.isSelected1(party)) {
-                this.pay(1, amount)
-            }
-        }    
+        pays: (counterparty: string) => ({
+            amount: (amount: number) => {
+                if (!this.multiparty.find(x => x === party)){
+                    throw Error("party " + party + " not registered! Use .multiple to register parties")
+                }
+                if (!this.multiparty.find(x => x === counterparty)){
+                    throw Error("counterparty " + counterparty + " not registered! Use .multiple to register parties")
+                }
+                if (this.isSelected0(party) && this.isSelected1(counterparty)) {
+                    this.pay(0, amount)
+                } else if (this.isSelected0(counterparty) && this.isSelected1(party)) {
+                    this.pay(1, amount)
+                }
+            }   
+        }) 
     })
+
+    public if = (pubkey: string, yes: string[], no: string[]) => {
+        const observation = this.outcome(pubkey, yes, no)
+        return {
+            then: (handler: (handle: Handler) => void) => {
+                let party: 0 | 1 = undefined
+                let sum = 0
+                const funds = {
+                    pay: (idx: 0 | 1, amount: number): void => {
+                        if (party === undefined || idx === party) {
+                            sum += amount
+                            party = idx
+                        } else {
+                            if (party !== undefined && idx !== party){
+                                sum -= amount
+                            } else {
+                                throw new Error ("Perfect Hedge! Party cannot benefit regardless of outcome!")
+                            }  
+                        }
+                    },
+                    party: (party: string) => ({
+                        pays: (counterparty: string) => ({
+                            amount: (amount: number) => {
+                                if (!this.multiparty.find(x => x === party)){
+                                    throw Error("party " + party + " not registered! Use .multiple to register parties")
+                                }
+                                if (!this.multiparty.find(x => x === counterparty)){
+                                    throw Error("counterparty " + counterparty + " not registered! Use .multiple to register parties")
+                                }
+                                if (this.isSelected0(party) && this.isSelected1(counterparty)) {
+                                    funds.pay(0, amount)
+                                } else if (this.isSelected0(counterparty) && this.isSelected1(party)) {
+                                    funds.pay(1, amount)
+                                }
+                            }   
+                        }) 
+                    })
+                }
+                if (observation) {
+                    handler(funds)
+                    if (party !== undefined && sum !== 0) {
+                        if (sum > 0) {
+                            this.pay(party, sum)
+                        } else {
+                            this.pay(party === 0 ? 1: 0, sum)
+                        }
+                        
+                    }
+                }
+                return {
+                     else: (handler: (handle: Handler) => void) => {
+                        let counterparty: 0 | 1 = undefined
+                        let sum = 0
+                        const funds = {
+                            pay: (idx: 0 | 1, amount: number): void => {
+                                if (counterparty === undefined || idx === counterparty) {
+                                    if (party !== undefined && counterparty !== undefined && party === counterparty) {
+                                        throw new Error ("Perfect Hedge! Party cannot benefit regardless of outcome!")
+                                    }
+                                    counterparty = idx
+                                    sum += amount
+                                } else {
+                                    if (counterparty !== undefined && idx !== counterparty){
+                                        sum -= amount
+                                    } else {
+                                        throw new Error ("Perfect Hedge! Party cannot benefit regardless of outcome!")
+                                    }  
+                                }
+                            },
+                            party: (party: string) => ({
+                                pays: (counterparty: string) => ({
+                                    amount: (amount: number) => {
+                                        if (!this.multiparty.find(x => x === party)){
+                                            throw Error("party " + party + " not registered! Use .multiple to register parties")
+                                        }
+                                        if (!this.multiparty.find(x => x === counterparty)){
+                                            throw Error("counterparty " + counterparty + " not registered! Use .multiple to register parties")
+                                        }
+                                        if (this.isSelected0(party) && this.isSelected1(counterparty)) {
+                                            funds.pay(0, amount)
+                                        } else if (this.isSelected0(counterparty) && this.isSelected1(party)) {
+                                            funds.pay(1, amount)
+                                        }
+                                    }   
+                                }) 
+                            })
+                        }
+                        if (!observation) {
+                            handler(funds)
+                            if (counterparty !== undefined && sum !== 0) {
+                                this.pay(counterparty, sum)
+                            }
+                        }
+                    }
+                }    
+            }
+        }
+    }
 
     private multiflag = false
     public async enumerateWithBoundMulti(collateralBound: number): Promise<[string, string, OfferModel][]> {
@@ -306,9 +415,14 @@ if (require.main === module) {
                 if (out1) {
                     dsl.pay(Dsl.Alice, 40)
                     if (dsl.outcome("is it?", ["DON'T KNOW"], ["NO"])) {
-                        if (!out1) {
-                            dsl.pay(Dsl.Bob, 40)
-                        }
+                        dsl.pay(Dsl.Bob, 40)
+                        dsl.if("lol?", ["yup"], ["nope"]).then(funds => {
+                            funds.pay(Dsl.Bob, 20)
+                            funds.pay(Dsl.Alice, 30)
+                        }).else(funds => {
+                            funds.pay(Dsl.Bob, 40)
+                            funds.pay(Dsl.Alice, 10)
+                        })
                     }
                     
                 } else {
@@ -322,11 +436,17 @@ if (require.main === module) {
 
         const multi = await (new Dsl (async dsl => {
             if (dsl.outcome("really?", ["YES"], ["NO"])) {
-                dsl.party("alice").pays("bob")(100)
-                dsl.party("bob").pays("carol")(20)
+                dsl.party("alice").pays("bob").amount(100)
+                dsl.party("bob").pays("carol").amount(20)
             } else {
-                dsl.party("carol").pays("alice")(40)
-                dsl.party("bob").pays("alice")(40)
+                dsl.party("carol").pays("alice").amount(40)
+                dsl.party("bob").pays("alice").amount(40)
+                dsl.if("wow?", ["yup"], ["nope"]).then(account => {
+                    account.party("alice").pays("carol").amount(30)
+                    account.party("carol").pays("alice").amount(5)
+                }).else(account => {
+                    account.party("carol").pays("alice").amount(30)
+                })
             }
         })).multiple("alice", "bob", "carol").enumerateWithBoundMulti(5000)
         console.log(multi)
