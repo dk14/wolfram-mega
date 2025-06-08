@@ -13,7 +13,7 @@ exports.cfg = {
     "httpPort": 8081,
     "p2pPort": 0,
     "p2pKeepAlive": 1000,
-    "hostname": "dk14-peerjs-10101010",
+    "hostname": "dk14-peerjs-10101010" + Math.round(Math.random() * 1000),
     "isTest": true,
     "webrtcPeerServer": {
         host: "0.peerjs.com",
