@@ -5,10 +5,12 @@ type CacheEntry  = {
     id: string
     yes: string[]
     no: string[]
+    args: {[id: string]: string}
+    pubkeyUnique: string
 }
 
 
-type Handler = {
+type PaymentHandler = {
     pay: (idx: 0 | 1, amount: number) => void
     party: (party: string) => ({
         pays: (counterparty: string) => ({
@@ -60,7 +62,7 @@ export class Dsl {
                 if (this.prev.betOn === undefined || this.prev.betOn === true) {
                     this.prev.betOn = true
                 } else {
-                    throw new Error("Perfect hedge! Trader not allowed to benefit regardless of outcome.")
+                    throw new Error("Perfect hedge! Trader not allowed to benefit regardless of outcome. Your trade is overcollaterized!")
                 }
             }
     
@@ -68,7 +70,7 @@ export class Dsl {
                 if(this.prev.betOn === undefined || this.prev.betOn === false) {
                     this.prev.betOn = false
                 } else {
-                    throw new Error("Perfect hedge! Trader not allowed to benefit regardless of outcome.")
+                    throw new Error("Perfect hedge! Trader not allowed to benefit regardless of outcome. Your trade is overcollaterized!")
                 }
             }
         }
@@ -145,12 +147,16 @@ export class Dsl {
             this.state[pubkeyUnique] = [max + 1, null]
             throw "uninitialized"
         } else {
-            if (this.memoize.find(x => x.id === pubkey && JSON.stringify(x.yes) === JSON.stringify(yes) && JSON.stringify(x.no) === JSON.stringify(no)) !== undefined) {
+            if (this.memoize.find(x => x.id === pubkey && JSON.stringify(x.yes.sort()) === JSON.stringify(yes.sort()) && JSON.stringify(x.no.sort()) === JSON.stringify(no.sort()) && JSON.stringify(x.args) === JSON.stringify(args)) !== undefined) {
                 throw new Error("Cannot query same observation twice. Save it into const instead: const obs1 = observe(...)")
+            }
+            const contradiction = this.memoize.find(x => x.id === pubkey && JSON.stringify(x.yes.sort()) === JSON.stringify(no.sort()) && JSON.stringify(x.no.sort()) === JSON.stringify(yes.sort()) && JSON.stringify(x.args) === JSON.stringify(args))
+            if (contradiction !== undefined) {
+                throw new Error("Cannot query the opposite of checked observation. Save it into const and inverse instead: const obs1 = !observe(...)")
             }
             this.enrichAndProgress(this.state[pubkeyUnique][1], pubkeyUnique, yes, no, args)
             this.memoize.push({
-                id: pubkey, yes, no
+                id: pubkey, yes, no, args, pubkeyUnique
             })
             return this.state[pubkeyUnique][1]
         }  
@@ -265,7 +271,7 @@ export class Dsl {
 
     public numeric = {
         outcome: (pubkey: string, from: number, to: number, step: number = 1, args: {[id: string]: string} = {}) => ({
-            enumerate: (handler: (n: number) => void) => {
+            evaluate: (handler: (n: number) => void) => {
                 let numbers = []
                 for (let i = from; i <= to; i += step) {
                     numbers.push(i)
@@ -276,7 +282,7 @@ export class Dsl {
                     }
                 })
             },
-            enumerateWithAccount: (payhandler: (h: Handler, n: number) => void) => {
+            evaluateWithPaymentCtx: (payhandler: (h: PaymentHandler, n: number) => void) => {
                 let numbers = []
                 for (let i = from; i <= to; i += step) {
                     numbers.push(i)
@@ -284,47 +290,148 @@ export class Dsl {
                 numbers.forEach(n => {
                     this.if(pubkey, [n.toString()], numbers.filter(x => x !== n).map(x => x.toString()), args).then(h => payhandler(h, n))
                 })
+            },
+            value: (): number => {
+                let numbers: number[] = []
+                for (let i = from; i <= to; i += step) {
+                    numbers.push(i)
+                }
+                const results = numbers.map(n => {
+                    if (this.outcome(pubkey, [n.toString()], numbers.filter(x => x !== n).map(x => x.toString()), args)) {
+                        return n
+                    } else {
+                        return null
+                    }
+                })
+                const res = results.find(x => x !== null)
+                if (res === undefined) {
+                    throw "skip" //can be undefined during init
+                }
+                return res
+            }, 
+            valueWithPaymentCtx: (): [number, PaymentHandler] => {
+                let numbers: number[] = []
+                for (let i = from; i <= to; i += step) {
+                    numbers.push(i)
+                }
+                const results: [number, PaymentHandler][] = numbers.map(n => {
+                    const out = this.if(pubkey, [n.toString()], numbers.filter(x => x !== n).map(x => x.toString()), args)
+                        .then(() => {}).breakout
+
+                    if (out === undefined) {
+                        return null
+                    } else {
+                        return [n, out]
+                    }
+                })
+                const res = results.find(x => x !== null)
+                if (res === undefined) {
+                    throw "skip" //can be undefined during init
+                }
+                return res
             }
-            
         })
     }
 
     public set = {
         outcome: (pubkey: string, set:string[], args: {[id: string]: string} = {}) => ({
-            enumerate: (handler: (n: string) => void) => {
+            evaluate: (handler: (n: string) => void) => {
                 set.forEach(n => {
                     if (this.outcome(pubkey, [n], set.filter(x => x !== n).map(x => x), args)) {
                         handler(n)
                     }
                 })
             },
-            enumerateWithAccount: (payhandler: (h: Handler, n: string) => void) => {
+            evaluateWithPaymentCtx: (payhandler: (h: PaymentHandler, n: string) => void) => {
                 set.forEach(n => {
                     this.if(pubkey, [n], set.filter(x => x !== n), args).then(h => payhandler(h, n))
                 })
+            },
+            value: (): string => {
+                const results = set.map(n => {
+                    if (this.outcome(pubkey, [n.toString()], set.filter(x => x !== n).map(x => x.toString()), args)) {
+                        return n
+                    } else {
+                        return null
+                    }
+                })
+                const res = results.find(x => x !== null)
+                if (res === undefined) {
+                    throw "skip"
+                }
+                return res
+            },
+            valueWithPaymentCtx: (): [string, PaymentHandler] => {
+  
+                const results: [string, PaymentHandler][] = set.map(n => {
+                    const out = this.if(pubkey, [n.toString()], set.filter(x => x !== n).map(x => x.toString()), args)
+                        .then(() => {}).breakout
+
+                    if (out === undefined) {
+                        return null
+                    } else {
+                        return [n, out]
+                    }
+                })
+                const res = results.find(x => x !== null)
+                if (res === undefined) {
+                    throw "skip" //can be undefined during init
+                }
+                return res
             }
-            
         }),
         outcomeT: <T>(pubkey: string, set:T[], renderer: (x: T) => string, parser: (s: string) => T, args: {[id: string]: string} = {}) => ({
-            enumerate: (handler: (n: T) => void) => {
+            evaluate: (handler: (n: T) => void) => {
                 set.forEach(n => {
                     if (this.outcome(pubkey, [renderer(n)], set.filter(x => renderer(x) !== renderer(n)).map(x => renderer(x)), args)) {
                         handler(n)
                     }
                 })
             },
-            enumerateWithAccount: (payhandler: (h: Handler, n: T) => void) => {
+            evaluateWithPaymentCtx: (payhandler: (h: PaymentHandler, n: T) => void) => {
                 set.forEach(n => {
                     this.if(pubkey, [renderer(n)], set.filter(x => renderer(x) !== renderer(n)).map(x => renderer(x))).then(h => payhandler(h, n))
                 })
+            },
+            value: (): T => {
+                const results = set.map(n => {
+                    if (this.outcome(pubkey, [n.toString()], set.filter(x => x !== n).map(x => x.toString()), args)) {
+                        return n
+                    } else {
+                        return null
+                    }
+                })
+                const res = results.find(x => x !== null)
+                if (res === undefined) {
+                    throw "skip"
+                }
+                return res
+            },
+            valueWithPaymentCtx: (): [T, PaymentHandler] => {
+                const results: [T, PaymentHandler][] = set.map(n => {
+                    const out = this.if(pubkey, [n.toString()], set.filter(x => x !== n).map(x => x.toString()), args)
+                        .then(() => {}).breakout
+
+                    if (out === undefined) {
+                        return null
+                    } else {
+                        return [n, out]
+                    }
+                })
+                const res = results.find(x => x !== null)
+                if (res === undefined) {
+                    throw "skip" //can be undefined during init
+                }
+                return res
             }
+            
         })
     }
 
     public if = (pubkey: string, yes: string[], no: string[], args: {[id: string]: string} = {}) => {
         const observation = this.outcome(pubkey, yes, no, args)
         return {
-            then: (handler: (handle: Handler) => void) => {
+            then: (handler: (handle: PaymentHandler) => void) => {
                 let party: 0 | 1 = undefined
                 let sum = 0
                 const funds = {
@@ -358,6 +465,7 @@ export class Dsl {
                         }) 
                     })
                 }
+                const breakout = observation ? funds : undefined
                 if (observation) {
                     handler(funds)
                     if (party !== undefined && sum !== 0) {
@@ -369,7 +477,8 @@ export class Dsl {
                     }
                 }
                 return {
-                     else: (handler: (handle: Handler) => void) => {
+                     breakout,
+                     else: (handler: (handle: PaymentHandler) => void) => {
                         let counterparty: 0 | 1 = undefined
                         let sum = 0
                         const funds = {
@@ -406,6 +515,7 @@ export class Dsl {
                                 }) 
                             })
                         }
+                        const breakout2 = !observation ? funds : undefined
                         if (!observation) {
                             handler(funds)
                             if (counterparty !== undefined && sum !== 0) {
@@ -416,6 +526,7 @@ export class Dsl {
                                 }
                             }
                         }
+                        return breakout2
                     }
                 }    
             }
@@ -463,7 +574,7 @@ export class Dsl {
                 this.flag = false
                 await this.body(this)
             } catch (e) {
-                if (e === "uninitialized") {
+                if (e === "uninitialized" || e === "skip") {
 
                 } else {
                     throw e
@@ -497,17 +608,17 @@ if (require.main === module) {
                             funds.pay(Dsl.Alice, 10)
                         })
                     }
-                    dsl.numeric.outcome("price?", 0, 5).enumerate(n => {
+                    dsl.numeric.outcome("price?", 0, 5).evaluate(n => {
                         dsl.pay(Dsl.Alice, n + 1)
                     })
                     
-                    dsl.set.outcome("which?", ["lol", "okay", "yaay"]).enumerate(point => {
+                    dsl.set.outcome("which?", ["lol", "okay", "yaay"]).evaluate(point => {
                         if (point === "lol") {
                            dsl.pay(Dsl.Alice, 30)
                         } 
                     })
 
-                    dsl.set.outcomeT<string>("which?", ["lol", "okay", "yaaylol"], x => x, x => x).enumerate(point => {
+                    dsl.set.outcomeT<string>("which?", ["lol", "okay", "yaaylol"], x => x, x => x).evaluate(point => {
                         if (point === "lol") {
                            dsl.pay(Dsl.Alice, 30)
                         } 
@@ -535,7 +646,8 @@ if (require.main === module) {
                 }).else(account => {
                     account.party("carol").pays("alice").amount(30)
                 })
-                dsl.numeric.outcome("price?", 0, 5).enumerateWithAccount((account, n) => {
+                dsl.numeric.outcome("price?", 0, 2).value()
+                dsl.numeric.outcome("price?", 0, 5).evaluateWithPaymentCtx((account, n) => {
                     account.party("alice").pays("carol").amount(n - 2)
                 })
             }

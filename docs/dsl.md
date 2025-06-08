@@ -84,6 +84,8 @@ No smart-contract/VM is required to run the resulting contract. Target chain onl
 
 All outcomes specified in either yes or no of `dsl.outcome(pubkey, yesoutcomes, nooutcomes`) must have distinct semantics. Otherwise typesafety of "not querying the same outcome twice" would be broken. 
 
+Querying mutually exclusive outcomes, e.g. `{yes = ["a"], no = ["b"]} && {yes = ["b"], no = ["a"]}` disallowed, since it can output unreachable subcontracts potentially: use typescript `!` instead, so typescript could lint unreachable code.
+
 ### State
 
 Discrete is at least as powerful as Cardano Marlowe. It allows stateful contracts.
@@ -92,9 +94,9 @@ Consequently, schedules, every ACTUS instrument can be implemented.
 
 ### Recursion
 
-Discreet allows for recursion. `outcome` and `pay` can be in recusrsive calls as well, but subject to standard Dicreet typesafety restrictions: no "perfect hedges".
+Discreet allows for recursion. `outcome` and `pay` can be in recursive calls as well, but subject to standard Dicreet typesafety restrictions: no "perfect hedges".
 
-Every contract has a limit on maximum collateral (`enumerateWithBound(maxBudget)`), thus payout recursion is bounded. Halting problem is "solved".
+Every contract has a limit on maximum collateral (`enumerateWithBound(maxBudget)`), thus payout recursion is bounded. Halting problem is semi-solved.
 
 ### Multi-party
 
@@ -162,12 +164,14 @@ DSL is not responsible for asset pairs, since asset pair is assumed to be fixed 
 
 ### Numeric observations
 
- Outcomes are binary in Discreet, so interest rate drivers and such have to be enumerated and adapted. We recommend to quantize derivatives manually - to give meaning to numbers. 
+ Outcomes are binary in Discreet, so interest rate drivers and such have to be enumerated and adapted. We recommend to quantize derivatives manually - to give meaning to numbers (see sets). 
 
-If automation is preferred:
+If numbers are still preferred:
 
 ```ts
-dsl.numeric.outcome("price?", 0, 5).enumerate(n => {
+const lowerBound = 0
+const upperBound = 5
+dsl.numeric.outcome("price?", lowerBound, upperBound).evaluate(n => {
     dsl.pay(Dsl.Alice, n + 1)
 })
 ```
@@ -176,9 +180,40 @@ Multi-party:
 
 ```ts
 const step = 1
-dsl.numeric.outcome("price?", 0, 5, step).enumerateWithAccount((account, price) => {
+dsl.numeric.outcome("price?", 0, 5, step).evaluateWithPaymentCtx((account, price) => {
     account.party("alice").pays("carol").amount(price - 2)
 })
+```
+
+#### Quantized Vanilla Interest Rate Swap
+
+```ts
+const dates = ["today", "tomorrow", "next week", "next month"]
+const capitalisationDates = new Set(["next week"])
+const notional = 10000
+const floatingLegIndex = "interest rate index?"
+const fixedRate = 3
+const quantisationStep = 1
+
+dates.reduce((date, [capitalisation1, capitalisation2]) => {
+    const [floatingRate, accounts] = dsl.numeric
+        .outcome(floatingLegIndex, 0, 5, quantisationStep, {date})
+        .valueWithPaymentCtx()
+
+    if (capitalisationDates.has(date)) {
+        const floatingPayout = (notional + capitalisation1) * (floatingRate / 100) 
+        const fixedPayout = (notional + capitalisation2) * (fixedRate / 100)
+        accounts.party("alice").pays("bob").amount(floatingPayout)
+        accounts.party("bob").pays("alice").amount(fixedPayout) 
+        return [0, 0]
+    } else {   
+        return [
+            notional * (floatingRate / 100) + capitalisation1, 
+            notional * (fixedRate / 100) + capitalisation2
+        ]
+    }
+}, [0,0])
+
 ```
 
 > Note: only `pay`s must be integers (they get rounded to nearest if you don't round them properly), since sats are integers. All internal computations can be done with any type of number: "real", rational, "complex", matricies, quaternions, dedekind nonsense cuts, functors, group generators, monoids/semigroups, combinatorial groups, topoi etc.
@@ -186,13 +221,13 @@ dsl.numeric.outcome("price?", 0, 5, step).enumerateWithAccount((account, price) 
 ### Set observations
 
 ```ts
-dsl.set.outcome("which?", ["lol", "okay", "yaay"]).enumerate(point => {
+dsl.set.outcome("which?", ["lol", "okay", "yaay"]).evaluate(point => {
     if (point === "lol") {
         dsl.pay(Dsl.Alice, 30)
     } 
 })
 
-dsl.set.outcomeT<string>("which?", ["lol", "okay", "yaaylol"], x => x, x => x).enumerate(point => {
+dsl.set.outcomeT<string>("which?", ["lol", "okay", "yaaylol"], x => x, x => x).evaluate(point => {
     if (point === "lol") {
         dsl.pay(Dsl.Alice, 30)
     } 
