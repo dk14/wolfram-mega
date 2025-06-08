@@ -46,7 +46,9 @@
     "./oracle-data-provider": "./dist/src-web/oracle-data-provider.js",
     "./stalking": "./dist/src-web/stalking.js",
     "./chain-interpreter": "./dist/src-web/transactions.js",
-    "./discreet": "./dist/src-web/dsl.js"
+    "./discreet": "./dist/src-web/dsl.js",
+    "./web-to-node": "./dist/test/util/configure.js",
+    "./webcfg": "./webcfg.js"
   },
   "bin": {
     "mega-peer": "mega-peer.js",

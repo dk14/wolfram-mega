@@ -101,8 +101,32 @@ P2P-messaging log:
 ```bash
 npm run webtest-it trace
 ```
+Composite contracts:
+```bash
+npm run webtest-it-composite
+```
 
 > You supposed to see STALKER logs unless p2p fails. WebRTC requires internet connection. Current version uses peerjs discovery service which is not always reliable.
+
+## Run on node.js
+
+```ts
+import { cfg } from '@dk14/wolfram-mega/webcfg';
+cfg.p2pseed = []
+cfg.p2pseed[0] = {server: "peerjs-handle-for-known-public-node", port: 0}
+cfg.hostname = "your-peerjs-handle-unique"
+
+import { configure } from '@dk14/wolfram-mega/web-to-node'
+configure
+
+await global.initWebapp
+startP2P(global.cfg, await browserPeerAPI()) //start WebRTC p2p network
+
+window.matching
+window.stalking
+```
+
+
 
 
 # Matching Protocol

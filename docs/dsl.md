@@ -1,7 +1,7 @@
 
 > Draft
 
-Discreet eDSL is an instrument to easily build contracts compatible with Mega offers and matching. 
+Discreet eDSL is allows you to easily build contracts compatible with Mega offers and matching. 
 
 > "Discreet" misspelled on purpose
 
@@ -24,9 +24,9 @@ const model = await (new Dsl(async dsl => {
     if (dsl.outcome("really?", ["YES"], ["NO"])) {
         dsl.pay(Dsl.Bob, a + 100) 
         if (dsl.outcome("is it?", ["YES"], ["NO", "3..40"])) {
-            dsl.pay(Dsl.Alice, 40)
+            dsl.pay(Dsl.Alice, 40) // if YES
         } else {
-            dsl.pay(Dsl.Bob, 50)
+            dsl.pay(Dsl.Bob, 50) // if NO or 5
         } 
     } else {
         dsl.pay(Dsl.Alice, 20)
