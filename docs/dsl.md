@@ -112,6 +112,44 @@ const multi = await (new Dsl (async dsl => {
 })).multiple("alice", "bob", "carol").enumerateWithBoundMulti(5000)
 ```
 
+#### Ad-hoc parties
+
+Adding a new party "on the go" is equivalent to early-termination of a contract. As far as blockchain security concerned - terms have to be re-negotiated from scratch. There is no need to put participant management logic on-chain.
+
+Meantime, off-chain code can benefit from the use of factories:
+
+```ts
+import { Dsl } from '@dk14/wolfram-mega/discreet'
+
+//assume contributors collateral in btc, beneficiary collateral is in assets
+const fundFactory = (accumulatedFund: number, refillFund: number, refillBeneficiaryCollateral: number, contributors: string[], beneficiaries: string[], lock: string) => {
+    const multi = await (new Dsl (async dsl => {
+        if (dsl.outcome("payout allowed?", ["YES"], ["NO"])) { //beneficiary completed project
+            contributors.forEach((contributor, i) => {
+                dsl.party(contributor).pays(beneficiaries[i]).amount(refillFund / contributors.length)
+            })
+        } else if (dsl.outcome("refund?", ["YES"], ["NO"])) { //beneficiary failed/rejected project
+            contributors.forEach((contributor, i) => {
+                dsl.party(beneficiaries[i]).pays(contributor).amount(refillBeneficiaryCollateral / beneficiaries.length)
+            })
+        } else {
+            //suspend fund; send to `accumulatedFund` multisig for consensus
+            contributors.forEach((contributor, i) => {
+                dsl.party(contributor).pays(lock).amount(refillFund / contributors.length)
+                dsl.party(beneficiaries[i]).pays(lock).amount(refillBeneficiaryCollateral / beneficiaries.length)
+            })
+        }
+    })).multiple(contributors.append(beneficiaries))
+    .enumerateWithBoundMulti(accumulatedFund + refillFund + refillContributorCollateral)
+    //later each can check individual collateralls calculated for new funding iteration
+}
+
+```
+> Note: This is made up soso example for legacy funds (e.g. hedge funds). Mega encourages safe tractable funding, either: one beneficiary, possibly several contributors. Or: one contributor, possibly several beneficiaries. 
+
+> Not many to many. Many-to-many (p2p) forms naturally in the market, **individual deals meantime are naturally !!one-to-possibly-many!!**. Contracts are written by individuals, not the "market itself", e.g. internet does not tell you what to do, you connect to internet and decide. Take active role, reach out to environment, lol!
+
+
 ### Cross-currency (assets)
 
 DSL is not responsible for asset pairs, since asset pair is assumed to be fixed between parties per (composite) contract - you specify asset pair in matching etc. Allowing one party to have several assets in a contract is equivalent to having several parties, e.g. "alice-usd", "alice-btc".

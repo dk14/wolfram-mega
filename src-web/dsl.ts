@@ -231,7 +231,10 @@ export class Dsl {
 
     public multiple = (...parties: string[]) => {
         if (this.multiparty.length > 0){
-            throw Error("parties can be specified only once!")
+            throw Error("parties can be specified only once! Adding more parties ad-hoc is equivalent to early termination since consensus is required for that! \n It is advised to create a new contract. \n Note: you can freely parametrize Discreet contracts (terms) and use factories to easily spawn contracts with additional parties.")
+        }
+        if (parties.length < 2) {
+            throw Error("Commmon sense! Minimum of 2 parties required for a contract!")
         }
         this.multiparty = parties
         return this
