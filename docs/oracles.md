@@ -76,7 +76,7 @@ npm run peer cfg/mempool-oracle.json
 
 ```bash
 npm i dk14/wolfram-mega
-npx mega-peer cfg/mempool-1.json 
+npx mega-peer cfg/mempool-oracle.json 
 ```
 
 Oracle Admin UI and REST will be available at:
