@@ -158,7 +158,11 @@ Otherwise - you can make custom assertions for your contract just by throwing an
 
 Discreet outputs most optimal contract theoretically possible.
 
-Backends are allowed to optimize ranges and such - by interpreting "0..100" as Schnorr sum of messages.
+Backends are allowed to optimize ranges and such - by interpreting "0..100" as Schnorr sum of messages. They can also optimize subsequent unque matches of the same fact ("100 = 20", "100 = 30" etc, e.g. turn a set of binary options to a european call) into a single pack of CET-transactions rather than a binary tree, which would reduce amount of transactions needed to redeem the funds in worst case.
+
+And that's it.
+
+#### Memoization
 
 Memoization is meaningless for blockchain-contracts, since collateral is ever decreasing, every state is unique.  Breaking this rule - kills collaterization making contracts follow arbitrary non-intended logic.
 
