@@ -43,6 +43,8 @@ const stalking_1 = require("./src-web/stalking");
 const p2p_webrtc_1 = require("./src/p2p-webrtc");
 const storage_1 = require("./src-web/impl/storage");
 const webcfg_1 = require("./webcfg");
+const oracle_data_provider_1 = require("./src-web/oracle-data-provider");
+const transactions_1 = require("./src-web/transactions");
 window.txfee = 2000;
 global.initWebapp = new Promise(async (resolve) => {
     window.spec = await (await fetch("./../wolfram-mega-spec.yaml")).text();
@@ -79,6 +81,9 @@ global.initWebapp = new Promise(async (resolve) => {
     window.pool = api_1.api;
     if (!global.isTest) {
         (0, p2p_1.startP2P)(global.cfg, await (0, p2p_webrtc_1.browserPeerAPI)());
+        setInterval(() => window.stalking.trackIssuedOffers({
+            "bitcoin-testnet": transactions_1.btcDlcContractInterpreter
+        }, oracle_data_provider_1.dataProvider), 200);
     }
     console.log("WebAPI is ready!");
     resolve(window);
