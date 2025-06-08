@@ -495,7 +495,7 @@ Address: <font color="blue">n3W8YyK59F6vQe34uQ8n835L627k2J</font> <img src="./as
                     if (document.getElementById("confirm_orders").checked) {
                         const confirmed = confirm("Bet " + offer.bet[0] + " sat on '" + offer.question + "'")
                         if (confirmed) {
-                            if (offer.role ===  'originator') {
+                            if (offer.role === 'initiator') {
                                 window.matching.broadcastOffer(offer)
                             } else {
                                 if (!offer.betOn) {
@@ -517,7 +517,7 @@ Address: <font color="blue">n3W8YyK59F6vQe34uQ8n835L627k2J</font> <img src="./as
                     if (document.getElementById("confirm_orders").checked) {
                         const confirmed = confirm("Bet " + offer.bet[1] + " sat against '" + offer.question + "'")
                         if (confirmed) {
-                            if (offer.role ===  'originator') {
+                            if (offer.role === 'initiator') {
                                 window.matching.broadcastOffer(offer)
                             } else {
                                 if (offer.betOn) {
