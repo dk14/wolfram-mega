@@ -1,3 +1,4 @@
+import { Mutex } from "async-mutex"
 import { OfferModel } from "./matching"
 
 type CacheEntry  = {
@@ -5,6 +6,7 @@ type CacheEntry  = {
     yes: string[]
     no: string[]
 }
+
 
 export class Dsl {
 
@@ -203,7 +205,66 @@ export class Dsl {
         return model
     }
 
+    private multiparty: string[] = []
+    private selected: [string, string] = [undefined, undefined]
+
+    private isSelected0 = (party: string) => {
+        return this.selected[0] === party 
+    }
+
+    private isSelected1 = (party: string) => {
+        return this.selected[1] === party 
+    }
+
+    public multiple = (...parties: string[]) => {
+        if (this.multiparty.length > 0){
+            throw Error("parties can be specified only once!")
+        }
+        this.multiparty = parties
+        return this
+    }
+
+    public party = (party: string) => ({
+        pays: (counterparty: string) => (amount: number) => {
+            if (!this.multiparty.find(x => x === party)){
+                throw Error("party " + party + " not registered! Use .multiple to register parties")
+            }
+            if (!this.multiparty.find(x => x === counterparty)){
+                throw Error("counterparty " + counterparty + " not registered! Use .multiple to register parties")
+            }
+            if (this.isSelected0(party) && this.isSelected1(counterparty)) {
+                this.pay(0, amount)
+            } else if (this.isSelected0(counterparty) && this.isSelected1(party)) {
+                this.pay(1, amount)
+            }
+        }    
+    })
+
+    private multiflag = false
+    public async enumerateWithBoundMulti(collateralBound: number): Promise<[string, string, OfferModel][]> {
+        this.multiflag = true
+        const pairs: [string, string][] = 
+            this.multiparty.map(x => this.multiparty.map(y => [x, y] as [string, string]).filter(pair => pair[0] !== pair[1]))
+            .flat().map(x => x.sort())
+
+        const ids = new Set()
+        const uniquepairs = pairs.filter((id) => !ids.has(JSON.stringify(id)) && ids.add(JSON.stringify(id)))
+        const mutex = new Mutex()
+        return Promise.all(uniquepairs.map(async pair => { 
+            return await mutex.runExclusive(async () => {
+                this.selected = pair
+                const subcontract = await this.enumerateWithBound(collateralBound)
+                return [pair[0], pair[1], subcontract]
+            })
+        }))
+        this.multiflag = false
+        
+    }
+
     public async enumerateWithBound(collateralBound: number): Promise<OfferModel> {
+        if (this.multiparty.length > 0 && !this.multiflag){
+            throw Error("use `enumerateWithBoundMulti` for multiparty contracts!")
+        }
         if (this.protect) {
             throw "Don't call enumerate inside of the body of your script!"
         }
@@ -216,6 +277,8 @@ export class Dsl {
                 this.budgetBound = collateralBound
                 this.memoize = []
                 this.counter = 0
+                this.lastOutcome = undefined
+                this.flag = false
                 await this.body(this)
             } catch (e) {
                 if (e === "uninitialized") {
@@ -256,6 +319,17 @@ if (require.main === module) {
             }
         })).enumerateWithBound(300)
         console.log(model)
+
+        const multi = await (new Dsl (async dsl => {
+            if (dsl.outcome("really?", ["YES"], ["NO"])) {
+                dsl.party("alice").pays("bob")(100)
+                dsl.party("bob").pays("carol")(20)
+            } else {
+                dsl.party("carol").pays("alice")(40)
+                dsl.party("bob").pays("alice")(40)
+            }
+        })).multiple("alice", "bob", "carol").enumerateWithBoundMulti(5000)
+        console.log(multi)
         console.log("OK!")
     })()
 }

@@ -100,6 +100,19 @@ Discreet allows for recursion. `outcome` and `pay` can be in recusrsive calls as
 
 Every contract has a limit on maximum collateral (`enumerateWithBound(maxBudget)`), thus payout recursion is bounded. Halting problem is "solved".
 
+### Multi-party
+
+```ts
+const multi = await (new Dsl (async dsl => {
+    if (dsl.outcome("really?", ["YES"], ["NO"])) {
+        dsl.party("alice").pays("bob")(100)
+        dsl.party("bob").pays("carol")(20)
+    } else {
+        dsl.party("carol").pays("alice")(40)
+        dsl.party("bob").pays("alice")(40)
+    }
+})).multiple("alice", "bob", "carol").enumerateWithBoundMulti(5000)
+```
 
 ### Algorithmic Trading
 

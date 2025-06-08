@@ -214,7 +214,7 @@ Unlike with Marlowe - money preservation property is ensured in the language des
 
 ## Multi-party
 
-Two-party offers are generalizable to multi-party (multi leg) offers through adding a composite party, e.g. "bob,carol".
+Two-party offers are generalizable to multi-party (multi leg) offers through creating a set of pairwise contracts.
 
 It simplifies matching, since originator of the offer would not have to care about how many parties would join it. 
 
