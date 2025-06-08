@@ -66,7 +66,7 @@ class Dsl {
             throw new Error(`exceeded budget ${this.budgetBound} for outcomes:` + JSON.stringify(this.state));
         }
     }
-    enrichAndProgress(aliceOutcome, pubkey, yes, no) {
+    enrichAndProgress(aliceOutcome, pubkey, yes, no, args = {}) {
         this.lastOutcome = aliceOutcome;
         this.flag = false;
         if (aliceOutcome === false) {
@@ -93,7 +93,8 @@ class Dsl {
         }
         if (this.prev) {
             this.prev.oracles[0] = {
-                capabilityPub: pubkey.replaceAll(/-###-.*/g, "")
+                capabilityPub: pubkey.replaceAll(/-###-.*/g, ""),
+                params: args
             };
             this.prev.yesOutcomes = yes;
             this.prev.noOutcomes = no;
@@ -101,7 +102,7 @@ class Dsl {
     }
     counter = 0;
     memoize = [];
-    outcome(pubkey, yes, no) {
+    outcome(pubkey, yes, no, args = {}) {
         yes.sort();
         no.sort();
         this.counter++;
@@ -118,7 +119,7 @@ class Dsl {
             if (this.memoize.find(x => x.id === pubkey && JSON.stringify(x.yes) === JSON.stringify(yes) && JSON.stringify(x.no) === JSON.stringify(no)) !== undefined) {
                 throw new Error("Cannot query same observation twice. Save it into const instead: const obs1 = observe(...)");
             }
-            this.enrichAndProgress(this.state[pubkeyUnique][1], pubkeyUnique, yes, no);
+            this.enrichAndProgress(this.state[pubkeyUnique][1], pubkeyUnique, yes, no, args);
             this.memoize.push({
                 id: pubkey, yes, no
             });
@@ -217,14 +218,14 @@ class Dsl {
         })
     });
     numeric = {
-        outcome: (pubkey, from, to, step = 1) => ({
+        outcome: (pubkey, from, to, step = 1, args = {}) => ({
             enumerate: (handler) => {
                 let numbers = [];
                 for (let i = from; i <= to; i += step) {
                     numbers.push(i);
                 }
                 numbers.forEach(n => {
-                    if (this.outcome(pubkey, [n.toString()], numbers.filter(x => x !== n).map(x => x.toString()))) {
+                    if (this.outcome(pubkey, [n.toString()], numbers.filter(x => x !== n).map(x => x.toString()), args)) {
                         handler(n);
                     }
                 });
@@ -235,30 +236,30 @@ class Dsl {
                     numbers.push(i);
                 }
                 numbers.forEach(n => {
-                    this.if(pubkey, [n.toString()], numbers.filter(x => x !== n).map(x => x.toString())).then(h => payhandler(h, n));
+                    this.if(pubkey, [n.toString()], numbers.filter(x => x !== n).map(x => x.toString()), args).then(h => payhandler(h, n));
                 });
             }
         })
     };
     set = {
-        outcome: (pubkey, set) => ({
+        outcome: (pubkey, set, args = {}) => ({
             enumerate: (handler) => {
                 set.forEach(n => {
-                    if (this.outcome(pubkey, [n], set.filter(x => x !== n).map(x => x))) {
+                    if (this.outcome(pubkey, [n], set.filter(x => x !== n).map(x => x), args)) {
                         handler(n);
                     }
                 });
             },
             enumerateWithAccount: (payhandler) => {
                 set.forEach(n => {
-                    this.if(pubkey, [n], set.filter(x => x !== n)).then(h => payhandler(h, n));
+                    this.if(pubkey, [n], set.filter(x => x !== n), args).then(h => payhandler(h, n));
                 });
             }
         }),
-        outcomeT: (pubkey, set, renderer, parser) => ({
+        outcomeT: (pubkey, set, renderer, parser, args = {}) => ({
             enumerate: (handler) => {
                 set.forEach(n => {
-                    if (this.outcome(pubkey, [renderer(n)], set.filter(x => renderer(x) !== renderer(n)).map(x => renderer(x)))) {
+                    if (this.outcome(pubkey, [renderer(n)], set.filter(x => renderer(x) !== renderer(n)).map(x => renderer(x)), args)) {
                         handler(n);
                     }
                 });
@@ -270,8 +271,8 @@ class Dsl {
             }
         })
     };
-    if = (pubkey, yes, no) => {
-        const observation = this.outcome(pubkey, yes, no);
+    if = (pubkey, yes, no, args = {}) => {
+        const observation = this.outcome(pubkey, yes, no, args);
         return {
             then: (handler) => {
                 let party = undefined;
@@ -386,7 +387,7 @@ class Dsl {
         const ids = new Set();
         const uniquepairs = pairs.filter((id) => !ids.has(JSON.stringify(id)) && ids.add(JSON.stringify(id)));
         const mutex = new async_mutex_1.Mutex();
-        return Promise.all(uniquepairs.map(async (pair) => {
+        const res = await Promise.all(uniquepairs.map(async (pair) => {
             return await mutex.runExclusive(async () => {
                 this.selected = pair;
                 const subcontract = await this.enumerateWithBound(collateralBound);
@@ -394,6 +395,7 @@ class Dsl {
             });
         }));
         this.multiflag = false;
+        return res;
     }
     async enumerateWithBound(collateralBound) {
         if (this.multiparty.length > 0 && !this.multiflag) {

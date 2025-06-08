@@ -19,7 +19,9 @@ export declare class Dsl {
     private enrichAndProgress;
     private counter;
     private memoize;
-    outcome(pubkey: string, yes: string[], no: string[]): boolean;
+    outcome(pubkey: string, yes: string[], no: string[], args?: {
+        [id: string]: string;
+    }): boolean;
     private next;
     private body;
     constructor(body: (dsl: Dsl) => Promise<void>);
@@ -42,22 +44,30 @@ export declare class Dsl {
         };
     };
     numeric: {
-        outcome: (pubkey: string, from: number, to: number, step?: number) => {
+        outcome: (pubkey: string, from: number, to: number, step?: number, args?: {
+            [id: string]: string;
+        }) => {
             enumerate: (handler: (n: number) => void) => void;
             enumerateWithAccount: (payhandler: (h: Handler, n: number) => void) => void;
         };
     };
     set: {
-        outcome: (pubkey: string, set: string[]) => {
+        outcome: (pubkey: string, set: string[], args?: {
+            [id: string]: string;
+        }) => {
             enumerate: (handler: (n: string) => void) => void;
             enumerateWithAccount: (payhandler: (h: Handler, n: string) => void) => void;
         };
-        outcomeT: <T>(pubkey: string, set: T[], renderer: (x: T) => string, parser: (s: string) => T) => {
+        outcomeT: <T>(pubkey: string, set: T[], renderer: (x: T) => string, parser: (s: string) => T, args?: {
+            [id: string]: string;
+        }) => {
             enumerate: (handler: (n: T) => void) => void;
             enumerateWithAccount: (payhandler: (h: Handler, n: T) => void) => void;
         };
     };
-    if: (pubkey: string, yes: string[], no: string[]) => {
+    if: (pubkey: string, yes: string[], no: string[], args?: {
+        [id: string]: string;
+    }) => {
         then: (handler: (handle: Handler) => void) => {
             else: (handler: (handle: Handler) => void) => void;
         };
