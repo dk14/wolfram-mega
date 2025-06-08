@@ -18,7 +18,6 @@ npm run build
 ## Start collectors
 
 ```ts
-
 import { PreferenceModel } from '@dk14/wolfram-mega/matching'
 
 const preferences: PreferenceModel = {
