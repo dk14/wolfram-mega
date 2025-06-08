@@ -123,6 +123,7 @@ import { Dsl } from '@dk14/wolfram-mega/discreet'
 
 //assume contributors collateral in btc, beneficiary collateral is in assets
 const fundFactory = (accumulatedFund: number, refillFund: number, refillBeneficiaryCollateral: number, contributors: string[], beneficiaries: string[], lock: string) => {
+    // beneficiaries and contributors are required to be unique in Discreet, but effectively might not be so
     const multi = await (new Dsl (async dsl => {
         if (dsl.outcome("payout allowed?", ["YES"], ["NO"])) { //beneficiary completed project
             contributors.forEach((contributor, i) => {

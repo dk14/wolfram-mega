@@ -236,6 +236,10 @@ export class Dsl {
         if (parties.length < 2) {
             throw Error("Commmon sense! Minimum of 2 parties required for a contract!")
         }
+        const set = [...new Set(parties)]
+        if (set.length < parties.length) {
+            throw Error("Tractable relations! parties have to be unique!")
+        }
         this.multiparty = parties
         return this
     }
