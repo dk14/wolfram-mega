@@ -10,6 +10,8 @@ import { stalkingEngine, StalkingEngine } from './src-web/stalking';
 import { browserPeerAPI } from './src/p2p-webrtc';
 import { TraderQuery, database, Storage, indexDBstorage } from './src-web/impl/storage';
 import { cfg, configureWebMocks, nodeMock } from './webcfg';
+import { dataProvider } from './src-web/oracle-data-provider';
+import { btcDlcContractInterpreter } from './src-web/transactions';
 
 export interface BtcApi {
     generateDlcContract:(params: btc.DlcParams) => Promise<btc.DlcContract>
@@ -95,6 +97,9 @@ window.pool = ndapi
 
 if (!global.isTest) {
     startP2P(global.cfg, await browserPeerAPI())
+     setInterval(() => window.stalking.trackIssuedOffers({
+        "bitcoin-testnet": btcDlcContractInterpreter
+    }, dataProvider), 200)
 }
 
 console.log("WebAPI is ready!")
