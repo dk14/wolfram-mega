@@ -4,7 +4,7 @@
     "type": "git",
     "url": "https://github.com/dk14/wolfram-mega.git"
   },
-  "version": "0.0.20",
+  "version": "0.0.21",
   "description": "A p2p fact sharing network",
   "type": "commonjs",
   "scripts": {
@@ -30,7 +30,7 @@
     "readline": false,
     "@roamhq/wrtc": false
   },
- "exports": {
+  "exports": {
     "./all/": "./dist/",
     "./protocol": "./dist/src/protocol.js",
     "./api": "./dist/src/api.js",
