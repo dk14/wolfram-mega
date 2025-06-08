@@ -14,6 +14,9 @@ It is typesafe. It provides checks and restrictions that allow you to eliminate 
 
 ## Example
 ```ts
+
+import { Dsl } from '@dk14/wolfram-mega/discreet'
+
 const maxBudget = 300
 const b = 30
 const model = await (new Dsl(async dsl => {
@@ -103,6 +106,8 @@ Every contract has a limit on maximum collateral (`enumerateWithBound(maxBudget)
 ### Multi-party
 
 ```ts
+import { Dsl } from '@dk14/wolfram-mega/discreet'
+
 const multi = await (new Dsl (async dsl => {
     if (dsl.outcome("really?", ["YES"], ["NO"])) {
         dsl.party("alice").pays("bob")(100)

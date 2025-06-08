@@ -40,6 +40,7 @@ exports.txApi = exports.p2pktr = void 0;
 const bitcoin = __importStar(require("bitcoinjs-lib"));
 const bip371_1 = require("bitcoinjs-lib/src/psbt/bip371");
 const ecc = __importStar(require("tiny-secp256k1"));
+const util_1 = require("../../../util");
 const psbtutils_1 = require("bitcoinjs-lib/src/psbt/psbtutils");
 if ((0, util_1.isBrowser)()) {
     bitcoin.initEccLib(ecc);
@@ -60,7 +61,7 @@ const schnorr = require('bip-schnorr');
 const muSig = schnorr.muSig;
 const convert = schnorr.convert;
 const multisig = __importStar(require("./mu-sig"));
-const util_1 = require("../../../util");
+const util_2 = require("../../../util");
 function schnorrSignerSingle(pub, session = { sigs: [] }, out = 0) {
     return {
         publicKey: Buffer.from(pub, "hex"),
@@ -238,7 +239,7 @@ const webSigner = {
         return multisigInteractive.sign2(pub1, pub2, input.partSig1, input.combinedNonceParity, input.nonce1, input.commitment1, Buffer.from(bs58_1.default.decode(await window.privateDB.get("secrets", pub2))).toString("hex").substring(2, 64 + 2), Buffer.from(msg, "hex"), input.sessionId2);
     }
 };
-function schnorrSignerInteractive(pub1, pub2, session, signer = ((0, util_1.isBrowser)() || global.isTest) ? webSigner : remoteSigner) {
+function schnorrSignerInteractive(pub1, pub2, session, signer = ((0, util_2.isBrowser)() || global.isTest) ? webSigner : remoteSigner) {
     const pkCombined = muSig.pubKeyCombine([Buffer.from(pub1, "hex"), Buffer.from(pub2, "hex")]);
     let pubKeyCombined = convert.intToBuffer(pkCombined.affineX);
     return {
@@ -341,7 +342,7 @@ const txApi = () => {
                 }
                 else {
                     try {
-                        if ((0, util_1.isBrowser)() || global.isTest) {
+                        if ((0, util_2.isBrowser)() || global.isTest) {
                             await psbt.signInputAsync(i, schnorrSignerSingleWeb(alicePub, session, i));
                         }
                         else {
@@ -358,7 +359,7 @@ const txApi = () => {
                 }
                 else {
                     try {
-                        if ((0, util_1.isBrowser)() || global.isTest) {
+                        if ((0, util_2.isBrowser)() || global.isTest) {
                             await psbt.signInputAsync(aliceIn.length + i, schnorrSignerSingleWeb(bobPub, session, aliceIn.length + i));
                         }
                         else {

@@ -8,11 +8,16 @@ npm run build
 ```
 
 ```html
-<script src="./bundle.js" type="module"></script>
+<script src="./mega-peers.min.js" type="module"></script>
+```
+
+```html
+<script src="https://dk14.github.io/wolfram-mega/mega-peers.min.js" type="module"></script>
 ```
 
 ## Implement your blockchain:
 ```ts
+
 //non-Utxo blockchains can insecurely specify account number in txid and omit vout
 export interface UTxO {
     txid: string
@@ -33,6 +38,8 @@ export interface ContractInterpreter {
     submitTx: (tx: string) => Promise<TxId>
 }
 
+import { ContractInterpreter, Inputs, UTxO } from '@dk14/wolfram-mega/chain-interpreter'
+
 const interpreter: ContractInterpreter = ...
 ```
 > Use `offer.content.accept`, `PartiallySignedTx` to implement interactive signing for barrier escrows.
@@ -40,7 +47,7 @@ const interpreter: ContractInterpreter = ...
 ## Start stalking accepted offers
 
 ```ts
-import { dataProvider } from './src-web/oracle-data-provider';
+import { dataProvider } from '@dk14/wolfram-mega/oracle-data-provider';
 
 setInterval(() => window.stalking.trackIssuedOffers(
     {
@@ -76,8 +83,8 @@ There is a default intepreter for [BTC-DLC](https://adiabat.github.io/dlc.pdf).
 > This is MAD (mutually assured destruction) version of DLC. If any of the parties rejects co-signing - their funds will be locked (symmetrically).
 
 ```ts
-import { btcDlcContractInterpreter } from './src-web/transactions';
-import { dataProvider } from './src-web/oracle-data-provider';
+import { btcDlcContractInterpreter } from '@dk14/wolfram-mega/transactions';
+import { dataProvider } from '@dk14/wolfram-mega/oracle-data-provider';
 
 setInterval(() => window.stalking.trackIssuedOffers(
     {
@@ -356,6 +363,8 @@ export interface CetRedemptionParams {
     amount: number,
     txfee: number
 }
+
+import { OpeningParams, CetParams, CetRedemptionParams, DlcParams } from '@dk14/wolfram-mega/contracts/btc'
 
 ```
 

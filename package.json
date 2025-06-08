@@ -22,7 +22,7 @@
     "webtest-it-composite": "npx tsx test/webtest-integration.ts notrace composite",
     "webrtc-bridge": "npx tsx test/util/webrtc-bridge.ts",
     "webtest-dsl": "npx tsx src-web/dsl.ts",
-    "build": "npx tsc --build && npx tsx esbuild.ts"
+    "build": "cp ./wolfram-mega-spec.yaml dist/wolfram-mega-spec.yaml && tsc --build && npx tsx esbuild.ts"
   },
   "browser": {
     "openapi-enforcer": false,
@@ -30,14 +30,27 @@
     "readline": false,
     "@roamhq/wrtc": false
   },
-  "exports": {
-    "./app": "./dist/app.js",
-    "./web": "./dist/src-web/**/*.js",
-    ".": "./dist/src/*.js",
-    "./client": "./dist/src/**/*.js"
+ "exports": {
+    "./all/": "./dist/",
+    "./protocol": "./dist/src/protocol.js",
+    "./api": "./dist/src/api.js",
+    "./config": "./dist/src/config.js",
+    "./p2p": "./dist/src/p2p.js",
+    "./p2p-webrtc": "./dist/src/p2p-webrtc.js",
+    "./pow": "./dist/src/pow.js",
+    "./client/trader-api": "./dist/src/client-api/trader-api.js",
+    "./client/oracle-control-api": "./dist/src/client-api/oracle-control-api.js",
+    "./client/oracle-endpoint-api": "./dist/src/client-api/oracle-control-api.js",
+    "./contracts/btc": "./dist/src/client-api/contracts/generate-btc-tx.js",
+    "./matching": "./dist/src-web/matching.js",
+    "./oracle-data-provider": "./dist/src-web/oracle-data-provider.js",
+    "./stalking": "./dist/src-web/stalking.js",
+    "./chain-interpreter": "./dist/src-web/transactions.js",
+    "./discreet": "./dist/src-web/dsl.js"
   },
   "bin": {
-    "mega-peer": "mega-peer.js"
+    "mega-peer": "mega-peer.js",
+    "mega-demo": "mega-demo.js"
   },
   "keywords": [
     "p2p",
@@ -106,7 +119,9 @@
   "files": [
     "dist",
     "cfg",
+    "test/cfg",
     "mega-peer.js",
+    "mega-demo.js",
     "README.md"
   ],
   "optionalDependencies": {

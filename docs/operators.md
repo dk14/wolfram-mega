@@ -2,6 +2,13 @@
 ## Test Run
 
 ```bash
+npm i dk14/wolfram-mega
+npx mega-peer cfg/mempool-1.json 
+```
+
+or
+
+```bash
 git clone <github-repo>
 cd wolfram-mega
 npm install
@@ -9,6 +16,8 @@ npm run peer cfg/mempool-1.json
 npm run peer cfg/mempool-2.json 
 npm run peer cfg/mempool-3.json 
 ```
+
+
 Monitoring, REST and OpenAPI swagger would become available at:
 
 http://localhost:8080/, http://localhost:8081/, http://localhost:8082/

@@ -20,7 +20,12 @@ const getcfg = (path: string): any => {
     try {
         return JSON.parse(fs.readFileSync(__dirname + '/' + path).toString())
     } catch {
-        return JSON.parse(fs.readFileSync(path).toString())
+        try {
+            return JSON.parse(fs.readFileSync(path).toString())
+        } catch {
+            return JSON.parse(fs.readFileSync("test/" + path).toString())
+        }
+        
     }
 
 }

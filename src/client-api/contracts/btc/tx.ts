@@ -9,10 +9,11 @@ import {
     tapTreeFromList,
   } from 'bitcoinjs-lib/src/psbt/bip371';
 import * as ecc from 'tiny-secp256k1';
+import { isBrowser as isBrowse } from '../../../util'
 import * as tools from 'uint8array-tools';
 import { witnessStackToScriptWitness } from 'bitcoinjs-lib/src/psbt/psbtutils';
 
-if (isBrowser()) {
+if (isBrowse()) {
     bitcoin.initEccLib(ecc)
    // (ecc as any).then(ec => bitcoin.initEccLib(ec))
 } else {

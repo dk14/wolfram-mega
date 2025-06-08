@@ -73,6 +73,12 @@ Either:
 ```bash
 npm run peer cfg/mempool-oracle.json
 ```
+
+```bash
+npm i dk14/wolfram-mega
+npx mega-peer cfg/mempool-1.json 
+```
+
 Oracle Admin UI and REST will be available at:
 
 - http://localhost:7080/
@@ -84,6 +90,11 @@ Oracle Admin UI and REST will be available at:
 Or run a full demo for plug and play:
 ```bash
 npm run demo
+```
+
+```bash
+npm install dk14/wolfram-mega
+npx mega-demo
 ```
 - Peer: http://localhost:8080/peer-monitor/
 - Oracle Admin: http://localhost:8080/oracle-admin/

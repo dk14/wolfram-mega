@@ -1,3 +1,3 @@
 #!/usr/bin/env node
 
-import {} from './dist/app'
+require('./dist/app')

@@ -9,6 +9,11 @@ Example: `cfg/mempool-trader.json`
 ```bash
 npm run peer cfg/mempool-trader.json
 ```
+
+```bash
+npm i dk14/wolfram-mega
+npx mega-peer cfg/mempool-trader.json
+```
 Trader Console UI and REST will be available at:
 
 - http://localhost:7080/

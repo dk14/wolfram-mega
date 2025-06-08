@@ -47,7 +47,12 @@ const getcfg = (path) => {
         return JSON.parse(fs.readFileSync(__dirname + '/' + path).toString());
     }
     catch {
-        return JSON.parse(fs.readFileSync(path).toString());
+        try {
+            return JSON.parse(fs.readFileSync(path).toString());
+        }
+        catch {
+            return JSON.parse(fs.readFileSync("test/" + path).toString());
+        }
     }
 };
 const cfg = getcfg(process.argv[2] ?? "cfg/demo.json");

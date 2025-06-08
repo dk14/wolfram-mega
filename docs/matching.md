@@ -8,12 +8,19 @@ npm run build
 ```
 
 ```html
-<script src="./bundle.js" type="module"></script>
+<script src="./mega-peers.min.js" type="module"></script>
+```
+
+```html
+<script src="https://dk14.github.io/wolfram-mega/mega-peers.min.js" type="module"></script>
 ```
 
 ## Start collectors
 
 ```ts
+
+import { PreferenceModel } from '@dk14/wolfram-mega/matching'
+
 const preferences: PreferenceModel = {
     minOraclePow: 0,
     minOracleReputation: 0,
@@ -45,6 +52,9 @@ await window.matching.broadcastOffer(myOffer)
 ## Generate and broadcast custom offer
 
 ```ts
+
+import { CapabilityModel, OfferModel } from '@dk14/wolfram-mega/matching'
+
 const oracles = await window.storage.queryCapabilities(
     {where: async x => true}, 
     {page: 0, chunkSize: 100}
@@ -73,7 +83,7 @@ await window.matching.broadcastOffer(myCustomOffer)
 Stalker API can negotiate blockchain-transactions for an accepted offer using a given blockchain interpreter (see Contracts doc) and publish transactions on-chain if needed:
 
 ```ts
-import { dataProvider } from './src-web/oracle-data-provider';
+import { dataProvider } from '@dk14/wolfram-mega/oracle-data-provider';
 
 setInterval(() => window.stalking.trackIssuedOffers(
     {
