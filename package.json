@@ -31,11 +31,13 @@
     "@roamhq/wrtc": false
   },
   "exports": {
-    "./app": "./dist/",
-    ".": "./dist/src/"
+    "./app": "./dist/app.js",
+    "./web": "./dist/src-web/**/*.js",
+    ".": "./dist/src/*.js",
+    "./client": "./dist/src/**/*.js"
   },
   "bin": {
-    "mega-peer": "./dist/app.js"
+    "mega-peer": "mega-peer.js"
   },
   "keywords": [
     "p2p",
@@ -104,6 +106,7 @@
   "files": [
     "dist",
     "cfg",
+    "mega-peer.js",
     "README.md"
   ],
   "optionalDependencies": {
