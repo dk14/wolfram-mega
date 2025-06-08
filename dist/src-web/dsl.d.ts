@@ -1,4 +1,12 @@
 import { OfferModel } from "./matching";
+type Handler = {
+    pay: (idx: 0 | 1, amount: number) => void;
+    party: (party: string) => ({
+        pays: (counterparty: string) => ({
+            amount: (amount: number) => void;
+        });
+    });
+};
 export declare class Dsl {
     private state;
     private template;
@@ -29,9 +37,17 @@ export declare class Dsl {
     private isSelected1;
     multiple: (...parties: string[]) => this;
     party: (party: string) => {
-        pays: (counterparty: string) => (amount: number) => void;
+        pays: (counterparty: string) => {
+            amount: (amount: number) => void;
+        };
+    };
+    if: (pubkey: string, yes: string[], no: string[]) => {
+        then: (handler: (handle: Handler) => void) => {
+            else: (handler: (handle: Handler) => void) => void;
+        };
     };
     private multiflag;
     enumerateWithBoundMulti(collateralBound: number): Promise<[string, string, OfferModel][]>;
     enumerateWithBound(collateralBound: number): Promise<OfferModel>;
 }
+export {};
