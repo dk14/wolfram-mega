@@ -31,8 +31,7 @@ import { api } from "../../src/api";
     }, dataProvider), 1000)
         
     const preferences: PreferenceModel = {
-        minOraclePow: 0,
-        minOracleReputation: 0,
+        minOracleRank: 0,
         tags: ["world"],
         txfee: 0
     }

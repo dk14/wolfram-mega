@@ -24,8 +24,7 @@ require("../webapp");
     }, dataProvider), 1000)
         
     const preferences: PreferenceModel = {
-        minOraclePow: 0,
-        minOracleReputation: 0,
+        minOracleRank: 0,
         tags: [],
         txfee: 0
     }

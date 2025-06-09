@@ -61,8 +61,7 @@ const statusRank = (status: OfferStatus): number => {
 }
 
 export interface PreferenceModel {
-    minOraclePow: number,
-    minOracleReputation: number,
+    minOracleRank: number,
     tags: string[],
     txfee: number
 }
@@ -171,13 +170,28 @@ export const evaluateCounterPartyCollateral = async (o?: OfferModel): Promise<nu
     }
 }
 
+const paging = {
+    page: 0,
+    chunkSize: 100
+}
+
+export const pickCps= async (cfg: PreferenceModel): Promise<OracleCapability[]> => {
+    const oracles = await window.storage.queryOracles({where: async x => true}, paging)
+    return (await Promise.all(oracles.map(async o => {
+        const cps = await window.storage.queryCapabilities({where: async x => x.oraclePubKey === o.pubkey}, paging)
+        const strength = o.pow.difficulty + cps.reduce((sum, cp) => sum + cp.pow.difficulty, 0)
+
+        const reports = await window.storage.queryReports({where: async x => x.oraclePubKey === o.pubkey}, paging)
+        const reputation = reports.reduce((sum, r) => sum + r.pow.difficulty, 0)
+        return strength - reputation >= cfg.minOracleRank ? cps : undefined
+    }))).filter(x => x !== undefined).flat()
+}
+
 export const matchingEngine: MatchingEngine = {
     pickOffer: async function (cfg: PreferenceModel): Promise<OfferModel> {
-        // TODO check preferences
-        const candidates = (await window.storage.queryOffers({where: async x => !x.content.accept}, {
-            page: 0,
-            chunkSize: 100
-        }))
+        const top = new Set((await pickCps(cfg)).map(x => x.capabilityPubKey))
+    
+        const candidates = (await window.storage.queryOffers({where: async x => !x.content.accept && top.has(x.content.terms.question.capabilityPubKey)}, paging))
 
         const offer = candidates[randomInt(candidates.length)]
 
@@ -211,14 +225,11 @@ export const matchingEngine: MatchingEngine = {
         return model
     },
     generateOffer: async function (cfg: PreferenceModel): Promise<OfferModel> {
-        //TODO pick capabilities according to preferences
-        const candidates = (await window.storage.queryCapabilities({where: async x => true}, {
-            page: 0,
-            chunkSize: 100
-        }))
+        const top = new Set((await pickCps(cfg)).map(x => x.capabilityPubKey))
+        const candidates = (await window.storage.queryCapabilities({where: async x => top.has(x.capabilityPubKey)}, paging))
 
         if (candidates.length === 0) {
-            throw "no capabilties found"
+            throw "no capabilities found"
         }
 
         const cp = candidates[randomInt(candidates.length)]

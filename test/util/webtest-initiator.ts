@@ -38,8 +38,7 @@ import { Dsl } from "../../src-web/dsl";
     }, dataProvider), 1000)
         
     const preferences: PreferenceModel = {
-        minOraclePow: 0,
-        minOracleReputation: 0,
+        minOracleRank: 0,
         tags: ["world"],
         txfee: 0
     }

@@ -336,8 +336,7 @@ Address: <font color="blue">n3W8YyK59F6vQe34uQ8n835L627k2J</font> <img src="./as
 
             window.model = {
                 profile: {
-                    minOraclePow: 100,
-                    minOracleReputation: 10,
+                    minOracleRank: 0,
                     tags: ["sports", "politics"],
                     txfee: 1000
                 },
@@ -440,13 +439,12 @@ Address: <font color="blue">n3W8YyK59F6vQe34uQ8n835L627k2J</font> <img src="./as
 
             window.fetchContracts = () => {
                 console.log("Fetching contracts...")
-
             }
 
             window.pickOrGenerateOffer = async (pick) => {
                 if (pick) {
                     try {
-                        return await window.matching.pickOffer()
+                        return await window.matching.pickOffer(model.profile)
                     } catch (e) {
                         console.error(e)
                         return await window.matching.generateOffer(model.profile)
