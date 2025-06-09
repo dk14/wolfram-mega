@@ -350,13 +350,11 @@ export interface FreeForm extends WithFactRequest {
     isRelatedToAcademicDisagreementOverFact?: boolean
     relatedPeerReviewedArticles?: string[]
 
-    relatedBroScienceArticles?: string[]
-
     eyewitness?: boolean
     relatedToFact?: boolean
     wantToClarifyFact?: boolean
-    questionIsOverlySubjective?: boolean
-    questionIsOverlyObjective?: boolean
+    factQuestionIsOverlySubjective?: boolean
+    factQuestionIsOverlyObjective?: boolean
 
     didOracleRequestPrivateData?: boolean
     didOracleRevealPrivateData?: boolean
@@ -401,6 +399,7 @@ export interface FreeForm extends WithFactRequest {
 
     advertisesSomeOnesPrivateData?: boolean
     advertisesMilitaryOrCorporateSecrets?: boolean
+    
 
     bringsDownHumanity?: boolean
     noVibe?: boolean //these are to quickly filter such reports out from reputation calc (or filter in!)
@@ -440,6 +439,7 @@ export interface FreeForm extends WithFactRequest {
     iJustPowEveryOracleIfind?: boolean
 
     notInMyNewsPaper?: boolean
+    relatedBroScienceArticles?: string[]
     dontLikeTheFactsDontFeelLikeIt?: boolean
 
     aesthetics?: boolean
