@@ -101,7 +101,6 @@ export interface ProofOfPayment {
     proofOfPayment: string
 }
 
-
 export interface Fact {
     factWithQuestion: string
     signatureType: string
@@ -240,16 +239,12 @@ export interface Offer {
     meta?: any
 }
 
-
 export interface OfferMsg extends MsgLike, WithPow {
-    [x: string]: any
     seqNo: number
     cTTL: number
     pow: HashCashPow
     content: Offer
 }
-
-
 
 export interface PagingDescriptor {
     page: number
