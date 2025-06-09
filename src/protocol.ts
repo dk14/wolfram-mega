@@ -373,6 +373,7 @@ export interface FreeForm extends WithFactRequest {
     iReportTo?: string[]
     iAmThisAndThis?: string[]
     youAreThisAndThat?: string[]
+    youAreSuchAndSuch?: string[]
     iFeel?: string[]
     iThink?: string[]
     iIdentify?: string[]
