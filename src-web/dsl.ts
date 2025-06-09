@@ -209,12 +209,21 @@ export class Dsl {
     private collateral = 0
     private budgetBound = 0
 
+    private leafsFiltered = false
+
     private filterLeafs(model: OfferModel): OfferModel {
         if (!model.bet[0] && !model.bet[1] && !model.ifPartyWins && !model.ifCounterPartyWins) {
+            this.leafsFiltered = true
             return undefined
         }
-        model.ifPartyWins = this.filterLeafs(model.ifPartyWins)
-        model.ifCounterPartyWins = this.filterLeafs(model.ifCounterPartyWins)
+
+        if (model.ifPartyWins) {
+            model.ifPartyWins = this.filterLeafs(model.ifPartyWins)
+        }
+        
+        if (model.ifCounterPartyWins) {
+            model.ifCounterPartyWins = this.filterLeafs(model.ifCounterPartyWins)
+        }
         
         if (!model.ifPartyWins){
             delete model.ifPartyWins
@@ -620,7 +629,15 @@ export class Dsl {
             next = this.next()
         }
         this.protect = false
-        return this.filterLeafs(this.root)
+
+        this.leafsFiltered = true
+        let result = this.root
+
+        while (this.leafsFiltered) {
+            this.leafsFiltered = false
+            result = this.filterLeafs(result)
+        }
+        return result
     }
 }
 
