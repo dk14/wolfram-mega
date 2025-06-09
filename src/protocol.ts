@@ -342,8 +342,8 @@ export interface FreeForm extends WithFactRequest {
 
     isWellKnownFact?: boolean
 
-    typo?: boolean
-    misspelled?: boolean
+    typoInFact?: boolean
+    misspellingInFact?: boolean
 
     isFictionalFactAdvertisedAsReal?: boolean
 
