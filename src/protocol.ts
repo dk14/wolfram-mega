@@ -519,6 +519,7 @@ export interface FreeForm extends WithFactRequest {
 
     interpretationType?: string
     interpretation?: string
+    interpreters?: string[]
 
 
 
