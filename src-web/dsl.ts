@@ -294,12 +294,12 @@ export class Dsl {
                 for (let i = from; i <= to; i += step) {
                     numbers.push(i)
                 }
-                numbers.forEach(n => {
+               for (let n of numbers) {
                     if (this.outcome(pubkey, [n.toString()], numbers.filter(x => x !== n).map(x => x.toString()), args)) {
                         handler(n)
                         return
                     }
-                })
+                }
             },
             evaluateWithPaymentCtx: (payhandler: (h: PaymentHandler, n: number) => void) => {
                 let numbers = []
