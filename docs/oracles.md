@@ -1,12 +1,12 @@
 
 # Oracle API
-Oracle API is provides functionality for managing `OracleId`. It allows Oracle to advertise itself in the network.
+Oracle API provides functionality for managing `OracleId`. It allows Oracle to advertise itself in the network.
 
 Oracle advertises:
 - its `OracleId` which is presentation of oracle's physical identity.
 - its capabilities, specifications of features oracle supports: questions it can answer, together with information necesssary for traders to query (e.g. Mega-compatible endpoint).
 
-> Both `OracleId` and capabilities contain proof of work (SHA256) done. Id takes root oracle pubkey as input for PoW, capability takes `oracleSignature` over that capability as input for PoW. 
+> Both `OracleId` and capabilities contain proof of work (SHA256) done. `OracleId` takes root oracle pubkey as input for PoW, capability takes `oracleSignature` over that capability as input for PoW. 
 
 Oracle API is built on top of operator API (mempools), since both advertising oracles and listening traders are also operating nodes in Mega-P2P.
 
@@ -16,9 +16,9 @@ Oracle API provides:
 - interface for signing ads
 - scheduled advertiser
 
-Mega contains reference implementation. Oracles are at liberty to create their own as long as it communicates using standard `src/protocol.ts` messages.
+Mega-repo contains reference implementation of the protocol and non-essential APIs. Oracles are at liberty to create their own as long as it communicates using standard `src/protocol.ts` messages.
 
-Reference implemntation is exposed as REST-service.
+Reference implementation is exposed as REST-service.
 
 ## Configure
 
@@ -83,7 +83,7 @@ Oracle Admin UI and REST will be available at:
 
 - http://localhost:7080/
 
-> Security: no ports should be open to public network in this mode. Use virtualization (e.g. virsh)
+> Security: **NO** ports should be open to public network in this mode. Use virtualization (e.g. virsh). No inbound connections.
 
 -----
 
