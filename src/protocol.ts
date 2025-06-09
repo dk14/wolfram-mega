@@ -262,6 +262,53 @@ export type ReportAccepted = Registered
 export type ReportRejected = NotRegistered
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 export interface FreeForm extends WithFactRequest {
     type: 'free-form'
     topic: string
