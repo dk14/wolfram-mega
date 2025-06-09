@@ -161,7 +161,7 @@ export interface Report extends MsgLike, WithPow {
     pow: HashCashPow
     oraclePubKey: string
     content: MaleabilityReport
-    meta?: string
+    meta?: any
 }
 
 export interface OfferTerms {
@@ -230,6 +230,8 @@ export interface Offer {
     encryptedDetails?: string //to make matching private - can encrypt actual `Offer` here
     originatorId?: string //for matching
     originatorSig?: string //for matching - to check if u really originator
+    acceptorId?: string //for matching
+    acceptorSig?: string //for matching - to check if u really originator
     orderId?: string 
     dependantOrdersIds?: string[]
 
@@ -237,7 +239,7 @@ export interface Offer {
     pubkeys?: [string, string],
     utxos?: [[string, number][], [string, number][]]
     checkLockTimeVerify?: string,
-    meta?: string
+    meta?: any
 }
 
 
