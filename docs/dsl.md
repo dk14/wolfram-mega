@@ -282,8 +282,6 @@ Discreet outputs most optimal contract theoretically possible.
 
 Backends are allowed to optimize ranges and such - by interpreting "0..100" as Schnorr sum of messages. They can also optimize subsequent unique matches of the same fact ("100 = 20", "100 = 30" etc, e.g. turn a set of binary options to a european call) into a single pack of CET-transactions rather than a binary tree, which would reduce amount of transactions needed to redeem the funds in worst case.
 
-> transpiler itself can be much faster if it starts accounting for mutually exclusive events down the execution path (keep track of which observations were actually checked; mutating ones that weren't checked is unnecessary). 
-
 And that's it.
 
 #### Memoization
