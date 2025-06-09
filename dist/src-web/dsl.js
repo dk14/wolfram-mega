@@ -239,12 +239,12 @@ class Dsl {
                 for (let i = from; i <= to; i += step) {
                     numbers.push(i);
                 }
-                for (let n of numbers) {
+                numbers.forEach(n => {
                     if (this.outcome(pubkey, [n.toString()], numbers.filter(x => x !== n).map(x => x.toString()), args)) {
                         handler(n);
                         return;
                     }
-                }
+                });
             },
             evaluateWithPaymentCtx: (payhandler) => {
                 let numbers = [];
@@ -270,10 +270,8 @@ class Dsl {
                     if (this.outcome(pubkey, [n.toString()], numbers.filter(x => x !== n).map(x => x.toString()), args)) {
                         return n;
                     }
-                    else {
-                        throw "skip";
-                    }
                 }
+                return numbers[0];
             },
             valueWithPaymentCtxUnsafe: () => {
                 let numbers = [];
@@ -323,19 +321,12 @@ class Dsl {
                 });
             },
             value: () => {
-                const results = set.map(n => {
+                for (let n of set) {
                     if (this.outcome(pubkey, [n.toString()], set.filter(x => x !== n).map(x => x.toString()), args)) {
                         return n;
                     }
-                    else {
-                        return null;
-                    }
-                });
-                const res = results.find(x => x !== null);
-                if (res === undefined) {
-                    throw "skip";
                 }
-                return res;
+                return set[0];
             },
             valueWithPaymentCtxUnsafe: () => {
                 for (let n of set) {
@@ -382,10 +373,8 @@ class Dsl {
                     if (this.outcome(pubkey, [n.toString()], set.filter(x => x !== n).map(x => x.toString()), args)) {
                         return n;
                     }
-                    else {
-                        throw "skip";
-                    }
                 }
+                return set[0];
             },
             valueWithPaymentCtxUnsafe: () => {
                 for (let n of set) {
@@ -643,7 +632,7 @@ if (require.main === module) {
                 }).else(account => {
                     account.party("carol").pays("alice").amount(30);
                 });
-                dsl.numeric.outcome("price?", 0, 3).value();
+                console.log(dsl.numeric.outcome("price?", 0, 3).value());
                 dsl.numeric.outcome("price?", 0, 5).evaluateWithPaymentCtx((account, n) => {
                     account.party("alice").pays("carol").amount(n - 2);
                 });
