@@ -262,6 +262,7 @@ export interface FreeForm extends WithFactRequest {
     didOracleRevealContractTerms?: boolean;
     didOracleSlightlyAlterFacts?: boolean;
     conspiracyWithCounterpartySuspected?: boolean;
+    illShareContractTermsEvenThoughIshouldnt?: OfferTerms;
     coersionSuspected?: boolean;
     manipulationOfPublicConsensusSuspected?: boolean;
     factsInContradiction?: Fact[];
@@ -334,6 +335,12 @@ export interface FreeForm extends WithFactRequest {
     youChangedMyMind?: boolean;
     changeMind?: boolean;
     iOverPaid?: ProofOfPayment[];
+    oracleAskedMoreMoney?: boolean;
+    iPaidMore?: ProofOfPayment[];
+    iWantMoneyBack?: boolean;
+    illGetItMyself?: boolean;
+    iKnowYourIP?: boolean;
+    iKnowWhereYouLive?: boolean;
     fakeCommitment?: Commitment[];
     topics?: string[];
     reportTags?: string[];
