@@ -282,6 +282,8 @@ Discreet outputs most optimal contract theoretically possible.
 
 Backends are allowed to optimize ranges and such - by interpreting "0..100" as Schnorr sum of messages. They can also optimize subsequent unique matches of the same fact ("100 = 20", "100 = 30" etc, e.g. turn a set of binary options to a european call) into a single pack of CET-transactions rather than a binary tree, which would reduce amount of transactions needed to redeem the funds in worst case.
 
+> In theory, numeric/set adaptors could use binary search, making worst case chain of reddem transactions log2(N). In practive however, proper optimizer would make it constant (1 transaction) - and it's easier to recover values by following linked-list pattern rather than navigating binary tree.
+
 And that's it.
 
 #### Memoization
