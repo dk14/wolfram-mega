@@ -358,6 +358,17 @@ export interface FreeForm extends WithFactRequest {
     myFootballTeamLost?: boolean
     addictedToBets?: boolean
 
+    iBelongToHackerGroups?: string[]
+    iBelongTo?: string[]
+    iAmThisAndThis?: string[]
+    youAreThisAndThat?: string[]
+    iFeel?: string[]
+    iThink?: string[]
+    iIdentify?: string[]
+    iAlienate?: string[]
+
+    theyLyingWhoThey?: string[]
+
     iJustPowEveryOracleIfind?: boolean
 
     notInMyNewsPaper?: boolean
@@ -374,7 +385,7 @@ export interface FreeForm extends WithFactRequest {
     
     oracleIsInSomeonesPocket?: boolean
     oracleThreatenedYou?: boolean
-    psychologicalManipulation?: boolean
+    psychologicalManipulationByOracle?: boolean
 
     fakeOracle?: boolean
     questionDoesNotMakeSense?: boolean
