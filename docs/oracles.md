@@ -96,10 +96,10 @@ from git-npm-repository:
 npm install dk14/wolfram-mega
 npx mega-demo
 ```
-- Peer: http://localhost:8080/peer-monitor/
-- Oracle Admin: http://localhost:8080/oracle-admin/
+- Peer UI: http://localhost:8080/peer-monitor/
+- Oracle Admin UI: http://localhost:8080/oracle-admin/
 - Mockup Oracle: http://localhost:8080/oracle-endpoint/
-- Trader API: http://localhost:8080/trader-console/
+- Trader Console UI: http://localhost:8080/trader-console/
 - Oracle Ad Signer would connect to `ws-port:9081` at Oracle Admin
 
 > Security: no ports should be open to public network in this mode. Use virtualization (e.g. virsh)
