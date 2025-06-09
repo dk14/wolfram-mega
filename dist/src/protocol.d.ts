@@ -125,6 +125,7 @@ export interface FreeForm extends WithFactRequest {
     msg: string;
     privacyLeakMsg?: string;
     suspectMarketManipulationMsg?: string;
+    personalMsg?: string;
     contact?: string;
     proofs: string[];
 }
