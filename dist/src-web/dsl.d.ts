@@ -33,6 +33,7 @@ export declare class Dsl {
     static readonly Bob = 1;
     private collateral;
     private budgetBound;
+    private leafsFiltered;
     private filterLeafs;
     private multiparty;
     private selected;
