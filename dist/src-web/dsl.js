@@ -251,52 +251,41 @@ class Dsl {
                 for (let i = from; i <= to; i += step) {
                     numbers.push(i);
                 }
-                try {
-                    numbers.forEach(n => {
-                        this.if(pubkey, [n.toString()], numbers.filter(x => x !== n).map(x => x.toString()), args).then(h => {
+                let found = false;
+                numbers.forEach(n => {
+                    if (!found) {
+                        this.if(pubkey, [n], numbers.filter(x => x !== n), args).then(h => {
                             payhandler(h, n);
-                            throw 'break';
+                            found = true;
                         });
-                    });
-                }
-                catch (e) {
-                    if (e === 'break') {
                     }
-                    else {
-                        throw e;
-                    }
-                }
+                });
             },
             value: () => {
                 let numbers = [];
                 for (let i = from; i <= to; i += step) {
                     numbers.push(i);
                 }
-                const results = numbers.map(n => {
+                for (let n of numbers) {
                     if (this.outcome(pubkey, [n.toString()], numbers.filter(x => x !== n).map(x => x.toString()), args)) {
                         return n;
                     }
                     else {
-                        return null;
+                        throw "skip";
                     }
-                });
-                const res = results.find(x => x !== null);
-                if (res === undefined) {
-                    throw "skip"; //can be undefined during init
                 }
-                return res;
             },
             valueWithPaymentCtxUnsafe: () => {
                 let numbers = [];
                 for (let i = from; i <= to; i += step) {
                     numbers.push(i);
                 }
-                const results = numbers.map(n => {
+                for (let n of numbers) {
                     const out = this.if(pubkey, [n.toString()], numbers.filter(x => x !== n).map(x => x.toString()), args)
                         .then(() => { }).else(() => { });
                     const breakout = out.breakoutUnsafeInternal;
                     if (breakout === undefined) {
-                        return null;
+                        throw "skip";
                     }
                     else {
                         breakout.release = () => {
@@ -305,30 +294,32 @@ class Dsl {
                             breakout.pay = undefined;
                             out.finalizeUnsafeInternal();
                         };
+                        this.unfinalized++;
                         return [n, breakout];
                     }
-                });
-                const res = results.find(x => x !== null);
-                if (res === undefined) {
-                    throw "skip"; //can be undefined during init
                 }
-                this.unfinalized++;
-                return res;
             }
         })
     };
     set = {
         outcome: (pubkey, set, args = {}) => ({
             evaluate: (handler) => {
-                set.forEach(n => {
+                for (let n of set) {
                     if (this.outcome(pubkey, [n], set.filter(x => x !== n).map(x => x), args)) {
                         handler(n);
+                        return;
                     }
-                });
+                }
             },
             evaluateWithPaymentCtx: (payhandler) => {
+                let found = false;
                 set.forEach(n => {
-                    this.if(pubkey, [n], set.filter(x => x !== n), args).then(h => payhandler(h, n));
+                    if (!found) {
+                        this.if(pubkey, [n], set.filter(x => x !== n), args).then(h => {
+                            payhandler(h, n);
+                            found = true;
+                        });
+                    }
                 });
             },
             value: () => {
@@ -347,29 +338,24 @@ class Dsl {
                 return res;
             },
             valueWithPaymentCtxUnsafe: () => {
-                const results = set.map(n => {
+                for (let n of set) {
                     const out = this.if(pubkey, [n.toString()], set.filter(x => x !== n).map(x => x.toString()), args)
                         .then(() => { }).else(() => { });
                     const breakout = out.breakoutUnsafeInternal;
                     if (breakout === undefined) {
-                        return null;
+                        throw "skip";
                     }
                     else {
-                        this.unfinalized++;
                         breakout.release = () => {
+                            this.unfinalized--;
                             breakout.party = undefined;
                             breakout.pay = undefined;
                             out.finalizeUnsafeInternal();
                         };
+                        this.unfinalized++;
                         return [n, breakout];
                     }
-                });
-                const res = results.find(x => x !== null);
-                if (res === undefined) {
-                    throw "skip"; //can be undefined during init
                 }
-                this.unfinalized++;
-                return res;
             }
         }),
         outcomeT: (pubkey, set, renderer, parser, args = {}) => ({
@@ -381,32 +367,33 @@ class Dsl {
                 });
             },
             evaluateWithPaymentCtx: (payhandler) => {
+                let found = false;
                 set.forEach(n => {
-                    this.if(pubkey, [renderer(n)], set.filter(x => renderer(x) !== renderer(n)).map(x => renderer(x))).then(h => payhandler(h, n));
+                    if (!found) {
+                        this.if(pubkey, [renderer(n)], set.filter(x => renderer(x) !== renderer(n)).map(x => renderer(x))).then(h => {
+                            payhandler(h, n);
+                            found = true;
+                        });
+                    }
                 });
             },
             value: () => {
-                const results = set.map(n => {
+                for (let n of set) {
                     if (this.outcome(pubkey, [n.toString()], set.filter(x => x !== n).map(x => x.toString()), args)) {
                         return n;
                     }
                     else {
-                        return null;
+                        throw "skip";
                     }
-                });
-                const res = results.find(x => x !== null);
-                if (res === undefined) {
-                    throw "skip";
                 }
-                return res;
             },
             valueWithPaymentCtxUnsafe: () => {
-                const results = set.map(n => {
+                for (let n of set) {
                     const out = this.if(pubkey, [n.toString()], set.filter(x => x !== n).map(x => x.toString()), args)
                         .then(() => { }).else(() => { });
                     const breakout = out.breakoutUnsafeInternal;
                     if (breakout === undefined) {
-                        return null;
+                        throw "skip";
                     }
                     else {
                         breakout.release = () => {
@@ -415,15 +402,10 @@ class Dsl {
                             breakout.pay = undefined;
                             out.finalizeUnsafeInternal();
                         };
+                        this.unfinalized++;
                         return [n, breakout];
                     }
-                });
-                const res = results.find(x => x !== null);
-                if (res === undefined) {
-                    throw "skip"; //can be undefined during init
                 }
-                this.unfinalized++;
-                return res;
             }
         })
     };
