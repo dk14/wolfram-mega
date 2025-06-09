@@ -517,7 +517,8 @@ export interface FreeForm extends WithFactRequest {
     analysisParams?: any
     analysisTags?: string
 
-
+    interpretationType?: string
+    interpretation?: string
 
 
 
