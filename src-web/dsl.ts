@@ -306,20 +306,15 @@ export class Dsl {
                 for (let i = from; i <= to; i += step) {
                     numbers.push(i)
                 }
-                try {
-                    numbers.forEach(n => {
-                        this.if(pubkey, [n.toString()], numbers.filter(x => x !== n).map(x => x.toString()), args).then(h => {
-                            payhandler(h, n)
-                            throw 'break'
+                let found = false
+                numbers.forEach(n => {
+                    if (!found) {
+                        this.if(pubkey, [n], numbers.filter(x => x !== n), args).then(h => {
+                            payhandler(h, n);
+                            found = true
                         })
-                    })
-                } catch (e) {
-                    if (e === 'break') {
-
-                    } else {
-                        throw e
                     }
-                }
+                })
                 
             },
             value: (): number => {
@@ -327,32 +322,27 @@ export class Dsl {
                 for (let i = from; i <= to; i += step) {
                     numbers.push(i)
                 }
-                const results = numbers.map(n => {
+                for (let n of numbers){
                     if (this.outcome(pubkey, [n.toString()], numbers.filter(x => x !== n).map(x => x.toString()), args)) {
                         return n
                     } else {
-                        return null
+                        throw "skip"
                     }
-                })
-                const res = results.find(x => x !== null)
-                if (res === undefined) {
-                    throw "skip" //can be undefined during init
                 }
-                return res
             }, 
             valueWithPaymentCtxUnsafe: (): [number, PaymentHandler] => {
                 let numbers: number[] = []
                 for (let i = from; i <= to; i += step) {
                     numbers.push(i)
                 }
-                const results: [number, PaymentHandler][] = numbers.map(n => {
+                for (let n of numbers){
                     const out = this.if(pubkey, [n.toString()], numbers.filter(x => x !== n).map(x => x.toString()), args)
                         .then(() => {}).else(() => {})
 
                     const breakout: PaymentHandler = out.breakoutUnsafeInternal
                     
                     if (breakout === undefined) {
-                        return null
+                        throw "skip"
                     } else {
                         breakout.release = () => {
                             this.unfinalized--
@@ -360,15 +350,10 @@ export class Dsl {
                             breakout.pay = undefined
                             out.finalizeUnsafeInternal()
                         }
+                        this.unfinalized++
                         return [n, breakout]
                     }
-                })
-                const res = results.find(x => x !== null)
-                if (res === undefined) {
-                    throw "skip" //can be undefined during init
                 }
-                this.unfinalized++
-                return res
             }
         })
     }
@@ -376,16 +361,24 @@ export class Dsl {
     public set = {
         outcome: (pubkey: string, set:string[], args: {[id: string]: string} = {}) => ({
             evaluate: (handler: (n: string) => void) => {
-                set.forEach(n => {
+                for (let n of set) {
                     if (this.outcome(pubkey, [n], set.filter(x => x !== n).map(x => x), args)) {
                         handler(n)
+                        return
                     }
-                })
+                }
             },
             evaluateWithPaymentCtx: (payhandler: (h: PaymentHandler, n: string) => void) => {
+                let found = false
                 set.forEach(n => {
-                    this.if(pubkey, [n], set.filter(x => x !== n), args).then(h => payhandler(h, n))
+                    if (!found) {
+                        this.if(pubkey, [n], set.filter(x => x !== n), args).then(h => {
+                            payhandler(h, n);
+                            found = true
+                        })
+                    }
                 })
+
             },
             value: (): string => {
                 const results = set.map(n => {
@@ -402,30 +395,25 @@ export class Dsl {
                 return res
             },
             valueWithPaymentCtxUnsafe: (): [string, PaymentHandler] => {
-                const results: [string, PaymentHandler][] = set.map(n => {
+                for (let n of set){
                     const out = this.if(pubkey, [n.toString()], set.filter(x => x !== n).map(x => x.toString()), args)
                         .then(() => {}).else(() => {})
 
                     const breakout: PaymentHandler = out.breakoutUnsafeInternal
 
                     if (breakout === undefined) {
-                        return null
+                        throw "skip"
                     } else {
-                        this.unfinalized++
                         breakout.release = () => {
+                            this.unfinalized--
                             breakout.party = undefined
                             breakout.pay = undefined
                             out.finalizeUnsafeInternal()
                         }
+                        this.unfinalized++
                         return [n, breakout]
                     }
-                })
-                const res = results.find(x => x !== null)
-                if (res === undefined) {
-                    throw "skip" //can be undefined during init
                 }
-                this.unfinalized++
-                return res
             }
         }),
         outcomeT: <T>(pubkey: string, set:T[], renderer: (x: T) => string, parser: (s: string) => T, args: {[id: string]: string} = {}) => ({
@@ -437,33 +425,34 @@ export class Dsl {
                 })
             },
             evaluateWithPaymentCtx: (payhandler: (h: PaymentHandler, n: T) => void) => {
+                let found = false
                 set.forEach(n => {
-                    this.if(pubkey, [renderer(n)], set.filter(x => renderer(x) !== renderer(n)).map(x => renderer(x))).then(h => payhandler(h, n))
+                    if (!found) {
+                        this.if(pubkey, [renderer(n)], set.filter(x => renderer(x) !== renderer(n)).map(x => renderer(x))).then(h => {
+                            payhandler(h, n)
+                            found = true
+                        })
+                    }
                 })
             },
             value: (): T => {
-                const results = set.map(n => {
+                for (let n of set) {
                     if (this.outcome(pubkey, [n.toString()], set.filter(x => x !== n).map(x => x.toString()), args)) {
                         return n
                     } else {
-                        return null
+                        throw "skip"
                     }
-                })
-                const res = results.find(x => x !== null)
-                if (res === undefined) {
-                    throw "skip"
                 }
-                return res
             },
             valueWithPaymentCtxUnsafe: (): [T, PaymentHandler] => {
-                const results: [T, PaymentHandler][] = set.map(n => {
+                for (let n of set){
                     const out = this.if(pubkey, [n.toString()], set.filter(x => x !== n).map(x => x.toString()), args)
                         .then(() => {}).else(() => {})
 
                     const breakout: PaymentHandler = out.breakoutUnsafeInternal
 
                     if (breakout === undefined) {
-                        return null
+                        throw "skip"
                     } else {
                         breakout.release = () => {
                             this.unfinalized--
@@ -471,15 +460,10 @@ export class Dsl {
                             breakout.pay = undefined
                             out.finalizeUnsafeInternal()
                         }
+                        this.unfinalized++
                         return [n, breakout]
                     }
-                })
-                const res = results.find(x => x !== null)
-                if (res === undefined) {
-                    throw "skip" //can be undefined during init
                 }
-                this.unfinalized++
-                return res
             }
             
         })
