@@ -333,6 +333,8 @@ export interface FreeForm extends WithFactRequest {
     iChangedYourMind?: boolean;
     youChangedMyMind?: boolean;
     changeMind?: boolean;
+    iOverPaid?: ProofOfPayment[];
+    fakeCommitment?: Commitment[];
     topics?: string[];
     reportTags?: string[];
     relatedPosts?: string;
