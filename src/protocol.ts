@@ -425,6 +425,10 @@ export interface FreeForm extends WithFactRequest {
     iMSure?: boolean
     iMNotSure?: boolean
 
+    myFavoriteNumberIs?: number
+    myFaviriteColorIs?: string[]
+    myFaviriteIs?: string[]
+
     fakeCommitment?: Commitment[]
 
     topics?: string[]
