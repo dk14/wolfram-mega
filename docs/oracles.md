@@ -407,7 +407,7 @@ If oracle provides facts through messengers, blockchain or any other means (incl
 
 ## Blockchain-agnostic
 
-It is NOT recommended (STRONGLY discouraged) for oracles to tie facts or commitments to blockchain contracts. If oracle (optionally) uses blockchain to guarantee SLA fullfillment, it should do so in a separate transaction: only publish commitments (optionally) and facts, do NOT sign transactions for traders.
+It is NOT recommended (STRONGLY discouraged) for oracles to tie facts or commitments to blockchain contracts belonging to traders. If oracle (optionally) uses blockchain to guarantee SLA fullfillment, it should do so in a separate transaction: only publish commitments (optionally) and facts, do NOT sign trading transactions for traders.
 
 Separation of responsibilities:
 
