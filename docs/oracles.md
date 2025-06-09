@@ -87,11 +87,11 @@ Oracle Admin UI and REST will be available at:
 
 -----
 
-Or run a full demo for plug and play:
+You can run a full demo for plug and play:
 ```bash
 npm run demo
 ```
-
+from git-npm-repository:
 ```bash
 npm install dk14/wolfram-mega
 npx mega-demo
@@ -387,7 +387,7 @@ export interface OracleEndpointApi {
 }
 ```
 
-> Oracle does NOT have to store commitments in its database, since they are already authentified with capability signature. Trader will give you commitment with `requestFact`. Same goes for Schnorr r-values (optional feature) - they are calculated from (parametrized) `question` itself - no need to store them; also commitment is signed already when `requestFact`- so Schnorr `r-value` can be taken from it directly. **No overhead in either case**: wether you recalculate `r-value` or take one from commitment signed by you. Only capability private key has to be presisted  (securely) - one per capability.
+> Oracle does NOT have to store commitments in its database, since they are already authentified with capability signature. Trader will give your commitment back with `requestFact`. Same goes for Schnorr r-values (optional feature) - they are calculated from (parametrized) `question` itself - no need to store them; also commitment is signed already when `requestFact`- so Schnorr `r-value` can be taken from it directly. **No overhead in either case**: wether you recalculate `r-value` or take one from commitment signed by you. Only capability private key has to be presisted  (securely) - one per capability.
 
 > Schnorr note: it is insecure to sign two different messages with same `r-value`. Providing conflicting answers to the same question would not only penalize your reputation - it would invalidate your `capabilitySignature` (reveal capability private key). In that case you - have to deactivate capability (see above) and create a new one. And take the fall in reputation for not managing your data properly.
 
