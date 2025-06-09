@@ -143,6 +143,16 @@ export interface AdCollision extends WithFactRequest {
     proofOfCapabilityAdConflict: OracleCapability[]
 }
 
+export interface FreeForm extends WithFactRequest {
+    type: 'free-form'
+    topic: string
+    msg: string
+    privacyLeakMsg?: string
+    suspectMarketManipulationMsg?: string
+    contact?: string
+    proofs: string[]
+}
+
 export type MaleabilityReport = FactDisagreesWithPublic | FactConflict | FactMissing | AdCollision
 
 export interface Dispute {

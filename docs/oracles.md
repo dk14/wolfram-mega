@@ -417,6 +417,8 @@ Separation of responsibilities:
 - only endpoint, lightweight Mega-node (mempool connected to p2p) with `oracle-api` activated are required to run and advertise an oracle. 
 - > Corporate orgs can delegate p2p-node and mining, but then third-party would either have PoW-resources owning id (full proxy) or become foreign advertiser with its own projection of corporate identity (recommended).
 
+> traders can file `free-form` report and vote with PoW against you if they find their privacy leaked or some form of market manipulation.
+
 -----
 Example of endpoint implementation from `src/client-api/utils/oracle-endpoint`:
 
