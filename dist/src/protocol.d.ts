@@ -394,6 +394,7 @@ export interface FreeForm extends WithFactRequest {
     analysisTags?: string;
     interpretationType?: string;
     interpretation?: string;
+    interpreters?: string[];
     relatedPosts?: string;
     socialLinks?: string[];
     extrameta: any;
