@@ -428,6 +428,8 @@ export interface FreeForm extends WithFactRequest {
     myFavoriteNumberIs?: number
     myFaviriteColorIs?: string[]
     myFaviriteIs?: string[]
+    myNameIs?: string[]
+    myAddressIs?: string[]
 
     fakeCommitment?: Commitment[]
 
