@@ -328,6 +328,11 @@ export interface FreeForm extends WithFactRequest {
     fakeOracle?: boolean;
     questionDoesNotMakeSense?: boolean;
     dontWantToKnowAnswer?: boolean;
+    iChangedMyMind?: boolean;
+    youChangedYourMind?: boolean;
+    iChangedYourMind?: boolean;
+    youChangedMyMind?: boolean;
+    changeMind?: boolean;
     topics?: string[];
     reportTags?: string[];
     relatedPosts?: string;
