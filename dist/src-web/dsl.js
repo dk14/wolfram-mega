@@ -242,6 +242,7 @@ class Dsl {
                 numbers.forEach(n => {
                     if (this.outcome(pubkey, [n.toString()], numbers.filter(x => x !== n).map(x => x.toString()), args)) {
                         handler(n);
+                        return;
                     }
                 });
             },
@@ -250,9 +251,21 @@ class Dsl {
                 for (let i = from; i <= to; i += step) {
                     numbers.push(i);
                 }
-                numbers.forEach(n => {
-                    this.if(pubkey, [n.toString()], numbers.filter(x => x !== n).map(x => x.toString()), args).then(h => payhandler(h, n));
-                });
+                try {
+                    numbers.forEach(n => {
+                        this.if(pubkey, [n.toString()], numbers.filter(x => x !== n).map(x => x.toString()), args).then(h => {
+                            payhandler(h, n);
+                            throw 'break';
+                        });
+                    });
+                }
+                catch (e) {
+                    if (e === 'break') {
+                    }
+                    else {
+                        throw e;
+                    }
+                }
             },
             value: () => {
                 let numbers = [];
