@@ -467,4 +467,5 @@ export interface FreeForm extends WithFactRequest {
     onBehalfOf?: string[]
     selfReportedTimestamp?: string
     chronologicallyPreceedingReportsHashRef?: string[]
+    chronologicallySucceedingReportsHashRef?: string[] //why not
 }
