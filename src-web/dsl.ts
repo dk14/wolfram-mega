@@ -695,7 +695,7 @@ if (require.main === module) {
                 }).else(account => {
                     account.party("carol").pays("alice").amount(30)
                 })
-                console.log(dsl.numeric.outcome("price?", 0, 3).value())
+                dsl.numeric.outcome("price?", 0, 3).value()
                 dsl.numeric.outcome("price?", 0, 5).evaluateWithPaymentCtx((account, n) => {
                     account.party("alice").pays("carol").amount(n - 2)
                 })
