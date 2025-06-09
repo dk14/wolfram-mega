@@ -301,6 +301,15 @@ export interface FreeForm extends WithFactRequest {
     iKnowTheTruth?: boolean;
     myFootballTeamLost?: boolean;
     addictedToBets?: boolean;
+    iBelongToHackerGroups?: string[];
+    iBelongTo?: string[];
+    iAmThisAndThis?: string[];
+    youAreThisAndThat?: string[];
+    iFeel?: string[];
+    iThink?: string[];
+    iIdentify?: string[];
+    iAlienate?: string[];
+    theyLyingWhoThey?: string[];
     iJustPowEveryOracleIfind?: boolean;
     notInMyNewsPaper?: boolean;
     dontLikeTheFactsDontFeelLikeIt?: boolean;
@@ -314,7 +323,7 @@ export interface FreeForm extends WithFactRequest {
     words?: boolean;
     oracleIsInSomeonesPocket?: boolean;
     oracleThreatenedYou?: boolean;
-    psychologicalManipulation?: boolean;
+    psychologicalManipulationByOracle?: boolean;
     fakeOracle?: boolean;
     questionDoesNotMakeSense?: boolean;
     dontWantToKnowAnswer?: boolean;
