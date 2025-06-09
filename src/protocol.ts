@@ -471,6 +471,8 @@ export interface FreeForm extends WithFactRequest {
     illGetItMyself?: boolean
     iKnowYourIP?: boolean
     iKnowWhereYouLive?: boolean
+    iKnowWhereILive?: boolean
+    iKnowMyIp?: boolean
 
     youShouldRespectOtherPeopleOpinion?: boolean
     youShouldBeMoreOpenlyMinded?: boolean
