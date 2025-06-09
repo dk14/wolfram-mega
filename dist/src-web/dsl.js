@@ -271,15 +271,17 @@ class Dsl {
                 }
                 const results = numbers.map(n => {
                     const out = this.if(pubkey, [n.toString()], numbers.filter(x => x !== n).map(x => x.toString()), args)
-                        .then(() => { });
-                    const breakout = out.breakout;
+                        .then(() => { }).else(() => { });
+                    const breakout = out.breakoutUnsafeInternal;
                     if (breakout === undefined) {
                         return null;
                     }
                     else {
                         breakout.release = () => {
                             this.unfinalized--;
-                            out.finalize();
+                            breakout.party = undefined;
+                            breakout.pay = undefined;
+                            out.finalizeUnsafeInternal();
                         };
                         return [n, breakout];
                     }
@@ -325,15 +327,17 @@ class Dsl {
             valueWithPaymentCtxUnsafe: () => {
                 const results = set.map(n => {
                     const out = this.if(pubkey, [n.toString()], set.filter(x => x !== n).map(x => x.toString()), args)
-                        .then(() => { });
-                    const breakout = out.breakout;
+                        .then(() => { }).else(() => { });
+                    const breakout = out.breakoutUnsafeInternal;
                     if (breakout === undefined) {
                         return null;
                     }
                     else {
                         this.unfinalized++;
                         breakout.release = () => {
-                            out.finalize();
+                            breakout.party = undefined;
+                            breakout.pay = undefined;
+                            out.finalizeUnsafeInternal();
                         };
                         return [n, breakout];
                     }
@@ -377,15 +381,17 @@ class Dsl {
             valueWithPaymentCtxUnsafe: () => {
                 const results = set.map(n => {
                     const out = this.if(pubkey, [n.toString()], set.filter(x => x !== n).map(x => x.toString()), args)
-                        .then(() => { });
-                    const breakout = out.breakout;
+                        .then(() => { }).else(() => { });
+                    const breakout = out.breakoutUnsafeInternal;
                     if (breakout === undefined) {
                         return null;
                     }
                     else {
                         breakout.release = () => {
                             this.unfinalized--;
-                            out.finalize();
+                            breakout.party = undefined;
+                            breakout.pay = undefined;
+                            out.finalizeUnsafeInternal();
                         };
                         return [n, breakout];
                     }
@@ -439,8 +445,8 @@ class Dsl {
                         })
                     })
                 };
-                const breakout = observation ? funds : undefined;
-                const finalize = () => {
+                const breakoutUnsafeInternal = observation ? funds : undefined;
+                const finalizeUnsafeInternal = () => {
                     if (observation) {
                         handler(funds);
                         if (party !== undefined && sum !== 0) {
@@ -453,10 +459,8 @@ class Dsl {
                         }
                     }
                 };
-                finalize();
+                finalizeUnsafeInternal();
                 return {
-                    breakout,
-                    finalize,
                     else: (handler) => {
                         let counterparty = undefined;
                         let sum = 0;
@@ -497,8 +501,8 @@ class Dsl {
                                 })
                             })
                         };
-                        const breakout2 = !observation ? funds : undefined;
-                        const finalize2 = () => {
+                        const breakoutUnsafeInternal2 = !observation ? funds : undefined;
+                        const finalizeUnsafeInternal2 = () => {
                             if (!observation) {
                                 handler(funds);
                                 if (counterparty !== undefined && sum !== 0) {
@@ -511,7 +515,8 @@ class Dsl {
                                 }
                             }
                         };
-                        return { breakout2, finalize2 };
+                        finalizeUnsafeInternal2();
+                        return { breakoutUnsafeInternal, finalizeUnsafeInternal, breakoutUnsafeInternal2, finalizeUnsafeInternal2 };
                     }
                 };
             }
