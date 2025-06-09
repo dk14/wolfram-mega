@@ -380,29 +380,44 @@ export class Dsl {
                 return recurse(numbers.slice(0, numbers.length / 2), numbers.slice(numbers.length / 2))
             }, 
             valueWithPaymentCtxUnsafe: (): [number, PaymentHandler] => {
-                let numbers: number[] = []
+                let numbers = []
                 for (let i = from; i <= to; i += step) {
                     numbers.push(i)
                 }
-                for (let n of numbers){
-                    const out = this.if(pubkey, [n.toString()], numbers.filter(x => x !== n).map(x => x.toString()), args)
-                        .then(() => {}).else(() => {})
 
-                    const breakout: PaymentHandler = out.breakoutUnsafeInternal
-                    
-                    if (breakout === undefined) {
-                        throw "skip"
-                    } else {
-                        breakout.release = () => {
-                            this.unfinalized--
-                            breakout.party = undefined
-                            breakout.pay = undefined
-                            out.finalizeUnsafeInternal()
-                        }
-                        this.unfinalized++
-                        return [n, breakout]
-                    }
+                let nn = numbers[0]
+                let hh = undefined
+                const payhandler = (h: PaymentHandler, n: number) => {
+                    nn = n
+                    hh = h
                 }
+                
+                const recurse = (l: number[], r: number[]) => {
+                    if (l.length === 0) {
+                        return
+                    }
+                    if (r.length === 0) {
+                        return
+                    }
+                    this.if(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args).then(h => {
+                        if (l.length === 1) {
+                            payhandler(h, l[0])
+                        } else {
+                            recurse(l.slice(0, l.length / 2), l.slice(l.length / 2))
+                        }
+                    }).else(h => {
+                        if (r.length === 1) {
+                            payhandler(h, r[0])
+                        } else {
+                            recurse(r.slice(0, r.length / 2), r.slice(r.length / 2))
+                        }
+                    })
+                }
+
+                recurse(numbers.slice(0, numbers.length / 2), numbers.slice(numbers.length / 2))
+                this.unfinalized++
+
+                return [nn, hh]
             }
         })
     }
@@ -458,6 +473,7 @@ export class Dsl {
                     })
                 }
 
+
                 recurse(set.slice(0, set.length / 2), set.slice(set.length / 2))
 
             },
@@ -487,25 +503,40 @@ export class Dsl {
                 return recurse(set.slice(0, set.length / 2), set.slice(set.length / 2))
             },
             valueWithPaymentCtxUnsafe: (): [string, PaymentHandler] => {
-                for (let n of set){
-                    const out = this.if(pubkey, [n.toString()], set.filter(x => x !== n).map(x => x.toString()), args)
-                        .then(() => {}).else(() => {})
-
-                    const breakout: PaymentHandler = out.breakoutUnsafeInternal
-
-                    if (breakout === undefined) {
-                        throw "skip"
-                    } else {
-                        breakout.release = () => {
-                            this.unfinalized--
-                            breakout.party = undefined
-                            breakout.pay = undefined
-                            out.finalizeUnsafeInternal()
-                        }
-                        this.unfinalized++
-                        return [n, breakout]
-                    }
+                let nn = set[0]
+                let hh = undefined
+                const payhandler = (h: PaymentHandler, n: string) => {
+                    nn = n
+                    hh = h
                 }
+                
+                const recurse = (l: string[], r: string[]) => {
+                    if (l.length === 0) {
+                        return
+                    }
+                    if (r.length === 0) {
+                        return
+                    }
+                    this.if(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args).then(h => {
+                        if (l.length === 1) {
+                            payhandler(h, l[0])
+                        } else {
+                            recurse(l.slice(0, l.length / 2), l.slice(l.length / 2))
+                        }
+                    }).else(h => {
+                        if (r.length === 1) {
+                            payhandler(h, r[0])
+                        } else {
+                            recurse(r.slice(0, r.length / 2), r.slice(r.length / 2))
+                        }
+                    })
+
+                }
+
+                recurse(set.slice(0, set.length / 2), set.slice(set.length / 2))
+                this.unfinalized++
+
+                return [nn, hh]
             }
         }),
         outcomeT: <T>(pubkey: string, set:T[], renderer: (x: T) => string, parser: (s: string) => T, args: {[id: string]: string} = {}) => ({
@@ -585,25 +616,39 @@ export class Dsl {
                 return recurse(set.slice(0, set.length / 2), set.slice(set.length / 2))
             },
             valueWithPaymentCtxUnsafe: (): [T, PaymentHandler] => {
-                for (let n of set){
-                    const out = this.if(pubkey, [n.toString()], set.filter(x => x !== n).map(x => x.toString()), args)
-                        .then(() => {}).else(() => {})
-
-                    const breakout: PaymentHandler = out.breakoutUnsafeInternal
-
-                    if (breakout === undefined) {
-                        throw "skip"
-                    } else {
-                        breakout.release = () => {
-                            this.unfinalized--
-                            breakout.party = undefined
-                            breakout.pay = undefined
-                            out.finalizeUnsafeInternal()
-                        }
-                        this.unfinalized++
-                        return [n, breakout]
-                    }
+                let nn = set[0]
+                let hh = undefined
+                const payhandler = (h: PaymentHandler, n: T) => {
+                    nn = n
+                    hh = h
                 }
+                
+                const recurse = (l: T[], r: T[]) => {
+                    if (l.length === 0) {
+                        return
+                    }
+                    if (r.length === 0) {
+                        return
+                    }
+                    const rt = this.if(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args).then(h => {
+                        if (l.length === 1) {
+                            payhandler(h, l[0])
+                        } else {
+                            recurse(l.slice(0, l.length / 2), l.slice(l.length / 2))
+                        }
+                    }).else(h => {
+                        if (r.length === 1) {
+                            payhandler(h, r[0])
+                        } else {
+                            recurse(r.slice(0, r.length / 2), r.slice(r.length / 2))
+                        }
+                    })
+                }
+
+                recurse(set.slice(0, set.length / 2), set.slice(set.length / 2))
+                this.unfinalized++
+
+                return [nn, hh]
             }
             
         })
@@ -644,9 +689,21 @@ export class Dsl {
                                 }
                             }   
                         }) 
-                    })
+                    }),
+                    release: () => {
+                        this.unfinalized--
+                        funds.party = undefined
+                        funds.pay = undefined
+                        if (party !== undefined && sum !== 0) {
+                            if (sum > 0) {
+                                this.pay(party, sum)
+                            } else {
+                                this.pay(party === 0 ? 1: 0, -sum)
+                            } 
+                        }
+                    }
+
                 }
-                const breakoutUnsafeInternal = observation ? funds : undefined
                 const finalizeUnsafeInternal = () => {
                     if (observation) {
                         handler(funds)
@@ -696,7 +753,19 @@ export class Dsl {
                                         }
                                     }   
                                 }) 
-                            })
+                            }),
+                            release: () => {
+                                this.unfinalized--
+                                funds.party = undefined
+                                funds.pay = undefined
+                                if (counterparty !== undefined && sum !== 0) {
+                                    if (sum > 0) {
+                                        this.pay(counterparty, sum)
+                                    } else {
+                                        this.pay(counterparty === 0 ? 1: 0, -sum)
+                                    } 
+                                }
+                            }
                         }
                         const breakoutUnsafeInternal2 = !observation ? funds : undefined
                         const finalizeUnsafeInternal2 = () => {
@@ -712,7 +781,7 @@ export class Dsl {
                             }
                         }
                         finalizeUnsafeInternal2()
-                        return {breakoutUnsafeInternal, finalizeUnsafeInternal, breakoutUnsafeInternal2, finalizeUnsafeInternal2}
+                        
                     }
                 }    
             }
