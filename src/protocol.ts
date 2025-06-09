@@ -299,7 +299,7 @@ export interface FreeForm extends WithFactRequest {
 
     isRelatedToAcademicDisagreementOverFact?: boolean
     relatedPeerReviewedArticles?: string[]
-    
+
     relatedBroScienceArticles?: string[]
 
     eyewitness?: boolean
@@ -334,6 +334,7 @@ export interface FreeForm extends WithFactRequest {
     illegal?: boolean
     religion?: boolean
     nations?: boolean
+    states?: boolean
     families?: boolean
     traditions?: boolean
     corporate?: boolean
