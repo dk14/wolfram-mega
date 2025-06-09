@@ -295,6 +295,9 @@ export interface FreeForm extends WithFactRequest {
 
     isWellKnownFact?: boolean
 
+    typo?: boolean
+    misspelled?: boolean
+
     isFictionalFactAdvertisedAsReal?: boolean
 
     isRelatedToAcademicDisagreementOverFact?: boolean
@@ -353,7 +356,7 @@ export interface FreeForm extends WithFactRequest {
     advertisesMilitaryOrCorporateSecrets?: boolean
 
     bringsDownHumanity?: boolean
-    noVibe?: boolean //these are to quickly filter such reports out from reputation calc
+    noVibe?: boolean //these are to quickly filter such reports out from reputation calc (or filter in!)
     duude?: boolean
     fakeNews?: boolean
     jfhsjfhl?: boolean
