@@ -356,6 +356,9 @@ export interface FreeForm extends WithFactRequest {
     iReadThisWhat?: string[];
     iMSure?: boolean;
     iMNotSure?: boolean;
+    myFavoriteNumberIs?: number;
+    myFaviriteColorIs?: string[];
+    myFaviriteIs?: string[];
     fakeCommitment?: Commitment[];
     topics?: string[];
     reportTags?: string[];
