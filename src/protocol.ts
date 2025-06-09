@@ -370,6 +370,7 @@ export interface FreeForm extends WithFactRequest {
 
     iBelongToHackerGroups?: string[]
     iBelongTo?: string[]
+    iReportTo?: string[]
     iAmThisAndThis?: string[]
     youAreThisAndThat?: string[]
     iFeel?: string[]
