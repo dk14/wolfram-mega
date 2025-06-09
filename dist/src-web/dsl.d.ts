@@ -79,26 +79,7 @@ export declare class Dsl {
         [id: string]: string;
     }) => {
         then: (handler: (handle: PaymentHandler) => void) => {
-            else: (handler: (handle: PaymentHandler) => void) => {
-                breakoutUnsafeInternal: {
-                    pay: (idx: 0 | 1, amount: number) => void;
-                    party: (party: string) => {
-                        pays: (counterparty: string) => {
-                            amount: (amount: number) => void;
-                        };
-                    };
-                };
-                finalizeUnsafeInternal: () => void;
-                breakoutUnsafeInternal2: {
-                    pay: (idx: 0 | 1, amount: number) => void;
-                    party: (party: string) => {
-                        pays: (counterparty: string) => {
-                            amount: (amount: number) => void;
-                        };
-                    };
-                };
-                finalizeUnsafeInternal2: () => void;
-            };
+            else: (handler: (handle: PaymentHandler) => void) => void;
         };
     };
     private multiflag;
