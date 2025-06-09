@@ -153,7 +153,7 @@ export interface FreeForm extends WithFactRequest {
     proofs: string[]
 }
 
-export type MaleabilityReport = FactDisagreesWithPublic | FactConflict | FactMissing | AdCollision
+export type MaleabilityReport = FactDisagreesWithPublic | FactConflict | FactMissing | AdCollision | FreeForm
 
 export interface Dispute {
     claim: FactMissing
