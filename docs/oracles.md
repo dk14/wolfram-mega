@@ -391,13 +391,13 @@ export interface OracleEndpointApi {
 }
 ```
 
-> Oracle does NOT have to store commitments in its database, since they are already authentified with capability signature. Trader will give your commitment back with `requestFact`. Same goes for Schnorr r-values (optional feature) - they are calculated from (parametrized) `question` itself - no need to store them; also commitment is signed already when `requestFact`- so Schnorr `r-value` can be taken from it directly. **No overhead in either case**: wether you recalculate `r-value` or take one from commitment signed by you. Only capability private key has to be presisted  (securely) - one per capability.
+> Oracle does NOT have to store commitments in its database, since they are already authentified with capability signature. Trader will give your commitment back during `requestFact` inquiry. Same goes for Schnorr r-values (optional feature) - they are calculated from (parametrized) `question` itself - no need to store them; also commitment is signed already when `requestFact`- so Schnorr `r-value` can be taken from it directly. **No overhead in either case**: wether you recalculate `r-value` or take one from commitment signed by you. Only capability private key has to be stored (securely) - one per capability.
 
-> Schnorr note: it is insecure to sign two different messages with same `r-value`. Providing conflicting answers to the same question would not only penalize your reputation - it would invalidate your `capabilitySignature` (reveal capability private key). In that case you - have to deactivate capability (see above) and create a new one. And take the fall in reputation for not managing your data properly.
+> Schnorr note: it is insecure to sign two different messages with same `r-value` (nonce). Providing conflicting answers to the same question would not only penalize your reputation - it would invalidate your `capabilitySignature` (reveal capability private key). If it happens, you have to deactivate capability (see above) and create a new one. And take the fall in reputation for not managing your data properly. Same goes for most asymmetric schemes.
 
-> In rare cases, when you accidentally sign same message with same `r-value` but different private keys, differential cryptoanalysis might recover some of the information about private key (in naive cases it definitely can - `pk1 - pk2`), so ideally (parametrized) question should be part of the fact and **mandatorily** `r-value` should be derived from both private key and question and random number (see `schnorr.ts`). 
+> Schnorr note: in rare cases, when you accidentally sign same message with same `r-value` but different private keys, differential cryptoanalysis might recover some of the information about private key (in naive cases it definitely can - `pk1 - pk2`), so ideally (parametrized) question should be part of the fact and **mandatorily** `r-value` should be derived from both private key and question and random number (see `schnorr.ts`).
 
-> P.S. "parametrized" means with parametres, e.g. "will this happen on $date?" - date (e.g. "1 Jan 1519") has to be included: "will this happen on 1 Jan 1519?".
+> P.S. "parametrized" question means with parametres (arguments), e.g. "will this happen on $date?" - date (e.g. "1 Jan 1519") has to be included: "will this happen on 1 Jan 1519?".
 
 Every capability can have its own endpoint or they can share.
 
