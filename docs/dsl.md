@@ -195,18 +195,20 @@ const floatingLegIndex = "interest rate index?"
 const fixedRate = 3
 const quantisationStep = 1
 
-dates.reduce((date, [capitalisation1, capitalisation2]) => {
+dates.reduce(([capitalisation1, capitalisation2], date) => {
     const [floatingRate, accounts] = dsl.numeric
         .outcome(floatingLegIndex, 0, 5, quantisationStep, {date})
-        .valueWithPaymentCtx()
+        .valueWithPaymentCtxUnsafe() //"unsafe" requires manual release in order to payout
 
     if (capitalisationDates.has(date)) {
         const floatingPayout = (notional + capitalisation1) * (floatingRate / 100) 
         const fixedPayout = (notional + capitalisation2) * (fixedRate / 100)
         accounts.party("alice").pays("bob").amount(floatingPayout)
-        accounts.party("bob").pays("alice").amount(fixedPayout) 
+        accounts.party("bob").pays("alice").amount(fixedPayout)
+        accounts.release()
         return [0, 0]
-    } else {   
+    } else {
+        accounts.release()  //resources are checked; reference counter would throw an error without this
         return [
             notional * (floatingRate / 100) + capitalisation1, 
             notional * (fixedRate / 100) + capitalisation2

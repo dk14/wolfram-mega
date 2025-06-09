@@ -17,6 +17,7 @@ type PaymentHandler = {
             amount: (amount: number) => void
         })
     })
+    release?: () => void
 }
 
 export class Dsl {
@@ -45,7 +46,8 @@ export class Dsl {
     private flag = false
 
     public pay(idx: 0 | 1, amount: number) {
-        // console.log("" + idx + "  " + amount + "  " + JSON.stringify(this.prev))
+        //console.log("" + idx + "  " + amount + "  " + JSON.stringify(this.prev))
+        //console.log(amount)
         if (!this.protect) {
             throw new Error("should not call outside of body; use `new Dsl((dsl) => handler).enumerate()`")
         }
@@ -208,7 +210,7 @@ export class Dsl {
     private budgetBound = 0
 
     private filterLeafs(model: OfferModel): OfferModel {
-        if (!model.bet[0] && !model.bet[1]) {
+        if (!model.bet[0] && !model.bet[1] && !model.ifPartyWins && !model.ifCounterPartyWins) {
             return undefined
         }
         model.ifPartyWins = this.filterLeafs(model.ifPartyWins)
@@ -269,6 +271,8 @@ export class Dsl {
         }) 
     })
 
+    unfinalized = 0
+
     public numeric = {
         outcome: (pubkey: string, from: number, to: number, step: number = 1, args: {[id: string]: string} = {}) => ({
             evaluate: (handler: (n: number) => void) => {
@@ -309,25 +313,32 @@ export class Dsl {
                 }
                 return res
             }, 
-            valueWithPaymentCtx: (): [number, PaymentHandler] => {
+            valueWithPaymentCtxUnsafe: (): [number, PaymentHandler] => {
                 let numbers: number[] = []
                 for (let i = from; i <= to; i += step) {
                     numbers.push(i)
                 }
                 const results: [number, PaymentHandler][] = numbers.map(n => {
                     const out = this.if(pubkey, [n.toString()], numbers.filter(x => x !== n).map(x => x.toString()), args)
-                        .then(() => {}).breakout
+                        .then(() => {})
 
-                    if (out === undefined) {
+                    const breakout: PaymentHandler = out.breakout
+                    
+                    if (breakout === undefined) {
                         return null
                     } else {
-                        return [n, out]
+                        breakout.release = () => {
+                            this.unfinalized--
+                            out.finalize()
+                        }
+                        return [n, breakout]
                     }
                 })
                 const res = results.find(x => x !== null)
                 if (res === undefined) {
                     throw "skip" //can be undefined during init
                 }
+                this.unfinalized++
                 return res
             }
         })
@@ -361,22 +372,28 @@ export class Dsl {
                 }
                 return res
             },
-            valueWithPaymentCtx: (): [string, PaymentHandler] => {
-  
+            valueWithPaymentCtxUnsafe: (): [string, PaymentHandler] => {
                 const results: [string, PaymentHandler][] = set.map(n => {
                     const out = this.if(pubkey, [n.toString()], set.filter(x => x !== n).map(x => x.toString()), args)
-                        .then(() => {}).breakout
+                        .then(() => {})
 
-                    if (out === undefined) {
+                    const breakout: PaymentHandler = out.breakout
+
+                    if (breakout === undefined) {
                         return null
                     } else {
-                        return [n, out]
+                        this.unfinalized++
+                        breakout.release = () => {
+                            out.finalize()
+                        }
+                        return [n, breakout]
                     }
                 })
                 const res = results.find(x => x !== null)
                 if (res === undefined) {
                     throw "skip" //can be undefined during init
                 }
+                this.unfinalized++
                 return res
             }
         }),
@@ -407,21 +424,28 @@ export class Dsl {
                 }
                 return res
             },
-            valueWithPaymentCtx: (): [T, PaymentHandler] => {
+            valueWithPaymentCtxUnsafe: (): [T, PaymentHandler] => {
                 const results: [T, PaymentHandler][] = set.map(n => {
                     const out = this.if(pubkey, [n.toString()], set.filter(x => x !== n).map(x => x.toString()), args)
-                        .then(() => {}).breakout
+                        .then(() => {})
 
-                    if (out === undefined) {
+                    const breakout: PaymentHandler = out.breakout
+
+                    if (breakout === undefined) {
                         return null
                     } else {
-                        return [n, out]
+                        breakout.release = () => {
+                            this.unfinalized--
+                            out.finalize()
+                        }
+                        return [n, breakout]
                     }
                 })
                 const res = results.find(x => x !== null)
                 if (res === undefined) {
                     throw "skip" //can be undefined during init
                 }
+                this.unfinalized++
                 return res
             }
             
@@ -466,18 +490,22 @@ export class Dsl {
                     })
                 }
                 const breakout = observation ? funds : undefined
-                if (observation) {
-                    handler(funds)
-                    if (party !== undefined && sum !== 0) {
-                        if (sum > 0) {
-                            this.pay(party, sum)
-                        } else {
-                            this.pay(party === 0 ? 1: 0, -sum)
-                        } 
+                const finalize = () => {
+                    if (observation) {
+                        handler(funds)
+                        if (party !== undefined && sum !== 0) {
+                            if (sum > 0) {
+                                this.pay(party, sum)
+                            } else {
+                                this.pay(party === 0 ? 1: 0, -sum)
+                            } 
+                        }
                     }
                 }
+                finalize()
                 return {
                      breakout,
+                     finalize,
                      else: (handler: (handle: PaymentHandler) => void) => {
                         let counterparty: 0 | 1 = undefined
                         let sum = 0
@@ -516,17 +544,19 @@ export class Dsl {
                             })
                         }
                         const breakout2 = !observation ? funds : undefined
-                        if (!observation) {
-                            handler(funds)
-                            if (counterparty !== undefined && sum !== 0) {
-                                if (sum > 0) {
-                                    this.pay(party, sum)
-                                } else {
-                                    this.pay(party === 0 ? 1: 0, -sum)
+                        const finalize2 = () => {
+                            if (!observation) {
+                                handler(funds)
+                                if (counterparty !== undefined && sum !== 0) {
+                                    if (sum > 0) {
+                                        this.pay(party, sum)
+                                    } else {
+                                        this.pay(party === 0 ? 1: 0, -sum)
+                                    }
                                 }
                             }
                         }
-                        return breakout2
+                        return {breakout2, finalize2}
                     }
                 }    
             }
@@ -564,7 +594,6 @@ export class Dsl {
         this.protect = true
         let next = true
         while (next) {
-            // console.log(this.state)
             try {
                 this.collateral = 0
                 this.budgetBound = collateralBound
@@ -573,6 +602,9 @@ export class Dsl {
                 this.lastOutcome = undefined
                 this.flag = false
                 await this.body(this)
+                if (this.unfinalized !== 0) {
+                    throw new Error("" + this.unfinalized + " resource locks are not released! Every `[v, payments] = valueWithPaymentCtxUnsafe` must have a corresponding `payments.finalize()`")
+                }
             } catch (e) {
                 if (e === "uninitialized" || e === "skip") {
 
@@ -653,6 +685,38 @@ if (require.main === module) {
             }
         })).multiple("alice", "bob", "carol").enumerateWithBoundMulti(5000)
         console.log(multi)
+
+        const multi2 = await (new Dsl (async dsl => {
+            const dates = ["today", "tomorrow", "next week", "next month"]
+            const capitalisationDates = new Set(["next week"])
+            const notional = 10000
+            const floatingLegIndex = "interest rate index?"
+            const fixedRate = 3
+            const quantisationStep = 1
+
+            dates.reduce(([capitalisation1, capitalisation2], date) => {
+                const [floatingRate, accounts] = dsl.numeric
+                    .outcome(floatingLegIndex, 1, 3, quantisationStep, {date})
+                    .valueWithPaymentCtxUnsafe()
+
+                if (capitalisationDates.has(date)) {
+                    const floatingPayout = (notional + capitalisation1) * (floatingRate / 100) 
+                    const fixedPayout = (notional + capitalisation2) * (fixedRate / 100)
+                    accounts.party("alice").pays("bob").amount(floatingPayout)
+                    accounts.party("bob").pays("alice").amount(fixedPayout) 
+                    accounts.release()
+                    return [0, 0]
+                } else {   
+                    accounts.release()
+                    return [
+                        notional * (floatingRate / 100) + capitalisation1, 
+                        notional * (fixedRate / 100) + capitalisation2
+                    ]
+                }
+            }, [0,0])
+
+        })).multiple("alice", "bob").enumerateWithBoundMulti(50000)
+        console.log(multi2)
         console.log("OK!")
     })()
 }
