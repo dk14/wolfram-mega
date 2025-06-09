@@ -103,6 +103,7 @@ class Dsl {
     }
     counter = 0;
     memoize = [];
+    checked = [];
     outcome(pubkey, yes, no, args = {}) {
         yes.sort();
         no.sort();
@@ -113,10 +114,15 @@ class Dsl {
         const pubkeyUnique = pubkey + "-###-" + this.counter;
         if (this.state[pubkeyUnique] === undefined) {
             const max = Object.values(this.state).length === 0 ? -1 : Math.max(...Object.values(this.state).map(x => x[0]));
-            this.state[pubkeyUnique] = [max + 1, null];
+            this.state[pubkeyUnique] = [max + 1, false];
+            Object.keys(this.state).forEach(x => {
+                this.state[x] = [this.state[x][0], false];
+            });
+            this.checked[this.state[pubkeyUnique][0]] = true;
             throw "uninitialized";
         }
         else {
+            this.checked[this.state[pubkeyUnique][0]] = true;
             if (this.memoize.find(x => x.id === pubkey && JSON.stringify(x.yes.sort()) === JSON.stringify(yes.sort()) && JSON.stringify(x.no.sort()) === JSON.stringify(no.sort()) && JSON.stringify(x.args) === JSON.stringify(args)) !== undefined) {
                 throw new Error("Cannot query same observation twice. Save it into const instead: const obs1 = observe(...)");
             }
@@ -138,20 +144,20 @@ class Dsl {
         let cursor = true;
         let entry = undefined;
         while (cursor) {
-            entry = Object.values(this.state).find(x => x[0] === i);
-            if (entry === undefined) {
+            if (this.checked[i] === undefined && Object.values(this.state).find(x => x[0] === i) === undefined) {
                 return false;
             }
-            cursor = entry[1];
-            if (entry[1] === null) {
-                entry[1] = false;
-                return true;
-            }
-            if (cursor) {
-                entry[1] = false;
+            entry = Object.values(this.state).find(x => x[0] === i);
+            if (entry[1] === true) {
+                if (cursor === true) {
+                    entry[1] = false;
+                }
             }
             else {
-                entry[1] = true;
+                if (cursor) {
+                    entry[1] = true;
+                }
+                cursor = false;
             }
             i++;
         }
@@ -560,6 +566,7 @@ class Dsl {
                 this.collateral = 0;
                 this.budgetBound = collateralBound;
                 this.memoize = [];
+                this.checked = [];
                 this.counter = 0;
                 this.lastOutcome = undefined;
                 this.flag = false;

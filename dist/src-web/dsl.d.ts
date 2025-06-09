@@ -20,6 +20,7 @@ export declare class Dsl {
     private enrichAndProgress;
     private counter;
     private memoize;
+    private checked;
     outcome(pubkey: string, yes: string[], no: string[], args?: {
         [id: string]: string;
     }): boolean;
@@ -45,7 +46,7 @@ export declare class Dsl {
             amount: (amount: number) => void;
         };
     };
-    unfinalized: number;
+    private unfinalized;
     numeric: {
         outcome: (pubkey: string, from: number, to: number, step?: number, args?: {
             [id: string]: string;
