@@ -387,6 +387,6 @@ export interface FreeForm extends WithFactRequest {
     extrameta: any;
     onBehalfOf?: string[];
     selfReportedTimestamp?: string;
-    chronologicallyPreceedingReportsHashRef?: string[];
-    chronologicallySucceedingReportsHashRef?: string[];
+    knownChronologicallyPreceedingReportsHashRefs?: string[];
+    unknownChronologicallySucceedingReportsHashRefs?: string[];
 }
