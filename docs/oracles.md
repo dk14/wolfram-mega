@@ -387,9 +387,17 @@ export interface OracleEndpointApi {
 }
 ```
 
+> Oracle does NOT have to store comittments in its database, since they are already authentified with capability signature. Trader will give you commitment with `requestFact`. Same goes for Schnorr r-values (optional feature) - they are calculated from (parametrized) `question` itself - no need to store them; also commitment is signed already when `requestFact`- so Schnorr `r-value` can be taken from it directly. **No overhead in either case**: wether you recalculate `r-value` or take one from commitment signed by you. Only capability private key has to be presisted  (securely) - one per capability.
+
+> Schnorr note: it is insecure to sign two different messages with same `r-value`. Providing conflicting answers to the same question would not only penalize your reputation - it would invalidate your `capabilitySignature` (reveal capability private key). In that case you - have to deactivate capability (see above) and create a new one. And take the fall in reputation for not managing your data properly.
+
+> In rare cases, when you accidentally sign same message with same `r-value` but different private keys, differential cryptoanalysis might recover some of the information about private key (in naive cases it definitely can - `pk1 - pk2`), so ideally (parametrized) question should be part of the fact and **mandatorily** `r-value` should be derived from both private key and question and random number (see `schnorr.ts`). 
+
+> P.S. "parametrized" means with parametres, e.g. "will this happen on $date?" - date (e.g. "1 Jan 1519") has to be included: "will this happen on 1 Jan 1519?".
+
 Every capability can have its own endpoint or they can share.
 
-If oracle provides facts through messengers, blockchain or any other means (including `fact-missing` report as a hack), then it must be able to manually or chat-bot-automatically send `commitment` and eventually `fact` as json in response to `fact-request`.
+If oracle provides facts through messengers, blockchain or any other means (including `fact-missing` report as a hack), then it must be able to manually or chat-bot-automatically send `commitment` and eventually `fact` as json in response to `fact-request` message json.
 
 **Commitments are signed and legally binding. Oracle can be reported for not fulfilling (or misfulfilling) the commitment it made.**
 
@@ -402,8 +410,8 @@ Separation of responsibilities:
 - Mega encourages pull-based approach for privacy
 - oracle must NOT KNOW anything about contracts relying on its data - Mega does not share that information with oracles (even "offers API" in mempools allows for encryption and obfuscation, as well as private p2p). Only `fact-req` is known to oracle. This is strongly recommended in order to prevent naive market manipulation by oracles themselves.
 - moreover, in Mega, oracle does not have to know about blockchain existence either. Mega DOES NOT require oracles to maintain blockchain wallets (full nodes etc).
-- only endpoint, lightweight Mega-node (mempool connected to p2p) with `oracle-api` activated are required from an oracle. 
-- > p2p-node and mining can be delgated for corporate orgs, but then someone else would either have PoW-resources owning id (full proxy) or become foreign advertiser with its own projection of corporate identity (recommended).
+- only endpoint, lightweight Mega-node (mempool connected to p2p) with `oracle-api` activated are required to run and advertise an oracle. 
+- > Corporate orgs can delegate p2p-node and mining, but then third-party would either have PoW-resources owning id (full proxy) or become foreign advertiser with its own projection of corporate identity (recommended).
 
 -----
 Example of endpoint implementation from `src/client-api/utils/oracle-endpoint`:
