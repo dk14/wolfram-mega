@@ -70,6 +70,8 @@ export interface OracleId extends MsgLike, WithPow {
     tags?: string[];
     previousId?: OracleId;
     previousIdSignatureToNewPubkey?: string;
+    partOf?: OracleId[];
+    parts?: OracleId[];
     meta?: any;
 }
 export interface FactRequest {
@@ -241,6 +243,8 @@ export interface FreeForm extends WithFactRequest {
     questionIsTooSpecific?: boolean;
     wrongTagsOracleId?: string[];
     wrongTagsCapability?: string[];
+    endpointNotAvailable?: boolean;
+    endpointDoesNotReturnCommitment?: boolean;
     relatedInfoLinks?: string[];
     isRelatedToTechnicalIssue?: boolean;
     isRelatedToPuplicConsensusOverFact?: boolean;
