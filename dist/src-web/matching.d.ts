@@ -1,9 +1,8 @@
-import { DependsOn, OfferMsg } from "../src/protocol";
+import { DependsOn, OfferMsg, OracleCapability } from "../src/protocol";
 export declare const randomInt: (n: number) => number;
 export type OfferStatus = 'matching' | 'accepted' | 'oracle committed' | 'signing' | 'opening tx available' | 'tx submitted' | 'outcome revealed' | 'redeem tx available' | 'redeemed';
 export interface PreferenceModel {
-    minOraclePow: number;
-    minOracleReputation: number;
+    minOracleRank: number;
     tags: string[];
     txfee: number;
 }
@@ -55,5 +54,6 @@ export interface HashLockProvider {
 export declare const hashLockProvider: HashLockProvider;
 export declare const evaluatePartyCollateral: (o?: OfferModel) => Promise<number>;
 export declare const evaluateCounterPartyCollateral: (o?: OfferModel) => Promise<number>;
+export declare const pickCps: (cfg: PreferenceModel) => Promise<OracleCapability[]>;
 export declare const matchingEngine: MatchingEngine;
 export declare function maxBy<T>(arr: T[], fn: (item: T) => number): T | undefined;

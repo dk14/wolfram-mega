@@ -19,8 +19,7 @@ require("../webapp");
         "bitcoin-testnet": transactions_1.btcDlcContractInterpreter
     }, oracle_data_provider_1.dataProvider), 1000);
     const preferences = {
-        minOraclePow: 0,
-        minOracleReputation: 0,
+        minOracleRank: 0,
         tags: [],
         txfee: 0
     };

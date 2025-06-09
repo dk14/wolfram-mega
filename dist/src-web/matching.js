@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.matchingEngine = exports.evaluateCounterPartyCollateral = exports.evaluatePartyCollateral = exports.hashLockProvider = exports.checkOriginatorId = exports.getOriginatorId = exports.randomInt = void 0;
+exports.matchingEngine = exports.pickCps = exports.evaluateCounterPartyCollateral = exports.evaluatePartyCollateral = exports.hashLockProvider = exports.checkOriginatorId = exports.getOriginatorId = exports.randomInt = void 0;
 exports.maxBy = maxBy;
 const oracle_data_provider_1 = require("./oracle-data-provider");
 const randomInt = (n) => {
@@ -108,13 +108,25 @@ const evaluateCounterPartyCollateral = async (o) => {
     }
 };
 exports.evaluateCounterPartyCollateral = evaluateCounterPartyCollateral;
+const paging = {
+    page: 0,
+    chunkSize: 100
+};
+const pickCps = async (cfg) => {
+    const oracles = await window.storage.queryOracles({ where: async (x) => true }, paging);
+    return (await Promise.all(oracles.map(async (o) => {
+        const cps = await window.storage.queryCapabilities({ where: async (x) => x.oraclePubKey === o.pubkey }, paging);
+        const strength = o.pow.difficulty + cps.reduce((sum, cp) => sum + cp.pow.difficulty, 0);
+        const reports = await window.storage.queryReports({ where: async (x) => x.oraclePubKey === o.pubkey }, paging);
+        const reputation = reports.reduce((sum, r) => sum + r.pow.difficulty, 0);
+        return strength - reputation >= cfg.minOracleRank ? cps : undefined;
+    }))).filter(x => x !== undefined).flat();
+};
+exports.pickCps = pickCps;
 exports.matchingEngine = {
     pickOffer: async function (cfg) {
-        // TODO check preferences
-        const candidates = (await window.storage.queryOffers({ where: async (x) => !x.content.accept }, {
-            page: 0,
-            chunkSize: 100
-        }));
+        const top = new Set((await (0, exports.pickCps)(cfg)).map(x => x.capabilityPubKey));
+        const candidates = (await window.storage.queryOffers({ where: async (x) => !x.content.accept && top.has(x.content.terms.question.capabilityPubKey) }, paging));
         const offer = candidates[(0, exports.randomInt)(candidates.length)];
         if (!offer) {
             throw "no offers found in database; db.length =" + candidates.length;
@@ -142,13 +154,10 @@ exports.matchingEngine = {
         return model;
     },
     generateOffer: async function (cfg) {
-        //TODO pick capabilities according to preferences
-        const candidates = (await window.storage.queryCapabilities({ where: async (x) => true }, {
-            page: 0,
-            chunkSize: 100
-        }));
+        const top = new Set((await (0, exports.pickCps)(cfg)).map(x => x.capabilityPubKey));
+        const candidates = (await window.storage.queryCapabilities({ where: async (x) => top.has(x.capabilityPubKey) }, paging));
         if (candidates.length === 0) {
-            throw "no capabilties found";
+            throw "no capabilities found";
         }
         const cp = candidates[(0, exports.randomInt)(candidates.length)];
         const partyBetAmountOptions = [1, 100, 200, 500];
