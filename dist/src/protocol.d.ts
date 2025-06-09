@@ -251,6 +251,8 @@ export interface FreeForm extends WithFactRequest {
     isWellKnownFact?: boolean;
     isFictionalFactAdvertisedAsReal?: boolean;
     isRelatedToAcademicDisagreementOverFact?: boolean;
+    relatedPeerReviewedArticles?: string[];
+    relatedBroScienceArticles?: string[];
     eyewitness?: boolean;
     relatedToFact?: boolean;
     wantToClarifyFact?: boolean;
