@@ -6,6 +6,7 @@ type PaymentHandler = {
             amount: (amount: number) => void;
         });
     });
+    release?: () => void;
 };
 export declare class Dsl {
     private state;
@@ -43,6 +44,7 @@ export declare class Dsl {
             amount: (amount: number) => void;
         };
     };
+    unfinalized: number;
     numeric: {
         outcome: (pubkey: string, from: number, to: number, step?: number, args?: {
             [id: string]: string;
@@ -50,7 +52,7 @@ export declare class Dsl {
             evaluate: (handler: (n: number) => void) => void;
             evaluateWithPaymentCtx: (payhandler: (h: PaymentHandler, n: number) => void) => void;
             value: () => number;
-            valueWithPaymentCtx: () => [number, PaymentHandler];
+            valueWithPaymentCtxUnsafe: () => [number, PaymentHandler];
         };
     };
     set: {
@@ -60,7 +62,7 @@ export declare class Dsl {
             evaluate: (handler: (n: string) => void) => void;
             evaluateWithPaymentCtx: (payhandler: (h: PaymentHandler, n: string) => void) => void;
             value: () => string;
-            valueWithPaymentCtx: () => [string, PaymentHandler];
+            valueWithPaymentCtxUnsafe: () => [string, PaymentHandler];
         };
         outcomeT: <T>(pubkey: string, set: T[], renderer: (x: T) => string, parser: (s: string) => T, args?: {
             [id: string]: string;
@@ -68,7 +70,7 @@ export declare class Dsl {
             evaluate: (handler: (n: T) => void) => void;
             evaluateWithPaymentCtx: (payhandler: (h: PaymentHandler, n: T) => void) => void;
             value: () => T;
-            valueWithPaymentCtx: () => [T, PaymentHandler];
+            valueWithPaymentCtxUnsafe: () => [T, PaymentHandler];
         };
     };
     if: (pubkey: string, yes: string[], no: string[], args?: {
@@ -83,13 +85,17 @@ export declare class Dsl {
                     };
                 };
             };
+            finalize: () => void;
             else: (handler: (handle: PaymentHandler) => void) => {
-                pay: (idx: 0 | 1, amount: number) => void;
-                party: (party: string) => {
-                    pays: (counterparty: string) => {
-                        amount: (amount: number) => void;
+                breakout2: {
+                    pay: (idx: 0 | 1, amount: number) => void;
+                    party: (party: string) => {
+                        pays: (counterparty: string) => {
+                            amount: (amount: number) => void;
+                        };
                     };
                 };
+                finalize2: () => void;
             };
         };
     };
