@@ -44,7 +44,7 @@ export interface OracleCapability extends MsgLike {
     answers?: Answer[];
     endpoint?: string;
     commitmentEndpoint?: string;
-    meta?: string;
+    meta?: any;
 }
 export interface HashCashPow {
     difficulty: number;
@@ -70,7 +70,7 @@ export interface OracleId extends MsgLike, WithPow {
     tags?: string[];
     previousId?: OracleId;
     previousIdSignatureToNewPubkey?: string;
-    meta?: string;
+    meta?: any;
 }
 export interface FactRequest {
     capabilityPubKey: string;
@@ -132,7 +132,7 @@ export interface Report extends MsgLike, WithPow {
     pow: HashCashPow;
     oraclePubKey: string;
     content: MaleabilityReport;
-    meta?: string;
+    meta?: any;
 }
 export interface OfferTerms {
     question: FactRequest;
@@ -196,13 +196,15 @@ export interface Offer {
     encryptedDetails?: string;
     originatorId?: string;
     originatorSig?: string;
+    acceptorId?: string;
+    acceptorSig?: string;
     orderId?: string;
     dependantOrdersIds?: string[];
     addresses?: string[];
     pubkeys?: [string, string];
     utxos?: [[string, number][], [string, number][]];
     checkLockTimeVerify?: string;
-    meta?: string;
+    meta?: any;
 }
 export interface OfferMsg extends MsgLike, WithPow {
     [x: string]: any;
