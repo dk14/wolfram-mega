@@ -150,6 +150,8 @@ export interface FreeForm extends WithFactRequest {
     privacyLeakMsg?: string
     suspectMarketManipulationMsg?: string
     personalMsg?: string
+    confusionMsg?: string
+    recommendationMsg?: string
     contact?: string
     proofs: string[]
 }
