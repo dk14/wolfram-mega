@@ -457,11 +457,14 @@ export interface FreeForm extends WithFactRequest {
     analysisParams?: any
     analysisTags?: string
 
-    onBehalfOf?: string
+
 
     relatedPosts?: string
     socialLinks?: string[]
 
     extrameta: any
-
+    
+    onBehalfOf?: string[]
+    selfReportedTimestamp?: string
+    chronologicallyPreceedingReportsHashRef?: string[]
 }
