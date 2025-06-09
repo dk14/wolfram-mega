@@ -320,16 +320,18 @@ export class Dsl {
                 }
                 const results: [number, PaymentHandler][] = numbers.map(n => {
                     const out = this.if(pubkey, [n.toString()], numbers.filter(x => x !== n).map(x => x.toString()), args)
-                        .then(() => {})
+                        .then(() => {}).else(() => {})
 
-                    const breakout: PaymentHandler = out.breakout
+                    const breakout: PaymentHandler = out.breakoutUnsafeInternal
                     
                     if (breakout === undefined) {
                         return null
                     } else {
                         breakout.release = () => {
                             this.unfinalized--
-                            out.finalize()
+                            breakout.party = undefined
+                            breakout.pay = undefined
+                            out.finalizeUnsafeInternal()
                         }
                         return [n, breakout]
                     }
@@ -375,16 +377,18 @@ export class Dsl {
             valueWithPaymentCtxUnsafe: (): [string, PaymentHandler] => {
                 const results: [string, PaymentHandler][] = set.map(n => {
                     const out = this.if(pubkey, [n.toString()], set.filter(x => x !== n).map(x => x.toString()), args)
-                        .then(() => {})
+                        .then(() => {}).else(() => {})
 
-                    const breakout: PaymentHandler = out.breakout
+                    const breakout: PaymentHandler = out.breakoutUnsafeInternal
 
                     if (breakout === undefined) {
                         return null
                     } else {
                         this.unfinalized++
                         breakout.release = () => {
-                            out.finalize()
+                            breakout.party = undefined
+                            breakout.pay = undefined
+                            out.finalizeUnsafeInternal()
                         }
                         return [n, breakout]
                     }
@@ -427,16 +431,18 @@ export class Dsl {
             valueWithPaymentCtxUnsafe: (): [T, PaymentHandler] => {
                 const results: [T, PaymentHandler][] = set.map(n => {
                     const out = this.if(pubkey, [n.toString()], set.filter(x => x !== n).map(x => x.toString()), args)
-                        .then(() => {})
+                        .then(() => {}).else(() => {})
 
-                    const breakout: PaymentHandler = out.breakout
+                    const breakout: PaymentHandler = out.breakoutUnsafeInternal
 
                     if (breakout === undefined) {
                         return null
                     } else {
                         breakout.release = () => {
                             this.unfinalized--
-                            out.finalize()
+                            breakout.party = undefined
+                            breakout.pay = undefined
+                            out.finalizeUnsafeInternal()
                         }
                         return [n, breakout]
                     }
@@ -489,8 +495,8 @@ export class Dsl {
                         }) 
                     })
                 }
-                const breakout = observation ? funds : undefined
-                const finalize = () => {
+                const breakoutUnsafeInternal = observation ? funds : undefined
+                const finalizeUnsafeInternal = () => {
                     if (observation) {
                         handler(funds)
                         if (party !== undefined && sum !== 0) {
@@ -502,10 +508,8 @@ export class Dsl {
                         }
                     }
                 }
-                finalize()
+                finalizeUnsafeInternal()
                 return {
-                     breakout,
-                     finalize,
                      else: (handler: (handle: PaymentHandler) => void) => {
                         let counterparty: 0 | 1 = undefined
                         let sum = 0
@@ -543,8 +547,8 @@ export class Dsl {
                                 }) 
                             })
                         }
-                        const breakout2 = !observation ? funds : undefined
-                        const finalize2 = () => {
+                        const breakoutUnsafeInternal2 = !observation ? funds : undefined
+                        const finalizeUnsafeInternal2 = () => {
                             if (!observation) {
                                 handler(funds)
                                 if (counterparty !== undefined && sum !== 0) {
@@ -556,7 +560,8 @@ export class Dsl {
                                 }
                             }
                         }
-                        return {breakout2, finalize2}
+                        finalizeUnsafeInternal2()
+                        return {breakoutUnsafeInternal, finalizeUnsafeInternal, breakoutUnsafeInternal2, finalizeUnsafeInternal2}
                     }
                 }    
             }
@@ -714,7 +719,6 @@ if (require.main === module) {
                     ]
                 }
             }, [0,0])
-
         })).multiple("alice", "bob").enumerateWithBoundMulti(50000)
         console.log(multi2)
         console.log("OK!")
