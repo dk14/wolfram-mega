@@ -8,6 +8,8 @@ Oracle advertises:
 
 > Both `OracleId` and capabilities contain proof of work (SHA256) done. `OracleId` takes root oracle pubkey as input for PoW, capability takes `oracleSignature` over that capability as input for PoW. 
 
+> Additional, domain-based identity verification is possible for orgs through `manifestUri` field in `OracleId` (see TLDR chapter).
+
 Oracle API is built on top of operator API (mempools), since both advertising oracles and listening traders are also operating nodes in Mega-P2P.
 
 Oracle API provides:
@@ -115,9 +117,11 @@ fetch('./start')
 
 Capability can be registered in a database from minimal `BasicOracleCapability` specification.
 
-Capabilities are signed with  a signature corresponding to original `OracleId` pubkey (root pubkey). Capabilities are identified through their own pubkeys - the ones that are used to sign actual service provider commitments and data (see Endpoints).
+Capabilities are **signed** with  a signature corresponding to original `OracleId` pubkey (root pubkey). 
 
->Note: there is a limitation on the maximum length of the message.
+Capabilities are **identified** through their own pubkeys - the ones that are used to sign actual service provider commitments and data (see Endpoints).
+
+>Note: there is a limitation on the maximum length of the `OracleCapability` message.
 
 ```ts
 const capabilityPubKey = ...
@@ -146,11 +150,11 @@ Capability specifications allow parametrized queries characterized by parameter 
 ## Deactivate capability
 Deactivation/Reactivation is the only type of update of capability spec, that Mega-mempools support. Any other update will be rejected as duplicate.
 
-Mutation of spec is nevertheless possible in case when capability is evicted from mempools. Such mutation would put oracle at risk of being reported for capability collision (`ad-collision` report). It could also cause both versions to exist in mempools.
+Mutation of spec is nevertheless possible in cases when capability is partially or completely evicted from mempools. Such mutation would put oracle at risk of being reported for capability collision (`ad-collision` report). It could also cause both versions to exist in mempools.
 
 Deactivation does not evict capabilities from mempools - it only marks endpoint as unavailable for queries.
 
-**Thus, proper update is to-deactivate old one and activate a new capability with newly issued pubkey.**
+**Thus, proper update is to-deactivate old one and activate a new capability with newly issued pubkey.** Possibly referring to the same endpoint. 
 
 ```ts
 await fetch('./deactivateCapability?pubkey=' + encodeURIComponent(capabilityPubKey))
@@ -187,7 +191,7 @@ await fetch('./upgradeOraclePow?pubkey=' + encodeURIComponent(capabilityPubKey)
 ```
 
 ## View oracle ad
-Contains of `OracleId` advertised (it is created based on `BasicOracleIdentity` configuration)
+Contains of `OracleId` as advertised in the network (it is created based on `BasicOracleIdentity` configuration)
 ```ts
 await (await fetch('./id')).json()
 ```
@@ -204,13 +208,13 @@ const cps = await (await fetch('./viewStoredCapabilities?pageSize=100&pageNo=0')
  `src/client-api/oracle-auto-signer.ts` has an example.
 
 After starting oracle api,
-`ws://host:port/signCp` and `ws://host:port/signAd` would give you REPL stream for signing capability ads and oracle ads respectively. You read a message - you write same message but with oracleSignature.
+`ws://host:port/signCp` and `ws://host:port/signAd` would give you REPL stream for signing capability ads and oracle ads respectively. You read a message - you write same message but with `oracleSignature`.
 
 The best approach is to sign messages manually unless they only differ in `seqNo` field.
 
 > Oracle capabilities are signed **without** PoW. Anyone can upgrade PoW of oracle's capability. 
 
-> OracleId is signed **with** PoW - only oracle can upgrade its `OracleId` PoW.
+> `OracleId` is signed **with** PoW - only oracle can upgrade its `OracleId` PoW.
 
 ## Signatures
 
@@ -220,15 +224,15 @@ Commitments and facts are signed with a corresponding capability signature.
 
 
 Security note:
-- signing capability with `capabilityPubKey` not belonging to oracle would allow woner of corresponding private key to make commitments on behalf of oracle.
+- signing capability which is identified through `capabilityPubKey` not belonging to oracle would allow owner of corresponding private key to make commitments and provide facts on behalf of oracle. Even if attacker does not control oracle's endpoint - it could still publish reports with proved `fact-conflict` or dispute `missing-fact` reports with erroneous data.
 - Thus, it is recommended to derive capability private keys from root oracle private key (HD-wallet approach)
 
 ## Foreign advertisers (synthetic oracles)
-Some corporate oracles might not wish to do PoW in order to advertise themselves through Mega P2P, but they would wish to keep Mega-protocol and standard.
+Some corporate oracles might not wish to do PoW in order to advertise themselves through Mega P2P, but they would wish to keep Mega-protocol and standard for endpoints.
 
 They can publish manifest (json of `OracleManifest`) with a list of `OracleCapability` on their website and use protocol without mempools. Legal entity would only adopt `OracleCapability`, `Commitment`,`Fact` messages. Unlike regular, website-verified oracle, they would not create ads for `OracleId`, nor advertise it through Mega P2P.
 
-**They would, however need to be reported independently. **
+**They would, however need to be reported independently.**
 
 In that case, third-party public org can create synthetic (e.g. `Wolfram (foreign advertiser)`) id. 
 It would point to original manifest on original (e.g. "wolfram.com"), but unlike with website-veified PoW-oracles - manifest won't point back to synthetic `OracleId`.
@@ -244,7 +248,7 @@ Example: a partner of Mega-powered trading app who decided to support let's say 
 - Foreign advertiser has to trust let's say Wolfram to not be reported, otherwise the PoW-resources that advertiser spends would be in vein.
 
 Security:
-- synthetic oracle would not have access to private keys or capabiities of original oracle. It can only add capabilities, but won't be able to issue legally binding commitments
+- synthetic oracle would not have access to id/capapbility private keys of original oracle. It can only add foreign capabilities (signing them with own signature), but won't be able to issue legally binding commitments
 - original oracle is still responsible for commitments
 - reports are filed independently from synthetic oracle by traders themselves
 - synthetic oracle does PoW for its synthetic id and adopted capabilities. Rank management is foreign advertiser's responsibility
