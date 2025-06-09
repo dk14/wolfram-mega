@@ -431,6 +431,13 @@ export interface FreeForm extends WithFactRequest {
     myNameIs?: string[]
     myAddressIs?: string[]
 
+    iWasThereWhere?: string[]
+    iWasThereWhen?: string[]
+    iWasThereWithWho?: string[] //whom
+    iWasThereWithWhy?: string[]
+    iWasThereHow?: string[]
+    howIsItRelevant?: boolean
+
     fakeCommitment?: Commitment[]
 
     topics?: string[]
