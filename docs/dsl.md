@@ -284,6 +284,8 @@ Backends are allowed to optimize ranges and such - by interpreting "0..100" as S
 
 > In theory, numeric/set adaptors could use binary search, making worst case chain of reddem transactions log2(N). In practive however, proper optimizer would make it constant (1 transaction) - and it's easier to recover values by following linked-list pattern rather than navigating binary tree.
 
+> Transpiler currently is slow with numbers, since it bruteforces mutually exclusive outcomes.
+
 And that's it.
 
 #### Memoization
