@@ -4,7 +4,7 @@ Oracle API provides functionality for managing `OracleId`. It allows Oracle to a
 
 Oracle advertises:
 - its `OracleId` which is presentation of oracle's physical identity.
-- its capabilities, specifications of features oracle supports: questions it can answer, together with information necesssary for traders to query (e.g. Mega-compatible endpoint).
+- its capabilities, which are specifications of features oracle supports: questions it can answer, together with information necesssary for traders to query (e.g. Mega-compatible endpoint).
 
 > Both `OracleId` and capabilities contain proof of work (SHA256) done. `OracleId` takes root oracle pubkey as input for PoW, capability takes `oracleSignature` over that capability as input for PoW. 
 
