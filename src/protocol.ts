@@ -1,5 +1,3 @@
-import { number } from "bitcoinjs-lib/src/script"
-
 export interface MsgLike {
     seqNo: number 
     cTTL: number 
