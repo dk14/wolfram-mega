@@ -294,27 +294,60 @@ export class Dsl {
                 for (let i = from; i <= to; i += step) {
                     numbers.push(i)
                 }
-                numbers.forEach(n => {
-                    if (this.outcome(pubkey, [n.toString()], numbers.filter(x => x !== n).map(x => x.toString()), args)) {
-                        handler(n)
+
+                const recurse = (l: number[], r: number[]) => {
+                    if (l.length === 0) {
                         return
                     }
-                })
+                    if (r.length === 0) {
+                        return
+                    }
+                    if (this.outcome(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args)) {
+                        if (l.length === 1) {
+                            handler(l[0])
+                        } else {
+                            recurse(l.slice(0, l.length / 2), l.slice(l.length / 2))
+                        }
+                    } else {
+                        if (r.length === 1) {
+                            handler(r[0])
+                        } else {
+                            recurse(r.slice(0, r.length / 2), r.slice(r.length / 2))
+                        }
+                    }
+                }
+
+                recurse(numbers.slice(0, numbers.length / 2), numbers.slice(numbers.length / 2))
+                
             },
             evaluateWithPaymentCtx: (payhandler: (h: PaymentHandler, n: number) => void) => {
                 let numbers = []
                 for (let i = from; i <= to; i += step) {
                     numbers.push(i)
                 }
-                let found = false
-                numbers.forEach(n => {
-                    if (!found) {
-                        this.if(pubkey, [n], numbers.filter(x => x !== n), args).then(h => {
-                            payhandler(h, n);
-                            found = true
-                        })
+                 const recurse = (l: number[], r: number[]) => {
+                    if (l.length === 0) {
+                        return
                     }
-                })
+                    if (r.length === 0) {
+                        return
+                    }
+                    this.if (pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args).then(h => {
+                        if (l.length === 1) {
+                            payhandler(h, l[0])
+                        } else {
+                            recurse(l.slice(0, l.length / 2), l.slice(l.length / 2))
+                        }
+                    }).else(h => {
+                        if (r.length === 1) {
+                            payhandler(h, r[0])
+                        } else {
+                            recurse(r.slice(0, r.length / 2), r.slice(r.length / 2))
+                        }
+                    })
+                }
+
+                recurse(numbers.slice(0, numbers.length / 2), numbers.slice(numbers.length / 2))
                 
             },
             value: (): number => {
@@ -322,12 +355,29 @@ export class Dsl {
                 for (let i = from; i <= to; i += step) {
                     numbers.push(i)
                 }
-                for (let n of numbers){
-                    if (this.outcome(pubkey, [n.toString()], numbers.filter(x => x !== n).map(x => x.toString()), args)) {
-                        return n
-                    } 
+               const recurse = (l: number[], r: number[]) => {
+                    if (l.length === 0) {
+                        return
+                    }
+                    if (r.length === 0) {
+                        return
+                    }
+                    if (this.outcome(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args)) {
+                        if (l.length === 1) {
+                            return l[0]
+                        } else {
+                            recurse(l.slice(0, l.length / 2), l.slice(l.length / 2))
+                        }
+                    } else {
+                        if (r.length === 1) {
+                            return r[0]
+                        } else {
+                            recurse(r.slice(0, r.length / 2), r.slice(r.length / 2))
+                        }
+                    }
                 }
-                return numbers[0]
+
+                return recurse(numbers.slice(0, numbers.length / 2), numbers.slice(numbers.length / 2))
             }, 
             valueWithPaymentCtxUnsafe: (): [number, PaymentHandler] => {
                 let numbers: number[] = []
@@ -360,32 +410,81 @@ export class Dsl {
     public set = {
         outcome: (pubkey: string, set:string[], args: {[id: string]: string} = {}) => ({
             evaluate: (handler: (n: string) => void) => {
-                for (let n of set) {
-                    if (this.outcome(pubkey, [n], set.filter(x => x !== n).map(x => x), args)) {
-                        handler(n)
+                const recurse = (l: string[], r: string[]) => {
+                    if (l.length === 0) {
                         return
                     }
+                    if (r.length === 0) {
+                        return
+                    }
+                    if (this.outcome(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args)) {
+                        if (l.length === 1) {
+                            handler(l[0])
+                        } else {
+                            recurse(l.slice(0, l.length / 2), l.slice(l.length / 2))
+                        }
+                    } else {
+                        if (r.length === 1) {
+                            handler(r[0])
+                        } else {
+                            recurse(r.slice(0, r.length / 2), r.slice(r.length / 2))
+                        }
+                    }
                 }
+
+                recurse(set.slice(0, set.length / 2), set.slice(set.length / 2))
             },
             evaluateWithPaymentCtx: (payhandler: (h: PaymentHandler, n: string) => void) => {
-                let found = false
-                set.forEach(n => {
-                    if (!found) {
-                        this.if(pubkey, [n], set.filter(x => x !== n), args).then(h => {
-                            payhandler(h, n);
-                            found = true
-                        })
+
+                 const recurse = (l: string[], r: string[]) => {
+                    if (l.length === 0) {
+                        return
                     }
-                })
+                    if (r.length === 0) {
+                        return
+                    }
+                    this.if (pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args).then(h => {
+                        if (l.length === 1) {
+                            payhandler(h, l[0])
+                        } else {
+                            recurse(l.slice(0, l.length / 2), l.slice(l.length / 2))
+                        }
+                    }).else(h => {
+                        if (r.length === 1) {
+                            payhandler(h, r[0])
+                        } else {
+                            recurse(r.slice(0, r.length / 2), r.slice(r.length / 2))
+                        }
+                    })
+                }
+
+                recurse(set.slice(0, set.length / 2), set.slice(set.length / 2))
 
             },
             value: (): string => {
-                for (let n of set){
-                    if (this.outcome(pubkey, [n.toString()], set.filter(x => x !== n).map(x => x.toString()), args)) {
-                        return n
-                    } 
+                const recurse = (l: string[], r: string[]) => {
+                    if (l.length === 0) {
+                        return
+                    }
+                    if (r.length === 0) {
+                        return
+                    }
+                    if (this.outcome(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args)) {
+                        if (l.length === 1) {
+                            return l[0]
+                        } else {
+                            recurse(l.slice(0, l.length / 2), l.slice(l.length / 2))
+                        }
+                    } else {
+                        if (r.length === 1) {
+                            return r[0]
+                        } else {
+                            recurse(r.slice(0, r.length / 2), r.slice(r.length / 2))
+                        }
+                    }
                 }
-                return set[0]
+
+                return recurse(set.slice(0, set.length / 2), set.slice(set.length / 2))
             },
             valueWithPaymentCtxUnsafe: (): [string, PaymentHandler] => {
                 for (let n of set){
@@ -411,30 +510,79 @@ export class Dsl {
         }),
         outcomeT: <T>(pubkey: string, set:T[], renderer: (x: T) => string, parser: (s: string) => T, args: {[id: string]: string} = {}) => ({
             evaluate: (handler: (n: T) => void) => {
-                set.forEach(n => {
-                    if (this.outcome(pubkey, [renderer(n)], set.filter(x => renderer(x) !== renderer(n)).map(x => renderer(x)), args)) {
-                        handler(n)
+                 const recurse = (l: T[], r: T[]) => {
+                    if (l.length === 0) {
+                        return
                     }
-                })
+                    if (r.length === 0) {
+                        return
+                    }
+                    if (this.outcome(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args)) {
+                        if (l.length === 1) {
+                            handler(l[0])
+                        } else {
+                            recurse(l.slice(0, l.length / 2), l.slice(l.length / 2))
+                        }
+                    } else {
+                        if (r.length === 1) {
+                            handler(r[0])
+                        } else {
+                            recurse(r.slice(0, r.length / 2), r.slice(r.length / 2))
+                        }
+                    }
+                }
+
+                recurse(set.slice(0, set.length / 2), set.slice(set.length / 2))
             },
             evaluateWithPaymentCtx: (payhandler: (h: PaymentHandler, n: T) => void) => {
-                let found = false
-                set.forEach(n => {
-                    if (!found) {
-                        this.if(pubkey, [renderer(n)], set.filter(x => renderer(x) !== renderer(n)).map(x => renderer(x))).then(h => {
-                            payhandler(h, n)
-                            found = true
-                        })
+                const recurse = (l: T[], r: T[]) => {
+                    if (l.length === 0) {
+                        return
                     }
-                })
+                    if (r.length === 0) {
+                        return
+                    }
+                    this.if (pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args).then(h => {
+                        if (l.length === 1) {
+                            payhandler(h, l[0])
+                        } else {
+                            recurse(l.slice(0, l.length / 2), l.slice(l.length / 2))
+                        }
+                    }).else(h => {
+                        if (r.length === 1) {
+                            payhandler(h, r[0])
+                        } else {
+                            recurse(r.slice(0, r.length / 2), r.slice(r.length / 2))
+                        }
+                    })
+                }
+
+                recurse(set.slice(0, set.length / 2), set.slice(set.length / 2))
             },
             value: (): T => {
-                for (let n of set) {
-                    if (this.outcome(pubkey, [n.toString()], set.filter(x => x !== n).map(x => x.toString()), args)) {
-                        return n
-                    } 
+                const recurse = (l: T[], r: T[]) => {
+                    if (l.length === 0) {
+                        return
+                    }
+                    if (r.length === 0) {
+                        return
+                    }
+                    if (this.outcome(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args)) {
+                        if (l.length === 1) {
+                            return l[0]
+                        } else {
+                            recurse(l.slice(0, l.length / 2), l.slice(l.length / 2))
+                        }
+                    } else {
+                        if (r.length === 1) {
+                            return r[0]
+                        } else {
+                            recurse(r.slice(0, r.length / 2), r.slice(r.length / 2))
+                        }
+                    }
                 }
-                return set[0]
+
+                return recurse(set.slice(0, set.length / 2), set.slice(set.length / 2))
             },
             valueWithPaymentCtxUnsafe: (): [T, PaymentHandler] => {
                 for (let n of set){
@@ -657,8 +805,12 @@ if (require.main === module) {
                             funds.pay(Dsl.Alice, 10)
                         })
                     }
-                    dsl.numeric.outcome("price?", 0, 5).evaluate(n => {
-                        dsl.pay(Dsl.Alice, n + 1)
+                    dsl.numeric.outcome("price?", 0, 20).evaluateWithPaymentCtx((acc, n) => {
+                        if (n > 2) {
+                            acc.party("alice").pays("bob").amount(10)
+                        } else {
+                            acc.party("bob").pays("alice").amount(30)
+                        }     
                     })
                     
                     dsl.set.outcome("which?", ["lol", "okay", "yaay"]).evaluate(point => {
@@ -679,7 +831,7 @@ if (require.main === module) {
             } else {
                 dsl.pay(Dsl.Alice, 20)
             }
-        })).enumerateWithBound(400)
+        })).multiple("alice", "bob").enumerateWithBoundMulti(400)
         console.log(model)
 
         const multi = await (new Dsl (async dsl => {
