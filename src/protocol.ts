@@ -358,6 +358,8 @@ export interface FreeForm extends WithFactRequest {
     myFootballTeamLost?: boolean
     addictedToBets?: boolean
 
+    iJustPowEveryOracleIfind?: boolean
+
     notInMyNewsPaper?: boolean
     dontLikeTheFactsDontFeelLikeIt?: boolean
 
