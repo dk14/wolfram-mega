@@ -87,6 +87,8 @@ export interface OracleId extends MsgLike, WithPow {
     tags?: string[]
     previousId?: OracleId //in case oracle has to change pubkey
     previousIdSignatureToNewPubkey?: string
+    partOf?: OracleId[]
+    parts?: OracleId[]
     meta?: any
 }
 
@@ -331,6 +333,8 @@ export interface FreeForm extends WithFactRequest {
 
     wrongTagsOracleId?: string[]
     wrongTagsCapability?: string[]
+    endpointNotAvailable?: boolean
+    endpointDoesNotReturnCommitment?: boolean
 
     relatedInfoLinks?: string[]
     isRelatedToTechnicalIssue?: boolean
