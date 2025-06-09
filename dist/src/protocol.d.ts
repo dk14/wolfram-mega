@@ -301,6 +301,7 @@ export interface FreeForm extends WithFactRequest {
     iKnowTheTruth?: boolean;
     myFootballTeamLost?: boolean;
     addictedToBets?: boolean;
+    iJustPowEveryOracleIfind?: boolean;
     notInMyNewsPaper?: boolean;
     dontLikeTheFactsDontFeelLikeIt?: boolean;
     aesthetics?: boolean;
