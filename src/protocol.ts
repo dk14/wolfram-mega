@@ -438,6 +438,8 @@ export interface FreeForm extends WithFactRequest {
     iWasThereHow?: string[]
     howIsItRelevant?: boolean
 
+    hereAndNow?: boolean
+
     fakeCommitment?: Commitment[]
 
     topics?: string[]
