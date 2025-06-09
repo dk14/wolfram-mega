@@ -343,7 +343,7 @@ components:
       properties: 
         'type': 
           type: string
-          enum: [fact-disagreees-with-public, fact-conflict, fact-missing] 
+          enum: [fact-disagreees-with-public, fact-conflict, fact-missing, ad-collision, free-form] 
         request: 
           $ref: '#/components/schemas/FactRequest'
         capabilitySignatureOverRequest:
