@@ -322,6 +322,9 @@ export interface FreeForm extends WithFactRequest {
     iIdentify?: string[];
     iAlienate?: string[];
     theyLyingWhoThey?: string[];
+    iAdvertiseSomethingBtw?: string[];
+    iSellSomethingBtw?: string[];
+    iKnowSomethingBtw?: string[][][];
     iJustPowEveryOracleIfind?: boolean;
     notInMyNewsPaper?: boolean;
     dontLikeTheFactsDontFeelLikeIt?: boolean;
