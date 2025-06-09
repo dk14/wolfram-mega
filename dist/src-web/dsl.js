@@ -115,9 +115,6 @@ class Dsl {
         if (this.state[pubkeyUnique] === undefined) {
             const max = Object.values(this.state).length === 0 ? -1 : Math.max(...Object.values(this.state).map(x => x[0]));
             this.state[pubkeyUnique] = [max + 1, false];
-            Object.keys(this.state).forEach(x => {
-                this.state[x] = [this.state[x][0], false];
-            });
             this.checked[this.state[pubkeyUnique][0]] = true;
             throw "uninitialized";
         }
@@ -651,7 +648,7 @@ if (require.main === module) {
                 }).else(account => {
                     account.party("carol").pays("alice").amount(30);
                 });
-                dsl.numeric.outcome("price?", 0, 2).value();
+                dsl.numeric.outcome("price?", 0, 3).value();
                 dsl.numeric.outcome("price?", 0, 5).evaluateWithPaymentCtx((account, n) => {
                     account.party("alice").pays("carol").amount(n - 2);
                 });
