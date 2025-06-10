@@ -232,7 +232,7 @@ dsl.ifAtomicSwapLeg1("hashlock", "verified").then(pay => {
 
 > Since blockchain cannot gurantee receiving payments after deal is settled - Bob simply might not have funds in the future, alice takes deposit unconditionally.
 
-Then there is a separate "pay loan back deal":
+Then there is a separate "pay loan back" deal:
 
 ```ts
 // Closing contract -- created after bob gets money to pay back
