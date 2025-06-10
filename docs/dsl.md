@@ -320,7 +320,7 @@ dsl.ifAtomicSwapLeg1("hashlock", "verified").then(pay => {
                 // without ANYPREVOUT, 
                 // if Bob is accidentally late to pay - Alice might reveal wallet with his repayment for anyone to take.
             }).else(pay => {
-                //alice does not reveal pk for special wallet, since Bob sent money there
+                // alice does not reveal pk for special wallet, since Bob sent money there
             })
 })
 ```
