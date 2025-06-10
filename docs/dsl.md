@@ -587,7 +587,7 @@ Discreet outputs most optimal contract theoretically possible.
 Backends are allowed to optimize ranges and such - by interpreting "0..100" as Schnorr sum of messages. They can also optimize subsequent unique matches of the same fact ("100 = 20", "100 = 30" etc, e.g. turn a set of binary options to a european call) into a single pack of CET-transactions rather than a binary tree, which would reduce amount of transactions needed to redeem the funds in worst case.
 
 
-> Numbers are implemented as binary trees. They are as optimal as possible. In any case, enumerator skips enumeration of unreachable branches - one-hot encoding should work fine as well (as soon as there is an early stop in your logic, rather than getting all observations first and checking them later).
+> Numbers and sets are implemented as binary trees. They are as optimal as possible. In any case, enumerator skips enumeration of unreachable branches - one-hot encoding should work fine as well (as soon as there is an early stop in your logic, rather than getting all observations first and checking them later).
 
 And that's it.
 
