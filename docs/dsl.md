@@ -316,7 +316,7 @@ dsl.ifAtomicSwapLeg1("hashlock", "verified").then(pay => {
                 // since bob did not pay to that wallet, the key is worthless
                 // but alice gets Bob's deposit with this "empty pockets proof"
                 // nuance: Alice can only withdraw funds from repayment wallet after grace period deadline2 below 
-                // bob has to send money with deadline2 timelock, so alice would not empty it
+                // bob has to send money locked with deadline2 timelock, so alice would not empty it herself
                 // ^ this approach plays a role of payment oracle without third-party
                 dsl.if("timelock2", ["yes"], ["no"]).then(_ => { //(ANYPREVOUT in BTC is attempt to address this inconvinience)
                     //timelock2 expired - we assume Alice got money
