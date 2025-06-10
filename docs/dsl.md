@@ -305,7 +305,7 @@ dsl.ifAtomicSwapLeg1("hashlock", "verified").then(pay => {
 })
 ```
 
-> Since blockchain cannot gurantee receiving payments after deal is settled (Bob simply might not have funds in the future), alice takes deposit unconditionally (at maturity date.)
+> Since blockchain cannot gurantee receiving payments after deal is settled (Bob simply might not have funds in the future), alice takes deposit unconditionally (at maturity date).
 
 Then there is a separate "pay loan back" deal:
 
