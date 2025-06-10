@@ -316,7 +316,7 @@ dsl.ifAtomicSwapLeg1("hashlock", "verified").then(pay => {
                 //alice gets deposit
                 pay.party("bob", "btc").pays("alice", "usd").amount(10, "btc")
                 //note ANYPREVOUT can be used instead for convinience
-                //without it Bob can send part of the money and negotiate deposit back
+                //without it Bob can send part of the money and psychologically negotiate deposit back
             }).else(pay => {
                 //alice does not reveal pk for special wallet, since Bob sent money there
             })
