@@ -169,6 +169,9 @@ class Dsl {
                 entry[1] = false;
                 return true;
             }
+            if (!cursor) {
+                return true;
+            }
             if (!this.checked[i] && !cursor) {
                 i++;
                 continue;
