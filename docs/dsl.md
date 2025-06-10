@@ -360,7 +360,7 @@ if (dsl.outcome("bob and alice create an atomic swap on date $date", ["yes"], ["
 }
 ```
 
-> This contract can also be repurposed as a security deposit for vanilla IRL loan. Just add extra "lending" payout from Bob to Alice (or mafia to Alice). Then future one-sided "swap" would be paying it back (in exchange for erasure of mafia's incentive). Many IRL financial instruments are possible with this approach.
+> This contract can also be repurposed as a security deposit for vanilla IRL loan. Just add extra "lending" payout from Bob to Alice (or mafia to Alice). Then future one-sided "swap" would be paying it back (in exchange for erasure of mafia's incentive). Many IRL financial instruments are possible with this approach, as long as mafia has PoW-issued id to avoid conspiracy with either party (as oracle mafia has only one possible outcome to attest to per capability).
 
 > Note: Third-party oracle can be avoided with Schnorr adaptor signatures. One of the parties (or both) can reveal "proof of empty pockets" for pre-agreed wallets, so mafia would lose incentive.
 
@@ -443,6 +443,7 @@ dates.reduce(([capitalisation1, capitalisation2], date) => {
 }, [0,0])
 
 ```
+> Tech warning: Monads (`Cont` including) are not practically applicable here for wrapping `release`. You'll get a combination of `Either` and `Writer`/`State` if you try - they're not composable. Functional way would be to just use `.evaluateWithPaymentCtx(() => {...})` continuation  twice (one in `then`, the other in `else`). But since, resources are checked, above representation is simply more compact, efficient and still reasonably safe - mispositioning `release` would delay payout simply.
 
 > Note: only `pay`s must be integers (they get rounded to nearest if you don't round them properly), since sats are integers. All internal computations can be done with any type of number: "real", rational, "complex", matricies, quaternions, dedekind nonsense cuts, functors, group generators, monoids/semigroups, combinatorial groups, topoi etc.
 
@@ -461,6 +462,77 @@ dsl.set.outcomeT<string>("which?", ["lol", "okay", "yaaylol"], x => x, x => x).e
     } 
 })
 ```
+
+#### Quantized auction
+
+Auction would need a predefined set of bids and maximum amount of attempts.
+**It is trustless: participants themselves can be oracles.**
+
+If participants put collateral for their bids in advance, one round:
+```ts
+const bids = [100, 300, 500, 1000]
+const participants = ["alice", "bob", "carol"]
+
+const oracles = {
+    alice: "pub",
+    bob: "pub",
+    carol: "pub"
+}
+const round = {}
+for (let party of participants) {
+    const bid = dsl.set.outcomeT<number>(oracles[party], bids, x => x.toString(), x => parseInt(x)).value()
+    round[party] = bid
+}
+
+const [winner, [bid, pay]] = Object.entries(round).maxBy([party, [bid, pay]] => bid)
+
+dsl.ifAtomicSwapLeg1().then(pay => {
+   pay.party(winner).pays("auction", "tkn").amount(bid)
+}).else(pay => {
+   pay.party("auction", "tkn").pays(winner).amount(1, "tkn")
+})
+
+//collateral is 1000 per participant
+```
+> Multiple rounds - can be generalized by creating synthetic oracles for participants, e.g. "alice-round-1" etc. If alice made bet through "alice-round-1" already - she can make it for round 2 through her round-2 oracle. 
+
+This can be improved closer to IRL by:
+- allowing participants to commit collaterals only at the time of the bid
+- adding oracle and mafia instead of tokens, to make sure actual goods delivered
+
+```ts
+const receivePaymentPubKey = "<pub>"
+const receivePaymentPubKeyAdapted = schnorrAdapt("<pub>", txbody) //signing with this reveals receivePaymentPubKey's private key
+const round = ... //same logic
+
+const [winner, [bid, pay]] = Object.entries(round).maxBy([party, [bid, pay]] => bid)
+
+//physical delivery vanilla future contract:
+
+dsl.outcome("timelock1") ?? return
+dsl.if(receivePaymentPubKeyAdapted, ["true"], ["false"], {}).then(accounts => {
+    //auction did not get payment from winner
+    dsl.outcome("timelock2") ?? return
+    accounts.party("mafia").pays("auction").amount(insurance)
+    //alternatively: close or pick next winner
+
+}).else(accounts => {
+    accounts.party("auction").pays("mafia").amount(incentive)
+    dsl.if("goods delivered").then(accounts => {
+        accounts.party(winner).pays("mafia").amount(incentive) 
+        
+    }).else(accounts => {
+        accounts.party("mafia").pays(winner).amount(insurance)
+    })
+    //alternatively: put MAD on receiving wallet, send auction's security deposit to MAD
+})
+
+```
+
+> Auction can invalidate pre-bids if their wallet does not receive money (after timeout), mafia is optional here but can improve efficiency. 
+
+> For goods delivery: auction can simply put security deposit instead of using mafia, but those are not always available. If there is no trusted oracle to check delivery - then MAD on the receiving wallet of the auction (distinct wallet per participant) plus MAD security deposit from auction.
+
 
 ### Algorithmic Trading
 
