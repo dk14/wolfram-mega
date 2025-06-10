@@ -9,7 +9,8 @@ Discreet Typescript Code
 -> OffetTerms 
 -> Matching 
 -> Tracking 
--> Bitcoin Transactions
+-> Blockchain Interpreter (Bitcoin or custom chain)
+-> Chain Transactions
 ```
 
 > "Discreet" misspelled on purpose
