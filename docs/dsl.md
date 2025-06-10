@@ -353,6 +353,7 @@ if (dsl.outcome("bob and alice create an atomic swap on date $date", ["yes"], ["
     dsl.party("mafia", mafiaDeposit.asset)
         .pays("alice", mafiaDeposit.asset)
         .amount(mafiaDeposit.value / 2, mafiaDeposit.asset) 
+        //or to void, so there would be no conspiracy
 
     dsl.party("mafia", mafiaDeposit.asset)
         .pays("bob", mafiaDeposit.asset)
@@ -513,7 +514,7 @@ dsl.outcome("timelock1") ?? return
 dsl.if(receivePaymentPubKeyAdapted, ["true"], ["false"], {}).then(accounts => {
     //auction did not get payment from winner
     dsl.outcome("timelock2") ?? return
-    accounts.party("mafia").pays("auction").amount(insurance)
+    accounts.party("mafia").pays("auction").amount(insurance) //or to void, so there would be no conspiracy
     //alternatively: close or pick next winner
 
 }).else(accounts => {
@@ -522,7 +523,7 @@ dsl.if(receivePaymentPubKeyAdapted, ["true"], ["false"], {}).then(accounts => {
         accounts.party(winner).pays("mafia").amount(incentive) 
         
     }).else(accounts => {
-        accounts.party("mafia").pays(winner).amount(insurance)
+        accounts.party("mafia").pays(winner).amount(insurance) //or to void, so there would be no conspiracy
     })
     //alternatively: put MAD on receiving wallet, send auction's security deposit to MAD
 })
