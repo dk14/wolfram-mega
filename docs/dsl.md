@@ -682,7 +682,7 @@ const multi = await (new Dsl (async dsl => {
 
 > Note: All typesafety checks are preserved: `funds.pay(Alice, -100)` gets translated to `funds.pay(Bob, 100)`. Thus paying the same party regardless of outcome would still throw an error.
 
-Thi however, does not allow you to `pay` after checking deeper outcomes:
+This however, does not allow you to `pay` after checking deeper outcomes:
 
 ```ts
 dsl.if("wow?", ["yup"], ["nope"]).then(account => {
