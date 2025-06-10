@@ -270,6 +270,8 @@ const assets = await (new Dsl (async dsl => {
 ```
 > **^This is NOT atomic swap**. Atomic swaps are transactions - not contracts, they execute unconditionally.
 
+#### Atomic Swap
+
 This one IS:
 
 ```ts
