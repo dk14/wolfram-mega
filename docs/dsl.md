@@ -80,6 +80,77 @@ DSL "transpiler" will erase javascript code, collapsing it into `observe -> pay 
 
 No smart-contract/VM is required to run the resulting contract. Target chain only has to be able to understand scriptless scripts (support Schnorr), which most modern chains do. 
 
+### Limitations
+
+Capturing variables is unsafe outside of dsl-context
+
+Instead of this:
+```ts
+var a = 30
+const model = await (new Dsl(async dsl => {
+
+    if (dsl.outcome("really?", ["YES"], ["NO"])) {
+        a++
+        dsl.pay(Dsl.Bob, a + 100) 
+    } else {
+        dsl.pay(Dsl.Alice, 20)
+    }
+})).enumerateWithBound(maxBudget)
+```
+
+Use this:
+```ts
+
+const model = await (new Dsl(async dsl => {
+    var a = 30
+    if (dsl.outcome("really?", ["YES"], ["NO"])) {
+        a++
+        dsl.pay(Dsl.Bob, a + 100) 
+    } else {
+        dsl.pay(Dsl.Alice, 20)
+    }
+})).enumerateWithBound(maxBudget)
+```
+----
+
+Consequently, services queryed in dsl-context must be idempotent (e.g. stateless GET, not PUT). 
+
+Instead of this:
+```ts
+
+const model = await (new Dsl(async dsl => {
+    var a = 30 
+    const b = await database.get("b")
+    if (dsl.outcome("really?", ["YES"], ["NO"])) {
+        a++
+        dsl.pay(Dsl.Bob, a + 100 + b) 
+    } else {
+        dsl.pay(Dsl.Alice, 20)
+    }
+    await database.push("a", a) // cannot!
+})).enumerateWithBound(maxBudget)
+```
+
+Use this:
+
+```ts
+const a_nondeterministic = []
+const model = await (new Dsl(async dsl => {
+    var a = 30
+    const b = await database.get("b")
+    if (dsl.outcome("really?", ["YES"], ["NO"])) {
+        a++
+        dsl.pay(Dsl.Bob, a + 100 + b) 
+    } else {
+        dsl.pay(Dsl.Alice, 20)
+    }
+    a_nondeterministic.push(a)
+})).enumerateWithBound(maxBudget)
+
+await database.push("a", a_nondeterministic) //[30, 31]
+```
+
+
 ### Outcomes
 
 All outcomes specified in either yes or no of `dsl.outcome(pubkey, yesoutcomes, nooutcomes`) must have distinct semantics. Otherwise typesafety of "not querying the same outcome twice" would be broken. 
@@ -249,7 +320,7 @@ dsl.ifAtomicSwapLeg1("hashlock_parties_keep_agreement", "verified").then(pay => 
 > IRL loans. The only way to ensure redemption contract taking place is  to create "Vanilla Future Contract"
 
 #### Vanilla Future Contract
-Vanilla fuutres are impossible on blockchain, they are not automatable, since either of the party might not have funds in the future, thus no way to collaterize in advance.
+Vanilla futures are impossible on blockchain. Such contracts are not automatable, since either of the party might not have funds in the future, thus no way to collaterize in advance.
 
 > Defi "solves" it with tokens, but tokens are not backed up by anything. You cannot tokenize a car or a human. Alice cannot go and tatoo a **unique** pubkey on a car or her body. Carol will take up on a trend and everyone will have same tatoo like idiots.
 
@@ -283,7 +354,7 @@ if (observation("bob and alice create an atomic swap on date $date", ["yes"], ["
 
 ### Mutually Assured Destruction (MAD)
 
-Alice and Bob - can be each other's mafia themselves. MAD-contract ("mutually asssured destruction") can simply reward them back their "secure future" deposits as a reward for fulfilling commitment to a mutual agreement.
+Alice and Bob - can be each other's mafia themselves. MAD-contract can simply reward them back their "secure future" deposits as a reward for fulfilling commitment to a mutual agreement.
 
 ```ts
 if (observation("siglock_alice && siglock_bob && timelock $date", ["yes"], ["no"], {date: "next month"}) {
@@ -304,8 +375,6 @@ if (observation("siglock_alice && siglock_bob && timelock $date", ["yes"], ["no"
         .amount(deposit, asset2)
 }
 ```
-
-
 
 ### Numeric observations
 
