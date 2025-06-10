@@ -257,7 +257,7 @@ Vanilla fuutres are impossible on blockchain, they are not automatable, since ei
 const mafiaFee = {value: 100, asset: "satochi"}
 const mafiaDeposit = {value: 300, asset: "satochi"}
 
-if (observation("bob and alice create an atomic swap on date $date", ["yes"], ["no"], {"next month"}) {
+if (observation("bob and alice create an atomic swap on date $date", ["yes"], ["no"], {date: "next month"}) {
     dsl.party("alice", mafiaFee.asset)
         .pays("mafia", mafiaFee.asset)
         .amount(mafiaFee.value, mafiaFee.asset)
@@ -269,7 +269,7 @@ if (observation("bob and alice create an atomic swap on date $date", ["yes"], ["
     //this assures Bob and Alice that mafia is committed to its job
     dsl.party("mafia", mafiaDeposit.asset)
         .pays("alice", mafiaDeposit.asset)
-        .amount(mafiaDeposit.value / 2, mafiaDeposit.asset)
+        .amount(mafiaDeposit.value / 2, mafiaDeposit.asset) 
 
     dsl.party("mafia", mafiaDeposit.asset)
         .pays("bob", mafiaDeposit.asset)
@@ -279,7 +279,33 @@ if (observation("bob and alice create an atomic swap on date $date", ["yes"], ["
 
 > Note: since mafia is interested party and both alice and bob are involved with it - oracles could in theory be bypassed: mafia fee would be "simply" included into atomic swap. In practice - both Bob and Alice need assurance that mafia is doing its job, thus mafia deposit and oracle keeping track of mafia are required. Mafia is trustless in this setup.
 
-> Third-party oracle can still be bypassed though: "bob and alice create an atomic swap on date $date" can be bob's and alice's multisig with a timelock.
+> Third-party oracle can still be bypassed though: "bob and alice create an atomic swap on date $date" can be bob's and alice's multisig (MAD) with a timelock.
+
+### Mutually Assured Destruction (MAD)
+
+Alice and Bob - can be mafia themselves. MAD-contract ("mutually asssured destruction") can simply reward them back their "secure future" deposits as a reward for fulfilling commitment to a mutual agreement.
+
+```ts
+if (observation("siglock_alice && siglock_bob && timelock $date", ["yes"], ["no"], {date: "next month"}) {
+    dsl.party("alice", asset1)
+        .pays("alice_future", asset1)
+        .amount(deposit, asset1)
+
+    dsl.party("bob", asset2)
+        .pays("bob_future", asset2)
+        .amount(deposit, asset2)
+} else { //send to void; needed in case auto-refunds enabled
+    dsl.party("alice", asset1)
+        .pays("תֹהוּ", asset1)
+        .amount(deposit, asset1)
+
+    dsl.party("bob", asset2)
+        .pays("תֹהוּ", asset2)
+        .amount(deposit, asset2)
+}
+```
+
+
 
 ### Numeric observations
 
