@@ -312,24 +312,26 @@ dsl.ifAtomicSwapLeg1("hashlock", "verified").then(pay => {
         dsl.if("timelock", ["yes"], ["no"]).then(pay => { //don't even think about hashlocks on bob_usd here :) the point of loan is liquidity
             pay.party("bob", "usd").pays("alice", "usd").amount(300, "usd") //this is collateral for interest
             dsl.if("<alice_repayment_wallet_adaptor_pubkey_schnorr>", ["true"], ["false"], {}).then(pay => {
-                // alice cryptomagically reveals private key for repayment wallet in order to sign this CET, 
-                // since bob did not pay to that wallet, the key is worthless
-                // but alice gets Bob's deposit with this "empty pockets proof"
-                // nuance: Alice can only withdraw funds from repayment wallet after grace period deadline2 below 
-                // bob has to send money locked with deadline2 timelock, so alice would not empty it herself
-                // ^ this approach plays a role of payment oracle without third-party
-                dsl.if("timelock2", ["yes"], ["no"]).then(_ => { //(ANYPREVOUT in BTC is attempt to address this inconvinience)
+                // ^ alice revealed private key for empty repayment wallet
+                // "proof of empty pockets"
+                dsl.if("timelock2", ["yes"], ["no"]).then(_ => {
                     //timelock2 expired - we assume Alice got money
                 }).else(pay => {
                     pay.party("bob", "btc").pays("alice", "usd").amount(10, "btc")
                 })
             }).else(pay => {
-                // alice does not reveal pk for repayment wallet, since Bob sent money there
+                // alice did not reveal pk for repayment wallet, since Bob sent money there
             })
 })
 ```
 
-This loan is also asymmetric "physically-settled" vanilla option - Bob buys an option to swap his deposit for usd.
+
+> Alice cryptomagically reveals private key for repayment wallet in order to sign deposit redemtion CET, since bob did not pay to that wallet, the key is worthless but alice gets Bob's deposit with this "empty pockets proof". This approach is a payment oracle without third-party.
+
+> Nuance: Alice can only withdraw funds from repayment wallet after grace period `deadline2`. Bob has to send money locked with `deadline2` timelock, so alice would not empty the wallet herself. `ANYPREVOUT` BIP in BTC would address this inconvinience.
+                
+
+This loan is also "physically-settled" vanilla option - Bob buys an option to swap his deposit for usd.
 
 #### Vanilla Future Contract
 Vanilla futures are impossible on blockchain. Such contracts are not automatable, since either of the party might not have funds in the future, thus no way to collaterize in advance.
