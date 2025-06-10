@@ -195,6 +195,9 @@ class Dsl {
     budgetBound2 = 0;
     leafsFiltered = false;
     filterLeafs(model) {
+        if (model === undefined) {
+            throw new Error("Empty output!");
+        }
         if (!model.bet[0] && !model.bet[1] && !model.ifPartyWins && !model.ifCounterPartyWins) {
             this.leafsFiltered = true;
             return undefined;
@@ -263,7 +266,7 @@ class Dsl {
     }
     unfinalized = 0;
     numeric = {
-        outcome: (pubkey, from, to, step = 1, args = {}) => ({
+        outcome: (pubkey, from, to, step = 1, args = {}, allowMisplacedPay = false) => ({
             evaluate: (handler) => {
                 let numbers = [];
                 for (let i = from; i <= to; i += step) {
@@ -307,7 +310,7 @@ class Dsl {
                     if (r.length === 0) {
                         return;
                     }
-                    this.if(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args).then(h => {
+                    this.if(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args, false, allowMisplacedPay).then(h => {
                         if (l.length === 1) {
                             payhandler(h, l[0]);
                         }
@@ -374,7 +377,7 @@ class Dsl {
                     if (r.length === 0) {
                         return;
                     }
-                    this.if(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args).then(h => {
+                    this.if(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args, false, allowMisplacedPay).then(h => {
                         if (l.length === 1) {
                             payhandler(h, l[0]);
                         }
@@ -397,7 +400,7 @@ class Dsl {
         })
     };
     set = {
-        outcome: (pubkey, set, args = {}) => ({
+        outcome: (pubkey, set, args = {}, allowMisplacedPay = false) => ({
             evaluate: (handler) => {
                 const recurse = (l, r) => {
                     if (l.length === 0) {
@@ -433,7 +436,7 @@ class Dsl {
                     if (r.length === 0) {
                         return;
                     }
-                    this.if(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args).then(h => {
+                    this.if(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args, false, allowMisplacedPay).then(h => {
                         if (l.length === 1) {
                             payhandler(h, l[0]);
                         }
@@ -492,7 +495,7 @@ class Dsl {
                     if (r.length === 0) {
                         return;
                     }
-                    this.if(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args).then(h => {
+                    this.if(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args, false, allowMisplacedPay).then(h => {
                         if (l.length === 1) {
                             payhandler(h, l[0]);
                         }
@@ -513,7 +516,7 @@ class Dsl {
                 return [nn, hh];
             }
         }),
-        outcomeT: (pubkey, set, renderer, parser, args = {}) => ({
+        outcomeT: (pubkey, set, renderer, parser, args = {}, allowMisplacedPay = false) => ({
             evaluate: (handler) => {
                 const recurse = (l, r) => {
                     if (l.length === 0) {
@@ -549,7 +552,7 @@ class Dsl {
                     if (r.length === 0) {
                         return;
                     }
-                    this.if(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args).then(h => {
+                    this.if(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args, false, allowMisplacedPay).then(h => {
                         if (l.length === 1) {
                             payhandler(h, l[0]);
                         }
@@ -608,7 +611,7 @@ class Dsl {
                     if (r.length === 0) {
                         return;
                     }
-                    const rt = this.if(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args).then(h => {
+                    const rt = this.if(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args, false, allowMisplacedPay).then(h => {
                         if (l.length === 1) {
                             payhandler(h, l[0]);
                         }
@@ -630,7 +633,7 @@ class Dsl {
             }
         })
     };
-    if = (pubkey, yes, no, args = {}, allowSwaps = false) => {
+    if = (pubkey, yes, no, args = {}, allowSwaps = false, allowMisplacedPay = false) => {
         let contradiction = false;
         const yesSet = new Set(yes);
         const noSet = new Set(no);
@@ -663,8 +666,8 @@ class Dsl {
                             amount: (amount, asset) => {
                                 const party = partyName + (partyAsset ? "_" + partyAsset : "");
                                 const counterparty = counterpartyName + (counterpartyAsset ? "_" + counterpartyAsset : "");
-                                if (currentNode !== this.cursor) {
-                                    throw Error("Trying to pay nondeterministically! You tried to use outer account context to pay: use the closest `if(...).then/else(account => ...)` please!");
+                                if (currentNode !== this.cursor && !allowMisplacedPay) {
+                                    throw Error("Trying to pay nondeterministically! You tried to use outer account context to pay: use the closest `if(...).then/else(account => ...)` please! This also happens when you pay after checking unrelated observations: pay before checking next outcome! You can turn this off by using `allowMisplacedPay = true` in dsl.if");
                                 }
                                 if (partyAsset !== asset) {
                                     throw Error(`Trying to pay ${asset} from collateral denominated in ${partyAsset}`);
@@ -691,6 +694,9 @@ class Dsl {
                         })
                     }),
                     release: () => {
+                        if (currentNode !== this.cursor && !allowMisplacedPay) {
+                            throw Error("Trying to release nondeterministically! You tried to release using outer account context: use the closest `if(...).then/else(account => ...)` please! This also happens if you release after checking unrelated observations: release before next `outcome`");
+                        }
                         this.unfinalized--;
                         funds.party = undefined;
                         funds.pay = undefined;
@@ -759,6 +765,9 @@ class Dsl {
                                 })
                             }),
                             release: () => {
+                                if (currentNode !== this.cursor) {
+                                    throw Error("Trying to release nondeterministically! You tried to release using outer account context: use the closest `if(...).then/else(account => ...)` please! This also happens if you release after checking unrelated observations: release before next `outcome`");
+                                }
                                 this.unfinalized--;
                                 funds.party = undefined;
                                 funds.pay = undefined;

@@ -53,7 +53,7 @@ export declare class Dsl {
     numeric: {
         outcome: (pubkey: string, from: number, to: number, step?: number, args?: {
             [id: string]: string;
-        }) => {
+        }, allowMisplacedPay?: boolean) => {
             evaluate: (handler: (n: number) => void) => void;
             evaluateWithPaymentCtx: (payhandler: (h: PaymentHandler, n: number) => void) => void;
             value: () => number;
@@ -63,7 +63,7 @@ export declare class Dsl {
     set: {
         outcome: (pubkey: string, set: string[], args?: {
             [id: string]: string;
-        }) => {
+        }, allowMisplacedPay?: boolean) => {
             evaluate: (handler: (n: string) => void) => void;
             evaluateWithPaymentCtx: (payhandler: (h: PaymentHandler, n: string) => void) => void;
             value: () => string;
@@ -71,7 +71,7 @@ export declare class Dsl {
         };
         outcomeT: <T>(pubkey: string, set: T[], renderer: (x: T) => string, parser: (s: string) => T, args?: {
             [id: string]: string;
-        }) => {
+        }, allowMisplacedPay?: boolean) => {
             evaluate: (handler: (n: T) => void) => void;
             evaluateWithPaymentCtx: (payhandler: (h: PaymentHandler, n: T) => void) => void;
             value: () => T;
@@ -80,7 +80,7 @@ export declare class Dsl {
     };
     if: (pubkey: string, yes: string[], no: string[], args?: {
         [id: string]: string;
-    }, allowSwaps?: boolean) => {
+    }, allowSwaps?: boolean, allowMisplacedPay?: boolean) => {
         then: (handler: (handle: PaymentHandler) => void) => {
             else: (handler: (handle: PaymentHandler) => void) => void;
         };
