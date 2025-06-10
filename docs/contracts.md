@@ -17,8 +17,7 @@ npm run build
 
 ## Implement your blockchain:
 ```ts
-
-//non-Utxo blockchains can insecurely specify account number in txid and omit vout
+//non-Utxo blockchains can insecurely specify account number in txid and omit vout, ... coz they insecure about tech
 export interface UTxO {
     txid: string
     vout: number
