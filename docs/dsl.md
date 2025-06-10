@@ -587,10 +587,7 @@ Discreet outputs most optimal contract theoretically possible.
 Backends are allowed to optimize ranges and such - by interpreting "0..100" as Schnorr sum of messages. They can also optimize subsequent unique matches of the same fact ("100 = 20", "100 = 30" etc, e.g. turn a set of binary options to a european call) into a single pack of CET-transactions rather than a binary tree, which would reduce amount of transactions needed to redeem the funds in worst case.
 
 
-> Numbers and sets are implemented as binary trees. They are as optimal as possible. In any case, enumerator skips enumeration of unreachable branches - one-hot encoding should work fine as well (as soon as there is an early stop in your logic, rather than getting all observations first and checking them later). 
-
-> If parallization on GPU is required - numbers/sets as binary trees would speed it up, since unreachable branches check is not always available (it can only work in local memory of shader's unit and it's hard to balance parallelization when not all nodes are known from the start)
-
+> Numbers and sets are implemented as binary trees. They are as optimal as possible.
 And that's it.
 
 #### Memoization
