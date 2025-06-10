@@ -1143,8 +1143,6 @@ if (require.main === module) {
         })).multiple(Dsl.account("alice", "usd"), Dsl.account("bob", "btc")).enumerateWithBoundMulti([[1000000000, 20000]])
         console.log(assets)
 
-
-
         const swap = await (new Dsl (async dsl => {
             dsl.unsafe.ifAtomicSwapLeg1("lock1", "allowed").then(pay => {
                 dsl.unsafe.ifAtomicSwapLeg1("lock12", "allowed").then(pay => {
