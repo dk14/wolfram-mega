@@ -336,9 +336,9 @@ dsl.ifAtomicSwapLeg1("hashlock", "verified").then(pay => {
 ```
 
 
-> Alice cryptomagically reveals private key for repayment wallet in order to sign deposit redemtion CET, since bob did not pay to that wallet, the key is worthless but alice gets Bob's deposit with this "empty pockets proof". This approach is a payment oracle without third-party.
+> Alice cryptomagically reveals private key for repayment wallet in order to sign deposit redemption CET (she cannot sign it without doing so). Since bob did not pay to that wallet, the key is worthless but Alice gets Bob's deposit using this "empty pockets proof". This approach is a payment oracle without third-party.
 
-> Nuance: Alice can only withdraw funds from repayment wallet after grace period `deadline2`. Bob has to send money locked with `deadline2` timelock, so alice would not empty the wallet herself. `ANYPREVOUT` BIP in BTC would address this inconvinience.
+> Nuance: Alice can only withdraw funds from repayment wallet after grace period `deadline2`. Bob has to send money locked with `deadline2` timelock, so Alice would not empty the wallet herself. `ANYPREVOUT` BIP in BTC would address this inconvinience.
                 
 
 This loan is also "physically-settled" vanilla option - Bob buys an option to swap his deposit for usd.
