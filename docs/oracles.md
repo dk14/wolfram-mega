@@ -378,6 +378,9 @@ await upgradeOraclePow(difficulty)
 await upgradeCapabilityPow(pub, difficulty)
 ```
 
+## Dispute "Fact Missing" reports
+
+Oracle can dispute `fact-missing` reports by broacasting `Dispute` message to Mega P2P. This is available in the Mega-protocol API (see Operator doc).
 
 # Oracle Endpoint
 Oracle endpoint has to implement this interface over REST:

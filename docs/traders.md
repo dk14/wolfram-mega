@@ -121,6 +121,17 @@ const data = await (await fetch(`./${endpoints[view]}?pageSize=100&pageNo=${page
 Reports have unique pow hash, pow hash is their id. 
 If report is rejected due to low-pow difficulty - trader API will upgrade PoW.
 
+There are 5 types of reports, as can be found in `src/protocol.ts`:
+
+```ts
+export type MaleabilityReport = FactDisagreesWithPublic | FactConflict | FactMissing | AdCollision | FreeForm
+```
+- fact disagrees with public consensus, e.g. internet
+- conflict: oracle provided several conflicting answers to the same question or several oracles disagree on the answer
+- missing: oracle did not provide the fact
+- collision: trader (or third-party)noticed conflict between oracle ads
+- free-form: any type of report (even personal), trader is allowed to just vote against oracle with PoW. Although, other traders are at liberty to ignore such reports and exclude them from Oracle's reputation.
+
 > Note: there is a limitation on the maximum length of the message.
 
 ```ts
