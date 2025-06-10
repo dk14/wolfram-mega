@@ -162,7 +162,7 @@ await database.push("a", a_nondeterministic) //[30, 31]
 
 > Discreet enumerates all possible meaningful outcomes by design - so types in contracts have to be chosen carefully - they have to be human-interpretable, meaningful. Even if it's DOJ-index - you have to pick the ranges of values with meaning. 
 
-> Ranges are supported - 0..100 is a single outcome. Numerics on observed data (multiplications, sum) however would still require larger (but not full) enumeration. E.g. you can even "0..5", "5..10" on interest rate and then multiply, sum, recurse on it.
+> Ranges are allowed - 0..100 is a single outcome. Numerics on observed data (multiplications, sum) however would still require larger (but not full) enumeration. E.g. you can even "0..5", "5..10" on interest rate and then multiply, sum, recurse on it.
 
 > It is a small overhead even for complex scheduled contracts as it runs out. You can safely enumerate a hundred of states of a single ticker for precision. Even a schedule, with reasonable amount of events - does not blow that much exponentially. Exponents tend to lift off slowly like an airplane.
 
