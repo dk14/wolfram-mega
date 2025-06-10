@@ -532,7 +532,9 @@ dsl.if(receivePaymentPubKeyAdapted, ["true"], ["false"], {}).then(accounts => {
 
 > Auction can invalidate pre-bids with "proof of empty-pockets" (after timeout). Mafia is optional here but can improve efficiency. 
 
-> For goods delivery: auction can simply put security deposit instead of using mafia, but those are not always available. If there is no trusted oracle to check delivery - then MAD on the receiving wallet of the auction (distinct wallet per participant) plus MAD security deposit from auction.
+> For goods delivery: auction can simply put security deposit instead of using mafia, but evaluation of such deposits is not always available. 
+
+> If there is no trusted oracle to check delivery - then MAD on the receiving wallet of the auction (distinct wallet per participant) plus MAD security deposit from auction.
 
 
 ### Algorithmic Trading
