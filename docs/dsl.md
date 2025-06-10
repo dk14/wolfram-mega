@@ -345,7 +345,7 @@ Vanilla futures are impossible on blockchain. Such contracts are not automatable
 const mafiaFee = {value: 100, asset: "satochi"}
 const mafiaDeposit = {value: 300, asset: "satochi"}
 
-if (observation("bob and alice create an atomic swap on date $date", ["yes"], ["no"], {date: "next month"}) {
+if (dsl.outcome("bob and alice create an atomic swap on date $date", ["yes"], ["no"], {date: "next month"}) {
     dsl.party("alice", mafiaFee.asset)
         .pays("mafia", mafiaFee.asset)
         .amount(mafiaFee.value, mafiaFee.asset)
@@ -374,7 +374,7 @@ if (observation("bob and alice create an atomic swap on date $date", ["yes"], ["
 Alice and Bob - can be each other's mafia themselves. MAD-contract can simply reward them back their "secure future" deposits as a reward for fulfilling commitment to a mutual agreement.
 
 ```ts
-if (observation("siglock_alice && siglock_bob && timelock $date", ["yes"], ["no"], {date: "next month"}) {
+if (dsl.outcome("siglock_alice && siglock_bob && timelock $date", ["yes"], ["no"], {date: "next month"}) {
     dsl.party("alice", asset1)
         .pays("alice_future", asset1)
         .amount(deposit, asset1)
