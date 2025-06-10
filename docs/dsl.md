@@ -255,7 +255,6 @@ DSL should not be responsible for asset pairs, since asset pair is assumed to be
 ```ts
 account.party("alice_usd").pays("bob_btc").amount(1000000000) //1000000000 usd
 account.party("bob_btc").pays("alice_usd").amount(10) //10 btc
-
 ```
 
 There is, however syntax sugar to ensure proper currency is used in multi-party contracts:
