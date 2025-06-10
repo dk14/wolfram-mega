@@ -63,7 +63,9 @@ Output:
 
 > Matching has `evaluatePartyCollateral`, `evaluateCounterPartyCollateral` functions for introspection. Broadcasting `OfferModel` would automatically evaluate those.
 
-> Evaluations, not estimations. Discreet relies on nondeterministic praxeological tautology - everything is known, nothing left to meaningless statistical speculation. You don't know the outcome - that's where the risk comes from, NOT from DSL. You suppose to predict outcome yourself, not hope for it based on "statistical" positive re-inforcement (e.g. confidence intervals). Otherwise it's gambling with statistical buzzwords.
+> **Evaluations, not estimations**. Discreet relies on nondeterministic praxeological tautology - everything is known, nothing left to meaningless statistical speculation. You don't know the outcome - that's where the risk comes from, NOT from DSL. You suppose to predict outcome yourself, not hope for it based on "statistical" positive re-inforcement (e.g. confidence intervals). Otherwise it's gambling with statistical buzzwords.
+
+> **Computational finance. If computer cannot enumerate portfolio - human won't be able to do it for sure**. Pricing must be done over definite outcomes. Even blurry pricing (dream-pricing) is definte pricing done on GPU (with parallelization), it is still strongly-typed. Forecasters like Random-walk, ARIMA etc hide types from you, causing confusion over what is actually priced. They also don't account for present - they infer "types" (what outcome can be) from a sample of badly collected historical data, never asking trader what the trader (human) actually knows about environment. Feeding the past into the future until future becomes the past and so on, it's a perpetual motion attempt.
 
 ## Language
 
