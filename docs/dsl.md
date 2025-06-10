@@ -319,7 +319,6 @@ dsl.ifAtomicSwapLeg1("hashlock", "verified").then(pay => {
                 //without it Bob can send part of the money and negotiate deposit back
             }).else(pay => {
                 //alice does not reveal pk for special wallet, since Bob sent money there
-                //auto-refund
             })
 })
 ```
