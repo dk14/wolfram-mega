@@ -1,20 +1,28 @@
 
-> Draft
+> Experimental
 
-Discreet eDSL allows to easily build contracts compatible with Mega offers and matching. 
+Discreet eDSL is a fiancial contract language compatible with Mega offers, matching, and bitcoin testnet:
+
+```
+Discreet Typescript Code 
+-> OfferModel 
+-> OffetTerms 
+-> Matching 
+-> Tracking 
+-> Bitcoin Transactions
+```
 
 > "Discreet" misspelled on purpose
 
 It gives you `OfferModel`, which matching engine turns into `OfferTerms`. The language is super-easy and embedded into TypeScript.
 
-It is based on modern quantitative finance and renders to a tree of binary options, thus allowing expression of arbitrary financial contracts.
+It is based on modern quantitative finance and renders to a tree of binary options, thus allowing expression of **arbitrary financial contracts**.
 
 It is typesafe. It provides checks and restrictions that allow traders to eliminate known types of redundancies in contracts ("perfect hedges"), thus maximising trading liquidity - you only collaterize what's necceessary.
 
 
 ## Example
 ```ts
-
 import { Dsl } from '@dk14/wolfram-mega/discreet'
 
 const maxBudgetAlice = 300
@@ -59,13 +67,13 @@ Output:
 }
 ```
 
-`OfferModel` "transpiler" output also allows for evaluations of collaterals. 
+`OfferModel` "transpiler" output allows for evaluations of collaterals. 
 
 > Matching has `evaluatePartyCollateral`, `evaluateCounterPartyCollateral` functions for introspection. Broadcasting `OfferModel` would automatically evaluate those.
 
-> **Evaluations, not estimations**. Discreet relies on nondeterministic praxeological tautology - everything is known, nothing left to meaningless statistical speculation. You don't know the outcome - that's where the risk comes from, NOT from DSL. You suppose to predict outcome yourself, not hope for it based on "statistical" positive re-inforcement (e.g. confidence intervals). Otherwise it's gambling with statistical buzzwords.
+> **Evaluations, NOT estimations!**. Discreet relies on nondeterministic praxeological tautology - everything is known, nothing left to meaningless statistical speculation. You don't know the outcome - that's where the risk comes from, NOT from DSL. You suppose to predict outcome yourself, not hope for it based on "statistical" positive re-inforcement (e.g. confidence intervals). Otherwise it's gambling with statistical buzzwords.
 
-> **Computational finance. If computer cannot enumerate portfolio - human won't be able to do it for sure**. Pricing must be done over definite outcomes. Even blurry pricing (dream-pricing) is definte pricing done on GPU (with parallelization), it is still strongly-typed. Forecasters like Random-walk, ARIMA etc hide types from you, causing confusion over what is actually priced. They also don't account for present - they infer "types" (what outcome can be) from a sample of badly collected historical data, never asking trader what the trader (human) actually knows about **present** environment. Feeding the past into the future until future becomes the past and so on, it's a perpetual motion attempt.
+> **Computational finance. If computer cannot enumerate portfolio - human won't be able to do it for sure**. Pricing must be done over definite outcomes. Even blurry pricing (dream-pricing) is definite pricing done on GPU (with parallelization), it is still strongly-typed. Forecasters like Random-walk, ARIMA etc hide types from you, causing confusion over what is actually priced. They also don't account for present - they infer "types" (what outcome can be) from a sample of badly collected historical data, never asking trader what the trader (human) actually knows about **present** environment. Feeding the past into the future until future becomes the past and so on, it's a perpetual motion attempt.
 
 ## Language
 
@@ -103,7 +111,6 @@ const model = await (new Dsl(async dsl => {
 
 Use this:
 ```ts
-
 const model = await (new Dsl(async dsl => {
     var a = 30
     if (dsl.outcome("really?", ["YES"], ["NO"])) {
@@ -118,7 +125,7 @@ const model = await (new Dsl(async dsl => {
 
 Consequently, services queryed in dsl-context must be idempotent (e.g. stateless GET, not PUT). 
 
-Instead of this:
+Instead of that:
 ```ts
 const model = await (new Dsl(async dsl => {
     var a = 30 
@@ -133,7 +140,7 @@ const model = await (new Dsl(async dsl => {
 })).enumerateWithBound(maxBudget1, maxBudget2)
 ```
 
-Use this:
+Use that:
 
 ```ts
 const a_nondeterministic = []
@@ -152,6 +159,13 @@ const model = await (new Dsl(async dsl => {
 await database.push("a", a_nondeterministic) //[30, 31]
 ```
 
+> Discreet enumerates all possible meaningful outcomes by design - so types in contracts have to be chosen carefully - they have to be human-interpretable, meaningful. Even if it's DOJ-index - you have to pick the ranges of values with meaning. 
+
+> Ranges are supported - 0..100 is a single outcome. Numerics on observed data (multiplications, sum) however would still require larger (but not full) enumeration. E.g. you can even "0..5", "5..10" on interest rate and then multiply, sum, recurse on it.
+
+> It is a small overhead even for complex scheduled contracts as it runs out. You can safely enumerate a hundred of states of a single ticker for precision. Even a schedule, with reasonable amount of events - does not blow that much exponentially. Exponents tend to lift off slowly like an airplane.
+
+> We really discourage large contracts on Discreet, but they are quite possible nevertheless.
 
 ### Outcomes
 
@@ -163,7 +177,7 @@ Querying mutually exclusive outcomes, e.g. `{yes = ["a"], no = ["b"]} && {yes = 
 
 Discrete is at least as powerful as Cardano Marlowe. It allows stateful contracts.
 
-Consequently, schedules, every ACTUS instrument can be implemented.
+Consequently, schedules, every collaterizable ACTUS instrument can be implemented.
 
 ### Recursion
 
@@ -220,9 +234,7 @@ const fundFactory = (accumulatedFund: number, refillFund: number, refillBenefici
     .enumerateWithBoundMulti(Array(100).fill(Array(2).fill(accumulatedFund + refillFund + refillContributorCollateral))) 
     
     // ^ that is how central banking collaterizes everything, easy to overcollaterize a deal when "collaterals" are double-counted already. Under-over-collaterization.
-    
 }
-
 ```
 > Note: This is made up soso example for legacy funds (e.g. hedge funds), to learn from their mistakes. Mega encourages safe tractable funding, where the only risk is the outcome itself (project completed or not), rather than uninterpretable alienated complexity of The Fund. Thus connections have to be tractable, either: one beneficiary, possibly several contributors. Or: one contributor, possibly several beneficiaries. 
 
@@ -235,7 +247,7 @@ const fundFactory = (accumulatedFund: number, refillFund: number, refillBenefici
 
 ### Cross-currency (assets)
 
-DSL is not responsible for asset pairs, since asset pair is assumed to be fixed between parties per (composite) contract - you specify asset pair in matching etc. Allowing one party to have several assets in a contract is equivalent to having several parties, e.g. "alice-usd", "alice-btc".
+DSL should not be responsible for asset pairs, since asset pair is assumed to be fixed between parties per (composite) contract - you specify asset pair in matching etc. Allowing one party to have several assets in a contract is equivalent to having several parties, e.g. "alice-usd", "alice-btc".
 
 > Note: since Discreet relies on binary options - there is no confusion about currency. In "alice-usd", "bob-btc" pair - Alice always gets btc, Bob always gets usd.
 
@@ -245,7 +257,7 @@ account.party("bob_btc").pays("alice_usd").amount(10) //10 btc
 
 ```
 
-There is a syntax sugar to ensure proper currency. 
+There is, however syntax sugar to ensure proper currency is used in multi-party contracts:
 
 ```ts
 const assets = await (new Dsl (async dsl => {
@@ -256,7 +268,7 @@ const assets = await (new Dsl (async dsl => {
     }
 })).multiple(Dsl.account("alice", "usd"), Dsl.account("bob", "btc")).enumerateWithBoundMulti([[500000000, 50000000]])
 ```
-> This is NOT atomic swap. Atomic swaps are transactions - not contracts, they execute unconditionally.
+> **^This is NOT atomic swap**. Atomic swaps are transactions - not contracts, they execute unconditionally.
 
 This one IS:
 
