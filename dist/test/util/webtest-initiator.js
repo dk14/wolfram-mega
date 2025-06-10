@@ -64,7 +64,7 @@ const dsl_1 = require("../../src-web/dsl");
         else {
             dsl.pay(dsl_1.Dsl.Alice, 2053);
         }
-    })).enumerateWithBound(140000);
+    })).enumerateWithBound(140000000, 20000000);
     await window.matching.broadcastOffer(isComposite ? myCompositeOffer : myCustomOffer);
     setInterval(async () => {
         const orders = await window.matching.listOrders(100);

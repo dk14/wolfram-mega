@@ -32,8 +32,10 @@ export declare class Dsl {
     static readonly CounterParty = 1;
     static readonly Alice = 0;
     static readonly Bob = 1;
-    private collateral;
-    private budgetBound;
+    private collateral1;
+    private collateral2;
+    private budgetBound1;
+    private budgetBound2;
     private leafsFiltered;
     private filterLeafs;
     private multiparty;
@@ -89,7 +91,7 @@ export declare class Dsl {
         };
     };
     private multiflag;
-    enumerateWithBoundMulti(collateralBound: number): Promise<[string, string, OfferModel][]>;
-    enumerateWithBound(collateralBound: number): Promise<OfferModel>;
+    enumerateWithBoundMulti(collateralBounds: [number, number][]): Promise<[string, string, OfferModel][]>;
+    enumerateWithBound(collateralBound1: number, collateralBound2: number): Promise<OfferModel>;
 }
 export {};
