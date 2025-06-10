@@ -15,11 +15,11 @@ Discreet Typescript Code
 
 > "Discreet" misspelled on purpose
 
-It gives you `OfferModel`, which matching engine turns into `OfferTerms`. The language is super-easy and embedded into TypeScript.
+Discreet outputs `OfferModel`, which matching engine turns into `OfferTerms`. The language is super-easy and embedded into TypeScript.
 
-It is based on modern quantitative finance and renders to a tree of binary options, thus allowing expression of **arbitrary financial contracts**.
+Discreet is based on modern quantitative finance and renders to a tree of binary options, thus allowing expression of **arbitrary financial contracts**.
 
-It is typesafe. It provides checks and restrictions that allow traders to eliminate known types of redundancies in contracts ("perfect hedges"), thus maximising trading liquidity - you only collaterize what's necceessary.
+Discreet is typesafe. It provides checks and restrictions that allow traders to eliminate known types of redundancies in contracts ("perfect hedges"), thus maximising trading liquidity - you only collaterize what's necceessary.
 
 
 ## Example
