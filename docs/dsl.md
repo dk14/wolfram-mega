@@ -341,17 +341,17 @@ Vanilla futures are impossible on blockchain. Such contracts are not automatable
 > Defi "solves" it with tokens, but tokens are not backed up by anything. You cannot tokenize a car or a human. Alice cannot go and tatoo a **unique** pubkey on a car or her body. Carol will take up on a trend and everyone will have same tatoo like idiots.
 
 ```ts
-const mafiaFee = {value: 100, asset: "satochi"}
+const mafiaIncentive = {value: 100, asset: "satochi"}
 const mafiaDeposit = {value: 300, asset: "satochi"}
 
 if (dsl.outcome("bob and alice create an atomic swap on date $date", ["yes"], ["no"], {date: "next month"}) {
-    dsl.party("alice", mafiaFee.asset)
-        .pays("mafia", mafiaFee.asset)
-        .amount(mafiaFee.value, mafiaFee.asset)
+    dsl.party("alice", mafiaIncentive.asset)
+        .pays("mafia", mafiaIncentive.asset)
+        .amount(mafiaIncentive.value, mafiaIncentive.asset)
 
-    dsl.party("bob", mafiaFee.asset)
-        .pays("mafia", mafiaFee.asset)
-        .amount(mafiaFee.value, mafiaFee.asset)
+    dsl.party("bob", mafiaIncentive.asset)
+        .pays("mafia", mafiaIncentive.asset)
+        .amount(mafiaIncentive.value, mafiaIncentive.asset)
 } else {
     //this assures Bob and Alice that mafia is committed to its job
     dsl.party("mafia", mafiaDeposit.asset)
@@ -364,7 +364,7 @@ if (dsl.outcome("bob and alice create an atomic swap on date $date", ["yes"], ["
 }
 ```
 
-> Note: since mafia is interested party and both alice and bob are involved with it - oracles could in theory be bypassed: mafia fee would be "simply" included into atomic swap. In practice - both Bob and Alice need assurance that mafia is doing its job, thus mafia deposit and oracle keeping track of mafia are required. Mafia is trustless in this setup.
+> Note: since mafia is interested party and both alice and bob are involved with it - oracles could in theory be bypassed: mafia incentive would be "simply" included into atomic swap. In practice - both Bob and Alice need assurance that mafia is doing its job, thus mafia deposit and oracle keeping track of mafia are required. Mafia is trustless in this setup.
 
 > Third-party oracle can still be bypassed by replacing "bob and alice create an atomic swap on date $date" with mutual bob's and alice's multisig (MAD) and a timelock.
 
