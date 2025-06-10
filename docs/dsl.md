@@ -315,6 +315,7 @@ dsl.ifAtomicSwapLeg1("hashlock", "verified").then(pay => {
                 // alice reveals private key for an empty repayment wallet in order to sign this CET, 
                 // since bob did not pay to that wallet, the key is worthless
                 // but alice gets deposit
+                // ^ this plays a role of payment oracle without third-party
                 pay.party("bob", "btc").pays("alice", "usd").amount(10, "btc")
                 // note ANYPREVOUT can be used instead for convinience (if BTC adopts it)
                 // without ANYPREVOUT, 
