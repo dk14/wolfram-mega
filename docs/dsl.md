@@ -243,7 +243,7 @@ dsl.ifAtomicSwapLeg1("hashlock_parties_keep_agreement", "verified").then(pay => 
 })
 ```
 > This is the only loan design that is possible on blockchain. Everything else is a under-collaterized fiction.
-> One might think that `hashlock_parties_keep_agreement` can be guaranteed. No it isn't - both parties would have to submit collaterals before "Opening contract" then. This would ruin liquidity: Bob would lock BTC and USD at the same time for no reason.
+> One might think that `hashlock_parties_keep_agreement` can be guaranteed. No it isn't - both parties would have to submit collaterals before "Borrowing contract" then. This would ruin liquidity: Bob would lock BTC and USD at the same time for no reason.
 > IRL loans.
 
 ### Numeric observations
