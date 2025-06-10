@@ -587,9 +587,7 @@ Discreet outputs most optimal contract theoretically possible.
 Backends are allowed to optimize ranges and such - by interpreting "0..100" as Schnorr sum of messages. They can also optimize subsequent unique matches of the same fact ("100 = 20", "100 = 30" etc, e.g. turn a set of binary options to a european call) into a single pack of CET-transactions rather than a binary tree, which would reduce amount of transactions needed to redeem the funds in worst case.
 
 
-> Numbers are implemented as binary trees. They are as optimal as possible.
-
-> Currently, Discreet's enumerator might scan unreachable branches (if they they happen to be in `then` clauses). It won't add them to the final contract, but will spend time analyzing them. So ideally computation should be organized in a binary tree for now.
+> Numbers are implemented as binary trees. They are as optimal as possible. Enumerator skips enumeration of dead branches (no coverage test for that though).
 
 And that's it.
 

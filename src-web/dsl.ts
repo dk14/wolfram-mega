@@ -206,6 +206,10 @@ export class Dsl {
             }
             entry = Object.values(this.state).find(x => x[0] === i)
 
+            if (!this.checked[i] && !cursor) {
+                i++
+                continue
+            }
             if (entry[1] === true) {
                 if (cursor === true) {
                     entry[1] = false
@@ -1049,8 +1053,9 @@ if (require.main === module) {
                 dsl.if("wow?", ["yup"], ["nope"]).then(account => {
                     account.party("alice").pays("carol").amount(30)
                     account.party("carol").pays("alice").amount(5)
+                    
                 }).else(account => {
-                    account.party("carol").pays("alice").amount(30)
+                    account.party("carol").pays("alice").amount(30) 
                 })
                 dsl.numeric.outcome("price?", 0, 3).value()
                 dsl.numeric.outcome("price?", 0, 5).evaluateWithPaymentCtx((account, n) => {
