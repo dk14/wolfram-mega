@@ -315,14 +315,16 @@ dsl.ifAtomicSwapLeg1("hashlock", "verified").then(pay => {
                 // alice reveals private key for an empty repayment wallet in order to sign this CET, 
                 // since bob did not pay to that wallet, the key is worthless
                 // but alice gets deposit with this "empty pockets proof"
-                // ^ this plays a role of payment oracle without third-party
-                pay.party("bob", "btc").pays("alice", "usd").amount(10, "btc")
-                // note ANYPREVOUT can be used instead for convinience (if BTC adopts it)
-                // without ANYPREVOUT, 
-                // if Bob is accidentally pys after deadline - Alice might reveal wallet with his repayment for anyone to take. She still gets his deposit though.
-                // Thus such contracts always have a deadline to repay (timelock above)
+                // nuance: Alice can only withdraw funds from repayment wallet after redemtion deadline2 below 
+                // bob has to send money with deadline2 timelock, so alice would not empty it
+                // ^ this approach plays a role of payment oracle without third-party
+                dsl.if("timelock2", ["yes"], ["no"]).then(_ => { //(ANYPREVOUT in BTC is attempt to address this inconvinience)
+                    //timelock2 expired - we assume Alice got money
+                }).else(pay => {
+                    pay.party("bob", "btc").pays("alice", "usd").amount(10, "btc")
+                })
             }).else(pay => {
-                // alice does not reveal pk for special wallet, since Bob sent money there
+                // alice does not reveal pk for repayment wallet, since Bob sent money there
             })
 })
 ```
@@ -358,11 +360,9 @@ if (dsl.outcome("bob and alice create an atomic swap on date $date", ["yes"], ["
 }
 ```
 
-> Note: since mafia is interested party and both alice and bob are involved with it - oracles could in theory be bypassed: mafia incentive would be "simply" included into atomic swap. In practice - both Bob and Alice need assurance that mafia is doing its job, thus mafia deposit and oracle keeping track of mafia are required. Mafia is trustless in this setup.
-
 > This contract can also be repurposed as a security deposit for vanilla IRL loan. Just add extra "lending" payout from Bob to Alice (or mafia to Alice). Then future one-sided "swap" would be paying it back (in exchange for erasure of mafia's incentive). Many IRL financial instruments are possible with this approach.
 
-> Note: Third-party oracle can still be bypassed by replacing "bob and alice create an atomic swap on date $date" with mutual bob's and alice's multisig (MAD) and a timelock. Or alternatively for one sided execution - it can be one of the parties revealing "proof of empty pockets", so mafia would lose incentive.
+> Note: Third-party oracle can be avoided with Schnorr adaptor signatures. One of the parties (or both) can reveal "proof of empty pockets" for pre-agreed wallets, so mafia would lose incentive.
 
 ### Mutually Assured Destruction (MAD)
 
