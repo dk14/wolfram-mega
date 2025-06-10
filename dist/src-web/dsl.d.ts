@@ -50,6 +50,48 @@ export declare class Dsl {
     };
     static account(partyName: string, partyAsset: string): string;
     private unfinalized;
+    unsafe: {
+        if: (pubkey: string, yes: string[], no: string[], args?: {
+            [id: string]: string;
+        }, allowSwaps?: boolean, allowMisplacedPay?: boolean) => {
+            then: (handler: (handle: PaymentHandler) => void) => {
+                else: (handler: (handle: PaymentHandler) => void) => void;
+            };
+        };
+        numeric: {
+            outcome: (pubkey: string, from: number, to: number, step?: number, args?: {
+                [id: string]: string;
+            }, allowMisplacedPay?: boolean) => {
+                evaluate: (handler: (n: number) => void) => void;
+                evaluateWithPaymentCtx: (payhandler: (h: PaymentHandler, n: number) => void) => void;
+                value: () => number;
+                valueWithPaymentCtxUnsafe: () => [number, PaymentHandler];
+            };
+        };
+        set: {
+            outcome: (pubkey: string, set: string[], args?: {
+                [id: string]: string;
+            }, allowMisplacedPay?: boolean) => {
+                evaluate: (handler: (n: string) => void) => void;
+                evaluateWithPaymentCtx: (payhandler: (h: PaymentHandler, n: string) => void) => void;
+                value: () => string;
+                valueWithPaymentCtxUnsafe: () => [string, PaymentHandler];
+            };
+            outcomeT: <T>(pubkey: string, set: T[], renderer: (x: T) => string, parser: (s: string) => T, args?: {
+                [id: string]: string;
+            }, allowMisplacedPay?: boolean) => {
+                evaluate: (handler: (n: T) => void) => void;
+                evaluateWithPaymentCtx: (payhandler: (h: PaymentHandler, n: T) => void) => void;
+                value: () => T;
+                valueWithPaymentCtxUnsafe: () => [T, PaymentHandler];
+            };
+        };
+        ifAtomicSwapLeg1: (lock?: string, unlockOutcome?: string, allowMisplacedPay?: boolean) => {
+            then: (handler: (handle: PaymentHandler) => void) => {
+                else: (handler: (handle: PaymentHandler) => void) => void;
+            };
+        };
+    };
     numeric: {
         outcome: (pubkey: string, from: number, to: number, step?: number, args?: {
             [id: string]: string;
@@ -85,7 +127,7 @@ export declare class Dsl {
             else: (handler: (handle: PaymentHandler) => void) => void;
         };
     };
-    ifAtomicSwapLeg1(lock?: string, unlockOutcome?: string): {
+    ifAtomicSwapLeg1(lock?: string, unlockOutcome?: string, allowMisplacedPay?: boolean): {
         then: (handler: (handle: PaymentHandler) => void) => {
             else: (handler: (handle: PaymentHandler) => void) => void;
         };

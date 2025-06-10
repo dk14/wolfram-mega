@@ -265,6 +265,27 @@ class Dsl {
         return partyName + "_" + partyAsset;
     }
     unfinalized = 0;
+    unsafe = {
+        if: (pubkey, yes, no, args = {}, allowSwaps = false, allowMisplacedPay = true) => {
+            return this.if(pubkey, yes, no, args, allowSwaps, allowMisplacedPay);
+        },
+        numeric: {
+            outcome: (pubkey, from, to, step = 1, args = {}, allowMisplacedPay = true) => {
+                return this.numeric.outcome(pubkey, from, to, step, args, allowMisplacedPay);
+            }
+        },
+        set: {
+            outcome: (pubkey, set, args = {}, allowMisplacedPay = true) => {
+                return this.set.outcome(pubkey, set, args, allowMisplacedPay);
+            },
+            outcomeT: (pubkey, set, renderer, parser, args = {}, allowMisplacedPay = true) => {
+                return this.set.outcomeT(pubkey, set, renderer, parser, args, allowMisplacedPay);
+            }
+        },
+        ifAtomicSwapLeg1: (lock = "TRUTH", unlockOutcome = "true", allowMisplacedPay = true) => {
+            return this.if(lock, [unlockOutcome], [unlockOutcome], {}, true, allowMisplacedPay);
+        }
+    };
     numeric = {
         outcome: (pubkey, from, to, step = 1, args = {}, allowMisplacedPay = false) => ({
             evaluate: (handler) => {
@@ -667,7 +688,7 @@ class Dsl {
                                 const party = partyName + (partyAsset ? "_" + partyAsset : "");
                                 const counterparty = counterpartyName + (counterpartyAsset ? "_" + counterpartyAsset : "");
                                 if (currentNode !== this.cursor && !allowMisplacedPay) {
-                                    throw Error("Trying to pay nondeterministically! You tried to use outer account context to pay: use the closest `if(...).then/else(account => ...)` please! This also happens when you pay after checking unrelated observations: pay before checking next outcome! You can turn this off by using `allowMisplacedPay = true` in dsl.if");
+                                    throw Error("Possibly trying to pay nondeterministically! You tried to use outer account context to pay: use the closest `if(...).then/else(account => ...)` please! This also happens when you pay after checking unrelated observations: pay before checking next outcome! You can turn this off by using `dsl.unsafe`");
                                 }
                                 if (partyAsset !== asset) {
                                     throw Error(`Trying to pay ${asset} from collateral denominated in ${partyAsset}`);
@@ -695,7 +716,12 @@ class Dsl {
                     }),
                     release: () => {
                         if (currentNode !== this.cursor && !allowMisplacedPay) {
-                            throw Error("Trying to release nondeterministically! You tried to release using outer account context: use the closest `if(...).then/else(account => ...)` please! This also happens if you release after checking unrelated observations: release before next `outcome`");
+                            throw Error("Trying to release nondeterministically! You tried to release using outer account context: use the closest `if(...).then/else(account => ...)` please! This also happens if you release after checking unrelated observations: release before next `outcome; use `allowMisplacedPay` in `dsl.if` to disable this check`");
+                        }
+                        const saveCursor = this.cursor;
+                        if (allowMisplacedPay) {
+                            this.cursor = currentNode;
+                            this.flag = false;
                         }
                         this.unfinalized--;
                         funds.party = undefined;
@@ -708,11 +734,17 @@ class Dsl {
                                 this.pay(party === 0 ? 1 : 0, -sum);
                             }
                         }
+                        this.cursor = saveCursor;
                     }
                 };
                 const finalizeUnsafeInternal = () => {
                     if (observation) {
                         handler(funds);
+                        const saveCursor = this.cursor;
+                        if (allowMisplacedPay) {
+                            this.cursor = currentNode;
+                            this.flag = false;
+                        }
                         if (party !== undefined && sum !== 0) {
                             if (sum > 0) {
                                 this.pay(party, sum);
@@ -721,6 +753,7 @@ class Dsl {
                                 this.pay(party === 0 ? 1 : 0, -sum);
                             }
                         }
+                        this.cursor = saveCursor;
                     }
                 };
                 finalizeUnsafeInternal();
@@ -746,14 +779,28 @@ class Dsl {
                                     }
                                 }
                             },
-                            party: (party) => ({
-                                pays: (counterparty) => ({
-                                    amount: (amount) => {
+                            party: (partyName, partyAsset) => ({
+                                pays: (counterpartyName, counterpartyAsset) => ({
+                                    amount: (amount, asset) => {
+                                        const party = partyName + (partyAsset ? "_" + partyAsset : "");
+                                        const counterparty = counterpartyName + (counterpartyAsset ? "_" + counterpartyAsset : "");
+                                        if (currentNode !== this.cursor && !allowMisplacedPay) {
+                                            throw Error("Possibly trying to pay nondeterministically! You tried to use outer account context to pay: use the closest `if(...).then/else(account => ...)` please! This also happens when you pay after checking unrelated observations: pay before checking next outcome! You can turn this off by using `dsl.unsafe`");
+                                        }
+                                        if (partyAsset !== asset) {
+                                            throw Error(`Trying to pay ${asset} from collateral denominated in ${partyAsset}`);
+                                        }
                                         if (!this.multiparty.find(x => x === party)) {
                                             throw Error("party " + party + " not registered! Use .multiple to register parties");
                                         }
                                         if (!this.multiparty.find(x => x === counterparty)) {
                                             throw Error("counterparty " + counterparty + " not registered! Use .multiple to register parties");
+                                        }
+                                        if (!this.multiparty.find(x => x === party)) {
+                                            throw Error("party " + party + " not registered! Use .multiple to register parties in " + this.multiparty);
+                                        }
+                                        if (!this.multiparty.find(x => x === counterparty)) {
+                                            throw Error("counterparty " + counterparty + " not registered! Use .multiple to register parties in " + this.multiparty);
                                         }
                                         if (this.isSelected0(party) && this.isSelected1(counterparty)) {
                                             funds.pay(0, amount);
@@ -765,8 +812,13 @@ class Dsl {
                                 })
                             }),
                             release: () => {
-                                if (currentNode !== this.cursor) {
-                                    throw Error("Trying to release nondeterministically! You tried to release using outer account context: use the closest `if(...).then/else(account => ...)` please! This also happens if you release after checking unrelated observations: release before next `outcome`");
+                                if (currentNode !== this.cursor && !allowMisplacedPay) {
+                                    throw Error("Possibly trying to release nondeterministically! You tried to release using outer account context: use the closest `if(...).then/else(account => ...)` please! This also happens if you release after checking unrelated observations: release before next `outcome`; use `allowMisplacedPay` in `dsl.if` to disable this check");
+                                }
+                                const saveCursor = this.cursor;
+                                if (allowMisplacedPay) {
+                                    this.cursor = currentNode;
+                                    this.flag = false;
                                 }
                                 this.unfinalized--;
                                 funds.party = undefined;
@@ -779,11 +831,17 @@ class Dsl {
                                         this.pay(counterparty === 0 ? 1 : 0, -sum);
                                     }
                                 }
+                                this.cursor = saveCursor;
                             }
                         };
                         const finalizeUnsafeInternal2 = () => {
                             if (!observation) {
                                 handler(funds);
+                                const saveCursor = this.cursor;
+                                if (allowMisplacedPay) {
+                                    this.cursor = currentNode;
+                                    this.flag = false;
+                                }
                                 if (counterparty !== undefined && sum !== 0) {
                                     if (sum > 0) {
                                         this.pay(party, sum);
@@ -792,6 +850,7 @@ class Dsl {
                                         this.pay(party === 0 ? 1 : 0, -sum);
                                     }
                                 }
+                                this.cursor = saveCursor;
                             }
                         };
                         finalizeUnsafeInternal2();
@@ -800,8 +859,8 @@ class Dsl {
             }
         };
     };
-    ifAtomicSwapLeg1(lock = "TRUTH", unlockOutcome = "true") {
-        return this.if(lock, [unlockOutcome], [unlockOutcome], {}, true);
+    ifAtomicSwapLeg1(lock = "TRUTH", unlockOutcome = "true", allowMisplacedPay = false) {
+        return this.if(lock, [unlockOutcome], [unlockOutcome], {}, true, allowMisplacedPay);
     }
     multiflag = false;
     async enumerateWithBoundMulti(collateralBounds) {
@@ -976,7 +1035,10 @@ if (require.main === module) {
         })).multiple(Dsl.account("alice", "usd"), Dsl.account("bob", "btc")).enumerateWithBoundMulti([[1000000000, 20000]]);
         console.log(assets);
         const swap = await (new Dsl(async (dsl) => {
-            dsl.ifAtomicSwapLeg1("lock1", "allowed").then(pay => {
+            dsl.unsafe.ifAtomicSwapLeg1("lock1", "allowed").then(pay => {
+                dsl.unsafe.ifAtomicSwapLeg1("lock12", "allowed").then(pay => {
+                    pay.party("alice", "usd").pays("bob", "btc").amount(10000000, "usd");
+                }).else(() => { });
                 pay.party("alice", "usd").pays("bob", "btc").amount(10000000, "usd");
             }).else(pay => {
                 pay.party("bob", "btc").pays("alice", "usd").amount(10, "btc");
