@@ -354,7 +354,7 @@ if (observation("bob and alice create an atomic swap on date $date", ["yes"], ["
 
 > Note: since mafia is interested party and both alice and bob are involved with it - oracles could in theory be bypassed: mafia fee would be "simply" included into atomic swap. In practice - both Bob and Alice need assurance that mafia is doing its job, thus mafia deposit and oracle keeping track of mafia are required. Mafia is trustless in this setup.
 
-> Third-party oracle can still be bypassed through: "bob and alice create an atomic swap on date $date" can be bob's and alice's multisig (MAD) with a timelock.
+> Third-party oracle can still be bypassed by replacing "bob and alice create an atomic swap on date $date" with mutual bob's and alice's multisig (MAD) and a timelock.
 
 ### Mutually Assured Destruction (MAD)
 
