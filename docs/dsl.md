@@ -310,30 +310,19 @@ dsl.ifAtomicSwapLeg1("hashlock", "verified").then(pay => {
         pay.party("bob", "btc").pays("alice", "usd").amount(10, "btc")
     }).else(_ => {
         dsl.if("timelock", ["yes"], ["no"]).then(pay => { //don't even think about hashlocks on bob_usd here :) the point of loan is liquidity
-            pay.party("bob", "btc").pays("alice", "usd").amount(10, "btc")
             pay.party("bob", "usd").pays("alice", "usd").amount(300, "usd") //this is collateral for interest
-        })
-    })
+            dsl.if("SCHNORR: REVEAL PK FOR REDEMPTION PUB <alicepubkey>", ["true"], ["false"], {}).then(pay => {
+                //alice reveals private key for an empty repayment wallet, since bob did not pay back
+                //alice gets deposit
+                pay.party("bob", "btc").pays("alice", "usd").amount(10, "btc")
+                //note ANYPREVOUT can be used instead for convinience
+                //without it Bob can send part of the money and negotiate deposit back
+            }).else(pay => {
+                //alice does not reveal pk for special wallet, since Bob sent money there
+                //auto-refund
+            })
 })
 ```
-
-> Since blockchain cannot gurantee receiving payments after deal is settled (Bob simply might not have funds in the future), alice takes deposit unconditionally (at maturity date).
-
-Then there is a separate "pay loan back" deal:
-
-```ts
-// Redemption contract -- created AFTER Bob gets money to pay back
-dsl.ifAtomicSwapLeg1("hashlock_parties_keep_agreement", "verified").then(pay => {
-   pay.party("alice", "btc").pays("bob", "usd").amount(10, "btc")
-}).else(pay => {
-   pay.party("bob", "usd").pays("alice", "usd").amount(10000000, "usd")
-})
-```
-> This is the only loan design that is possible on blockchain. Everything else is a under-collaterized fiction.
-
-> One might think that `hashlock_parties_keep_agreement` can be guaranteed. No it isn't - both parties would have to submit collaterals before "Borrowing contract" then. This would ruin liquidity: Bob would lock BTC and USD at the same time for no reason.
-
-> IRL loans. The only way to ensure redemption contract taking place is  to create "Vanilla Future Contract"
 
 #### Vanilla Future Contract
 Vanilla futures are impossible on blockchain. Such contracts are not automatable, since either of the party might not have funds in the future, thus no way to collaterize in advance.
