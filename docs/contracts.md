@@ -133,7 +133,7 @@ Here's non-composite binary option:
 
 Here's composite binary option:
 
-PSEUDOCODE (we leave trivial DSLs to <s>academics</s> app developers):
+PSEUDOCODE (we leave trivial DSLs to <s>academics</s> app developers, jk - there is "Discreet eDSL" doc):
 ```ts
 receive(party, 100 + max(20, 0)) //can be implicit in `OfferTerms`
 receive(counterparty, 10 + max(10, 10)) //can be implicit in `OfferTerms`
@@ -210,7 +210,7 @@ STAGE2 (leaf offer-chunks):
 }
 ```
 
-Unlike with Marlowe - money preservation property is ensured in the language design, rather than with SMT-solvers.
+Unlike with Marlowe - money preservation property can be ensured in the language design, rather than with SMT-solvers.
 
 > In the composite contract js-eDSL pseudo-code above - `receive` represents full collateral for a participant. It is implicit "syntax sugar" because it's only needed to assert money preservation (eDSL can check that collateral computed as a sum of bets made by a given party (for worst-case outcomes) equals to the number specified in `receive`).
 
@@ -220,16 +220,11 @@ Unlike with Marlowe - money preservation property is ensured in the language des
 
 ## Multi-party
 
-Two-party offers are generalizable to multi-party (multi leg) offers through creating a set of pairwise contracts.
+Two-party offers are generalizable to multi-party (multi leg) offers through creating a set of pairwise contracts (see "Dicreet DSL" doc).
 
 It simplifies matching, since originator of the offer would not have to care about how many parties would join it. 
 
 >In [BTC-DLC](https://adiabat.github.io/dlc.pdf) "bob, carol" would have their own multisig and pre-sign their own CET-transactions, before co-signing CET and opening transaction with alice.
-
-It is trivial to built "multiParty eDSLs" under this framework too, since one only has to take 3-party (n-party) contract and generate 2 (n-1) bilateral contracts:
-
-- one where bob and carol are considered same party
-- another one where bob payouts are simply excluded
 
 >In [BTC-DLC](https://adiabat.github.io/dlc.pdf), inputs-outputs from the same stage - can still be pooled together in order to reduce fees.
 
@@ -297,86 +292,30 @@ It is recommended to rather bound contract complexity than use meaningless token
 ------
 
 # Contracts Typescript API (Node.js, BTC)
+
+We use BDTC-DLC for BTC-contracts. It allows arbitrary contracts on Bitcoin. 
+
+Research done:
+https://dk14.github.io/marlowe-wolfram-webdoc/eurocall
+
+----
 `src/client-api/contracts/generate-btc-tx`
+
+This page is shown on Trader Console (see `npx mega-demo`), where you can play and familiarize yourself with parameters tx generator requires:
 
 `src/client-api/service/index.html`
 
-## CET
-### Parameters
+
+
+### CET API
 
 ```ts
-export interface OpeningParams {
-    aliceIn: UTxO[],
-    bobIn: UTxO[],
-    alicePub: PubKey,
-    bobPub: PubKey,
-    aliceAmountIn: number[],
-    bobAmountIn: number[],
-    changeAlice: number,
-    changeBob: number,
-    txfee: number
-}
+import { generateOpeningTransaction,  generateClosingTransaction,generateCetTransaction, OpeningParams, ClosingParams, CetParams } from '@dk14/wolfram-mega/btc'
 
-export interface ClosingParams {
-    lockedTxId: TxId,
-    alicePub: PubKey,
-    bobPub: PubKey,
-    aliceAmount: number,
-    bobAmount: number,
-    txfee: number
-}
+generateOpeningTransaction(...)
+generateClosingTransactionn(...)
+generateCetTransaction(...)
 
-export interface CetParams {
-    lockedTxId: TxId,
-    oraclePub: PubKey,
-    oraclePub2: PubKey,
-    oraclePub3: PubKey,  
-    answer: Msg, 
-    rValue: Hex,
-    rValue2?: Hex,
-    rValue3?: Hex,
-    alicePub: PubKey,
-    bobPub: PubKey,
-    aliceAmount: number,
-    bobAmount: number,
-    txfee: number,
-    session?: PublicSession,
-    stateAmount?: number //goes back to multisig, for composite contracts
-}
-
-export interface CetRedemptionParams {
-    cetTxId: TxId, 
-    oraclePub: PubKey,
-    oraclePub2?: PubKey, 
-    oraclePub3?: PubKey,  
-    answer: Msg, 
-    rValue: Hex,
-    rValue2?: Hex,
-    rValue3?: Hex,
-    alicePub: PubKey, 
-    bobPub: PubKey,
-    oracleSignature: Hex, 
-    oracleSignature2?: Hex, 
-    oracleSignature3?: Hex, 
-    quorumno?: 1 | 2 | 3,
-    amount: number,
-    txfee: number
-}
-
-import { OpeningParams, CetParams, CetRedemptionParams, DlcParams } from '@dk14/wolfram-mega/contracts/btc'
-
-```
-
-### API
-
-```ts
-type Hex = string
-
-interface BtcApi {
-    generateOpeningTransaction: (params: OpeningParams) => Promise<Hex>
-    generateClosingTransaction: (params: ClosingParams) => Promise<Hex>
-    generateCetTransaction: (params: CetParams) => Promise<Hex>
-}
 ```
 
 > DLC can also be used to generate oracle's pledge 
@@ -384,45 +323,12 @@ interface BtcApi {
 
 > this would avoid 51% attack on minority - all oralces would have to agree. Majority takes all pledge can also be implemented with DLC.
 
-## Full BTC DLC
+### Full BTC DLC
 
 ```ts
-export interface DlcParams {
-    aliceIn: UTxO[],
-    bobIn: UTxO[],
-    aliceAmountIn: number[],
-    bobAmountIn: number[],
-    oraclePub: PubKey,
-    oraclePub2: PubKey,
-    oraclePub3: PubKey,  
-    outcomes: { [id: Msg]: FundDistribution; }, 
-    rValue: Hex,
-    rValue2?: Hex,
-    rValue3?: Hex,
-    alicePub: PubKey,
-    bobPub: PubKey,
+import {DlcParams, DlcContract, generateDlcContract} from '@dk14/wolfram-mega/btc'
 
-    changeAlice: number,
-    changeBob: number,
-    txfee: number,
-    session?: PublicSession,
-    stateAmount?: number //goes back to multisig, for composite contracts
-}
-
-```
-
-### API
-
-This would generate one-stage DLC contract:
-
-```ts
-
-interface DlcContract {
-    openingTx: Hex
-    cet: Hex[]
-}
-
-generateDlcContract = (params: DlcParams): Promise<DlcContract> => ...
+generateDlcContract(...)
 ```
 
 # Contract Typescript API (Node.js Cardano Helios)
@@ -430,69 +336,16 @@ generateDlcContract = (params: DlcParams): Promise<DlcContract> => ...
 
 `src/client-api/service/index.html`
 
-### Params
-```ts
-type Hex = string
-type CborHex = string
-type Bech32 = string
-type Base64 = string
-
-export interface InputId {
-    txid: Hex,
-    txout: number,
-    amount: number,
-    addr?: Bech32
-} 
-
-interface Redemption {
-    aliceRedemptionAddr: Bech32,
-    aliceBetsOnMsg: Base64
-    bobRedemptionAddr: Bech32
-    bobBetsOnMsg: Base64
-}
-
-export interface OpeningInputs {
-    aliceInput: InputId, 
-    bobInput: InputId,
-    oracleCpPubKey: Base64,
-    oracleCpPubKey2?: Base64,
-    oracleCpPubKey3?: Base64,
-    r: Redemption,
-    changeAddr: Bech32,
-    txfee: number,
-    aliceActualAmount: string,
-    bobActualAmount: string
-}
-
-export interface ClosingInputs {
-    input: InputId,
-    aliceInput: InputId, 
-    bobInput: InputId,
-    aliceCollateralInput: InputId, 
-    bobCollateralInput: InputId,
-    oracleCpPubKey: Base64,
-    oracleCpPubKey2?: Base64,
-    oracleCpPubKey3?: Base64,
-    msg: Base64, 
-    sig: Base64,
-    sig2: Base64,
-    sig3: Base64,
-    r: Redemption,
-    changeAddr: Bech32,
-    txfee: number
-}
-
-```
-
 ### API
 
 ```ts
 generateOpeningTransaction = (network: string, inputs: OpeningInputs): Promise<CborHex> => ...
 generateClosingTransaction = (network: string, inputs: ClosingInputs): Promise<CborHex> => ...
-
 ```
 
 >network is a link to cardano network params
+
+> Cardano network is aweful. We only use Cardano for research purposes.
 
 ------
 
@@ -500,6 +353,12 @@ generateClosingTransaction = (network: string, inputs: ClosingInputs): Promise<C
 Run mocked services together for contract demo purposes:
 ```
 npm run demo
+```
+
+or
+
+```
+npx run mega-demo
 ```
 
 - Peer: http://localhost:8080/peer-monitor/
@@ -520,7 +379,7 @@ Note: client APIs should NOT be exposed to public network! The system should run
 
 ## Binary Option Demo
 
-Trader console (http://localhost:8080/trader-console/) contains demo of Cardano Helios and BTC DLC binary option contracts on TestNet. Helios version signs through webwallet (signing in browser), while BTC version relies on external signing http service (example: `src/client-api/utils/btc-signer.ts`, can be delegated to harware wallet).
+Trader console (`npx mega-demo`, open http://localhost:8080/trader-console/) contains demo of Cardano Helios and BTC DLC binary option contracts on TestNet. Helios version signs through webwallet (signing in browser), while BTC version relies on external signing http service (example: `src/client-api/utils/btc-signer.ts`, can be delegated to harware wallet).
 
 Sample of TestNet BTC transactions created with trader console:
 
@@ -547,7 +406,7 @@ Client:
 
 
 ## Persistence
-`src/client-api/client-storage` provides simple implementation of a database holding collected broadcasts.
+`src/client-api/client-storage` provides simple minimalistic implementation of a database holding collected broadcasts.
 It is only indexed by key. Custom storage implementation can be specified in `app.ts` script for `startOracleService`, `startTraderService`
 
 Note: delete oldest entries in `../../db/reports`, `../../db/capabilities`, `../../db/offers`, `../../db/oracles` in order to manage storage.
