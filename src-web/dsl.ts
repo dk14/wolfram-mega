@@ -88,10 +88,22 @@ export class Dsl {
         }
         this.flag = true
 
-        this.collateral += amount
-        if (this.collateral > this.budgetBound) {
-            throw new Error(`exceeded budget ${this.budgetBound} for outcomes:` + JSON.stringify(this.state))
+        if (idx === 0) {
+            this.collateral1 += amount
+            if (this.collateral1 > this.budgetBound1) {
+                const party = this.selected[0] ?? "Alice"
+                throw new Error(`exceeded budget ${this.budgetBound1} for ${party}, for outcomes:` + JSON.stringify(this.state))
+            }
         }
+
+        if (idx === 1) {
+            this.collateral2 += amount
+            if (this.collateral2 > this.budgetBound2) {
+                const party = this.selected[0] ?? "Alice"
+                throw new Error(`exceeded budget ${this.budgetBound1} for ${party}, for outcomes:` + JSON.stringify(this.state))
+            }
+        }
+       
 
     }
 
@@ -223,8 +235,10 @@ export class Dsl {
     static readonly Alice = 0
     static readonly Bob = 1
 
-    private collateral = 0
-    private budgetBound = 0
+    private collateral1 = 0
+    private collateral2 = 0
+    private budgetBound1 = 0
+    private budgetBound2 = 0
 
     private leafsFiltered = false
 
@@ -832,7 +846,7 @@ export class Dsl {
     }
 
     private multiflag = false
-    public async enumerateWithBoundMulti(collateralBound: number): Promise<[string, string, OfferModel][]> {
+    public async enumerateWithBoundMulti(collateralBounds: [number, number][]): Promise<[string, string, OfferModel][]> {
         this.multiflag = true
         const pairs: [string, string][] = 
             this.multiparty.map(x => this.multiparty.map(y => [x, y] as [string, string]).filter(pair => pair[0] !== pair[1]))
@@ -841,10 +855,13 @@ export class Dsl {
         const ids = new Set()
         const uniquepairs = pairs.filter((id) => !ids.has(JSON.stringify(id)) && ids.add(JSON.stringify(id)))
         const mutex = new Mutex()
-        const res: [string, string, OfferModel][] = await Promise.all(uniquepairs.map(async pair => { 
+        const res: [string, string, OfferModel][] = await Promise.all(uniquepairs.map(async (pair, i) => { 
             return await mutex.runExclusive(async () => {
                 this.selected = pair
-                const subcontract = await this.enumerateWithBound(collateralBound)
+                if (!collateralBounds[i]) {
+                    throw Error("Specify bounds for a pair " + pair + " at index: " + i)
+                }
+                const subcontract = await this.enumerateWithBound(collateralBounds[i][0], collateralBounds[i][1])
                 return [pair[0], pair[1], subcontract]
             })
         }))
@@ -852,7 +869,7 @@ export class Dsl {
         return res
     }
 
-    public async enumerateWithBound(collateralBound: number): Promise<OfferModel> {
+    public async enumerateWithBound(collateralBound1: number, collateralBound2: number): Promise<OfferModel> {
         if (this.multiparty.length > 0 && !this.multiflag){
             throw Error("use `enumerateWithBoundMulti` for multiparty contracts!")
         }
@@ -863,8 +880,10 @@ export class Dsl {
         let next = true
         while (next) {
             try {
-                this.collateral = 0
-                this.budgetBound = collateralBound
+                this.collateral1 = 0
+                this.collateral2 = 0
+                this.budgetBound1 = collateralBound1
+                this.budgetBound2 = collateralBound2
                 this.memoize = []
                 this.checked = []
                 this.counter = 0
@@ -943,7 +962,7 @@ if (require.main === module) {
             } else {
                 dsl.pay(Dsl.Alice, 20)
             }
-        })).multiple("alice", "bob").enumerateWithBoundMulti(400)
+        })).multiple("alice", "bob").enumerateWithBoundMulti([[1000, 20000]])
         console.log(model)
 
         const multi = await (new Dsl (async dsl => {
@@ -964,7 +983,7 @@ if (require.main === module) {
                     account.party("alice").pays("carol").amount(n - 2)
                 })
             }
-        })).multiple("alice", "bob", "carol").enumerateWithBoundMulti(5000)
+        })).multiple("alice", "bob", "carol").enumerateWithBoundMulti([[1000, 2000], [1000, 2000], [1000, 2000]])
         console.log(multi)
 
         const multi2 = await (new Dsl (async dsl => {
@@ -995,7 +1014,7 @@ if (require.main === module) {
                     ]
                 }
             }, [0,0])
-        })).multiple("alice", "bob").enumerateWithBoundMulti(50000)
+        })).multiple("alice", "bob").enumerateWithBoundMulti([[50000, 20000]])
         console.log(multi2)
 
         const assets = await (new Dsl (async dsl => {
@@ -1004,7 +1023,7 @@ if (require.main === module) {
             } else {
                dsl.party("bob", "btc").pays("alice", "usd").amount(10, "btc")
             }
-        })).multiple(Dsl.account("alice", "usd"), Dsl.account("bob", "btc")).enumerateWithBoundMulti(500000000)
+        })).multiple(Dsl.account("alice", "usd"), Dsl.account("bob", "btc")).enumerateWithBoundMulti([[1000000000, 20000]])
         console.log(assets)
 
 
@@ -1015,7 +1034,7 @@ if (require.main === module) {
             }).else(pay => {
                 pay.party("bob", "btc").pays("alice", "usd").amount(10, "btc")
             })
-        })).multiple(Dsl.account("alice", "usd"), Dsl.account("bob", "btc")).enumerateWithBoundMulti(500000000)
+        })).multiple(Dsl.account("alice", "usd"), Dsl.account("bob", "btc")).enumerateWithBoundMulti([[10000000000, 200000]])
         console.log(swap)
 
         console.log("OK!")

@@ -17,7 +17,8 @@ It is typesafe. It provides checks and restrictions that allow traders to elimin
 
 import { Dsl } from '@dk14/wolfram-mega/discreet'
 
-const maxBudget = 300
+const maxBudgetAlice = 300
+const maxBudgetBob = 300
 const b = 30
 const model = await (new Dsl(async dsl => {
     const a = 30 + b
@@ -31,7 +32,7 @@ const model = await (new Dsl(async dsl => {
     } else {
         dsl.pay(Dsl.Alice, 20)
     }
-})).enumerateWithBound(maxBudget)
+})).enumerateWithBound(maxBudgetAlice, maxBudgetBob)
 console.log(model)
 
 ```
@@ -95,7 +96,7 @@ const model = await (new Dsl(async dsl => {
     } else {
         dsl.pay(Dsl.Alice, 20)
     }
-})).enumerateWithBound(maxBudget)
+})).enumerateWithBound(maxBudget1, maxBudget2)
 ```
 
 Use this:
@@ -109,7 +110,7 @@ const model = await (new Dsl(async dsl => {
     } else {
         dsl.pay(Dsl.Alice, 20)
     }
-})).enumerateWithBound(maxBudget)
+})).enumerateWithBound(maxBudget1, maxBudget2)
 ```
 ----
 
@@ -128,7 +129,7 @@ const model = await (new Dsl(async dsl => {
         dsl.pay(Dsl.Alice, 20)
     }
     await database.push("a", a) // cannot!
-})).enumerateWithBound(maxBudget)
+})).enumerateWithBound(maxBudget1, maxBudget2)
 ```
 
 Use this:
@@ -145,7 +146,7 @@ const model = await (new Dsl(async dsl => {
         dsl.pay(Dsl.Alice, 20)
     }
     a_nondeterministic.push(a)
-})).enumerateWithBound(maxBudget)
+})).enumerateWithBound(maxBudget1, maxBudget2)
 
 await database.push("a", a_nondeterministic) //[30, 31]
 ```
@@ -182,7 +183,7 @@ const multi = await (new Dsl (async dsl => {
         dsl.party("carol").pays("alice").amount(40)
         dsl.party("bob").pays("alice").amount(40)
     }
-})).multiple("alice", "bob", "carol").enumerateWithBoundMulti(5000)
+})).multiple("alice", "bob", "carol").enumerateWithBoundMulti(([[1000, 2000], [1000, 2000], [1000, 2000]]))
 ```
 
 #### Ad-hoc parties
@@ -215,8 +216,10 @@ const fundFactory = (accumulatedFund: number, refillFund: number, refillBenefici
             })
         }
     })).multiple(contributors.append(beneficiaries))
-    .enumerateWithBoundMulti(accumulatedFund + refillFund + refillContributorCollateral)
-    //later each can check individual collateralls calculated for new funding iteration
+    .enumerateWithBoundMulti(Array(100).fill(Array(2).fill(accumulatedFund + refillFund + refillContributorCollateral))) 
+    
+    // ^ that is how central banking collaterizes everything, easy to overcollaterize a deal when "collaterals" are double-counted already. Under-over-collaterization.
+    
 }
 
 ```
@@ -250,7 +253,7 @@ const assets = await (new Dsl (async dsl => {
     } else {
         dsl.party("bob", "btc").pays("alice", "usd").amount(10, "btc")
     }
-})).multiple(Dsl.account("alice", "usd"), Dsl.account("bob", "btc")).enumerateWithBoundMulti(500000000)
+})).multiple(Dsl.account("alice", "usd"), Dsl.account("bob", "btc")).enumerateWithBoundMulti([[500000000, 50000000]])
 ```
 > This is NOT atomic swap. Atomic swaps are transactions - not contracts, they execute unconditionally.
 
@@ -264,7 +267,7 @@ const swap = await (new Dsl (async dsl => {
     }).else(pay => {
         pay.party("bob", "btc").pays("alice", "usd").amount(10, "btc")
     })
-})).multiple(Dsl.account("alice", "usd"), Dsl.account("bob", "btc")).enumerateWithBoundMulti(500000000)
+})).multiple(Dsl.account("alice", "usd"), Dsl.account("bob", "btc")).enumerateWithBoundMulti([[500000000, 50000000]])
 ```
 
 Shortcut:
@@ -586,7 +589,7 @@ const multi = await (new Dsl (async dsl => {
             account.party("carol").pays("alice").amount(30)
         })
     }
-})).multiple("alice", "bob", "carol").enumerateWithBoundMulti(5000)
+})).multiple("alice", "bob", "carol").enumerateWithBoundMulti([[200, 100], [200, 100], [200, 100]])
 ```
 
 > Note: All typesafety checks are preserved: `funds.pay(Alice, -100)` gets translated to `funds.pay(Bob, 100)`. Thus paying the same party regardless of outcome would still throw an error.

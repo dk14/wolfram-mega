@@ -78,7 +78,7 @@ import { Dsl } from "../../src-web/dsl";
         } else {
             dsl.pay(Dsl.Alice, 2053)
         }
-    })).enumerateWithBound(140000)
+    })).enumerateWithBound(140000000, 20000000)
 
     await window.matching.broadcastOffer(isComposite ? myCompositeOffer : myCustomOffer)
 
