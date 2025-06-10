@@ -200,7 +200,7 @@ import { Dsl } from '@dk14/wolfram-mega/discreet'
 const fundFactory = (accumulatedFund: number, refillFund: number, refillBeneficiaryCollateral: number, contributors: string[], beneficiaries: string[], lock: string) => {
     // beneficiaries and contributors are required to be unique in Discreet. 
     // Effectively might not be so, unless you match through Mega-P2P-offers with high PoW-threshold on the offer message itself.
-    const multi = await (new Dsl (async dsl => {
+    return await (new Dsl (async dsl => {
         if (dsl.outcome("payout allowed?", ["YES"], ["NO"])) { //beneficiary completed project
             contributors.forEach((contributor, i) => {
                 dsl.party(contributor).pays(beneficiaries[i]).amount(refillFund / contributors.length)
