@@ -169,7 +169,7 @@ Consequently, schedules, every ACTUS instrument can be implemented.
 
 Discreet allows for recursion. `outcome` and `pay` can be in recursive calls as well, but subject to standard Discreet typesafety restrictions: no "perfect hedges".
 
-Every contract has a limit on maximum collateral (`enumerateWithBound(maxBudget)`), thus payout recursion is bounded. Halting problem is semi-solved.
+Every contract has a limit on maximum collateral (`enumerateWithBound(maxBudgetParty, maxBudgetCounterParty)`), thus payout recursion is bounded. Halting problem is semi-solved.
 
 ### Multi-party
 
