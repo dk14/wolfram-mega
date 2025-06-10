@@ -362,7 +362,7 @@ if (dsl.outcome("bob and alice create an atomic swap on date $date", ["yes"], ["
 
 > This contract can also be repurposed as a security deposit for vanilla IRL loan. Just add extra "lending" payout from Bob to Alice (or mafia to Alice). Then future one-sided "swap" would be paying it back (in exchange for erasure of mafia's incentive). Many IRL financial instruments are possible with this approach.
 
-> Note: Third-party oracle can still be bypassed by replacing "bob and alice create an atomic swap on date $date" with mutual bob's and alice's multisig (MAD) and a timelock. Or alternatively for one sided execution - it can be one of the parties revealing "proof of empty wallet", so mafia would lose incentive.
+> Note: Third-party oracle can still be bypassed by replacing "bob and alice create an atomic swap on date $date" with mutual bob's and alice's multisig (MAD) and a timelock. Or alternatively for one sided execution - it can be one of the parties revealing "proof of empty pockets", so mafia would lose incentive.
 
 ### Mutually Assured Destruction (MAD)
 
