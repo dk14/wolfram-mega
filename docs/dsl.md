@@ -181,9 +181,9 @@ const assets = await (new Dsl (async dsl => {
     }
 })).multiple(Dsl.account("alice", "usd"), Dsl.account("bob", "btc")).enumerateWithBoundMulti(500000000)
 ```
-Note: this is not atomic swap. Atomic swaps are transactions - not contracts, they execute unconditionally.
+> This is NOT atomic swap. Atomic swaps are transactions - not contracts, they execute unconditionally.
 
-This one is:
+This one IS:
 
 ```ts
 const swap = await (new Dsl (async dsl => {
@@ -215,7 +215,7 @@ Shortcut:
 #### Payment At Maturity (crypto-loan)
 
 ```ts
-// Opening contract
+// Borrowing contract
 dsl.ifAtomicSwapLeg1("hashlock", "verified").then(pay => {
     pay.party("alice", "usd").pays("bob", "btc").amount(10000000, "usd")
 }).else(pay => {
@@ -235,7 +235,7 @@ dsl.ifAtomicSwapLeg1("hashlock", "verified").then(pay => {
 Then there is a separate "pay loan back" deal:
 
 ```ts
-// Closing contract -- created after bob gets money to pay back
+// Redemption contract -- created AFTER Bob gets money to pay back
 dsl.ifAtomicSwapLeg1("hashlock_parties_keep_agreement", "verified").then(pay => {
    pay.party("alice", "btc").pays("bob", "usd").amount(10, "btc")
 }).else(pay => {
