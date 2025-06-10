@@ -696,7 +696,7 @@ dsl.if("wow?", ["yup"], ["nope"]).then(account => {
 })
 ```
 
-If you sure, you won't accidentally pay in sub-branches (`account` is usually shadowed), use `dsl.unsafe` (has numerics and sets too):
+If you sure, you won't accidentally pay in sub-branches (since `account` is usually shadowed), use `dsl.unsafe`
 
 ```ts
 dsl.unsafe.if("wow?", ["yup"], ["nope"]).then(account => {
@@ -709,3 +709,5 @@ dsl.unsafe.if("wow?", ["yup"], ["nope"]).then(account => {
     account.party("carol").pays("alice").amount(30)
 })
 ```
+
+> `dsl.unsafe` has numerics and sets as well
