@@ -1,9 +1,9 @@
 import { OfferModel } from "./matching";
 type PaymentHandler = {
     pay: (idx: 0 | 1, amount: number) => void;
-    party: (party: string) => ({
-        pays: (counterparty: string) => ({
-            amount: (amount: number) => void;
+    party: (partyName: string, partyAsset?: string) => ({
+        pays: (counterpartyName: string, counterpartyAsset?: string) => ({
+            amount: (amount: number, asset?: string) => void;
         });
     });
     release?: () => void;
@@ -23,7 +23,7 @@ export declare class Dsl {
     private checked;
     outcome(pubkey: string, yes: string[], no: string[], args?: {
         [id: string]: string;
-    }): boolean;
+    }, allowTruth?: boolean, strict?: boolean): boolean;
     private next;
     private body;
     constructor(body: (dsl: Dsl) => Promise<void>);
@@ -41,11 +41,12 @@ export declare class Dsl {
     private isSelected0;
     private isSelected1;
     multiple: (...parties: string[]) => this;
-    party: (party: string) => {
-        pays: (counterparty: string) => {
-            amount: (amount: number) => void;
+    party: (partyName: string, partyAsset?: string) => {
+        pays: (counterpartyName: string, counterpartyAsset?: string) => {
+            amount: (amount: number, asset?: string) => void;
         };
     };
+    static account(partyName: string, partyAsset: string): string;
     private unfinalized;
     numeric: {
         outcome: (pubkey: string, from: number, to: number, step?: number, args?: {
@@ -77,7 +78,12 @@ export declare class Dsl {
     };
     if: (pubkey: string, yes: string[], no: string[], args?: {
         [id: string]: string;
-    }) => {
+    }, allowSwaps?: boolean) => {
+        then: (handler: (handle: PaymentHandler) => void) => {
+            else: (handler: (handle: PaymentHandler) => void) => void;
+        };
+    };
+    ifAtomicSwapLeg1(lock?: string, unlockOutcome?: string): {
         then: (handler: (handle: PaymentHandler) => void) => {
             else: (handler: (handle: PaymentHandler) => void) => void;
         };

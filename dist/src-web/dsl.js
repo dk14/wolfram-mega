@@ -104,10 +104,20 @@ class Dsl {
     counter = 0;
     memoize = [];
     checked = [];
-    outcome(pubkey, yes, no, args = {}) {
+    outcome(pubkey, yes, no, args = {}, allowTruth = false, strict = true) {
         yes.sort();
         no.sort();
         this.counter++;
+        if (JSON.stringify(yes) === JSON.stringify(no) && !allowTruth) {
+            throw Error("Contradiction! Outcomes are not mutually exclusive!");
+        }
+        const yesSet = new Set(yes);
+        const noSet = new Set(no);
+        if (yes.find(x => noSet.has(x)) || no.find(x => yesSet.has(x))) {
+            if (strict) {
+                throw Error("Partial contradiction! Some outcomes are not mutually exclusive!");
+            }
+        }
         if (!this.protect) {
             throw "should not call outside of body; use `new Dsl((dsl) => handler).enumerate()`";
         }
@@ -213,9 +223,14 @@ class Dsl {
         this.multiparty = parties;
         return this;
     };
-    party = (party) => ({
-        pays: (counterparty) => ({
-            amount: (amount) => {
+    party = (partyName, partyAsset) => ({
+        pays: (counterpartyName, counterpartyAsset) => ({
+            amount: (amount, asset) => {
+                const party = partyName + (partyAsset ? "_" + partyAsset : "");
+                const counterparty = counterpartyName + (counterpartyAsset ? "_" + counterpartyAsset : "");
+                if (partyAsset !== asset) {
+                    throw Error(`Trying to pay ${asset} from collateral denominated in ${partyAsset}`);
+                }
                 if (!this.multiparty.find(x => x === party)) {
                     throw Error("party " + party + " not registered! Use .multiple to register parties");
                 }
@@ -231,6 +246,9 @@ class Dsl {
             }
         })
     });
+    static account(partyName, partyAsset) {
+        return partyName + "_" + partyAsset;
+    }
     unfinalized = 0;
     numeric = {
         outcome: (pubkey, from, to, step = 1, args = {}) => ({
@@ -600,8 +618,14 @@ class Dsl {
             }
         })
     };
-    if = (pubkey, yes, no, args = {}) => {
-        const observation = this.outcome(pubkey, yes, no, args);
+    if = (pubkey, yes, no, args = {}, allowSwaps = false) => {
+        let contradiction = false;
+        const yesSet = new Set(yes);
+        const noSet = new Set(no);
+        if (yes.find(x => noSet.has(x)) || no.find(x => yesSet.has(x))) {
+            contradiction = true;
+        }
+        const observation = this.outcome(pubkey, yes, no, args, allowSwaps, !allowSwaps);
         return {
             then: (handler) => {
                 let party = undefined;
@@ -621,9 +645,14 @@ class Dsl {
                             }
                         }
                     },
-                    party: (party) => ({
-                        pays: (counterparty) => ({
-                            amount: (amount) => {
+                    party: (partyName, partyAsset) => ({
+                        pays: (counterpartyName, counterpartyAsset) => ({
+                            amount: (amount, asset) => {
+                                const party = partyName + (partyAsset ? "_" + partyAsset : "");
+                                const counterparty = counterpartyName + (counterpartyAsset ? "_" + counterpartyAsset : "");
+                                if (partyAsset !== asset) {
+                                    throw Error(`Trying to pay ${asset} from collateral denominated in ${partyAsset}`);
+                                }
                                 if (!this.multiparty.find(x => x === party)) {
                                     throw Error("party " + party + " not registered! Use .multiple to register parties");
                                 }
@@ -635,6 +664,12 @@ class Dsl {
                                 }
                                 else if (this.isSelected0(counterparty) && this.isSelected1(party)) {
                                     funds.pay(1, amount);
+                                }
+                                if (sum < 0 && partyAsset !== counterpartyAsset) {
+                                    throw new Error(`Semantics: ${partyName} cannot pay negative amount of ${partyAsset} units. It is only allowed if assets are of the same type.`);
+                                }
+                                if (contradiction && partyAsset === counterpartyAsset) {
+                                    throw Error("Contradiction! Outcomes are not mutually exclusive! Cannot allow swaps in same currency!");
                                 }
                             }
                         })
@@ -741,6 +776,9 @@ class Dsl {
             }
         };
     };
+    ifAtomicSwapLeg1(lock = "TRUTH", unlockOutcome = "true") {
+        return this.if(lock, [unlockOutcome], [unlockOutcome], {}, true);
+    }
     multiflag = false;
     async enumerateWithBoundMulti(collateralBound) {
         this.multiflag = true;
@@ -899,6 +937,23 @@ if (require.main === module) {
             }, [0, 0]);
         })).multiple("alice", "bob").enumerateWithBoundMulti(50000);
         console.log(multi2);
+        const assets = await (new Dsl(async (dsl) => {
+            if (dsl.outcome("really?", ["YES"], ["NO"])) {
+                dsl.party("alice", "usd").pays("bob", "btc").amount(10000000, "usd");
+            }
+            else {
+                dsl.party("bob", "btc").pays("alice", "usd").amount(10, "btc");
+            }
+        })).multiple(Dsl.account("alice", "usd"), Dsl.account("bob", "btc")).enumerateWithBoundMulti(500000000);
+        console.log(assets);
+        const swap = await (new Dsl(async (dsl) => {
+            dsl.ifAtomicSwapLeg1("lock1", "allowed").then(pay => {
+                pay.party("alice", "usd").pays("bob", "btc").amount(10000000, "usd");
+            }).else(pay => {
+                pay.party("bob", "btc").pays("alice", "usd").amount(10, "btc");
+            });
+        })).multiple(Dsl.account("alice", "usd"), Dsl.account("bob", "btc")).enumerateWithBoundMulti(500000000);
+        console.log(swap);
         console.log("OK!");
     })();
 }
