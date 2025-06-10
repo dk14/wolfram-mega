@@ -68,7 +68,7 @@ Output:
 }
 ```
 
-The output of Dicreet's streamed transpiler (`OfferModel`) allows for evaluations of collaterals. 
+The output of Discreet's streamed transpiler (`OfferModel`) allows for evaluations of collaterals. 
 
 > Matching has `evaluatePartyCollateral`, `evaluateCounterPartyCollateral` functions for introspection. Broadcasting `OfferModel` would automatically evaluate those.
 
