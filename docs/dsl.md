@@ -6,7 +6,7 @@ Discreet eDSL is a fiancial contract language compatible with Mega offers, match
 ```
 Discreet Typescript Code 
 -> OfferModel 
--> OffetTerms 
+-> OfferTerms 
 -> Matching 
 -> Tracking 
 -> Blockchain Interpreter (Bitcoin or custom chain)
