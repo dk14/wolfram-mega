@@ -488,9 +488,9 @@ for (let party of participants) {
 const [winner, bid] = Object.entries(round).maxBy([party, bid] => bid)
 
 dsl.ifAtomicSwapLeg1().then(pay => {
-   pay.party(winner).pays("auction", "tkn").amount(bid)
+   pay.party(winner).pays("auction", "asset").amount(bid)
 }).else(pay => {
-   pay.party("auction", "tkn").pays(winner).amount(1, "tkn")
+   pay.party("auction", "asset").pays(winner).amount(1, "asset")
 })
 
 //collateral is 1000 per participant
@@ -499,7 +499,7 @@ dsl.ifAtomicSwapLeg1().then(pay => {
 
 This can be improved closer to IRL by:
 - allowing participants to commit collaterals only at the time of the bid
-- adding oracle and mafia instead of tokens, to make sure actual goods delivered
+- adding oracle and mafia instead of digital assets, to make sure actual goods delivered
 
 ```ts
 const receivePaymentPubKey = "<pub>"
