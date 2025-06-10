@@ -312,12 +312,12 @@ dsl.ifAtomicSwapLeg1("hashlock", "verified").then(pay => {
         dsl.if("timelock", ["yes"], ["no"]).then(pay => { //don't even think about hashlocks on bob_usd here :) the point of loan is liquidity
             pay.party("bob", "usd").pays("alice", "usd").amount(300, "usd") //this is collateral for interest
             dsl.if("<alice_repayment_wallet_adaptor_pubkey>", ["true"], ["false"], {}).then(pay => {
-                //alice reveals private key for an empty repayment wallet in order to sign this CET, 
-                // since bob did not pay to that wallet, the key is worthless, but she gets his deposit
-                //alice gets deposit
+                // alice reveals private key for an empty repayment wallet in order to sign this CET, 
+                // since bob did not pay to that wallet, the key is worthless
+                // but alice gets deposit
                 pay.party("bob", "btc").pays("alice", "usd").amount(10, "btc")
-                //note ANYPREVOUT can be used instead for convinience (if BTC adopts it)
-                //without ANYPREVOUT, 
+                // note ANYPREVOUT can be used instead for convinience (if BTC adopts it)
+                // without ANYPREVOUT, 
                 // if Bob is accidentally late to pay - Alice might reveal wallet with his repayment for anyone to take.
             }).else(pay => {
                 //alice does not reveal pk for special wallet, since Bob sent money there
