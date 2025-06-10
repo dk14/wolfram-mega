@@ -314,7 +314,7 @@ dsl.ifAtomicSwapLeg1("hashlock", "verified").then(pay => {
             dsl.if("<alice_repayment_wallet_adaptor_pubkey_schnorr>", ["true"], ["false"], {}).then(pay => {
                 // alice reveals private key for an empty repayment wallet in order to sign this CET, 
                 // since bob did not pay to that wallet, the key is worthless
-                // but alice gets deposit
+                // but alice gets deposit with this "empty pockets proof"
                 // ^ this plays a role of payment oracle without third-party
                 pay.party("bob", "btc").pays("alice", "usd").amount(10, "btc")
                 // note ANYPREVOUT can be used instead for convinience (if BTC adopts it)
@@ -326,6 +326,8 @@ dsl.ifAtomicSwapLeg1("hashlock", "verified").then(pay => {
             })
 })
 ```
+
+This loan is also asymmetric "physically-settled" vanilla option - Bob buys an option to swap his deposit for usd.
 
 #### Vanilla Future Contract
 Vanilla futures are impossible on blockchain. Such contracts are not automatable, since either of the party might not have funds in the future, thus no way to collaterize in advance.
@@ -358,7 +360,9 @@ if (dsl.outcome("bob and alice create an atomic swap on date $date", ["yes"], ["
 
 > Note: since mafia is interested party and both alice and bob are involved with it - oracles could in theory be bypassed: mafia incentive would be "simply" included into atomic swap. In practice - both Bob and Alice need assurance that mafia is doing its job, thus mafia deposit and oracle keeping track of mafia are required. Mafia is trustless in this setup.
 
-> Third-party oracle can still be bypassed by replacing "bob and alice create an atomic swap on date $date" with mutual bob's and alice's multisig (MAD) and a timelock.
+> This contract can also be repurposed as a security deposit for vanilla IRL loan. Just add extra "lending" payout from Bob to Alice (or mafia to Alice). Then future one-sided "swap" would be paying it back (in exchange for erasure of mafia's incentive). Many IRL financial instruments are possible with this approach.
+
+> Note: Third-party oracle can still be bypassed by replacing "bob and alice create an atomic swap on date $date" with mutual bob's and alice's multisig (MAD) and a timelock. Or alternatively for one sided execution - it can be one of the parties revealing "proof of empty wallet" to the mafia.
 
 ### Mutually Assured Destruction (MAD)
 
