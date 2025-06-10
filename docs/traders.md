@@ -332,8 +332,8 @@ const commitment = await (await fetch(endpoint + '/requestCommitment', {
 //verify signature...
 ```
 
-### Get fact
-> Trader does NOT have to poll oracle for the facts. They only needed **once, in order to unlock transaction**. Trader can either check time periodically (if contract depends on date) or check market conditions from on-line data-feeds. NO need to pull data-feeds from Mega-p2p network - there are better and more specialized solutions for that (e.g. Yahoo Finance, Wolfram Alpha).
+### Get attestation
+> Trader does NOT have to poll oracle for attestations of facts. They only needed **once, in order to unlock transaction**. Trader can either check time periodically (if contract depends on date) or check market conditions from on-line data-feeds. NO need to pull data-feeds from Mega-p2p network - there are better and more specialized solutions for that (e.g. Yahoo Finance, Wolfram Alpha).
 
 > If oracle did not provide fact by a deadline it commited to - trader can publish `missing-fact` report. Oracle can dispute it by pushing fact into the Mega-P2P pool (trader's report will get amended with provided fact, thus the report can be excluded from oracle reputation).
 ```ts
