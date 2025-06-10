@@ -165,6 +165,10 @@ class Dsl {
                 return false;
             }
             entry = Object.values(this.state).find(x => x[0] === i);
+            if (!this.checked[i] && !cursor) {
+                i++;
+                continue;
+            }
             if (entry[1] === true) {
                 if (cursor === true) {
                     entry[1] = false;
