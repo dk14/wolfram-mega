@@ -108,7 +108,6 @@ Instead of this:
 ```ts
 var a = 30
 const model = await (new Dsl(async dsl => {
-
     if (dsl.outcome("really?", ["YES"], ["NO"])) {
         a++
         dsl.pay(Dsl.Bob, a + 100) 
