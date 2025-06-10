@@ -318,7 +318,7 @@ dsl.ifAtomicSwapLeg1("hashlock", "verified").then(pay => {
                 pay.party("bob", "btc").pays("alice", "usd").amount(10, "btc")
                 // note ANYPREVOUT can be used instead for convinience (if BTC adopts it)
                 // without ANYPREVOUT, 
-                // if Bob is accidentally late to pay - Alice might reveal wallet with his repayment for anyone to take. She still gets his deposit though.
+                // if Bob is accidentally pys after deadline - Alice might reveal wallet with his repayment for anyone to take. She still gets his deposit though.
                 // Thus such contracts always have a deadline to repay (timelock above)
             }).else(pay => {
                 // alice does not reveal pk for special wallet, since Bob sent money there
