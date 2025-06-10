@@ -485,7 +485,7 @@ for (let party of participants) {
     round[party] = bid
 }
 
-const [winner, [bid, pay]] = Object.entries(round).maxBy([party, [bid, pay]] => bid)
+const [winner, bid] = Object.entries(round).maxBy([party, bid] => bid)
 
 dsl.ifAtomicSwapLeg1().then(pay => {
    pay.party(winner).pays("auction", "tkn").amount(bid)
