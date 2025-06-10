@@ -19,7 +19,7 @@ Discreet outputs `OfferModel`, which matching engine turns into `OfferTerms`. Th
 
 Discreet is based on modern quantitative finance and renders to a tree of binary options, thus allowing expression of **arbitrary financial contracts**.
 
-Discreet is typesafe. It provides checks and restrictions that allow traders to eliminate known types of redundancies in contracts ("perfect hedges"), thus maximising trading liquidity - you only collaterize what's necceessary.
+Discreet is typesafe. It provides checks and restrictions allowing traders to eliminate known types of redundancies in contracts ("perfect hedges"), thus maximising trading liquidity - you only collaterize what's necceessary.
 
 
 ## Example
