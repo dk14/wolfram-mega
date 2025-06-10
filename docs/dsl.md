@@ -312,7 +312,7 @@ dsl.ifAtomicSwapLeg1("hashlock", "verified").then(pay => {
         dsl.if("timelock", ["yes"], ["no"]).then(pay => { //don't even think about hashlocks on bob_usd here :) the point of loan is liquidity
             pay.party("bob", "usd").pays("alice", "usd").amount(300, "usd") //this is collateral for interest
             dsl.if("<alice_repayment_wallet_adaptor_pubkey_schnorr>", ["true"], ["false"], {}).then(pay => {
-                // alice reveals private key for an empty repayment wallet in order to sign this CET, 
+                // alice cryptomagically reveals private key for an empty repayment wallet in order to sign this CET, 
                 // since bob did not pay to that wallet, the key is worthless
                 // but alice gets Bob's deposit with this "empty pockets proof"
                 // nuance: Alice can only withdraw funds from repayment wallet after grace period deadline2 below 
