@@ -134,8 +134,8 @@ class Dsl {
         const pubkeyUnique = pubkey + "-###-" + this.counter;
         if (this.state[pubkeyUnique] === undefined) {
             const max = Object.values(this.state).length === 0 ? -1 : Math.max(...Object.values(this.state).map(x => x[0]));
-            this.state[pubkeyUnique] = [max + 1, false];
-            this.checked[this.state[pubkeyUnique][0]] = true;
+            this.state[pubkeyUnique] = [max + 1, null];
+            //this.checked[this.state[pubkeyUnique][0]] = true
             throw "uninitialized";
         }
         else {
@@ -165,6 +165,10 @@ class Dsl {
                 return false;
             }
             entry = Object.values(this.state).find(x => x[0] === i);
+            if (entry[1] === null && cursor) {
+                entry[1] = false;
+                return true;
+            }
             if (!this.checked[i] && !cursor) {
                 i++;
                 continue;
@@ -667,6 +671,8 @@ class Dsl {
         }
         const observation = this.outcome(pubkey, yes, no, args, allowSwaps, !allowSwaps);
         const currentNode = this.cursor;
+        const currentPrevNode = this.prev;
+        const currentLastOutcome = this.lastOutcome;
         return {
             then: (handler) => {
                 let party = undefined;
@@ -723,9 +729,14 @@ class Dsl {
                             throw Error("Trying to release nondeterministically! You tried to release using outer account context: use the closest `if(...).then/else(account => ...)` please! This also happens if you release after checking unrelated observations: release before next `outcome; use `allowMisplacedPay` in `dsl.if` to disable this check`");
                         }
                         const saveCursor = this.cursor;
+                        const savePrev = this.prev;
+                        const saveFlag = this.flag;
+                        const saveLastOutcome = this.lastOutcome;
                         if (allowMisplacedPay) {
                             this.cursor = currentNode;
+                            this.prev = currentPrevNode;
                             this.flag = false;
+                            this.lastOutcome = currentLastOutcome;
                         }
                         this.unfinalized--;
                         funds.party = undefined;
@@ -739,15 +750,23 @@ class Dsl {
                             }
                         }
                         this.cursor = saveCursor;
+                        this.prev = savePrev;
+                        this.flag = saveFlag;
+                        this.lastOutcome = saveLastOutcome;
                     }
                 };
                 const finalizeUnsafeInternal = () => {
                     if (observation) {
                         handler(funds);
                         const saveCursor = this.cursor;
+                        const savePrev = this.prev;
+                        const saveFlag = this.flag;
+                        const saveLastOutcome = this.lastOutcome;
                         if (allowMisplacedPay) {
                             this.cursor = currentNode;
+                            this.prev = currentPrevNode;
                             this.flag = false;
+                            this.lastOutcome = currentLastOutcome;
                         }
                         if (party !== undefined && sum !== 0) {
                             if (sum > 0) {
@@ -758,6 +777,9 @@ class Dsl {
                             }
                         }
                         this.cursor = saveCursor;
+                        this.prev = savePrev;
+                        this.flag = saveFlag;
+                        this.lastOutcome = saveLastOutcome;
                     }
                 };
                 finalizeUnsafeInternal();
@@ -820,9 +842,14 @@ class Dsl {
                                     throw Error("Possibly trying to release nondeterministically! You tried to release using outer account context: use the closest `if(...).then/else(account => ...)` please! This also happens if you release after checking unrelated observations: release before next `outcome`; use `allowMisplacedPay` in `dsl.if` to disable this check");
                                 }
                                 const saveCursor = this.cursor;
+                                const savePrev = this.prev;
+                                const saveFlag = this.flag;
+                                const saveLastOutcome = this.lastOutcome;
                                 if (allowMisplacedPay) {
                                     this.cursor = currentNode;
+                                    this.prev = currentPrevNode;
                                     this.flag = false;
+                                    this.lastOutcome = currentLastOutcome;
                                 }
                                 this.unfinalized--;
                                 funds.party = undefined;
@@ -836,15 +863,23 @@ class Dsl {
                                     }
                                 }
                                 this.cursor = saveCursor;
+                                this.prev = savePrev;
+                                this.flag = saveFlag;
+                                this.lastOutcome = saveLastOutcome;
                             }
                         };
                         const finalizeUnsafeInternal2 = () => {
                             if (!observation) {
                                 handler(funds);
                                 const saveCursor = this.cursor;
+                                const savePrev = this.prev;
+                                const saveFlag = this.flag;
+                                const saveLastOutcome = this.lastOutcome;
                                 if (allowMisplacedPay) {
                                     this.cursor = currentNode;
+                                    this.prev = currentPrevNode;
                                     this.flag = false;
+                                    this.lastOutcome = currentLastOutcome;
                                 }
                                 if (counterparty !== undefined && sum !== 0) {
                                     if (sum > 0) {
@@ -855,6 +890,9 @@ class Dsl {
                                     }
                                 }
                                 this.cursor = saveCursor;
+                                this.prev = savePrev;
+                                this.flag = saveFlag;
+                                this.lastOutcome = saveLastOutcome;
                             }
                         };
                         finalizeUnsafeInternal2();
@@ -1041,7 +1079,7 @@ if (require.main === module) {
         const swap = await (new Dsl(async (dsl) => {
             dsl.unsafe.ifAtomicSwapLeg1("lock1", "allowed").then(pay => {
                 dsl.unsafe.ifAtomicSwapLeg1("lock12", "allowed").then(pay => {
-                    pay.party("alice", "usd").pays("bob", "btc").amount(10000000, "usd");
+                    pay.party("bob", "btc").pays("alice", "usd").amount(10, "btc");
                 }).else(() => { });
                 pay.party("alice", "usd").pays("bob", "btc").amount(10000000, "usd");
             }).else(pay => {
