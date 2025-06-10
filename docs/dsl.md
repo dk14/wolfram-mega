@@ -712,4 +712,4 @@ dsl.unsafe.if("wow?", ["yup"], ["nope"]).then(account => {
 
 > `dsl.unsafe` has numerics and sets as well
 
-> Theoretically, typescript to typescript transpiler (or a macro) can force shadowing (and hide `accounts => `), thus making `dsl.unsafe` calls safe. It can also rewrite `dsl.if` to typescript's `if`.
+> Theoretically, typescript to typescript transpiler (or a tricky macro) can force shadowing (and hide `accounts => `), thus making `dsl.unsafe` calls safe. It can also rewrite `dsl.if` to typescript's `if`.
