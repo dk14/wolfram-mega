@@ -76,6 +76,14 @@ The output of Dicreet's "streamed" transpiler (`OfferModel`) allows for evaluati
 
 > **Computational finance. If computer cannot enumerate portfolio - human won't be able to do it for sure**. Pricing must be done over definite outcomes. Even blurry pricing (dream-pricing) is definite pricing done on GPU (with parallelization), it is still strongly-typed. Forecasters like Random-walk, ARIMA etc hide types from you, causing confusion over what is actually priced. They also don't account for present - they infer "types" (what outcome can be) from a sample of badly collected historical data, never asking trader what the trader (human) actually knows about **present** environment. Feeding the past into the future until future becomes the past and so on, it's a perpetual motion attempt.
 
+## Guarantees
+- money preservation: all outputs of transaction equal sum of all inputs
+    - judgemental gurantee by design - Mega `OfferTerms` does not require money inputs to be specified - they are calculated automatically.
+    - `OfferTerms` has `partyCompositeCollateralAmount`, `counterpartyCompositeCollateralAmount` fields that allow to auto-refund if collateral remained in a leaf. Fully tractable spending.
+- finite and predictable execution time. 
+    - > Longest chain of `dsl.outcome` is the worst-case amount of transactions necessary
+
+
 ## Language
 
 There are only two constructs:
@@ -541,7 +549,7 @@ dsl.if(receivePaymentPubKeyAdapted, ["true"], ["false"], {}).then(accounts => {
 > If there is no trusted oracle to check delivery - then MAD on the receiving wallet of the auction (distinct wallet per participant) plus MAD security deposit from auction.
 
 
-### Algorithmic Trading
+## Algorithmic Trading
 
 #### Past 
 DSL additionally allows for querying extra non-oracle data-sources for past data, e.g. price history. 
@@ -558,14 +566,6 @@ DSL enumerates all possible outcomes, thus removing the need for random walk.
 > if your strategy explodes numerically, the only thing you can do is to specify types properly, ranges of outcomes you can yourself interpret as human and time periods you would be able to foresee yourself. 
 
 > no one else will do it for you: human trader is a real oracle - "oracles" in contract are just attestants. Forecast like a boss.
-
-
-## Guarantees
-- money preservation: all outputs of transaction equal sum of all inputs
-    - judgemental gurantee by design - Mega `OfferTerms` does not require money inputs to be specified - they are calculated automatically.
-    - `OfferTerms` has `partyCompositeCollateralAmount`, `counterpartyCompositeCollateralAmount` fields that allow to auto-refund if collateral remained in a leaf. Fully tractable spending.
-- finite and predictable execution time. 
-    - > Longest chain of `dsl.outcome` is the worst-case amount of transactions necessary
 
 ## Technical Notes
 
