@@ -120,7 +120,6 @@ Consequently, services queryed in dsl-context must be idempotent (e.g. stateless
 
 Instead of this:
 ```ts
-
 const model = await (new Dsl(async dsl => {
     var a = 30 
     const b = await database.get("b")
