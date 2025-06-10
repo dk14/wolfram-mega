@@ -833,7 +833,6 @@ export class Dsl {
                                 }
                             }
                         }
-                        const breakoutUnsafeInternal2 = !observation ? funds : undefined
                         const finalizeUnsafeInternal2 = () => {
                             if (!observation) {
                                 handler(funds)
