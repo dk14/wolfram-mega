@@ -638,6 +638,7 @@ class Dsl {
             contradiction = true;
         }
         const observation = this.outcome(pubkey, yes, no, args, allowSwaps, !allowSwaps);
+        const currentNode = this.cursor;
         return {
             then: (handler) => {
                 let party = undefined;
@@ -662,6 +663,9 @@ class Dsl {
                             amount: (amount, asset) => {
                                 const party = partyName + (partyAsset ? "_" + partyAsset : "");
                                 const counterparty = counterpartyName + (counterpartyAsset ? "_" + counterpartyAsset : "");
+                                if (currentNode !== this.cursor) {
+                                    throw Error("Trying to pay nondeterministically! You tried to use outer account context to pay: use the closest `if(...).then/else(account => ...)` please!");
+                                }
                                 if (partyAsset !== asset) {
                                     throw Error(`Trying to pay ${asset} from collateral denominated in ${partyAsset}`);
                                 }
