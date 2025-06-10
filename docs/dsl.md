@@ -206,11 +206,11 @@ Shortcut:
 })
 ```
 
-> DSL allows obvious contradiction as a hack in cross-currency, if you specify `allowSwaps`. Otherwise contradictions are checked. Discreet also verifies wether it is actually cross-currency. Swaps usd for usd won't work. 
+> DSL allows obvious contradiction as a hack in cross-currency, if you specify `allowSwaps`. Otherwise contradictions are checked. Discreet also verifies wether it is actually cross-currency. Swaps usd for usd won't work even if `allowSwaps` is enabled.
 
-> Interpreter must understand your swap-lock conditions: it could be oracle allowing swap (PTLC-lock in BTC), or as in case with crypto-loans, it could be hash-lock conditon.
+> Interpreter must understand your swap-lock conditions: it could be oracle allowing swap ("PTLC-lock" in BTC), or as in case with crypto-loans, it could be hash-lock conditon for signing atomicity, or just "true" if `OfferTerms` interpreter can optimize it (see Contracts doc).
 
-> Party role reversal (negative amounts) won't work for cross-currency. There is semantical check.
+> Party role reversal (negative amounts) won't work for cross-currency. There is a semantical check: "minus 5 dollar does not imply plus 5 btc".
 
 #### Payment At Maturity (crypto-loan)
 
@@ -283,7 +283,7 @@ if (observation("bob and alice create an atomic swap on date $date", ["yes"], ["
 
 ### Mutually Assured Destruction (MAD)
 
-Alice and Bob - can be mafia themselves. MAD-contract ("mutually asssured destruction") can simply reward them back their "secure future" deposits as a reward for fulfilling commitment to a mutual agreement.
+Alice and Bob - can be each other's mafia themselves. MAD-contract ("mutually asssured destruction") can simply reward them back their "secure future" deposits as a reward for fulfilling commitment to a mutual agreement.
 
 ```ts
 if (observation("siglock_alice && siglock_bob && timelock $date", ["yes"], ["no"], {date: "next month"}) {
