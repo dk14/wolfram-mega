@@ -170,6 +170,82 @@ account.party("bob_btc").pays("alice_usd").amount(10) //10 btc
 
 ```
 
+There is a syntax sugar to ensure proper currency. 
+
+```ts
+const assets = await (new Dsl (async dsl => {
+    if (dsl.outcome("ready? go?", ["YES"], ["NO"])) {
+        dsl.party("alice", "usd").pays("bob", "btc").amount(10000000, "usd")
+    } else {
+        dsl.party("bob", "btc").pays("alice", "usd").amount(10, "btc")
+    }
+})).multiple(Dsl.account("alice", "usd"), Dsl.account("bob", "btc")).enumerateWithBoundMulti(500000000)
+```
+Note: this is not atomic swap. Atomic swaps are transactions - not contracts, they execute unconditionally.
+
+This one is:
+
+```ts
+const swap = await (new Dsl (async dsl => {
+    const allowSwaps = true
+    dsl.if("TRUTH", ["true"], ["true"], {}, allowSwaps).then(pay => {
+        pay.party("alice", "usd").pays("bob", "btc").amount(10000000, "usd")
+    }).else(pay => {
+        pay.party("bob", "btc").pays("alice", "usd").amount(10, "btc")
+    })
+})).multiple(Dsl.account("alice", "usd"), Dsl.account("bob", "btc")).enumerateWithBoundMulti(500000000)
+```
+
+Shortcut:
+
+```ts
+ dsl.ifAtomicSwapLeg1("lock1", "allowed").then(pay => {
+    pay.party("alice", "usd").pays("bob", "btc").amount(10000000, "usd")
+}).else(pay => {
+    pay.party("bob", "btc").pays("alice", "usd").amount(10, "btc")
+})
+```
+
+> DSL allows obvious contradiction as a hack in cross-currency, if you specify `allowSwaps`. Otherwise contradictions are checked. Discreet also verifies wether it is actually cross-currency. Swaps usd for usd won't work. 
+
+> Interpreter must understand your swap-lock conditions: it could be oracle allowing swap (PTLC-lock in BTC), or as in case with crypto-loans, it could be hash-lock conditon.
+
+> Party role reversal (negative amounts) won't work for cross-currency. There is semantical check.
+
+#### Payment At Maturity (crypto-loan)
+
+```ts
+// Opening contract
+dsl.ifAtomicSwapLeg1("hashlock", "verified").then(pay => {
+    pay.party("alice", "usd").pays("bob", "btc").amount(10000000, "usd")
+}).else(pay => {
+    dsl.if("liquidation?", ["yes"], ["no"]).then(pay => { //price oracle
+        pay.party("bob", "btc").pays("alice", "usd").amount(10, "btc")
+    }).else(_ => {
+        dsl.if("timelock", ["yes"], ["no"]).then(pay => { //don't even think about hashlocks on bob_usd here :) the point of loan is liquidity
+            pay.party("bob", "btc").pays("alice", "usd").amount(10, "btc")
+            pay.party("bob", "usd").pays("alice", "usd").amount(300, "usd") //this is collateral for interest
+        })
+    })
+})
+```
+
+> Since blockchain cannot gurantee receiving payments after deal is settled - Bob simply might not have funds in the future, alice takes deposit unconditionally.
+
+Then there is a separate "pay loan back deal":
+
+```ts
+// Closing contract -- created after bob gets money to pay back
+dsl.ifAtomicSwapLeg1("hashlock_parties_keep_agreement", "verified").then(pay => {
+   pay.party("alice", "btc").pays("bob", "usd").amount(10, "btc")
+}).else(pay => {
+   pay.party("bob", "usd").pays("alice", "usd").amount(10000000, "usd")
+})
+```
+> This is the only loan design that is possible on blockchain. Everything else is a under-collaterized fiction.
+> One might think that `hashlock_parties_keep_agreement` can be guaranteed. No it isn't - both parties would have to submit collaterals before "Opening contract" then. This would ruin liquidity: Bob would lock BTC and USD at the same time for no reason.
+> IRL loans.
+
 ### Numeric observations
 
 Outcomes are binary in Discreet, so interest rate drivers and such have to be enumerated and adapted. We recommend to quantize derivatives manually - to give meaning to numbers (see sets). 

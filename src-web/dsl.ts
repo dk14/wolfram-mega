@@ -12,9 +12,9 @@ type CacheEntry  = {
 
 type PaymentHandler = {
     pay: (idx: 0 | 1, amount: number) => void
-    party: (party: string) => ({
-        pays: (counterparty: string) => ({
-            amount: (amount: number) => void
+    party: (partyName: string, partyAsset?: string) => ({
+        pays: (counterpartyName: string, counterpartyAsset?: string) => ({
+            amount: (amount: number, asset?: string) => void
         })
     })
     release?: () => void
@@ -137,10 +137,22 @@ export class Dsl {
 
     private checked = []
 
-    public outcome(pubkey: string, yes: string[], no: string[], args: {[id: string]: string} = {}): boolean {
+    public outcome(pubkey: string, yes: string[], no: string[], args: {[id: string]: string} = {}, allowTruth = false, strict = true): boolean {
         yes.sort()
         no.sort()
         this.counter++
+
+        if (JSON.stringify(yes) === JSON.stringify(no) && !allowTruth) {
+            throw Error("Contradiction! Outcomes are not mutually exclusive!")
+        }
+
+        const yesSet = new Set(yes)
+        const noSet = new Set(no)
+        if (yes.find(x => noSet.has(x)) || no.find(x => yesSet.has(x))) {
+            if (strict) {
+                throw Error("Partial contradiction! Some outcomes are not mutually exclusive!")
+            }
+        }
 
         if (!this.protect) {
             throw "should not call outside of body; use `new Dsl((dsl) => handler).enumerate()`"
@@ -267,9 +279,15 @@ export class Dsl {
         return this
     }
 
-    public party = (party: string) => ({
-        pays: (counterparty: string) => ({
-            amount: (amount: number) => {
+    public party = (partyName: string, partyAsset?: string) => ({
+        pays: (counterpartyName: string, counterpartyAsset?: string) => ({
+            amount: (amount: number, asset?: string) => {
+                const party = partyName + (partyAsset ? "_" + partyAsset : "")
+                const counterparty = counterpartyName + (counterpartyAsset ? "_" + counterpartyAsset : "")
+                if  (partyAsset !== asset) {
+                    throw Error(`Trying to pay ${asset} from collateral denominated in ${partyAsset}`)
+                }
+
                 if (!this.multiparty.find(x => x === party)){
                     throw Error("party " + party + " not registered! Use .multiple to register parties")
                 }
@@ -284,6 +302,10 @@ export class Dsl {
             }   
         }) 
     })
+
+    public static account(partyName: string, partyAsset: string) {
+        return partyName + "_" + partyAsset
+    }
 
     private unfinalized = 0
 
@@ -654,8 +676,14 @@ export class Dsl {
         })
     }
 
-    public if = (pubkey: string, yes: string[], no: string[], args: {[id: string]: string} = {}) => {
-        const observation = this.outcome(pubkey, yes, no, args)
+    public if = (pubkey: string, yes: string[], no: string[], args: {[id: string]: string} = {}, allowSwaps: boolean = false) => {
+        let contradiction = false
+        const yesSet = new Set(yes)
+        const noSet = new Set(no)
+        if (yes.find(x => noSet.has(x)) || no.find(x => yesSet.has(x))) {
+            contradiction = true
+        }
+        const observation = this.outcome(pubkey, yes, no, args, allowSwaps, !allowSwaps)
         return {
             then: (handler: (handle: PaymentHandler) => void) => {
                 let party: 0 | 1 = undefined
@@ -673,9 +701,14 @@ export class Dsl {
                             }  
                         }
                     },
-                    party: (party: string) => ({
-                        pays: (counterparty: string) => ({
-                            amount: (amount: number) => {
+                    party: (partyName: string, partyAsset?: string) => ({
+                        pays: (counterpartyName: string, counterpartyAsset?: string) => ({
+                            amount: (amount: number, asset?: string) => {
+                                const party = partyName + (partyAsset ? "_" + partyAsset : "")
+                                const counterparty = counterpartyName + (counterpartyAsset ? "_" + counterpartyAsset : "")
+                                if (partyAsset !== asset) {
+                                    throw Error(`Trying to pay ${asset} from collateral denominated in ${partyAsset}`)
+                                }
                                 if (!this.multiparty.find(x => x === party)){
                                     throw Error("party " + party + " not registered! Use .multiple to register parties")
                                 }
@@ -686,6 +719,12 @@ export class Dsl {
                                     funds.pay(0, amount)
                                 } else if (this.isSelected0(counterparty) && this.isSelected1(party)) {
                                     funds.pay(1, amount)
+                                }
+                                if (sum < 0 && partyAsset !== counterpartyAsset) {
+                                    throw new Error(`Semantics: ${partyName} cannot pay negative amount of ${partyAsset} units. It is only allowed if assets are of the same type.`)
+                                }
+                                if (contradiction && partyAsset === counterpartyAsset) {
+                                    throw Error("Contradiction! Outcomes are not mutually exclusive! Cannot allow swaps in same currency!")
                                 }
                             }   
                         }) 
@@ -786,6 +825,10 @@ export class Dsl {
                 }    
             }
         }
+    }
+
+    public ifAtomicSwapLeg1(lock: string = "TRUTH", unlockOutcome: string = "true") {
+        return this.if(lock, [unlockOutcome], [unlockOutcome], {}, true)
     }
 
     private multiflag = false
@@ -954,6 +997,27 @@ if (require.main === module) {
             }, [0,0])
         })).multiple("alice", "bob").enumerateWithBoundMulti(50000)
         console.log(multi2)
+
+        const assets = await (new Dsl (async dsl => {
+            if (dsl.outcome("really?", ["YES"], ["NO"])) {
+                dsl.party("alice", "usd").pays("bob", "btc").amount(10000000, "usd")
+            } else {
+               dsl.party("bob", "btc").pays("alice", "usd").amount(10, "btc")
+            }
+        })).multiple(Dsl.account("alice", "usd"), Dsl.account("bob", "btc")).enumerateWithBoundMulti(500000000)
+        console.log(assets)
+
+
+
+        const swap = await (new Dsl (async dsl => {
+            dsl.ifAtomicSwapLeg1("lock1", "allowed").then(pay => {
+                pay.party("alice", "usd").pays("bob", "btc").amount(10000000, "usd")
+            }).else(pay => {
+                pay.party("bob", "btc").pays("alice", "usd").amount(10, "btc")
+            })
+        })).multiple(Dsl.account("alice", "usd"), Dsl.account("bob", "btc")).enumerateWithBoundMulti(500000000)
+        console.log(swap)
+
         console.log("OK!")
     })()
 }
