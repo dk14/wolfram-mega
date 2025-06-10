@@ -326,6 +326,29 @@ export class Dsl {
 
     private unfinalized = 0
 
+    public unsafe = {
+        if: (pubkey: string, yes: string[], no: string[], args: {[id: string]: string} = {}, allowSwaps: boolean = false, allowMisplacedPay = true) => {
+            return this.if(pubkey, yes, no, args, allowSwaps, allowMisplacedPay)
+        },
+        numeric: {
+            outcome: (pubkey: string, from: number, to: number, step: number = 1, args: {[id: string]: string} = {}, allowMisplacedPay = true) => {
+                return this.numeric.outcome(pubkey, from, to, step, args, allowMisplacedPay)
+            }
+        },
+        set: {
+            outcome: (pubkey: string, set:string[], args: {[id: string]: string} = {}, allowMisplacedPay = true) => {
+                return this.set.outcome(pubkey, set, args, allowMisplacedPay)
+            },
+            outcomeT: <T>(pubkey: string, set:T[], renderer: (x: T) => string, parser: (s: string) => T, args: {[id: string]: string} = {},  allowMisplacedPay = true) => {
+                return this.set.outcomeT(pubkey, set, renderer, parser, args, allowMisplacedPay)
+            }
+        },
+        ifAtomicSwapLeg1: (lock: string = "TRUTH", unlockOutcome: string = "true", allowMisplacedPay = true) => {
+            return this.if(lock, [unlockOutcome], [unlockOutcome], {}, true, allowMisplacedPay)
+        }
+
+    }
+
     public numeric = {
         outcome: (pubkey: string, from: number, to: number, step: number = 1, args: {[id: string]: string} = {}, allowMisplacedPay = false) => ({
             evaluate: (handler: (n: number) => void) => {
@@ -693,6 +716,7 @@ export class Dsl {
         })
     }
 
+
     public if = (pubkey: string, yes: string[], no: string[], args: {[id: string]: string} = {}, allowSwaps: boolean = false, allowMisplacedPay = false) => {
         let contradiction = false
         const yesSet = new Set(yes)
@@ -725,7 +749,7 @@ export class Dsl {
                                 const party = partyName + (partyAsset ? "_" + partyAsset : "")
                                 const counterparty = counterpartyName + (counterpartyAsset ? "_" + counterpartyAsset : "")
                                 if (currentNode !== this.cursor && !allowMisplacedPay) {
-                                    throw Error("Trying to pay nondeterministically! You tried to use outer account context to pay: use the closest `if(...).then/else(account => ...)` please! This also happens when you pay after checking unrelated observations: pay before checking next outcome! You can turn this off by using `allowMisplacedPay = true` in dsl.if")
+                                    throw Error("Possibly trying to pay nondeterministically! You tried to use outer account context to pay: use the closest `if(...).then/else(account => ...)` please! This also happens when you pay after checking unrelated observations: pay before checking next outcome! You can turn this off by using `dsl.unsafe`")
                                 }
                                 if (partyAsset !== asset) {
                                     throw Error(`Trying to pay ${asset} from collateral denominated in ${partyAsset}`)
@@ -752,7 +776,12 @@ export class Dsl {
                     }),
                     release: () => {
                         if (currentNode !== this.cursor && !allowMisplacedPay) {
-                            throw Error("Trying to release nondeterministically! You tried to release using outer account context: use the closest `if(...).then/else(account => ...)` please! This also happens if you release after checking unrelated observations: release before next `outcome`")
+                            throw Error("Trying to release nondeterministically! You tried to release using outer account context: use the closest `if(...).then/else(account => ...)` please! This also happens if you release after checking unrelated observations: release before next `outcome; use `allowMisplacedPay` in `dsl.if` to disable this check`")
+                        }
+                        const saveCursor = this.cursor
+                        if (allowMisplacedPay) {
+                            this.cursor = currentNode
+                            this.flag = false
                         }
                         this.unfinalized--
                         funds.party = undefined
@@ -764,12 +793,18 @@ export class Dsl {
                                 this.pay(party === 0 ? 1: 0, -sum)
                             } 
                         }
+                        this.cursor = saveCursor
                     }
 
                 }
                 const finalizeUnsafeInternal = () => {
                     if (observation) {
                         handler(funds)
+                        const saveCursor = this.cursor
+                        if (allowMisplacedPay) {
+                            this.cursor = currentNode
+                            this.flag = false
+                        }
                         if (party !== undefined && sum !== 0) {
                             if (sum > 0) {
                                 this.pay(party, sum)
@@ -777,6 +812,7 @@ export class Dsl {
                                 this.pay(party === 0 ? 1: 0, -sum)
                             } 
                         }
+                        this.cursor = saveCursor
                     }
                 }
                 finalizeUnsafeInternal()
@@ -800,14 +836,28 @@ export class Dsl {
                                     }  
                                 }
                             },
-                            party: (party: string) => ({
-                                pays: (counterparty: string) => ({
-                                    amount: (amount: number) => {
+                            party: (partyName: string, partyAsset?: string) => ({
+                                pays: (counterpartyName: string, counterpartyAsset?: string) => ({
+                                    amount: (amount: number, asset?: string) => {
+                                        const party = partyName + (partyAsset ? "_" + partyAsset : "")
+                                        const counterparty = counterpartyName + (counterpartyAsset ? "_" + counterpartyAsset : "")
+                                        if (currentNode !== this.cursor && !allowMisplacedPay) {
+                                            throw Error("Possibly trying to pay nondeterministically! You tried to use outer account context to pay: use the closest `if(...).then/else(account => ...)` please! This also happens when you pay after checking unrelated observations: pay before checking next outcome! You can turn this off by using `dsl.unsafe`")
+                                        }
+                                        if (partyAsset !== asset) {
+                                            throw Error(`Trying to pay ${asset} from collateral denominated in ${partyAsset}`)
+                                        }
                                         if (!this.multiparty.find(x => x === party)){
                                             throw Error("party " + party + " not registered! Use .multiple to register parties")
                                         }
                                         if (!this.multiparty.find(x => x === counterparty)){
                                             throw Error("counterparty " + counterparty + " not registered! Use .multiple to register parties")
+                                        }
+                                        if (!this.multiparty.find(x => x === party)){
+                                            throw Error("party " + party + " not registered! Use .multiple to register parties in " + this.multiparty)
+                                        }
+                                        if (!this.multiparty.find(x => x === counterparty)){
+                                            throw Error("counterparty " + counterparty + " not registered! Use .multiple to register parties in " + this.multiparty)
                                         }
                                         if (this.isSelected0(party) && this.isSelected1(counterparty)) {
                                             funds.pay(0, amount)
@@ -818,8 +868,13 @@ export class Dsl {
                                 }) 
                             }),
                             release: () => {
-                                if (currentNode !== this.cursor) {
-                                    throw Error("Trying to release nondeterministically! You tried to release using outer account context: use the closest `if(...).then/else(account => ...)` please! This also happens if you release after checking unrelated observations: release before next `outcome`")
+                                if (currentNode !== this.cursor && !allowMisplacedPay) {
+                                    throw Error("Possibly trying to release nondeterministically! You tried to release using outer account context: use the closest `if(...).then/else(account => ...)` please! This also happens if you release after checking unrelated observations: release before next `outcome`; use `allowMisplacedPay` in `dsl.if` to disable this check")
+                                }
+                                const saveCursor = this.cursor
+                                if (allowMisplacedPay) {
+                                    this.cursor = currentNode
+                                    this.flag = false
                                 }
                                 this.unfinalized--
                                 funds.party = undefined
@@ -831,11 +886,17 @@ export class Dsl {
                                         this.pay(counterparty === 0 ? 1: 0, -sum)
                                     } 
                                 }
+                                this.cursor = saveCursor
                             }
                         }
                         const finalizeUnsafeInternal2 = () => {
                             if (!observation) {
                                 handler(funds)
+                                const saveCursor = this.cursor
+                                if (allowMisplacedPay) {
+                                    this.cursor = currentNode
+                                    this.flag = false
+                                }
                                 if (counterparty !== undefined && sum !== 0) {
                                     if (sum > 0) {
                                         this.pay(party, sum)
@@ -843,6 +904,7 @@ export class Dsl {
                                         this.pay(party === 0 ? 1: 0, -sum)
                                     }
                                 }
+                                this.cursor = saveCursor
                             }
                         }
                         finalizeUnsafeInternal2()
@@ -853,8 +915,8 @@ export class Dsl {
         }
     }
 
-    public ifAtomicSwapLeg1(lock: string = "TRUTH", unlockOutcome: string = "true") {
-        return this.if(lock, [unlockOutcome], [unlockOutcome], {}, true)
+    public ifAtomicSwapLeg1(lock: string = "TRUTH", unlockOutcome: string = "true", allowMisplacedPay = false) {
+        return this.if(lock, [unlockOutcome], [unlockOutcome], {}, true, allowMisplacedPay)
     }
 
     private multiflag = false
@@ -1041,8 +1103,12 @@ if (require.main === module) {
 
 
         const swap = await (new Dsl (async dsl => {
-            dsl.ifAtomicSwapLeg1("lock1", "allowed").then(pay => {
+            dsl.unsafe.ifAtomicSwapLeg1("lock1", "allowed").then(pay => {
+                dsl.unsafe.ifAtomicSwapLeg1("lock12", "allowed").then(pay => {
+                    pay.party("alice", "usd").pays("bob", "btc").amount(10000000, "usd")
+                }).else(() => {})
                 pay.party("alice", "usd").pays("bob", "btc").amount(10000000, "usd")
+                
             }).else(pay => {
                 pay.party("bob", "btc").pays("alice", "usd").amount(10, "btc")
             })

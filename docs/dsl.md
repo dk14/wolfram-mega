@@ -681,3 +681,31 @@ const multi = await (new Dsl (async dsl => {
 ```
 
 > Note: All typesafety checks are preserved: `funds.pay(Alice, -100)` gets translated to `funds.pay(Bob, 100)`. Thus paying the same party regardless of outcome would still throw an error.
+
+Thi however, does not allow you to `pay` after checking deeper outcomes:
+
+```ts
+dsl.if("wow?", ["yup"], ["nope"]).then(account => {
+    account.party("alice").pays("carol").amount(30)
+    dsl.if("really?", ["yup"], ["nope"]).then(account => {
+         account.party("alice").pays("carol").amount(30)
+    )}
+    account.party("carol").pays("alice").amount(5) //this will throw an error
+}).else(account => {
+    account.party("carol").pays("alice").amount(30)
+})
+```
+
+If you sure, you won't accidentally pay in sub-branches (`account` is usually shadowed), use `dsl.unsafe` (has numerics and sets too):
+
+```ts
+dsl.unsafe.if("wow?", ["yup"], ["nope"]).then(account => {
+    account.party("alice").pays("carol").amount(30)
+    dsl.unsafe.if("really?", ["yup"], ["nope"]).then(account => { //account is usually shadowed, so cannot make mistake, usually
+         account.party("alice").pays("carol").amount(30)
+    )}
+    account.party("carol").pays("alice").amount(5) //this will work
+}).else(account => {
+    account.party("carol").pays("alice").amount(30)
+})
+```
