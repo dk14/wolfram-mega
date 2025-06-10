@@ -1,15 +1,23 @@
 # Trader API
 
+Trader API presents non-essential interfaces for:
+- collecting ads from P2P network to a local database
+- querying those ads
+- issuing offers and reports, persisting in database
+- advertising issued offers and reports in Mega P2P
+
+It's implemented on top of Mega-API (see Operators doc)
+
 ## Configure
 
 Example: `cfg/mempool-trader.json`
 
 ## Start peer with trader-api enabled
-
+from sources:
 ```bash
 npm run peer cfg/mempool-trader.json
 ```
-
+from the library:
 ```bash
 npm i dk14/wolfram-mega
 npx mega-peer cfg/mempool-trader.json
@@ -23,6 +31,11 @@ Trader Console UI and REST will be available at:
 or run a full demo for plug and play:
 ```bash
 npm run demo
+```
+or
+```bash
+npm i dk14/wolfram-mega
+npx mega-demo
 ```
 - Peer: http://localhost:8080/peer-monitor/
 - Oracle Admin: http://localhost:8080/oracle-admin/
@@ -175,6 +188,8 @@ fetch('./broadcastIssuedReports')
 Offers have unique pow hash, pow hash is their id. 
 If offer is rejected due to low-pow difficulty - trader API will try to upgrade PoW. 
 
+See "Contracts" and "Discreet DSL" docs for details.
+
 >Note: there is a limitation on the maximum length of the message.
 
 ```ts
@@ -194,8 +209,8 @@ const content = {
             "capabilityPubKey":"<pubkey of oracle capability>",
             "arguments":{}
         },
-        "partyBetsOn":[],
-        "counterPartyBetsOn":[],
+        "partyBetsOn":[], //outcomes
+        "counterPartyBetsOn":[], //outcomes
         "partyBetAmount":0,
         "counterpartyBetAmount":0
     },
@@ -272,9 +287,31 @@ export interface TraderPow {
 }
 ```
 
+## Custom API
+
+```ts
+import { traderApi, TraderApi } from '@dk14/wolfram-mega/trader-api'
+import { TraderStorage } from '@dk14/wolfram-mega/trader-api'
+
+const storage: TraderStorage<OracleQ, CpQ, RpQ, MatchQ> = ...
+
+const miner: TraderPow = { ... }
+
+const api: TraderApi<TraderQuery<OracleId>, TraderQuery<OracleCapability>, boolean> = traderApi(cfg.trader, cfg, ndapi, storage, p2pNode, miner)
+
+// the TraderApi<..., boolean> implies that your TraderQuery is of the form of a predicate `T => Promise<boolean>`; TraderApi<..., string> would allow for queries represented as strings, .e.g. js-code would be just `string`
+
+api.collectOracles(...)
+api.collectCapabilities(...)
+storage.queryOracles({where: o => true})
+storage.queryCapabilities({where: cp => true})
+api.issueOffer(myOffer)
+```
+
 ## Oracle Workflow
 
 ### Get commmitment from oracle
+Trader requests commitment before co-signing contract on blockchain. Commitment binds oracle legally and is an essential part of malleability reports.
 ```ts  
 const factRequest = {
     "capabilityPubKey": "MCowBQYDK2VwAyEA4A3gTGN6FQz2iBkWPsbMNvYGtrmteU5A0R2r4nTc4IM=",
@@ -291,10 +328,14 @@ const commitment = await (await fetch(endpoint + '/requestCommitment', {
     body: JSON.stringify(factRequest),
     headers: {'Content-Type': 'application/json'}
 })).json()
+
+//verify signature...
 ```
 
 ### Get fact
+> Trader does NOT have to poll oracle for the facts. They only needed **once, in order to unlock transaction**. Trader can either check time periodically (if contract depends on date) or check market conditions from on-line data-feeds. NO need to pull data-feeds from Mega-p2p network - there are better and more specialized solutions for that (e.g. Yahoo Finance, Wolfram Alpha).
 
+> If oracle did not provide fact by a deadline it commited to - trader can publish `missing-fact` report. Oracle can dispute it by pushing fact into the Mega-P2P pool (trader's report will get amended with provided fact, thus the report can be excluded from oracle reputation).
 ```ts
 const endpoint = ...
 const commitment = 
@@ -304,6 +345,7 @@ const fact = await (await fetch(endpoint + '/requestFact', {
     body: commitment,
     headers: {'Content-Type': 'application/json'}
 })).json()
+//verify signature...
 ```
 
 ## Querying collected broadcasts

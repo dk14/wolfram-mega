@@ -71,11 +71,12 @@ export interface OracleCfg {
 
 ## Start peer with oracle-api enabled
 
-Either:
+from sources:
 ```bash
 npm run peer cfg/mempool-oracle.json
 ```
 
+from the library:
 ```bash
 npm i dk14/wolfram-mega
 npx mega-peer cfg/mempool-oracle.json 
@@ -327,19 +328,8 @@ Oarcle API has default CPU implementation for pow.
 
 ```ts
 // implement you own database (default one is filesystem)
-export interface CapabilityStorage<Query> {
-    storeOracleAdSeqNo: (seqNo: number, pow: HashCashPow) => Promise<void>
-    readOracleAdSeqNo: () => Promise<[number, HashCashPow]>
-    addCapability: (cp: OracleCapability) => Promise<void>
-    deactivateCapability: (capabilityPubKey: string) => Promise<void>
-    activateCapability: (capabilityPubKey: string) => Promise<void>
-    dropCapability: (capabilityPubKey: string) => Promise<void>
-    getCapability: (capabilityPubKey: string) =>  Promise<OracleCapability | undefined>
-    listCapabilities: (query: Query, paging: PagingDescriptor) => Promise<OracleCapability[]>
-    listActiveCapabilities: () => Promise<OracleCapability[]>
-    updateCapabilityPow: (capabilityPubKey: string, pow: HashCashPow) => Promise<void>
-}
 
+import { CapabilityStorage } from '@dk14/wolfram-mega/oracle-control-api'
 import { api as ndapi } from "./src/api";
 import { p2pNode } from "./src/p2p";
 
@@ -371,8 +361,8 @@ await oracleApi.watchSignMyCapabilityBroadcasts(oracleAdSigner)
 // use api
 await oracleApi.startAdvertising(cfg.oracle)
 
-await oracleApi.addCapability()
-await oracleApi.dropCapability()
+await oracleApi.addCapability(...)
+await oracleApi.dropCapability(...)
 
 await upgradeOraclePow(difficulty) 
 await upgradeCapabilityPow(pub, difficulty)
@@ -426,6 +416,8 @@ Separation of responsibilities:
 Example of endpoint implementation from `src/client-api/utils/oracle-endpoint`:
 
 ```ts
+import { OracleEndpointApi } from '@dk14/wolfram-mega/oracle-endpoint-api'
+
 //optional, can check proof of payment here
 const canCommit = ... 
 
@@ -484,7 +476,7 @@ const api: OracleEndpointApi = {
 Slashing (blockchain-ensured Service Layer Agreement) is a secondary feature in Mega, since any fault primarily hurts PoW-aquired identitites.
 
 ### Quorum Slashing
-Nevertheless, we provide `slashing.ts` example for `generateSLA` for `contract` commitment field.
+Nevertheless, we provide `src/client-api/contracts/slasher.ts` example for `generateSLA` for `contract` commitment field.
 We propose pairwise quorum commitments in `slashing.ts`. In the essence they are special case of binary option. Thus we provide [BTC-DLC-based](https://adiabat.github.io/dlc.pdf) implementation for a slasher - Descreet Log Contract is perfect for binary options.
 
 Unlike vanillabiinary call, SLA binary option would keep initial distribution of funds intact:
