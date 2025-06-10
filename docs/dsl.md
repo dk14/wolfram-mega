@@ -1,7 +1,7 @@
 
 > Draft
 
-Discreet eDSL is allows you to easily build contracts compatible with Mega offers and matching. 
+Discreet eDSL allows to easily build contracts compatible with Mega offers and matching. 
 
 > "Discreet" misspelled on purpose
 
@@ -9,7 +9,7 @@ It gives you `OfferModel`, which matching engine turns into `OfferTerms`. The la
 
 It is based on modern quantitative finance and renders to a tree of binary options, thus allowing expression of arbitrary financial contracts.
 
-It is typesafe. It provides checks and restrictions that allow you to eliminate known types of redundancies in contracts ("perfect hedges"), thus maximising trading liquidity - you only collaterize what's necceessary.
+It is typesafe. It provides checks and restrictions that allow traders to eliminate known types of redundancies in contracts ("perfect hedges"), thus maximising trading liquidity - you only collaterize what's necceessary.
 
 
 ## Example
@@ -94,7 +94,7 @@ Consequently, schedules, every ACTUS instrument can be implemented.
 
 ### Recursion
 
-Discreet allows for recursion. `outcome` and `pay` can be in recursive calls as well, but subject to standard Dicreet typesafety restrictions: no "perfect hedges".
+Discreet allows for recursion. `outcome` and `pay` can be in recursive calls as well, but subject to standard Discreet typesafety restrictions: no "perfect hedges".
 
 Every contract has a limit on maximum collateral (`enumerateWithBound(maxBudget)`), thus payout recursion is bounded. Halting problem is semi-solved.
 
@@ -162,9 +162,17 @@ const fundFactory = (accumulatedFund: number, refillFund: number, refillBenefici
 
 DSL is not responsible for asset pairs, since asset pair is assumed to be fixed between parties per (composite) contract - you specify asset pair in matching etc. Allowing one party to have several assets in a contract is equivalent to having several parties, e.g. "alice-usd", "alice-btc".
 
+> Note: since Discreet relies on binary options - there is no confusion about currency. In "alice-usd", "bob-btc" pair - Alice always gets btc, Bob always gets usd.
+
+```ts
+account.party("alice_usd").pays("bob_btc").amount(1000000000) //1000000000 usd
+account.party("bob_btc").pays("alice_usd").amount(10) //10 btc
+
+```
+
 ### Numeric observations
 
- Outcomes are binary in Discreet, so interest rate drivers and such have to be enumerated and adapted. We recommend to quantize derivatives manually - to give meaning to numbers (see sets). 
+Outcomes are binary in Discreet, so interest rate drivers and such have to be enumerated and adapted. We recommend to quantize derivatives manually - to give meaning to numbers (see sets). 
 
 If numbers are still preferred:
 
