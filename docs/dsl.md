@@ -589,6 +589,8 @@ Backends are allowed to optimize ranges and such - by interpreting "0..100" as S
 
 > Numbers are implemented as binary trees. They are as optimal as possible.
 
+> Currently, Discreet's enumerator might scan unreachable branches (if they they happen to be in `then` clauses). It won't add them to the final contract, but will spend time analyzing them. So ideally computation should be organized in a binary tree for now.
+
 And that's it.
 
 #### Memoization
