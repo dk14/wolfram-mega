@@ -43,7 +43,7 @@ Proof:
 
 $weakSelection = \sum (weakPow_i > mempoolThreshold)$
 
-**Sum of weak pow surviving selection (either 0 or sum):**
+**Unified pow surviving selection (either 0 or sum):**
 
 $strongSelection = megaPow > mempoolThreshold$,
 where
