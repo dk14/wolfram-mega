@@ -607,9 +607,9 @@ DSL enumerates all possible outcomes, thus removing the need for random walk.
 
 ### Typesafety
 
-Typesafety is meant to ensure energy conservation. Historically we introduced [STLC](https://en.wikipedia.org/wiki/Simply_typed_lambda_calculus) to lambdas as a way to avoid "perpetual motion", represent finite resources. 
+Typesafety is meant to ensure energy preservation. Historically we introduced [STLC](https://en.wikipedia.org/wiki/Simply_typed_lambda_calculus) to lambdas as a way to avoid "perpetual motion". STLC represents finite computational resources completely - any other system is a tautology of STLC. 
 
-Here, in Discreet - we avoid it by design, since `enumerateWithBound` asks finite collaterals (bounded recursion).
+Here, in Discreet - we avoid perpetuality by design, since `enumerateWithBound` asks finite collaterals (bounded recursion).
 
 For code NOT involving payments (pure functions), Typescript is responsible for safety, it would give you stackoverflow. 
 
