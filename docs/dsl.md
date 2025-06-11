@@ -653,6 +653,7 @@ while (collateral > 0 && collateral < n) {
     
     while (collateral > n) {
         collateral = n - 1 // undercollaterize
+        makeEqual(n, n - 1) // double-count
     }
 
     // PROFIT???
