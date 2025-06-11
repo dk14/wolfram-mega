@@ -161,7 +161,7 @@ class Dsl {
         let cursor = true;
         let entry = undefined;
         while (cursor) {
-            if (this.checked[i] === undefined && Object.values(this.state).find(x => x[0] === i) === undefined) {
+            if (Object.values(this.state).find(x => x[0] === i) === undefined) {
                 return false;
             }
             entry = Object.values(this.state).find(x => x[0] === i);
@@ -172,19 +172,13 @@ class Dsl {
             if (!cursor) {
                 return true;
             }
-            if (!this.checked[i] && !cursor) {
-                i++;
-                continue;
-            }
             if (entry[1] === true) {
                 if (cursor === true) {
                     entry[1] = false;
                 }
             }
             else {
-                if (cursor) {
-                    entry[1] = true;
-                }
+                entry[1] = true;
                 cursor = false;
             }
             i++;
@@ -366,18 +360,18 @@ class Dsl {
                     numbers.push(i);
                 }
                 const recurse = (l, r) => {
-                    if (l.length === 0) {
-                        return;
+                    if (l.length === 1 && r.length === 0) {
+                        return l[0];
                     }
-                    if (r.length === 0) {
-                        return;
+                    if (r.length === 1 && l.length === 0) {
+                        return r[0];
                     }
                     if (this.outcome(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args)) {
                         if (l.length === 1) {
                             return l[0];
                         }
                         else {
-                            recurse(l.slice(0, l.length / 2), l.slice(l.length / 2));
+                            return recurse(l.slice(0, l.length / 2), l.slice(l.length / 2));
                         }
                     }
                     else {
@@ -385,7 +379,7 @@ class Dsl {
                             return r[0];
                         }
                         else {
-                            recurse(r.slice(0, r.length / 2), r.slice(r.length / 2));
+                            return recurse(r.slice(0, r.length / 2), r.slice(r.length / 2));
                         }
                     }
                 };
@@ -1034,8 +1028,9 @@ if (require.main === module) {
                 }).else(account => {
                     account.party("carol").pays("alice").amount(30);
                 });
-                dsl.numeric.outcome("price?", 0, 3).value();
+                console.log(dsl.numeric.outcome("price?", 0, 3).value());
                 dsl.numeric.outcome("price?", 0, 5).evaluateWithPaymentCtx((account, n) => {
+                    //console.log(n)
                     account.party("alice").pays("carol").amount(n - 2);
                 });
             }
