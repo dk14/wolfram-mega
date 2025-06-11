@@ -644,18 +644,21 @@ It breaks conservation.
 Formally, this is simply:
 
 ```ts
-while (collateral > 0 && collateral < n) {
-    trade(collateral)
+const n = aquireResources()
+while (collateral > 0 && collateral < n) { //preservation
+    collateral = trade(collateral)
 
     while (collateral <= 0) {
         collateral += 20 // overcollaterize
     }
     
     while (collateral > n) {
-        collateral = n - 1 // undercollaterize
-        makeEqual(n, n - 1) // double-count
+        if (loophole1) {
+            collateral = n / 2 // undercollaterize
+        } else {
+            n = n * 2 // double-count resources
+        }    
     }
-
     // PROFIT???
 }
 contactEnvironment() // neurotically unreachable
