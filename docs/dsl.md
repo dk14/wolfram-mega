@@ -490,7 +490,7 @@ dates.reduce(([capitalisation1, capitalisation2], date) => {
 }, [0,0])
 
 ```
-> Tech warning: wrapping `release` with monads (`Cont` including) is not practically applicable here. You'll get a combination of `Either` and `Writer`/`State` - they're not composable, they would just produce type-perturbation. KISS. 
+> FP-enthusiast warning: wrapping `release` with monads (`Cont` including) is not practically applicable here. You'll get a combination of `Either` and `Writer`/`State` - they're not composable, they would just spread type-perturbation around. KISS. 
 
 > `valueWithPaymentCtxUnsafe` is meant to (optionally) avoid contextual continuations. Pure functional way would be to just use `.evaluateWithPaymentCtx((value, context) => {...})` continuation  twice (one in `then`, the other in `else`). But since, resources are checked automatically, above representation is simply more compact, efficient and still reasonably safe - mispositioning `release` would delay payout simply (and only possible with `dsl.unsafe.numeric` which we don't use here).
 
