@@ -209,7 +209,7 @@ Bitcoin Script is taken as a standard for cross-chain compatibility, since it is
 
 > be aware of double-preimage attacks on Merkle-trees. Double-hash or use incompatible hashes for leafs. Make sure trees are balanced.
 
-> This approach additionally allows for purely trustless Mega-light mode: Bitcoin script can verify PoW done over oracle's PubKey. In absense of suitable oracle in Mega-mempools, Alice and Bob  (contract participants) can be oracles themselves and engage in PoW-battle in case of dispute, as long as they both agreed on PoW-threshold before signing.
+This approach additionally allows for purely trustless Mega-light mode: Bitcoin script can verify PoW done over oracle's PubKey. In absense of suitable oracle in Mega-mempools, Alice and Bob  (contract participants) can be lightweight "oracles" themselves and engage in PoW-battle in case of a dispute, as long as they both agreed on PoW-threshold before signing transactions.
 
 ### State
 
