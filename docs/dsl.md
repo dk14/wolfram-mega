@@ -344,23 +344,23 @@ Shortcut:
 
 ```ts
 // Borrowing contract
-dsl.ifAtomicSwapLeg1("hashlock", "verified").then(pay => {
-    pay.party("alice", "usd").pays("bob", "btc").amount(10000000, "usd")
-}).else(pay => {
-    dsl.if("liquidation?", ["yes"], ["no"]).then(pay => { //price oracle
-        pay.party("bob", "btc").pays("alice", "usd").amount(10, "btc")
+dsl.ifAtomicSwapLeg1("hashlock", "verified").then(ctx => {
+    ctx.party("alice", "usd").pays("bob", "btc").amount(10000000, "usd")
+}).else(ctx => {
+    dsl.if("liquidation?", ["yes"], ["no"]).then(ctx => { //price oracle
+        ctx.party("bob", "btc").pays("alice", "usd").amount(10, "btc")
     }).else(_ => {
-        dsl.if("timelock", ["yes"], ["no"]).then(pay => { //don't even think about hashlocks on bob_usd here :) the point of loan is liquidity
-            pay.party("bob", "usd").pays("alice", "usd").amount(300, "usd") // interest (will be part of collateral if it's here)
-            dsl.unsafe.if("<alice_repayment_wallet_adaptor_pubkey_schnorr>", ["$(thisTx.utxo[0].data)"], [], {}).then(pay => {
+        dsl.if("timelock", ["yes"], ["no"]).then(ctx => { //don't even think about hashlocks on bob_usd here :) the point of loan is liquidity
+            ctx.party("bob", "usd").pays("alice", "usd").amount(300, "usd") // interest (will be part of collateral if it's here)
+            dsl.unsafe.if("<alice_repayment_wallet_adaptor_pubkey_schnorr>", ["$(thisTx.utxo[0].data)"], [], {}).then(ctx => {
                 // ^ alice revealed private key for empty repayment wallet
                 // "proof of empty pockets"
                 dsl.if("timelock2", ["yes"], ["no"]).then(_ => {
                     //timelock2 expired - we assume Alice got money
-                }).else(pay => {
-                    pay.party("bob", "btc").pays("alice", "usd").amount(10, "btc") //Bob loses deposit
+                }).else(ctx => {
+                    ctx.party("bob", "btc").pays("alice", "usd").amount(10, "btc") //Bob loses deposit
                 })
-            }).else(pay => {
+            }).else(_ => {
                 // alice did not reveal pk for repayment wallet, since Bob sent money there
                 // graceful termination
             })
@@ -535,10 +535,10 @@ for (let party of participants) {
 
 const [winner, bid] = Object.entries(round).maxBy([party, bid] => bid)
 
-dsl.ifAtomicSwapLeg1().then(pay => {
-   pay.party(winner).pays("auction", "asset").amount(bid)
+dsl.ifAtomicSwapLeg1().then(ctx => {
+   ctx.party(winner).pays("auction", "asset").amount(bid)
 }).else(pay => {
-   pay.party("auction", "asset").pays(winner).amount(1, "asset")
+   ctx.party("auction", "asset").pays(winner).amount(1, "asset")
 })
 
 //collateral is 1000 per participant
@@ -554,7 +554,7 @@ const receivePaymentPubKey = "<pub>"
 const receivePaymentPubKeyAdapted = schnorrAdapt("<pub>", txbody) //signing with this reveals receivePaymentPubKey's private key
 const round = ... //same logic
 
-const [winner, [bid, pay]] = Object.entries(round).maxBy([party, [bid, pay]] => bid)
+const [winner, bid] = Object.entries(round).maxBy([party, bid] => bid)
 
 //physical delivery vanilla future contract:
 
@@ -763,11 +763,11 @@ const multi = await (new Dsl (async dsl => {
         dsl.party("carol").pays("alice").amount(40)
         dsl.party("bob").pays("alice").amount(40)
 
-        dsl.if("wow?", ["yup"], ["nope"]).then(account => {
-            account.party("alice").pays("carol").amount(30)
-            account.party("carol").pays("alice").amount(5)
+        dsl.if("wow?", ["yup"], ["nope"]).then(accounts => {
+            accounts.party("alice").pays("carol").amount(30)
+            accounts.party("carol").pays("alice").amount(5)
         }).else(account => {
-            account.party("carol").pays("alice").amount(30)
+            accounts.party("carol").pays("alice").amount(30)
         })
     }
 })).multiple("alice", "bob", "carol").enumerateWithBoundMulti([[200, 100], [200, 100], [200, 100]])
