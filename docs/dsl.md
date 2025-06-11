@@ -187,27 +187,29 @@ Querying mutually exclusive outcomes, e.g. `{yes = ["a"], no = ["b"]} && {yes = 
 
 Sometimes, outcomes have to be implied from transaction context in order to avoid third-party oracles. 
 
-Example: you might want party to be oracle itself (use its pubkey) and sign some utxo, known to chain-interpreter - this signature would serve as a disclosure of something and party won't get access to funds without it (e.g. [such signature can reveal a private key behind a custom pubkey](https://muens.io/schnorr-adaptor-signature/), see crypto-loan example). Then convention would be: `$(<tx context expression>)`, instance: `$(thisTx.utxo[0].data)`.
+Example: you might want party to be oracle itself (use its pubkey) and sign some utxo, already known to chain-interpreter (e.g. `thisTx`, CET-transaction associated with outcome of binary option) - this signature would serve as a disclosure of something and party won't get access to funds without producing such a signature (e.g. [such signature can reveal a private key behind a custom pubkey](https://muens.io/schnorr-adaptor-signature/), see Discreet crypto-loan example). Then convention would be: `$(<tx context expression>)`, instance: `$(thisTx.utxo[0].data)`.
 
-> non-utxo example: `$true` or `$false`, since non-utxo can use script-generated observations. 
+> non-utxo example: `$true` or `$false`, since non-utxo can use script-generated observations (they can introduce their own opcodes). 
 
 > *Non-utxo  chains (and smart-contract chains in general) are not recommended, since they create expensive redundancies by making their nodes to compute unlocking-logic that is not supposed to be on-chain. The code our transpiler erases is literally "smart"-contract code. The state our transpiler erases is Cardano's datum.*
 
 #### Script-generated observations
 
-`pubkey` is allowed to contain chain-specific script as well, if specific verification of the fact is required, rather than signature verification. Convention: `$(<extra validator script>)`. Examples:
+`pubkey` is allowed to contain chain-specific script, if specific verification of the fact is required, rather than oracle-signature verification. It is needed in order to use cryptological proofs as true oracles, rather than third-party attestants. Convention: `$(<extra validator script>)`. Examples:
 
 - timelock: `$(OP_CHECKLOCKTIMEVERIFY <time> )`
 - hashlock: `$(OP_SHA256 OP_EQUALS <locking-nonce> OP_VERIFY)`
-- merkle-tree  for complex locking: `$(OP_CAT OP_SHA256 ...)` ([this](https://blog.blockstream.com/en-treesignatures/)), 
+- merkle-tree for complex locking: `$(OP_CAT OP_SHA256 ...)` ([this](https://blog.blockstream.com/en-treesignatures/)), 
 
+Bitcoin Script is taken as a standard for cross-chain compatibility, since it is complete, compact, secure and non-redundand. There are already [eDSLs](https://scryptplatform.medium.com/introducing-scryptts-write-bitcoin-smart-contracts-in-typescript-e59845213fbc) to output such scripts.
 
 > bitcoin chain interpreter would be required to concatenate a script checking party/counterparty signature with the extra script provided. Privacy note: logic of lock-conditions will be revealed to the public in case if counter-party becomes malicious.
 
-> other chains (Utxo/NonUtxo alike) would adopt expressions of the form of a predicate: `$(time < 10000 && sha256(param1) === '<hash>' && account(<address>).value > 30) && <account_address>.in(<merkle_tree>)` and must throw an error (in so called smart-contract) if expression fails. *We discourage using their implementations of accounts and merkle-trees and such though. After seeing some of the issues on their githubs and them trying to explain like crypto like something speculating on what double-preimage attack is, what friendship is and much and such.*
+> other chains (Utxo/NonUtxo alike) would have to translate Bitcoin Script into expressions of the form of a predicate: `$(time < 10000 && sha256(param1) === '<hash>' && account(<address>).value > 30) && <account_address>.in(<merkle_tree>)` and must throw an error (in so called smart-contract) if expression fails. *We discourage using their implementations of accounts and merkle-trees and such though. After seeing some of the issues on their githubs and them trying to explain to each other like crypto like something speculating on what double-preimage attack is, what friendship is and much and such.*
 
 > be aware of double-preimage attacks on Merkle-trees. Double-hash or use incompatible hashes for leafs. Make sure trees are balanced.
 
+> This approach additionally allows for purely trustless Mega-light mode: Bitcoin script can verify PoW done over oracle's PubKey. In absense of suitable oracle in Mega-mempools, Alice and Bob  (contract participants) can be oracles themselves and engage in PoW-battle in case of dispute, as long as they both agreed on PoW-threshold before signing.
 
 ### State
 
