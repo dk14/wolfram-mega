@@ -9,6 +9,11 @@ type CacheEntry  = {
     pubkeyUnique: string
 }
 
+type Dependants = {
+    t: Set<number>
+    f: Set<number>
+}
+
 
 type PaymentHandler = {
     pay: (idx: 0 | 1, amount: number) => void
@@ -22,7 +27,7 @@ type PaymentHandler = {
 
 export class Dsl {
 
-    private state: {[pubkey: string]: [number, boolean]} = {}
+    private state: {[pubkey: string]: [number, boolean, Dependants]} = {}
 
     private template(): OfferModel {
         const model: OfferModel = {
@@ -154,6 +159,15 @@ export class Dsl {
         no.sort()
         this.counter++
 
+        if ((new Set(yes)).values.length === yes.length) {
+            throw Error("Duplicate outcomes")
+        }
+
+        if ((new Set(no)).values.length === no.length) {
+            throw Error("Duplicate outcomes")
+        }
+
+
         if (JSON.stringify(yes) === JSON.stringify(no) && !allowTruth) {
             throw Error("Contradiction! Outcomes are not mutually exclusive!")
         }
@@ -172,14 +186,22 @@ export class Dsl {
         const pubkeyUnique = pubkey + "-###-" + this.counter
         if (this.state[pubkeyUnique] === undefined) {
             const max = Object.values(this.state).length === 0 ? -1 : Math.max(...Object.values(this.state).map(x => x[0]))
-            this.state[pubkeyUnique] = [max + 1, null]
-            //this.checked[this.state[pubkeyUnique][0]] = true
+            this.state[pubkeyUnique] = [max + 1, null, {t: new Set(), f: new Set()}]
+            this.checked.push(this.state[pubkeyUnique][0])
+            this.memoize.push({
+                id: pubkey, yes, no, args, pubkeyUnique
+            })
             throw "uninitialized"
         } else {
-            this.checked[this.state[pubkeyUnique][0]] = true
+            this.checked.push(this.state[pubkeyUnique][0])
             if (this.memoize.find(x => x.id === pubkey && JSON.stringify(x.yes.sort()) === JSON.stringify(yes.sort()) && JSON.stringify(x.no.sort()) === JSON.stringify(no.sort()) && JSON.stringify(x.args) === JSON.stringify(args)) !== undefined) {
                 throw new Error("Cannot query same observation twice. Save it into const instead: const obs1 = observe(...)")
             }
+            const sameQuery = this.memoize.find(x => x.id === pubkey)
+            if (strict && sameQuery && JSON.stringify(sameQuery.yes.concat(sameQuery.no).sort()) !== JSON.stringify(yes.concat(no).sort())) {
+                 throw new Error("Set of overall outcomes must be same, regardless of parameters! " + sameQuery.yes.concat(sameQuery.no).sort() + " != " + yes.concat(no).sort())
+            }
+
             const contradiction = this.memoize.find(x => x.id === pubkey && JSON.stringify(x.yes.sort()) === JSON.stringify(no.sort()) && JSON.stringify(x.no.sort()) === JSON.stringify(yes.sort()) && JSON.stringify(x.args) === JSON.stringify(args))
             if (contradiction !== undefined) {
                 throw new Error("Cannot query the opposite of checked observation. Save it into const and inverse instead: const obs1 = !observe(...)")
@@ -193,18 +215,48 @@ export class Dsl {
     }
 
     private next(): boolean {
+        function setUnion(set, ...iterables) {
+            for (const iterable of iterables) {
+                for (const item of iterable) {
+                    set.add(item);
+                }
+            }
+        }
         this.cursor = this.root
         this.prev = undefined
         let i = 0
         let cursor = true
-        let entry = undefined
+        let entry: [number, Boolean, Dependants] = undefined
+
+        for (let [j, st, d] of Object.values(this.state)) {
+            if (st) {
+                setUnion(d.t, new Set(this.checked))
+            } else {
+                setUnion(d.f, new Set(this.checked))
+            }
+            
+            d.t = new Set([...d.t].filter(x => !d.f.has(x)))
+            d.f = new Set([...d.f].filter(x => !d.t.has(x)))
+
+            //console.log(d.t)
+
+        }
+
+        const skiplist = new Set()
 
         
         while (cursor) {
+
             if (Object.values(this.state).find(x => x[0] === i) === undefined) {
                 return false
             }
             entry = Object.values(this.state).find(x => x[0] === i)
+
+            console.log(skiplist)
+            if (skiplist.has(i)) {
+                i++
+                continue
+            }
 
             if (entry[1] === null && cursor) {
                 entry[1] = false
@@ -214,10 +266,12 @@ export class Dsl {
                 return true
             }
             if (entry[1] === true) {
+                entry[2].f.forEach(e => skiplist.add(e))
                 if (cursor === true) {
                     entry[1] = false
                 }
             } else {
+                entry[2].t.forEach(e => skiplist.add(e))
                 entry[1] = true
                 cursor = false 
             }
@@ -332,8 +386,8 @@ export class Dsl {
     private unfinalized = 0
 
     public unsafe = {
-        if: (pubkey: string, yes: string[], no: string[], args: {[id: string]: string} = {}, allowSwaps: boolean = false, allowMisplacedPay = true) => {
-            return this.if(pubkey, yes, no, args, allowSwaps, allowMisplacedPay)
+        if: (pubkey: string, yes: string[], no: string[], args: {[id: string]: string} = {}, allowSwaps: boolean = false, allowMisplacedPay = true, strict = false) => {
+            return this.if(pubkey, yes, no, args, allowSwaps, allowMisplacedPay, strict)
         },
         numeric: {
             outcome: (pubkey: string, from: number, to: number, step: number = 1, args: {[id: string]: string} = {}, allowMisplacedPay = true) => {
@@ -349,7 +403,10 @@ export class Dsl {
             }
         },
         ifAtomicSwapLeg1: (lock: string = "TRUTH", unlockOutcome: string = "true", allowMisplacedPay = true) => {
-            return this.if(lock, [unlockOutcome], [unlockOutcome], {}, true, allowMisplacedPay)
+            return this.if(lock, [unlockOutcome], [unlockOutcome], {}, true, allowMisplacedPay, false)
+        },
+        outcome: (pubkey: string, yes: string[], no: string[], args: {[id: string]: string} = {}, allowTruth = false, strict = false) => {
+            return this.outcome(pubkey, yes, no, args, allowTruth, strict)
         }
 
     }
@@ -399,7 +456,7 @@ export class Dsl {
                     if (r.length === 0) {
                         return
                     }
-                    this.if (pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args, false, allowMisplacedPay).then(h => {
+                    this.unsafe.if (pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args, false, allowMisplacedPay).then(h => {
                         if (l.length === 1) {
                             payhandler(h, l[0])
                         } else {
@@ -466,7 +523,7 @@ export class Dsl {
                     if (r.length === 0) {
                         return
                     }
-                    this.if(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args, false, allowMisplacedPay).then(h => {
+                    this.unsafe.if(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args, false, allowMisplacedPay).then(h => {
                         if (l.length === 1) {
                             payhandler(h, l[0])
                         } else {
@@ -499,7 +556,7 @@ export class Dsl {
                     if (r.length === 0) {
                         return
                     }
-                    if (this.outcome(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args)) {
+                    if (this.unsafe.outcome(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args)) {
                         if (l.length === 1) {
                             handler(l[0])
                         } else {
@@ -615,7 +672,7 @@ export class Dsl {
                     if (r.length === 0) {
                         return
                     }
-                    if (this.outcome(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args)) {
+                    if (this.unsafe.outcome(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args)) {
                         if (l.length === 1) {
                             handler(l[0])
                         } else {
@@ -722,14 +779,14 @@ export class Dsl {
     }
 
 
-    public if = (pubkey: string, yes: string[], no: string[], args: {[id: string]: string} = {}, allowSwaps: boolean = false, allowMisplacedPay = false) => {
+    public if = (pubkey: string, yes: string[], no: string[], args: {[id: string]: string} = {}, allowSwaps: boolean = false, allowMisplacedPay = false, strict = true) => {
         let contradiction = false
         const yesSet = new Set(yes)
         const noSet = new Set(no)
         if (yes.find(x => noSet.has(x)) || no.find(x => yesSet.has(x))) {
             contradiction = true
         }
-        const observation = this.outcome(pubkey, yes, no, args, allowSwaps, !allowSwaps)
+        const observation = this.outcome(pubkey, yes, no, args, allowSwaps, strict)
         const currentNode = this.cursor
         const currentPrevNode = this.prev
         const currentLastOutcome = this.lastOutcome
@@ -1036,10 +1093,10 @@ if (require.main === module) {
             const a = 60
             if (dsl.outcome("really?", ["YES"], ["NO"])) {
                 dsl.pay(Dsl.Bob, a + 100) 
-                const out1 = dsl.outcome("is it?", ["YES"], ["NO"])
+                const out1 = dsl.outcome("is it?", ["YES"], ["NO", "DON'T KNOW"])
                 if (out1) {
                     dsl.pay(Dsl.Alice, 40)
-                    if (dsl.outcome("is it?", ["DON'T KNOW"], ["NO"])) {
+                    if (dsl.outcome("is it?", ["DON'T KNOW"], ["NO", "YES"])) {
                         dsl.pay(Dsl.Bob, 40)
                         dsl.if("lol?", ["yup"], ["nope"]).then(funds => {
                             funds.pay(Dsl.Bob, 20)
