@@ -364,6 +364,8 @@ dsl.ifAtomicSwapLeg1("hashlock", "verified").then(pay => {
                 // alice did not reveal pk for repayment wallet, since Bob sent money there
                 // graceful termination
             })
+        })
+    })
 })
 ```
 
