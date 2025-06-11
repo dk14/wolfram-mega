@@ -494,6 +494,83 @@ dates.reduce(([capitalisation1, capitalisation2], date) => {
 
 > `valueWithPaymentCtxUnsafe` is meant to (optionally) avoid contextual continuations. Pure functional way would be to just use `.evaluateWithPaymentCtx((value, context) => {...})` continuation  twice (one in `then`, the other in `else`). But since, resources are checked automatically, above representation is simply more compact, efficient and still reasonably safe - mispositioning `release` would delay payout simply (and only possible with `dsl.unsafe.numeric` which we don't use here).
 
+
+#### "Perpetual" Interest Rate Swap
+
+```ts
+const collateralAlice = 10000
+const collateralBob = 10000
+const startDate = 1
+const MaxInfinity = 100000000 // a worst-case bound for recursion, e.g. if collaterals are not decreasing
+
+const multicontract = new Dsl(dsl => {
+    let notionalAlice = collateralAlice
+    let notionalBob = collateralBob
+    let date = startDate
+
+    const floatingLegIndex = "interest rate index?"
+    const fixedRate = 3
+    const quantisationStep = 1
+
+    while (date < MaxInfinity) {
+        const floatingRate = dsl.numeric
+            .outcome(floatingLegIndex, 0, 5, quantisationStep, {date})
+            .value() //just value - since payouts are unconditional without capitalisation schedule
+
+        date++
+
+        const floatingPayout = notionalAlice * (floatingRate / 100) 
+        const fixedPayout = notionalBob * (fixedRate / 100)
+
+        notionalAlice -= fixedPayout
+        notionalBob -= floatingPayout
+
+        if (notionalAlice > 0) {
+            dsl.party("bob").pays("alice").amount(fixedPayout)
+        } else {
+            dsl.party("bob").pays("alice").amount(notionalAlice + fixedPayout) //`a - b + b = a` must hold for it to work
+        }
+
+        if (notionalBob > 0) {
+            dsl.party("alice").pays("bob").amount(floatingPayout)
+        } else {
+            dsl.party("alice").pays("bob").amount(notionalBob + floatingPayout) //`a - b + b = a` must hold for it to work
+        } 
+        
+        if (notionalAlice < 0 || notionalBob < 0) {
+            break;
+        }
+    }
+
+    if (notionalAlice > 0 || notionalBob > 0) {
+        throw Error("Inifinity reached! Collaterals are not decreasing!")
+    }
+}).multi("alice", "bob")
+.enumerateWithBoundMulti([[collateralAlice, collateralBob]])
+
+const contract = (await multicontract)[0][3] //extract from multi-contract; although multi is unnecessary for 2-party
+
+assert(collateralAlice === evaluatePartyCollateral(contract))
+assert(collateralBob === evaluateCounterpartyCollateral(contract))
+//^ might not hold precisely - see comments
+```
+
+Certain values of floating rate will create a perfect-hedge - these values must be excluded from the type (use `dsl.set` instead), so contract can be priced properly. Another, unsafe, option would be to automate pricing:
+
+```ts
+try {
+    dsl.party("alice").pays("bob").amount(floatingPayout)
+} catch (e) {
+    if (e instanceof DslErrors.PerfectHedgeError) {
+        // this will prolong lifetime of the swap!
+        notionalBob += floatingPayout //put it back like never happened
+        // swap reaching Infinity would be an "Absolute Perfect Hedge" achievement.
+    }
+}
+```
+
+> The swap example also shows how numeric imprecisión can get one (or even few satochi) stuck. If chain-interpreter supports it - contracts auto-refund remaining collateral.
+
 > Note: only `pay`s must be integers (they get rounded to nearest if you don't round them properly), since sats are integers. All internal computations can be done with any type of number: "real", rational, "complex", matricies, quaternions, dedekind nonsense cuts, functors, group generators, monoids/semigroups, combinatorial groups, topoi etc.
 
 ### Set observations

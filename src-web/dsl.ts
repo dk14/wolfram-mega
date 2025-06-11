@@ -25,6 +25,10 @@ type PaymentHandler = {
     release?: () => void
 }
 
+export namespace DslErrors {
+    export class PerfectHedgeError extends Error {}
+}
+
 export class Dsl {
 
     private state: {[pubkey: string]: [number, boolean, Dependants]} = {}
@@ -69,7 +73,7 @@ export class Dsl {
                 if (this.prev.betOn === undefined || this.prev.betOn === true) {
                     this.prev.betOn = true
                 } else {
-                    throw new Error("Perfect hedge! Trader not allowed to benefit regardless of outcome. Your trade is overcollaterized!")
+                    throw new DslErrors.PerfectHedgeError("Perfect hedge! Trader not allowed to benefit regardless of outcome. Your trade is overcollaterized!")
                 }
             }
     
@@ -77,7 +81,7 @@ export class Dsl {
                 if(this.prev.betOn === undefined || this.prev.betOn === false) {
                     this.prev.betOn = false
                 } else {
-                    throw new Error("Perfect hedge! Trader not allowed to benefit regardless of outcome. Your trade is overcollaterized!")
+                    throw new DslErrors.PerfectHedgeError("Perfect hedge! Trader not allowed to benefit regardless of outcome. Your trade is overcollaterized!")
                 }
             }
         }
@@ -834,7 +838,7 @@ export class Dsl {
                             if (party !== undefined && idx !== party){
                                 sum -= amount
                             } else {
-                                throw new Error ("Perfect Hedge! Party cannot benefit regardless of outcome!")
+                                throw new DslErrors.PerfectHedgeError ("Perfect Hedge! Party cannot benefit regardless of outcome!")
                             }  
                         }
                     },
@@ -935,7 +939,7 @@ export class Dsl {
                             pay: (idx: 0 | 1, amount: number): void => {
                                 if (counterparty === undefined || idx === counterparty) {
                                     if (party !== undefined && counterparty !== undefined && party === counterparty) {
-                                        throw new Error ("Perfect Hedge! Party cannot benefit regardless of outcome!")
+                                        throw new DslErrors.PerfectHedgeError ("Perfect Hedge! Party cannot benefit regardless of outcome!")
                                     }
                                     counterparty = idx
                                     sum += amount
@@ -943,7 +947,7 @@ export class Dsl {
                                     if (counterparty !== undefined && idx !== counterparty){
                                         sum -= amount
                                     } else {
-                                        throw new Error ("Perfect Hedge! Party cannot benefit regardless of outcome!")
+                                        throw new DslErrors.PerfectHedgeError ("Perfect Hedge! Party cannot benefit regardless of outcome!")
                                     }  
                                 }
                             },
@@ -1116,8 +1120,6 @@ export class Dsl {
     }
 }
 
-
-
 if (require.main === module) {
     (async () => {
         const model = await (new Dsl(async dsl => {
@@ -1224,7 +1226,7 @@ if (require.main === module) {
             if (dsl.outcome("really?", ["YES"], ["NO"])) {
                 dsl.party("alice", "usd").pays("bob", "btc").amount(10000000, "usd")
             } else {
-               dsl.party("bob", "btc").pays("alice", "usd").amount(10, "btc")
+                dsl.party("bob", "btc").pays("alice", "usd").amount(10, "btc")
             }
         })).multiple(Dsl.account("alice", "usd"), Dsl.account("bob", "btc")).enumerateWithBoundMulti([[1000000000, 20000]])
         console.log(assets)
