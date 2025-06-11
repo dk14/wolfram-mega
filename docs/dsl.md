@@ -334,7 +334,11 @@ Shortcut:
 
 > Interpreter must understand your swap-lock conditions: it could be oracle allowing swap ("PTLC-lock" in BTC), or as in case with crypto-loans, it could be hash-lock conditon for signing atomicity, or just "true" if `OfferTerms` interpreter can optimize it (see Contracts doc).
 
-> Party role reversal (negative amounts) won't work for cross-currency. There is a semantical check: "minus 5 dollar does not imply plus 5 btc".
+> Party role reversal (negative amounts) is disabled for cross-currency. There is a semantical check: "minus 5 dollar does not imply plus 5 btc".
+
+> "Perfect hedge" check is NOT bypassed here. Discreet still prevents you from swapping funds with yourself. Only semantics of observation are bypassed, since both branches have to be executed simulteniously when condition is unlocked. 
+
+> Not to be confused with a lock-check - locks can be checked with regular `dsl.if("lock", ["true"], ["false"])` rather than `dsl.if("lock", ["true"], ["true"])` (this specifically means atomic swap).
 
 #### Payment At Maturity (crypto-loan)
 
