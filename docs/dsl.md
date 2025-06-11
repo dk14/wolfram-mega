@@ -375,7 +375,7 @@ if (dsl.outcome("bob and alice create an atomic swap on date $date", ["yes"], ["
 
 > This contract can also be repurposed as a security deposit for vanilla IRL loan. Just add extra "lending" payout from Bob to Alice (or mafia to Alice). Then future one-sided "swap" would be paying it back (in exchange for satisfying mafia with payout of incentive). 
 
-> Many IRL financial instruments are possible with this approach, as long as mafia has PoW-issued id to avoid conspiracy with either party, or lazyness. In order to ackuire such id, mafia can become special Mega-oracle. As Mega-oracle mafia would only have a single possible outcome to attest to, and very specific questions. It would be accountable since PoW-reports can be filed against it.
+> Many IRL financial instruments are possible with this approach, as long as mafia has PoW-issued id to not let mafia conspire with either party, or become lazy. In order to ackuire such id, mafia can become special Mega-oracle. As Mega-oracle mafia would only have a single possible outcome to attest to, and very specific questions it answers. Mafia would be accountable since PoW-reports can be filed against it.
 
 > Note: Third-party oracle can be avoided with Schnorr adaptor signatures. One of the parties (or both) can reveal "proof of empty pockets" for pre-agreed wallets, so mafia would lose incentive automatically if pockets are empty.
 
