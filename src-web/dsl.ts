@@ -546,23 +546,23 @@ export class Dsl {
             },
             value: (): string => {
                 const recurse = (l: string[], r: string[]) => {
-                    if (l.length === 0) {
-                        return
+                    if (l.length === 1 && r.length === 0) {
+                        return l[0]
                     }
-                    if (r.length === 0) {
-                        return
+                    if (r.length === 1 && l.length === 0) {
+                        return r[0]
                     }
                     if (this.outcome(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args)) {
                         if (l.length === 1) {
                             return l[0]
                         } else {
-                            recurse(l.slice(0, l.length / 2), l.slice(l.length / 2))
+                            return recurse(l.slice(0, l.length / 2), l.slice(l.length / 2))
                         }
                     } else {
                         if (r.length === 1) {
                             return r[0]
                         } else {
-                            recurse(r.slice(0, r.length / 2), r.slice(r.length / 2))
+                            return recurse(r.slice(0, r.length / 2), r.slice(r.length / 2))
                         }
                     }
                 }
@@ -659,23 +659,23 @@ export class Dsl {
             },
             value: (): T => {
                 const recurse = (l: T[], r: T[]) => {
-                    if (l.length === 0) {
-                        return
+                    if (l.length === 1 && r.length === 0) {
+                        return l[0]
                     }
-                    if (r.length === 0) {
-                        return
+                    if (r.length === 1 && l.length === 0) {
+                        return r[0]
                     }
                     if (this.outcome(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args)) {
                         if (l.length === 1) {
                             return l[0]
                         } else {
-                            recurse(l.slice(0, l.length / 2), l.slice(l.length / 2))
+                            return recurse(l.slice(0, l.length / 2), l.slice(l.length / 2))
                         }
                     } else {
                         if (r.length === 1) {
                             return r[0]
                         } else {
-                            recurse(r.slice(0, r.length / 2), r.slice(r.length / 2))
+                            return recurse(r.slice(0, r.length / 2), r.slice(r.length / 2))
                         }
                     }
                 }
