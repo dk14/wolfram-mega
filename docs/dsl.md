@@ -169,7 +169,7 @@ const model = await (new Dsl(async dsl => {
 await database.push("a", a_nondeterministic) //[30, 31]
 ```
 
-> Discreet enumerates all possible meaningful outcomes by design - so types in contracts have to be chosen carefully - they have to be human-interpretable, meaningful. Even if it's DOJ-index - you have to pick the ranges of values with meaning. 
+> Discreet enumerates all possible meaningful outcomes by design - so types of outcomes in contracts have to be chosen carefully - they have to be human-interpretable, meaningful. Even if it's DOJ-index - you have to pick the ranges of values with meaning. 
 
 > Ranges are allowed - 0..100 is a single outcome. Numerics on observed data (multiplications, sum) however would still require larger (but not full) enumeration. E.g. you can even "0..5", "5..10" on interest rate and then multiply, sum, recurse on it.
 
