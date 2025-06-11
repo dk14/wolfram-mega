@@ -15,7 +15,9 @@ Discreet Typescript Code
 
 > "Discreet" misspelled on purpose
 
-Discreet outputs `OfferModel`, which matching engine turns into `OfferTerms`. The language is super-easy and embedded into TypeScript.
+Discreet outputs `OfferModel`, which matching engine turns into `OfferTerms`. 
+
+The language is super-easy and embedded into TypeScript.
 
 Discreet is based on modern quantitative finance and renders to a tree of binary options, thus allowing expression of **arbitrary financial contracts**.
 
