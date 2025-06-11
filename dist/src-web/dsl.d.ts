@@ -53,7 +53,7 @@ export declare class Dsl {
     unsafe: {
         if: (pubkey: string, yes: string[], no: string[], args?: {
             [id: string]: string;
-        }, allowSwaps?: boolean, allowMisplacedPay?: boolean) => {
+        }, allowSwaps?: boolean, allowMisplacedPay?: boolean, strict?: boolean) => {
             then: (handler: (handle: PaymentHandler) => void) => {
                 else: (handler: (handle: PaymentHandler) => void) => void;
             };
@@ -91,6 +91,9 @@ export declare class Dsl {
                 else: (handler: (handle: PaymentHandler) => void) => void;
             };
         };
+        outcome: (pubkey: string, yes: string[], no: string[], args?: {
+            [id: string]: string;
+        }, allowTruth?: boolean, strict?: boolean) => boolean;
     };
     numeric: {
         outcome: (pubkey: string, from: number, to: number, step?: number, args?: {
@@ -122,7 +125,7 @@ export declare class Dsl {
     };
     if: (pubkey: string, yes: string[], no: string[], args?: {
         [id: string]: string;
-    }, allowSwaps?: boolean, allowMisplacedPay?: boolean) => {
+    }, allowSwaps?: boolean, allowMisplacedPay?: boolean, strict?: boolean) => {
         then: (handler: (handle: PaymentHandler) => void) => {
             else: (handler: (handle: PaymentHandler) => void) => void;
         };
