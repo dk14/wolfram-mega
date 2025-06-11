@@ -564,7 +564,7 @@ try {
     if (e instanceof DslErrors.PerfectHedgeError) {
         // this will prolong lifetime of the swap!
         notionalBob += floatingPayout //put it back like never happened
-        // swap reaching Infinity would be an "Absolute Perfect Hedge" achievement.
+        // swap reaching "Infinity" would be an "Absolute Perfect Hedge" achievement.
     }
 }
 ```
