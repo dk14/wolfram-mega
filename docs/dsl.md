@@ -501,7 +501,6 @@ dates.reduce(([capitalisation1, capitalisation2], date) => {
 const collateralAlice = 10000
 const collateralBob = 10000
 const startDate = 1
-const MaxInfinity = 100000000 // a worst-case bound for recursion, e.g. if collaterals are not decreasing
 
 const multicontract = new Dsl(dsl => {
     let notionalAlice = collateralAlice
@@ -512,12 +511,11 @@ const multicontract = new Dsl(dsl => {
     const fixedRate = 3
     const quantisationStep = 1
 
-    while (date < MaxInfinity) {
+    //throws `DslErrors.InifinityError`
+    dsl.numeric.infinity.bound(100000).perpetual(date => {
         const floatingRate = dsl.numeric
             .outcome(floatingLegIndex, 0, 5, quantisationStep, {date})
             .value() //just value - since payouts are unconditional without capitalisation schedule
-
-        date++
 
         const floatingPayout = notionalAlice * (floatingRate / 100) 
         const fixedPayout = notionalBob * (fixedRate / 100)
@@ -538,13 +536,11 @@ const multicontract = new Dsl(dsl => {
         } 
         
         if (notionalAlice < 0 || notionalBob < 0) {
-            break;
-        }
-    }
-
-    if (notionalAlice > 0 || notionalBob > 0) {
-        throw Error("Inifinity reached! Collaterals are not decreasing!")
-    }
+            return dsl.infinity.stop
+        } else {
+            return dsl.infinity.move
+        }          
+    })
 }).multi("alice", "bob")
 .enumerateWithBoundMulti([[collateralAlice, collateralBob]])
 

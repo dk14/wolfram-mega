@@ -9,12 +9,6 @@ type CacheEntry  = {
     pubkeyUnique: string
 }
 
-type Dependants = {
-    t: Set<number>
-    f: Set<number>
-}
-
-
 type PaymentHandler = {
     pay: (idx: 0 | 1, amount: number) => void
     party: (partyName: string, partyAsset?: string) => ({
@@ -27,11 +21,13 @@ type PaymentHandler = {
 
 export namespace DslErrors {
     export class PerfectHedgeError extends Error {}
+    export class InfinityError extends Error {}
+    export class InfinityCountError extends Error {}
 }
 
 export class Dsl {
 
-    private state: {[pubkey: string]: [number, boolean, Dependants]} = {}
+    private state: {[pubkey: string]: [number, boolean]} = {}
 
     private template(): OfferModel {
         const model: OfferModel = {
@@ -197,7 +193,7 @@ export class Dsl {
         const pubkeyUnique = pubkey + "-###-" + this.counter
         if (this.state[pubkeyUnique] === undefined) {
             const max = Object.values(this.state).length === 0 ? -1 : Math.max(...Object.values(this.state).map(x => x[0]))
-            this.state[pubkeyUnique] = [max + 1, null, {t: new Set(), f: new Set()}]
+            this.state[pubkeyUnique] = [max + 1, null]
             this.checked.push(this.state[pubkeyUnique][0])
             this.memoize.push({
                 id: pubkey, yes, no, args, pubkeyUnique
@@ -226,34 +222,11 @@ export class Dsl {
     }
 
     private next(): boolean {
-        function setUnion(set, ...iterables) {
-            for (const iterable of iterables) {
-                for (const item of iterable) {
-                    set.add(item);
-                }
-            }
-        }
         this.cursor = this.root
         this.prev = undefined
         let i = 0
         let cursor = true
-        let entry: [number, Boolean, Dependants] = undefined
-
-        for (let [j, st, d] of Object.values(this.state)) {
-            if (st) {
-                setUnion(d.t, new Set(this.checked))
-            } else {
-                setUnion(d.f, new Set(this.checked))
-            }
-            
-            d.t = new Set([...d.t].filter(x => !d.f.has(x)))
-            d.f = new Set([...d.f].filter(x => !d.t.has(x)))
-
-            //console.log(d.t)
-
-        }
-
-        const skiplist = new Set()
+        let entry: [number, Boolean] = undefined
 
         
         while (cursor) {
@@ -263,12 +236,6 @@ export class Dsl {
             }
             entry = Object.values(this.state).find(x => x[0] === i)
 
-            console.log(skiplist)
-            if (skiplist.has(i)) {
-                i++
-                continue
-            }
-
             if (entry[1] === null && cursor) {
                 entry[1] = false
                 return true
@@ -277,12 +244,10 @@ export class Dsl {
                 return true
             }
             if (entry[1] === true) {
-                entry[2].f.forEach(e => skiplist.add(e))
                 if (cursor === true) {
                     entry[1] = false
                 }
             } else {
-                entry[2].t.forEach(e => skiplist.add(e))
                 entry[1] = true
                 cursor = false 
             }
@@ -446,7 +411,55 @@ export class Dsl {
 
     }
 
+     public infinity = {
+        move: true,
+        stop: false,
+        bound: <T>(maxInfinity: T, maxCount = 10000) => ({
+            compare: (cmp: (a: T, b: T) => number) => ({
+                progress: (forward: (x: T) => T) => ({
+                    perpetual: (start: T, step: (x: T) => boolean) => {
+                        let cursor = start
+                        let counter = 0
+                        while (cmp(cursor, maxInfinity) > 0 && counter < maxCount) {
+                            if(!step(cursor)){
+                                return
+                            }
+                            cursor = forward(cursor)
+                            counter++
+                        }
+                        if (counter >= maxCount) {
+                            throw new DslErrors.InfinityCountError("Max count reached!")
+                        }
+                        if (cmp(cursor, maxInfinity) <= 0) {
+                            throw new DslErrors.InfinityError("Infinity Reached! Collaterals are not deccreasing?")
+                        }
+                    }
+                })
+            })
+        })
+    }
+
     public numeric = {
+        infinity: {
+            bound: (maxInfinity = 10000000, maxCount = 1000000000) => ({
+                progress: (forward: (x: number) => number = x => x + 1) => ({
+                    perpetual: (start: number, step: (x: number) => boolean) => {
+                        this.infinity
+                        .bound(maxInfinity, maxCount)
+                        .compare((a,b) => a - b)
+                        .progress(forward)
+                        .perpetual(start, step)
+                    }
+                }),
+                perpetual: (step: (x: number) => boolean, start = 0) => {
+                    this.infinity
+                    .bound(maxInfinity, maxCount)
+                    .compare((a,b) => b - a)
+                    .progress(x => x + 1)
+                    .perpetual(start, step)
+                }
+            })
+        },
         outcome: (pubkey: string, from: number, to: number, step: number = 1, args: {[id: string]: string} = {}, allowMisplacedPay = false) => ({
             evaluate: (handler: (n: number) => void) => {
                 let numbers = []
@@ -521,7 +534,7 @@ export class Dsl {
                     if (r.length === 1 && l.length === 0) {
                         return r[0]
                     }
-                    if (this.outcome(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args)) {
+                    if (this.unsafe.outcome(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args)) {
                         if (l.length === 1) {
                             return l[0]
                         } else {
@@ -1240,6 +1253,9 @@ if (require.main === module) {
                 
             }).else(pay => {
                 pay.party("bob", "btc").pays("alice", "usd").amount(10, "btc")
+            })
+            dsl.numeric.infinity.bound(100).perpetual(x => {
+                return dsl.infinity.stop
             })
         })).multiple(Dsl.account("alice", "usd"), Dsl.account("bob", "btc")).enumerateWithBoundMulti([[10000000000, 200000]])
         console.log(swap)
