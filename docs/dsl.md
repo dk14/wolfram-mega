@@ -635,10 +635,10 @@ console.log(turing(1)()) //50
 
 Both, overcollaterization and undercollaterization can be seen as an attempt at perpetual motion. 
 
-When unnecessary collateral is locked - trader puts energy from nowhere (nature is efficient).
+When unnecessary collateral is locked - trader **puts** energy from nowhere (nature is efficient, thus trader miscalculates).
 It breaks conservation.
 
-When collateral double-counted (which Bitcoin finite supply prevents) - trader takes energy from nowhere.
+When collateral double-counted (which Bitcoin finite supply prevents in theory) - trader **takes** energy from nowhere.
 It breaks conservation.
 
 Formally, this is simply:
@@ -663,7 +663,7 @@ decideNextAction()
 
 Typesefaty of Discreet is meant to ensure this does not happen as long as logic of the contract is sound. 
 
-> Discreet relies on assumption that money supply is not "infinite" itself (non-zero energy/value of a unit).
+> Discreet relies on assumption that money supply is not "infinite" itself during lifespan of a contract. Non-zero energy/value of a unit. Units should have meaning.
 
 ### Applicability of SMT solvers
 
