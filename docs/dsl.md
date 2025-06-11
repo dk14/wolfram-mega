@@ -566,7 +566,7 @@ try {
 }
 ```
 
-> The swap example also shows how numeric imprecisión can get one (or even few satochi) stuck. If chain-interpreter supports it - contracts auto-refund remaining collateral.
+> The swap example also shows how numeric imprecisión can get one (or even few) satochi stuck. Discreet makes it safe: if chain-interpreter supports auto-refunds - contracts auto-refund remaining collateral.
 
 > Note: only `pay`s must be integers (they get rounded to nearest if you don't round them properly), since sats are integers. All internal computations can be done with any type of number: "real", rational, "complex", matricies, quaternions, dedekind nonsense cuts, functors, group generators, monoids/semigroups, combinatorial groups, topoi etc.
 
