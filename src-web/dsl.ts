@@ -385,6 +385,30 @@ export class Dsl {
 
     private unfinalized = 0
 
+
+    private static track: {[id: string]: number} = {}
+
+    public static recurse = {
+        bounded: <U>(fn: () => U) => ({
+            attempts: (attempts: number) => ({
+                otherwiseYield: (defaultValue: U): (() => U) => {
+                    if (!this.track[fn.toString()]) {
+                        this.track[fn.toString()] = 0
+                    }
+                
+                    return () => {
+                        this.track[fn.toString()] = this.track[fn.toString()] + 1
+                        if (this.track[fn.toString()] > attempts) {
+                            return defaultValue
+                        }
+                        return fn()
+                    }
+
+                }
+            }) 
+        })    
+    }
+
     public unsafe = {
         if: (pubkey: string, yes: string[], no: string[], args: {[id: string]: string} = {}, allowSwaps: boolean = false, allowMisplacedPay = true, strict = false) => {
             return this.if(pubkey, yes, no, args, allowSwaps, allowMisplacedPay, strict)
@@ -1210,6 +1234,16 @@ if (require.main === module) {
             })
         })).multiple(Dsl.account("alice", "usd"), Dsl.account("bob", "btc")).enumerateWithBoundMulti([[10000000000, 200000]])
         console.log(swap)
+
+        const turing = (a: number) => () => {
+            if (a > 5) {
+                return 7
+            } else {
+                return Dsl.recurse.bounded(turing(a)).attempts(30).otherwiseYield(50)()
+            }
+        }
+        console.log(turing(7)())
+        console.log(turing(1)())
 
         console.log("OK!")
     })()

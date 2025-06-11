@@ -568,6 +568,61 @@ DSL enumerates all possible outcomes, thus removing the need for random walk.
 
 ## Technical Notes
 
+### Typesafety
+
+Typesafety is meant to ensure energy conservation. Types were historically introduced to lambdas as STLC as a way to avoid "perpetual motion". Here, in Discreet - we avoid it by design, since `enumerateWithBound` asks finite collaterals (bounded recursion).
+
+For code NOT involving payments (pure functions), Typescript is responsible for safety, it would give you stackoverflow. 
+
+Discreet additionally provides convinience sugar for pure functions that are meant to go beyound any known boundary (e.g. for precision):
+
+```ts
+const turing = (a: number) => () => {
+    if (a > 5) {
+        return 7
+    } else {
+        return Dsl.recurse.bounded(turing(a)).attempts(5).otherwiseYield(50)()
+    }
+}
+
+console.log(turing(8)()) // 7
+console.log(turing(1)()) //50
+```
+
+#### Over-under-collaterization
+
+Both, overcollaterization and undercollaterization can be seen as an attempt at perpetual motion. 
+
+When unnecessary collateral is locked - trader puts energy from nowhere (nature is efficient).
+It breaks conservation.
+
+When collateral double-counted (which Bitcoin finite supply prevents) - trader takes energy from nowhere.
+It breaks conservation.
+
+Formally, this is simply:
+
+```ts
+while (collateral > 0 && collateral < n) {
+    trade(collateral)
+
+    while (collateral <= 0) {
+        collateral += 20 // overcollaterize
+    }
+    
+    while (collateral > n) {
+        collateral = n - 1 // undercollaterize
+    }
+
+    // PROFIT???
+}
+contactEnvironment() // neurotically unreachable
+decideNextAction()
+```
+
+Typesefaty of Discreet is meant to ensure this does not happen as long as logic of the contract is sound. 
+
+> Discreet relies on assumption that money supply is not "infinite" itself (non-zero energy/value of a unit).
+
 ### Applicability of SMT solvers
 
 SMT solvers can only benefit the interpreter in terms of fast fail in linting. 
