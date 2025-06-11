@@ -21,7 +21,13 @@ type PaymentHandler = {
 
 export namespace DslErrors {
     export class PerfectHedgeError extends Error {}
-    export class InfinityError extends Error {}
+    export class InfinityError<ST> extends Error {
+        public state: ST = undefined
+        constructor(msg: string, st: ST) {
+            super(msg)
+            this.state = st
+        }
+    }
     export class InfinityCountError extends Error {}
 }
 
@@ -412,17 +418,28 @@ export class Dsl {
     }
 
      public infinity = {
-        move: true,
-        stop: false,
+        move: <T>(x: T) => {
+            if (x === undefined) {
+                throw new Error("Cannot move with undefined state!")
+            }
+            return x
+        },
+        stop: undefined,
         bound: <T>(maxInfinity: T, maxCount = 10000) => ({
             compare: (cmp: (a: T, b: T) => number) => ({
-                progress: (forward: (x: T) => T) => ({
-                    perpetual: (start: T, step: (x: T) => boolean) => {
+                progress: (start: T, forward: (x: T) => T) => ({
+                    perpetual: <ST>(init: ST, step: (x: T, st: ST) => ST) => {
                         let cursor = start
                         let counter = 0
+                        let state = init
                         while (cmp(cursor, maxInfinity) > 0 && counter < maxCount) {
-                            if(!step(cursor)){
+                            const saveState = state
+                            state = step(cursor, state)
+                            if (state === undefined){
                                 return
+                            }
+                            if (state === saveState) {
+                                throw new DslErrors.InfinityError("Infinity Inferred! State did not progress! Collaterals are not decreasing?", state)
                             }
                             cursor = forward(cursor)
                             counter++
@@ -431,7 +448,7 @@ export class Dsl {
                             throw new DslErrors.InfinityCountError("Max count reached!")
                         }
                         if (cmp(cursor, maxInfinity) <= 0) {
-                            throw new DslErrors.InfinityError("Infinity Reached! Collaterals are not deccreasing?")
+                            throw new DslErrors.InfinityError("Infinity Reached! Collaterals are not decreasing?", state)
                         }
                     }
                 })
@@ -442,21 +459,21 @@ export class Dsl {
     public numeric = {
         infinity: {
             bound: (maxInfinity = 10000000, maxCount = 1000000000) => ({
-                progress: (forward: (x: number) => number = x => x + 1) => ({
-                    perpetual: (start: number, step: (x: number) => boolean) => {
+                progress: (start: number, forward: (x: number) => number = x => x + 1) => ({
+                    perpetual: <T>(init: T, step: (x: number, st: T) => T) => {
                         this.infinity
                         .bound(maxInfinity, maxCount)
                         .compare((a,b) => a - b)
-                        .progress(forward)
-                        .perpetual(start, step)
+                        .progress(start, forward)
+                        .perpetual(init, step)
                     }
                 }),
-                perpetual: (step: (x: number) => boolean, start = 0) => {
+                perpetual: <T>(init: T, step: (x: number, st: T) => T) => {
                     this.infinity
                     .bound(maxInfinity, maxCount)
                     .compare((a,b) => b - a)
-                    .progress(x => x + 1)
-                    .perpetual(start, step)
+                    .progress(0, x => x + 1)
+                    .perpetual(init, step)
                 }
             })
         },
@@ -1254,7 +1271,7 @@ if (require.main === module) {
             }).else(pay => {
                 pay.party("bob", "btc").pays("alice", "usd").amount(10, "btc")
             })
-            dsl.numeric.infinity.bound(100).perpetual(x => {
+            dsl.numeric.infinity.bound(100).perpetual(0, (x, st) => {
                 return dsl.infinity.stop
             })
         })).multiple(Dsl.account("alice", "usd"), Dsl.account("bob", "btc")).enumerateWithBoundMulti([[10000000000, 200000]])

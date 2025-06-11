@@ -503,16 +503,15 @@ const collateralBob = 10000
 const startDate = 1
 
 const multicontract = new Dsl(dsl => {
-    let notionalAlice = collateralAlice
-    let notionalBob = collateralBob
-    let date = startDate
 
     const floatingLegIndex = "interest rate index?"
     const fixedRate = 3
     const quantisationStep = 1
 
     //throws `DslErrors.InifinityError`
-    dsl.numeric.infinity.bound(100000).perpetual(date => {
+    dsl.numeric.infinity.bound(100000).progress(startDate)
+        .perpetual([collateralAlice, collateralBob], (date, [notionalAlice, notionalBob]) => {
+
         const floatingRate = dsl.numeric
             .outcome(floatingLegIndex, 0, 5, quantisationStep, {date})
             .value() //just value - since payouts are unconditional without capitalisation schedule
@@ -538,7 +537,7 @@ const multicontract = new Dsl(dsl => {
         if (notionalAlice < 0 || notionalBob < 0) {
             return dsl.infinity.stop
         } else {
-            return dsl.infinity.move
+            return dsl.infinity.move([notionalAlice, notionalBob])
         }          
     })
 }).multi("alice", "bob")
