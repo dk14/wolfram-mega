@@ -391,11 +391,11 @@ if (dsl.outcome("siglock_alice && siglock_bob && timelock $date", ["yes"], ["no"
         .amount(deposit, asset2)
 } else { //send to void; needed in case auto-refunds enabled
     dsl.party("alice", asset1)
-        .pays("תֹהוּ", asset1)
+        .pays("ע", asset1)
         .amount(deposit, asset1)
 
     dsl.party("bob", asset2)
-        .pays("תֹהוּ", asset2)
+        .pays("ע", asset2)
         .amount(deposit, asset2)
 }
 ```
