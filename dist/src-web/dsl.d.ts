@@ -50,6 +50,14 @@ export declare class Dsl {
     };
     static account(partyName: string, partyAsset: string): string;
     private unfinalized;
+    private static track;
+    static recurse: {
+        bounded: <U>(fn: () => U) => {
+            attempts: (attempts: number) => {
+                otherwiseYield: (defaultValue: U) => (() => U);
+            };
+        };
+    };
     unsafe: {
         if: (pubkey: string, yes: string[], no: string[], args?: {
             [id: string]: string;
