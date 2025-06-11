@@ -645,7 +645,7 @@ Formally, this is simply:
 
 ```ts
 const n = aquireResources()
-while (collateral > 0 && collateral < n) { //preservation
+while (collateral > 0 && collateral < n) { // preservation
     collateral = trade(collateral)
 
     while (collateral <= 0) {
