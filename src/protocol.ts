@@ -107,6 +107,8 @@ export interface Fact {
     factWithQuestion: string
     signatureType: string
     signature: string
+    extraProofs?: any[]
+    extraProofsSignature?: string
 }
 
 export interface WithFactRequest {
