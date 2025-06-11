@@ -1,7 +1,13 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Dsl = void 0;
+exports.Dsl = exports.DslErrors = void 0;
 const async_mutex_1 = require("async-mutex");
+var DslErrors;
+(function (DslErrors) {
+    class PerfectHedgeError extends Error {
+    }
+    DslErrors.PerfectHedgeError = PerfectHedgeError;
+})(DslErrors || (exports.DslErrors = DslErrors = {}));
 class Dsl {
     state = {};
     template() {
@@ -40,7 +46,7 @@ class Dsl {
                     this.prev.betOn = true;
                 }
                 else {
-                    throw new Error("Perfect hedge! Trader not allowed to benefit regardless of outcome. Your trade is overcollaterized!");
+                    throw new DslErrors.PerfectHedgeError("Perfect hedge! Trader not allowed to benefit regardless of outcome. Your trade is overcollaterized!");
                 }
             }
             if (!this.lastOutcome && idx === 0) {
@@ -48,7 +54,7 @@ class Dsl {
                     this.prev.betOn = false;
                 }
                 else {
-                    throw new Error("Perfect hedge! Trader not allowed to benefit regardless of outcome. Your trade is overcollaterized!");
+                    throw new DslErrors.PerfectHedgeError("Perfect hedge! Trader not allowed to benefit regardless of outcome. Your trade is overcollaterized!");
                 }
             }
         }
@@ -752,7 +758,7 @@ class Dsl {
                                 sum -= amount;
                             }
                             else {
-                                throw new Error("Perfect Hedge! Party cannot benefit regardless of outcome!");
+                                throw new DslErrors.PerfectHedgeError("Perfect Hedge! Party cannot benefit regardless of outcome!");
                             }
                         }
                     },
@@ -855,7 +861,7 @@ class Dsl {
                             pay: (idx, amount) => {
                                 if (counterparty === undefined || idx === counterparty) {
                                     if (party !== undefined && counterparty !== undefined && party === counterparty) {
-                                        throw new Error("Perfect Hedge! Party cannot benefit regardless of outcome!");
+                                        throw new DslErrors.PerfectHedgeError("Perfect Hedge! Party cannot benefit regardless of outcome!");
                                     }
                                     counterparty = idx;
                                     sum += amount;
@@ -865,7 +871,7 @@ class Dsl {
                                         sum -= amount;
                                     }
                                     else {
-                                        throw new Error("Perfect Hedge! Party cannot benefit regardless of outcome!");
+                                        throw new DslErrors.PerfectHedgeError("Perfect Hedge! Party cannot benefit regardless of outcome!");
                                     }
                                 }
                             },

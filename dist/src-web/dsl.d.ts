@@ -8,6 +8,10 @@ type PaymentHandler = {
     });
     release?: () => void;
 };
+export declare namespace DslErrors {
+    class PerfectHedgeError extends Error {
+    }
+}
 export declare class Dsl {
     private state;
     private template;
