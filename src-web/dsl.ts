@@ -167,6 +167,13 @@ export class Dsl {
             throw Error("Duplicate outcomes")
         }
 
+        if (strict && (yes.length === 0 || no.length === 0)) {
+            throw Error("One of the outcome sets is empty. Trader would possibly benefit regardless of outcome. Use `dsl.unsafe` to allow!")
+        }
+
+        if (yes.length === 0 && no.length === 0) {
+            throw Error("Transaction race! Outcomes are empty. Trader cannot benefit regardless of outcome. Use `dsl.unsafe` with synthetic outcome (convention: btc script generated outcomes should start with $, e.g. $(thisTx.utxo[0])) to allow!")
+        }
 
         if (JSON.stringify(yes) === JSON.stringify(no) && !allowTruth) {
             throw Error("Contradiction! Outcomes are not mutually exclusive!")
