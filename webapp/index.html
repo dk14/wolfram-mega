@@ -225,23 +225,19 @@ Address: <font color="blue">n3W8YyK59F6vQe34uQ8n835L627k2J</font> <img src="./as
         <div id="profile" class="scrollable profile" style="display:none" class="profile">
             <div class="profile-group">
                 <pre><h3>Oracle Filter</h3></pre>
-                <pre>Strength: </pre>
+                <pre>Rank: </pre>
                 <div class="slidecontainer">
                     <input type="range" min="1" max="100" value="50" class="slider-color" id="oracle-strength">
-                </div>
-                <pre>Reputation: </pre>
-                <div class="slidecontainer">
-                    <input type="range" min="1" max="100" value="50" class="slider-color" id="oracle-reputation">
                 </div>
             </div>
             <hr>
             <div class="profile-group">
                 <pre><h3>Interests:</h3></pre>
-                <div>
-                    <button class="tag-button">sports</button>
-                    <button class="tag-button">world</button>
+                <div id="tags">
+                    <button class="tag-button" id="tag-sports" onclick="window.removeInterest('sports')">sports</button>
+                    <button class="tag-button" id="tag-world" onclick="window.removeInterest('world')">world</button>
                 </div>
-                <pre><input class="add-interest"> <button class="add-interest-button">+</button></pre>
+                <pre><input id="interest" class="add-interest"> <button id="add-interest-button" class="add-interest-button">+</button></pre>
                 <input id="confirm_orders" type="checkbox" name="confirm" checked>
                 <label for="confirm"> ask order confirmation</label><br>
             </div>
@@ -453,6 +449,25 @@ Address: <font color="blue">n3W8YyK59F6vQe34uQ8n835L627k2J</font> <img src="./as
                 } else {
                     return await window.matching.generateOffer(model.profile)
                 }
+            }
+
+            window.removeInterest = (tag) => {
+                window.model.profile.tags = window.model.profile.tags.filter(x => x != tag)
+                document.getElementById(`tag-${tag}`).remove()
+            }
+
+            document.getElementById("add-interest-button").onclick = () => {
+                const tag = document.getElementById("interest").value
+                const btn = document.createElement("button")
+                btn.className="tag-button"
+                btn.id = `tag-${tag}`
+                btn.innerText = tag;
+                window.model.profile.tags.push(tag)
+                btn.onclick = () => {
+                    removeInterest(tag)
+                }
+                document.getElementById("tags").appendChild(btn)
+
             }
 
             window.createOfferInfo = (offer) => {
