@@ -581,7 +581,10 @@ const turing = (a: number) => () => {
     if (a > 5) {
         return 7
     } else {
-        return Dsl.recurse.bounded(turing(a)).attempts(5).otherwiseYield(50)()
+        return Dsl.recurse
+            .bounded(turing(a))
+            .attempts(5)
+            .otherwiseYield(50)()
     }
 }
 
