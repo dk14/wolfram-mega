@@ -446,7 +446,7 @@ dates.reduce(([capitalisation1, capitalisation2], date) => {
         accounts.release()
         return [0, 0]
     } else {
-        accounts.release()  //resources are checked; reference counter would throw an error without this
+        accounts.release()  // resources are checked; reference counter would throw an error without this
         return [
             notional * (floatingRate / 100) + capitalisation1, 
             notional * (fixedRate / 100) + capitalisation2
@@ -455,7 +455,9 @@ dates.reduce(([capitalisation1, capitalisation2], date) => {
 }, [0,0])
 
 ```
-> Tech warning: Monads (`Cont` including) are not practically applicable here for wrapping `release`. You'll get a combination of `Either` and `Writer`/`State` if you try - they're not composable. Functional way would be to just use `.evaluateWithPaymentCtx(() => {...})` continuation  twice (one in `then`, the other in `else`). But since, resources are checked, above representation is simply more compact, efficient and still reasonably safe - mispositioning `release` would delay payout simply.
+> Tech warning: wrapping `release` with monads (`Cont` including) is not practically applicable here. You'll get a combination of `Either` and `Writer`/`State` - they're not composable, they would just produce type-perturbation. KISS. 
+
+> `valueWithPaymentCtxUnsafe` is meant to (optionally) avoid contextual continuations. Pure functional way would be to just use `.evaluateWithPaymentCtx((value, context) => {...})` continuation  twice (one in `then`, the other in `else`). But since, resources are checked automatically, above representation is simply more compact, efficient and still reasonably safe - mispositioning `release` would delay payout simply (and only possible with `dsl.unsafe.numeric` which we don't use here).
 
 > Note: only `pay`s must be integers (they get rounded to nearest if you don't round them properly), since sats are integers. All internal computations can be done with any type of number: "real", rational, "complex", matricies, quaternions, dedekind nonsense cuts, functors, group generators, monoids/semigroups, combinatorial groups, topoi etc.
 
