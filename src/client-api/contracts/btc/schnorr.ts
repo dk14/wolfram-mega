@@ -27,7 +27,7 @@ export const schnorrApi: () => SchnorrApi = () => {
         adaptorPublic: (oraclePbHex: string, msg: string, rHex: string): string => {
             const msgHex = crypto.createHash('SHA256').update(msg).digest('hex')
             const pubInt = convert.bufferToInt(adaptor.createAdaptorPoint([Buffer.from(oraclePbHex, 'hex')], [Buffer.from(msgHex, 'hex')], [Buffer.from(rHex, 'hex')]))
-    
+            //any message that requires this pubkey can be signed using oracle signature
             return pubInt.toString(16)
         },
         hashString: (str: string): string => {
