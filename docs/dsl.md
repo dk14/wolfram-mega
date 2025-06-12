@@ -72,17 +72,21 @@ Output:
 
 Discreet🌿's streamed transpiler's output (`OfferModel`) allows for final evaluations of collaterals. 
 
-Collaterals are amounts 💰 needed to support your belief about upcoming outcome of certain event, support the answer you expect to be true. Each person is unique, everyone has their own expectations about environent. Collateral 💰 is the potential energy needed to express such expectation.
-
-P.S. If comments and sections disturb you - you don't have to read everything, no one can know everything. Everyone has their own limits (at `t`). Don't let technical specifications control your life!
-
-Just take the risk and play with Discreet🌿 eDSL!
-
 > Matching has `evaluatePartyCollateral`, `evaluateCounterPartyCollateral` functions for introspection. Broadcasting `OfferModel` would automatically evaluate those.
+
+Collaterals are amounts 💰 needed to support your belief about upcoming outcome of certain event, support the answer you expect to be true. Each person is unique, everyone has their own expectations about environent. Collateral 💰 is the potential energy needed to express such expectation. Discreet evaluates amount of energy needed.
 
 > **Evaluations, NOT estimations!**. Discreet relies on **nondeterministic praxeological tautology** - everything is known, nothing left to meaningless statistical speculation. You don't know the outcome - that's where the risk comes from, NOT from DSL. You supposed to predict outcome yourself, not hope for it based on "statistical" positive re-inforcement (e.g. confidence intervals). Otherwise it's gambling with statistical buzzwords.
 
 > **Computational finance. If computer cannot enumerate portfolio - surely human won't be able to do it either**. Pricing must be done over definite outcomes. Even blurry pricing (dream-pricing) is definite pricing done on GPU (with parallelization), it is still strongly-typed. Forecasters like Random-walk, ARIMA etc hide types from you, causing confusion over what is actually priced. They also don't account for present - they infer "types" (what outcome can be) from a sample of badly collected historical data, never asking trader what the trader (human) actually knows about **present** environment. Feeding the past into the future until future becomes the past and so on, it's a perpetual motion attempt.
+
+
+P.S. If comments and sections [disturb](https://en.wikipedia.org/wiki/David_Draiman) you - you don't have to read everything, no one can know everything. Everyone has their own limits (at `t`). Don't let technical specifications control your life!
+
+> Take a moment to observe your state in here and now! What u think as past and other places is mostly in ur 🧠, just sunspots, past is already gone. The actual present is in ur 웃. Even what u see is mostly tension in your 👁💪. Look for blind spots, secrets hidden in your present environment.
+
+And when you ready - just take the risk and play with Discreet🌿 eDSL!
+
 
 ## Guarantees
 - money preservation: all outputs of transaction equal sum of all inputs
