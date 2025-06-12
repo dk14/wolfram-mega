@@ -347,7 +347,7 @@ dsl.ifAtomicSwapLeg1("hashlock", "verified").then(ctx => {
     }).else(_ => {
         dsl.if("timelock", ["yes"], ["no"]).then(ctx => { //don't even think about hashlocks on bob_usd here :) the point of loan is liquidity
             ctx.party("bob", "usd").pays("alice", "usd").amount(300, "usd") // interest (will be part of collateral if it's here)
-            dsl.unsafe.if("<alice_repayment_wallet_adaptor_pubkey_schnorr>", ["MAGIC"], [], {}).then(ctx => {
+            dsl.unsafe.if("<alice_pub>", ["MAGIC"], [], {}).then(ctx => {
                 // ^ alice revealed private key for empty repayment wallet
                 // "proof of empty pockets"
                 dsl.if("timelock2", ["yes"], ["no"]).then(_ => {
