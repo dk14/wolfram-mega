@@ -387,7 +387,6 @@ if(outcome("timelock", ["yes"], ["no"])) {
         }
     }
 }
-//no refunds - Bob won't get collateral back, but payment is locked from Alice (in HTLC-escrow) until timelock2 (grace period)
 
 
 ```
