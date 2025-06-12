@@ -102,7 +102,7 @@ Everything else you can do in javascript.
 
 > Maintaing and progressing state is done in TypeScript with arbitrary computation available. You can calculate amount of paid output based on observation and any data known prior to offer submission. Any formula, any logic.
 
-### Erasures
+### ⌫ Erasures
 
 DSL🌿 transpiler will erase javascript code, collapsing it into `observe -> pay -> ... -> observe -> pay` chains. If rendered to Bitcoin DLC - it makes contract logic 100% private - only paid amounts are visible on-chain, not **why** they paid.
 
@@ -114,7 +114,7 @@ No smart-contract/VM is required to run the resulting contract. Target chain onl
 
 > *Non-utxo  chains (and smart-contract chains in general) are NOT recommended, since they create expensive redundancies by making their nodes compute unlocking-logic that is NOT supposed to be on-chain. The code our transpiler erases is literally "smart"-contract code. The state our transpiler erases is Cardano's datum.*
 
-### Limitations
+### 🚫 Limitations
 
 Capturing variables is unsafe outside of dsl-context
 
@@ -143,7 +143,7 @@ const model = await (new Dsl(async dsl => {
     }
 })).enumerateWithBound(maxBudget1, maxBudget2)
 ```
-Or don't - there is always a choice.
+Or don't - there is always choice 🤷.
 
 ----
 
@@ -183,7 +183,7 @@ const model = await (new Dsl(async dsl => {
 await database.push("a", a_nondeterministic) //[30, 31]
 ```
 
-Or don't - up to u.
+Or don't - up to u 🤷.
 
 > Discreet🌿 enumerates all possible meaningful outcomes by design - so types of outcomes in contracts have to be chosen carefully - they have to be human-interpretable, meaningful. Even if it's DOJ-index - you have to pick the ranges of values with meaning. 
 
@@ -193,7 +193,7 @@ Or don't - up to u.
 
 > We really discourage large contracts on Discreet, but they are quite possible nevertheless.
 
-### Outcomes
+### 👁 Outcomes
 
 All outcomes specified in either yes or no of `dsl.outcome(pubkey, yesoutcomes, nooutcomes`) must have distinct semantics. Otherwise typesafety of "not querying the same outcome twice" would be broken. 
 
@@ -201,8 +201,8 @@ Querying mutually exclusive outcomes, e.g. `{yes = ["a"], no = ["b"]} && {yes = 
 
 P.S. There is always `dsl.unsafe.outcome` if this stresses you out.
 
-#### Script-generated observations (advanced)
-> you can skip this...
+#### 🤔 Script-generated observations (advanced)
+> u can skip this...
 
 `pubkey` is allowed to contain chain-specific script, if specific algorithmic verification of the fact is required, rather than just verification of signature from third-party attestant. It is needed in order to use cryptological proofs as true oracles. Convention: `$(<extra validator script>)`. Examples:
 
@@ -223,28 +223,32 @@ This approach additionally allows for purely trustless Mega-Duel mode: Bitcoin s
 
 > as long as they both pre-agreed on PoW-threshold before signing transactions.
 
-### State
+### 〇 State
 
-Discreet🌿 is at least as powerful💪 as [Cardano Marlowe](https://marlowe.iohk.io/). It allows stateful contracts.
+Discreet🌿 is at least as powerful 💪 as [Cardano Marlowe](https://marlowe.iohk.io/). It allows stateful contracts.
 
 Consequently, schedules, every collaterizable [ACTUS](https://www.actusfrf.org/)/[ISDA](https://www.isda.org/) instrument can be implemented.
 
 > Investment banking can be stressful, but stress is just "involutary" contraction of muscles. Awareness  and responsibility gives you back your control, nothing is truly "involutary". What you think of as headache is just pressure from your cranial muscles.
 
-### Recursion
+### ∞ Recursion
 
 Discreet🌿 allows for recursion. `outcome` and `pay` can be in recursive calls as well, but subject to standard Discreet typesafety restrictions: no "perfect hedges".
 
-Every contract has a limit on maximum collateral (`enumerateWithBound(maxBudgetParty, maxBudgetCounterParty)`), thus payout recursion is bounded. Halting problem is semi-solved.
+Every contract has a limit on maximum collateral (`enumerateWithBound(maxBudgetParty, maxBudgetCounterParty)`), thus payout recursion is bounded. 
+
+Halting problem is semi-solved.
 
 
 <canvas id="canvas">
 Your browser does not support the canvas tag.
 </canvas>
 
-### Multi-party
+### 👭 Multi-party
 
-Multi-party mode creates a set of mutual 2-party contracts. It is transparent to the user, all pairs are treated as one contract in eDSL.
+Multi-party mode creates a set of mutual 2-party contracts. The contracts themselves are incapsulated, all pairs are treated as one contract in eDSL.
+
+> U don't have to think 🤔
 
 ```ts
 import { Dsl } from '@dk14/wolfram-mega/discreet'
@@ -260,7 +264,8 @@ const multi = await (new Dsl (async dsl => {
 })).multiple("alice", "bob", "carol").enumerateWithBoundMulti(([[1000, 2000], [1000, 2000], [1000, 2000]]))
 ```
 
-#### Ad-hoc parties
+#### 🤔 Ad-hoc parties (advanced)
+> u can skip this...
 
 Adding a new party "on the go" is equivalent to early-termination of a contract. As far as blockchain security concerned - terms have to be re-negotiated from scratch. There is no need to put participant management logic on-chain.
 
@@ -304,11 +309,13 @@ const fundFactory = (accumulatedFund: number, refillFund: number, refillBenefici
 > Exercise: enjoy rewriting this fund into 1-to-1 deal between you and the actual contributor, rather than an abstract beneficiary.
 
 
-### Cross-currency (assets)
+### 🚗 Cross-currency (assets)
 
-DSL🌿 should not be responsible for asset pairs, since asset pair is assumed to be fixed between parties per (composite) contract - you specify asset pair in matching etc. Allowing one party to have several assets in a contract is equivalent to having several parties, e.g. "alice-usd", "alice-btc".
+DSL🌿 should not be responsible for asset pairs ₿🪙, since asset pair is assumed to be fixed between parties per (composite) contract - you specify asset pair in matching etc. Allowing one party to have several assets in a contract is equivalent to having several parties, e.g. "alice-usd", "alice-btc".
 
 > Note: since Discreet relies on binary options - there is no confusion about currency. In "alice-usd", "bob-btc" pair - Alice always gets btc, Bob always gets usd.
+
+> no consfusion...
 
 ```ts
 account.party("alice_usd").pays("bob_btc").amount(1000000000) //1000000000 usd
@@ -328,7 +335,7 @@ const assets = await (new Dsl (async dsl => {
 ```
 > **^This is NOT atomic swap**. Atomic swaps are transactions - not contracts, they execute unconditionally.
 
-#### Atomic Swap
+#### ＄🚗 Atomic Swap
 
 This one IS:
 
@@ -363,7 +370,7 @@ Shortcut:
 
 > Not to be confused with a lock-check - locks can be checked with regular `dsl.if("lock", ["true"], ["false"])` rather than `dsl.if("lock", ["true"], ["true"])` (this specifically means atomic swap).
 
-#### Payment At Maturity (crypto-loan)
+#### 🏦 Payment At Maturity (crypto-loan)
 
 ```ts
 // Borrowing contract
@@ -416,7 +423,7 @@ if (observe("alicePubkey", ["ADDRESS IS EMPTY"])) {
 
 > It does not stop Alice from slashing/rejecting received payment from Bob this way - it only proves that Alice did not receive anything. It is an option for Alice to choose between accepting incoming payment and unlocking security deposit. She would have to add her own deposit to repayment wallet MAD-style as incentive to not reject someone's payment. So applicability of this approach in actual loans is quite limited, it only works for deposits with uncertain value - otherwise it is simply equivalent to overcollaterization (for alice's security deposit - she would ask higher deposit from Bob, which would erase original incentive).
 
-#### Vanilla Future Contract
+#### ⏰ Vanilla Future Contract
 Vanilla futures are impossible on blockchain. Such contracts are not automatable, since either of the party might not have funds in the future, thus no way to collaterize in advance. Vanilla future is symmetric, unlike crypto-loan.
 
 > Defi "solves" it with tokens, but tokens are not backed up by anything. You cannot tokenize a car or a human. Alice cannot go and tatoo a **unique** pubkey on a car or her body. Carol will take up on a trend and everyone will have same tatoo like idiots.
@@ -451,7 +458,7 @@ if (dsl.outcome("bob and alice create an atomic swap on date $date", ["yes"], ["
 > Many IRL financial instruments are possible with this approach, as long as mafia has PoW-issued id to not let mafia conspire with either party, or become lazy. In order to ackuire such id, mafia can become special Mega-oracle. As Mega-oracle mafia would only have a single possible outcome to attest to, and would only be able to answer very specific questions. Mafia would be accountable since PoW-reports can be filed against it.
 
 
-### Mutually Assured Destruction (MAD)
+### ☢ Mutually Assured Destruction (MAD)
 
 Alice and Bob - can be each other's mafia themselves. MAD-contract can simply reward them back their "secure future" deposits as a reward for fulfilling commitment to a mutual agreement.
 
@@ -475,7 +482,7 @@ if (dsl.outcome("siglock_alice && siglock_bob && timelock $date", ["yes"], ["no"
 }
 ```
 
-### Numeric observations
+### 🔢 Numeric observations
 
 Outcomes are binary in Discreet🌿, so interest rate drivers and such have to be enumerated and adapted. We recommend to quantize derivatives manually - to give meaning to numbers (see `set` outcomes). 
 
@@ -498,7 +505,7 @@ dsl.numeric.outcome("price?", 0, 5, step).evaluateWithPaymentCtx((account, price
 })
 ```
 
-#### Quantized Vanilla Interest Rate Swap
+#### ⇌ Quantized Vanilla Interest Rate Swap
 
 ```ts
 const dates = ["today", "tomorrow", "next week", "next month"]
@@ -535,7 +542,7 @@ dates.reduce(([capitalisation1, capitalisation2], date) => {
 > `valueWithPaymentCtxUnsafe` is meant to (optionally) avoid contextual continuations. Pure functional way would be to just use `.evaluateWithPaymentCtx((value, context) => {...})` continuation  twice (one in `then`, the other in `else`). But since, resources are checked automatically, above representation is simply more compact, efficient and still reasonably safe - mispositioning `release` would delay payout simply (and only possible with `dsl.unsafe.numeric` which we don't use here).
 
 
-#### "Perpetual" Interest Rate Swap
+#### ⇌ "Perpetual" Interest Rate Swap
 
 ```ts
 const collateralAlice = 10000
@@ -608,7 +615,7 @@ try {
 
 > Note: only `pay`s must be integers (they get rounded to nearest if you don't round them properly), since sats are integers. All internal computations can be done with any type of number: "real", rational, "complex", matricies, quaternions, dedekind nonsense cuts, functors, group generators, monoids/semigroups, combinatorial groups, topoi etc.
 
-### Set observations
+### ∩ Set observations
 
 ```ts
 dsl.set.outcome("which?", ["lol", "okay", "yaay"]).evaluate(point => {
@@ -624,7 +631,7 @@ dsl.set.outcomeT<string>("which?", ["lol", "okay", "yaaylol"], x => x, x => x).e
 })
 ```
 
-#### Quantized auction
+#### ⇌ Quantized auction
 
 Auction would need a predefined set of bids and maximum amount of attempts.
 **It is trustless: participants themselves can be oracles.**
@@ -699,14 +706,14 @@ dsl.if(receivePaymentPubKeyAdapted, ["true"], ["false"], {}).then(accounts => {
 
 ## Algorithmic Trading
 
-#### Past 
+### Past 
 It is possible to query extra non-oracle data-sources for past data, e.g. price history. RIght from eDSL, together with contract logic.
 
 Such extra-sources however will only be queryed prior to submission of contract and everything would get set in stone "on-chain". Such past queries can be useful to analyze and check market data in algorithmic trading in order to automatically decide the immutable terms.
 
 > note: backtracking does not account for novel data, so foreseeing actual events is more important
 
-#### Future
+### Future
 DSL🌿 enumerates all possible outcomes, thus removing the need for random walk. 
 
 > if your strategy explodes numerically, the only thing you can do is to specify types properly, judging from immediate present sitation. Rely on ranges of possible outcomes you can yourself interpret as human and time periods you would be able to foresee yourself. 

@@ -92,9 +92,9 @@ const visualizer = butterchurn.default.createVisualizer(context, canvas, {
 
 const presets = butterchurnPresets.getPresets();
 const keys = Object.keys(presets)
-const candidates = [7, 7, 18, 31, 21, 21]
-const i = Math.round(candidates.length * Math.random())
-const preset = presets[keys[candidates[i]]] //7, 18, 31, 21
+//const candidates = [7, 7, 18, 31, 21, 21]
+//const i = Math.round(candidates.length * Math.random())
+const preset = presets[keys[21]] //7, 18, 31, 21
 visualizer.loadPreset(preset, 0.0); // 2nd argument is the number of seconds to blend presets
 
 visualizer.setRendererSize(1600, 1200);
