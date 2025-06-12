@@ -566,7 +566,7 @@ assert(collateralBob === evaluateCounterpartyCollateral(contract))
 //^ might not hold precisely - see comments
 ```
 
-Certain values of floating rate will create a perfect-hedge - these values must be excluded from the type (use `dsl.set` instead), so contract can be priced properly. Another, unsafe, option would be to "automate" pricing:
+Certain values of floating rate will create a perfect-hedge - these values must be excluded from the type (`dsl.set` should be preferred to `dsl.numeric`), so contract can be priced properly. Another, unsafe, option would be to "automate" pricing:
 
 ```ts
 try {
