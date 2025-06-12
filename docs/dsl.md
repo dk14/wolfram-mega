@@ -911,7 +911,7 @@ dsl.unsafe.if("wow?", ["yup"], ["nope"]).then(account => {
 
 ## Biomial pricing (conclusion)
 
-With great power comes great responsibility. Electricity is food, even if it comes from nuclear powerplant - there are still humans maintaining such a plant. Although nuclear powerplant is much more efficient, French are sensible in this matter.
+With great power comes great responsibility. Electricity is food, even if it comes from nuclear powerplant - there are still humans maintaining such a plant. Although nuclear powerplant is much more efficient, French appear to be sensible in this matter.
 
 In any case, it is best to keep contracts human-interpretable, even if computational resources appear hardly bounded. It is a win-win approach - you neither speculate statistical voodoo, nor waste computational resources. 
 
