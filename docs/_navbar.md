@@ -7,5 +7,5 @@
     - [Oracles](oracles.md)
     - [Matching](matching.md)
     - [Contracts](contracts.md)
-    - [Discreet eDSL](dsl.md)
+    - [Discreet🌿 eDSL](dsl.md)
 
