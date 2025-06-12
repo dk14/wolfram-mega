@@ -676,16 +676,14 @@ dsl.if(receivePaymentPubKeyAdapted, ["true"], ["false"], {}).then(accounts => {
 ## Algorithmic Trading
 
 #### Past 
-DSL additionally allows for querying extra non-oracle data-sources for past data, e.g. price history. 
+It is possible to query extra non-oracle data-sources for past data, e.g. price history. RIght from eDSL, together with contract logic.
 
-Such extra-sources however will only be queryed prior to submission of contract and set in stone "on-chain". Such past queries can be useful to analyze and check market data in algorithmic trading in order to automatically decide the immutable terms.
+Such extra-sources however will only be queryed prior to submission of contract and everything would get set in stone "on-chain". Such past queries can be useful to analyze and check market data in algorithmic trading in order to automatically decide the immutable terms.
 
 > note: backtracking does not account for novel data, so foreseeing actual events is more important
 
 #### Future
 DSL enumerates all possible outcomes, thus removing the need for random walk. 
-
-
 
 > if your strategy explodes numerically, the only thing you can do is to specify types properly, ranges of outcomes you can yourself interpret as human and time periods you would be able to foresee yourself. 
 
