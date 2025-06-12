@@ -350,9 +350,7 @@ dsl.ifAtomicSwapLeg1("hashlock", "verified").then(ctx => {
             ctx.party("bob", "usd").pays("alice", "usd").amount(300, "usd") // interest 
             dsl.unsafe.if("alice receiving wallet empty", ["yes"], ["no"], {}).then(ctx => {
                ctx.party("bob", "btc").pays("alice", "usd").amount(10, "btc")
-
             }).else(_ => {
-
                 // graceful termination
             })
         })
@@ -367,6 +365,8 @@ if(outcome("timelock", ["yes"], ["no"])) {
     dsl.party("bob", "usd").pays(party("alice repayment"), "usd").amount(10000000, "usd") 
 }
 ```
+
+> Note: OP_ANYPREVOUT would remove a need for third-party Oracle - Bob's repayment could be attached as one of the inputs
                 
 This loan is also "physically-settled" vanilla option - Bob buys an option to swap his deposit for usd.
 
@@ -404,7 +404,6 @@ if (dsl.outcome("bob and alice create an atomic swap on date $date", ["yes"], ["
 
 > Many IRL financial instruments are possible with this approach, as long as mafia has PoW-issued id to not let mafia conspire with either party, or become lazy. In order to ackuire such id, mafia can become special Mega-oracle. As Mega-oracle mafia would only have a single possible outcome to attest to, and would only be able to answer very specific questions. Mafia would be accountable since PoW-reports can be filed against it.
 
-> Note: Third-party oracle can be avoided with Schnorr adaptor signatures. One of the parties (or both) can reveal "proof of empty pockets" for pre-agreed wallets, so mafia would lose incentive automatically if pockets are empty.
 
 ### Mutually Assured Destruction (MAD)
 
