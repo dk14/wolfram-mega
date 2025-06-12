@@ -375,7 +375,7 @@ dsl.ifAtomicSwapLeg1("hashlock", "verified").then(ctx => {
 // repayment (this is separate contract - can be submitted any time when bob gets funds, but before "timelock")
 
 if(outcome("timelock", ["yes"], ["no"])) {
-    //too late to pay - Bob looses deposit
+    //too late to pay - Bob loooses deposit
 } else {
     if (outcome("timelock2", ["yes"], ["no"])) {
         if(outcome(alicePub, ["MAGIC"], [])) {
