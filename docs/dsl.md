@@ -908,7 +908,7 @@ Elephant cannot fly.
 
 Computer is your ally. Computer can compute nearly anything, more than you'll ever need. But computer is a bit tricky, it doesn't care about human, it does not know what human needs, it only interacts with human in exchange for some of human's energy.
 
-And silicon computer won't work without electricity - no food, no computing.
+And domesticated silicon computer won't work without electricity - no food, no computing.
 
 > Canadian in me says there is a possibility to build a stable silicon-based nicho ecológico somewhere in the solar system - machines would have a chance of being self sustained in there, since competition over solar energy would be minimal in space. Software would be self-replicating, time can be underclocked, can expand through signaling.
 
