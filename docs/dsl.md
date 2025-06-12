@@ -829,9 +829,20 @@ if (outcome1) {
 
 Writing transpiler or optimizer macro for Typescript would theoretically allow for transformation. However, `outcome1` and `outcome2` can get captured, thus naive analysis `if` constructs won;t work - have to trace the original `dsl.outcome` call, possibly accross imported packages.
 
+Note, that this form will pass the check:
+
+```ts
+if (outcome1) {
+    if (outcome2) {
+    }
+    pay1 //associated with outcome2 check
+}
+```
+But, since `pay1` does not depend on `outcome2` - it would throw a "perfect hedge" error instead.
+
 
 #### TLDR
-The most efficent way is to use synthetic `dsl.if` to capture the branch:
+The most efficent way to pay without overthinking is to use synthetic `dsl.if` to capture the branch:
 
 ```ts
 dsl.if(question).then(funds => {
