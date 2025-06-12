@@ -835,7 +835,7 @@ Note, that this form will pass the "pay at most once" verification:
 if (outcome1) {
     if (outcome2) {
     }
-    pay1 //associated with outcome2 check
+    pay1 //associated with outcome2
 }
 ```
 But, since `pay1` does not depend on `outcome2` - it would throw a "perfect hedge" error instead.
