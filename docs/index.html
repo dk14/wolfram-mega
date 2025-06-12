@@ -71,5 +71,45 @@
   
   </script>
 
+<script type="text/javascript" src="https://unpkg.com/lodash"></script>
+  <script type="text/javascript" src="https://unpkg.com/butterchurn"></script>
+  <script type="text/javascript" src="https://unpkg.com/butterchurn-presets"></script>
+  <script type="text/javascript" src="https://unpkg.com/butterchurn-presets/lib/butterchurnPresetsExtra.min.js"></script>
+
+<script>
+
+window.addEventListener("load", () => {
+
+const canvas = document.getElementById("canvas")
+console.log(canvas)
+
+const context = new AudioContext();
+const visualizer = butterchurn.default.createVisualizer(context, canvas, {
+  width: 800,
+  height: 600
+});
+
+
+const presets = butterchurnPresets.getPresets();
+const keys = Object.keys(presets)
+const candidates = [7, 7, 18, 31, 21, 21]
+const i = Math.round(candidates.length * Math.random())
+const preset = presets[keys[candidates[i]]] //7, 18, 31, 21
+visualizer.loadPreset(preset, 0.0); // 2nd argument is the number of seconds to blend presets
+
+visualizer.setRendererSize(1600, 1200);
+
+function animate() {
+  visualizer.render();
+  requestAnimationFrame((t) => animate(t));
+}
+
+animate()
+
+})
+
+
+</script>
+
 </body>
 </html>

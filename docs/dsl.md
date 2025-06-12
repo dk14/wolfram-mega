@@ -72,6 +72,12 @@ Output:
 
 Discreet🌿's streamed transpiler's output (`OfferModel`) allows for final evaluations of collaterals. 
 
+Collaterals are amounts 💰 needed to support your belief about upcoming outcome of certain event, support the answer you expect to be true. Each person is unique, everyone has their own expectations about environent. Collateral 💰 is the potential energy needed to express such expectation.
+
+P.S. If comments and sections disturb you - you don't have to read everything, no one can know everything. Everyone has their own limits (at `t`). Don't let technical specifications control your life!
+
+Just take the risk and play with Discreet🌿 eDSL!
+
 > Matching has `evaluatePartyCollateral`, `evaluateCounterPartyCollateral` functions for introspection. Broadcasting `OfferModel` would automatically evaluate those.
 
 > **Evaluations, NOT estimations!**. Discreet relies on **nondeterministic praxeological tautology** - everything is known, nothing left to meaningless statistical speculation. You don't know the outcome - that's where the risk comes from, NOT from DSL. You supposed to predict outcome yourself, not hope for it based on "statistical" positive re-inforcement (e.g. confidence intervals). Otherwise it's gambling with statistical buzzwords.
@@ -88,15 +94,19 @@ Discreet🌿's streamed transpiler's output (`OfferModel`) allows for final eval
 
 ## Language
 
-There are only two constructs:
-- checking observations - inputs from oracles (`dsl.outcome` returns boolean)
-- paying (`dsl.pay`)
+There are only two constructs👷:
+- checking observations👁 - inputs from oracles (`dsl.outcome` returns `boolean`, true or false)
+- paying💳 (`dsl.pay`)
 
-Maintaing and progressing state is done in javascript with arbitrary computation available. You can calculate amount of paid output based on observation and any data known prior to offer submission. Any formula, any logic.
+Everything else you can do in javascript.
+
+> Maintaing and progressing state is done in TypeScript with arbitrary computation available. You can calculate amount of paid output based on observation and any data known prior to offer submission. Any formula, any logic.
 
 ### Erasures
 
-DSL🌿 transpiler will erase javascript code, collapsing it into `observe -> pay -> ... -> observe -> pay` chains. If rendered to Bitcoin DLC - it makes contract logic 100% private - only paid amounts are visible on-chain, not why they paid.
+DSL🌿 transpiler will erase javascript code, collapsing it into `observe -> pay -> ... -> observe -> pay` chains. If rendered to Bitcoin DLC - it makes contract logic 100% private - only paid amounts are visible on-chain, not **why** they paid.
+
+Your thoughts💭 are kept secret.
 
 > For other chains - worst-case scenario will expose oracle messages/signatures and corresponding paid amounts. The calculation logic is erased nevertheless.
 
@@ -133,6 +143,8 @@ const model = await (new Dsl(async dsl => {
     }
 })).enumerateWithBound(maxBudget1, maxBudget2)
 ```
+Or don't - there is always a choice.
+
 ----
 
 Consequently, services queryed in dsl-context must be idempotent (e.g. stateless GET, not PUT). 
@@ -171,6 +183,8 @@ const model = await (new Dsl(async dsl => {
 await database.push("a", a_nondeterministic) //[30, 31]
 ```
 
+Or don't - up to u.
+
 > Discreet🌿 enumerates all possible meaningful outcomes by design - so types of outcomes in contracts have to be chosen carefully - they have to be human-interpretable, meaningful. Even if it's DOJ-index - you have to pick the ranges of values with meaning. 
 
 > Ranges are allowed - 0..100 is a single outcome. Numerics on observed data (multiplications, sum) however would still require larger (but not full) enumeration. E.g. you can even "0..5", "5..10" on interest rate and then multiply, sum, recurse on it.
@@ -185,7 +199,10 @@ All outcomes specified in either yes or no of `dsl.outcome(pubkey, yesoutcomes, 
 
 Querying mutually exclusive outcomes, e.g. `{yes = ["a"], no = ["b"]} && {yes = ["b"], no = ["a"]}` disallowed, since it can output unreachable subcontracts potentially: use typescript `!` instead, so typescript could lint unreachable code.
 
+P.S. There is always `dsl.unsafe.outcome` if this stresses you out.
+
 #### Script-generated observations (advanced)
+> you can skip this...
 
 `pubkey` is allowed to contain chain-specific script, if specific algorithmic verification of the fact is required, rather than just verification of signature from third-party attestant. It is needed in order to use cryptological proofs as true oracles. Convention: `$(<extra validator script>)`. Examples:
 
@@ -208,15 +225,22 @@ This approach additionally allows for purely trustless Mega-Duel mode: Bitcoin s
 
 ### State
 
-Discreet🌿 is at least as powerful as Cardano Marlowe. It allows stateful contracts.
+Discreet🌿 is at least as powerful💪 as [Cardano Marlowe](https://marlowe.iohk.io/). It allows stateful contracts.
 
-Consequently, schedules, every collaterizable ACTUS/ISDA instrument can be implemented.
+Consequently, schedules, every collaterizable [ACTUS](https://www.actusfrf.org/)/[ISDA](https://www.isda.org/) instrument can be implemented.
+
+> Investment banking can be stressful, but stress is just "involutary" contraction of muscles. Awareness  and responsibility gives you back your control, nothing is truly "involutary". What you think of as headache is just pressure from your cranial muscles.
 
 ### Recursion
 
 Discreet🌿 allows for recursion. `outcome` and `pay` can be in recursive calls as well, but subject to standard Discreet typesafety restrictions: no "perfect hedges".
 
 Every contract has a limit on maximum collateral (`enumerateWithBound(maxBudgetParty, maxBudgetCounterParty)`), thus payout recursion is bounded. Halting problem is semi-solved.
+
+
+<canvas id="canvas">
+Your browser does not support the canvas tag.
+</canvas>
 
 ### Multi-party
 
