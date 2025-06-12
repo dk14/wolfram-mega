@@ -898,7 +898,7 @@ dsl.unsafe.if("wow?", ["yup"], ["nope"]).then(account => {
 
 > Theoretically, typescript to typescript transpiler (or a tricky macro) can force shadowing (and hide `accounts => `), thus making `dsl.unsafe` calls safe. It can also rewrite `dsl.if` to typescript's `if`.
 
-### Binomial pricing (conclusion)
+## Binomial pricing (conclusion)
 
 With great power comes great responsibility. Electricity is food, even if it comes from nuclear powerplant - there are still humans maintaining such a plant. Although nuclear powerplant is much more efficient, French are not that wrong about it.
 
