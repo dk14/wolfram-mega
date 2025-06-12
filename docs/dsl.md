@@ -118,7 +118,7 @@ No smart-contract/VM is required to run the resulting contract. Target chain onl
 
 > *Non-utxo  chains (and smart-contract chains in general) are NOT recommended, since they create expensive redundancies by making their nodes compute unlocking-logic that is NOT supposed to be on-chain. The code our transpiler erases is literally "smart"-contract code. The state our transpiler erases is Cardano's datum.*
 
-### 🚫 Limitations
+### ⛓ Limitations
 
 Capturing variables is unsafe outside of dsl-context
 
@@ -196,6 +196,22 @@ Or don't - up to u 🤷.
 > It is a small overhead even for complex scheduled contracts as it runs out. You can safely enumerate a hundred of states of a single ticker for precision. Even a schedule, with reasonable amount of events - does not blow that much exponentially. Exponents tend to lift off slowly like an airplane.
 
 > We really discourage large contracts on Discreet, but they are quite possible nevertheless.
+
+### 🚫 Perfect Hedge anti-pattern
+```ts
+import { Dsl } from '@dk14/wolfram-mega/discreet'
+
+const maxBudgetAlice = 300
+const maxBudgetBob = 300
+const model = await (new Dsl(async dsl => {
+    if (dsl.outcome("really?", ["YES"], ["NO"])) {
+        dsl.pay(Dsl.Alice, 40) // Alice gets paid regardless of outcome
+     } else {
+        dsl.pay(Dsl.Alice, 50) // Alice gets paid regardless of outcome
+    } 
+})).enumerateWithBound(maxBudgetAlice, maxBudgetBob)
+```
+>^ this will throw a "Perfect Hedge" error. No way around it.
 
 ### 👁 Outcomes
 
