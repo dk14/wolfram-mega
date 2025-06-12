@@ -19,7 +19,7 @@ Discreet🌿 outputs `OfferModel`, which matching engine turns into `OfferTerms`
 
 The language🌿 is super-easy and embedded into TypeScript.
 
-Discreet🌿 rooted in modern quantitative finance and renders to a tree of binary options, thus allowing expression of **arbitrary financial contracts**.
+Discreet🌿 is rooted in modern quantitative finance and renders to a tree of binary options, thus allowing expression of **arbitrary financial contracts**.
 
 Discreet🌿 is typesafe. It provides checks and restrictions allowing traders to eliminate known types of redundancies in contracts ("perfect hedges"), thus maximising trading liquidity💦. You only collaterise💰 what's necceessary for sufficiency.
 
