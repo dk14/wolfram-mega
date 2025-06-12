@@ -425,7 +425,7 @@ export class Dsl {
             return x
         },
         stop: undefined,
-        bound: <T>(maxInfinity: T, maxCount = 10000) => ({
+        bounded: <T>(maxInfinity: T, maxCount = 10000) => ({
             compare: (cmp: (a: T, b: T) => number) => ({
                 progress: (start: T, forward: (x: T) => T) => ({
                     perpetual: <ST>(init: ST, step: (x: T, st: ST) => ST) => {
@@ -458,11 +458,11 @@ export class Dsl {
 
     public numeric = {
         infinity: {
-            bound: (maxInfinity = 10000000, maxCount = 1000000000) => ({
+            bounded: (maxInfinity = 10000000, maxCount = 1000000000) => ({
                 progress: (start: number, forward: (x: number) => number = x => x + 1) => ({
                     perpetual: <T>(init: T, step: (x: number, st: T) => T) => {
                         this.infinity
-                        .bound(maxInfinity, maxCount)
+                        .bounded(maxInfinity, maxCount)
                         .compare((a,b) => a - b)
                         .progress(start, forward)
                         .perpetual(init, step)
@@ -470,7 +470,7 @@ export class Dsl {
                 }),
                 perpetual: <T>(init: T, step: (x: number, st: T) => T) => {
                     this.infinity
-                    .bound(maxInfinity, maxCount)
+                    .bounded(maxInfinity, maxCount)
                     .compare((a,b) => b - a)
                     .progress(0, x => x + 1)
                     .perpetual(init, step)
@@ -1271,7 +1271,7 @@ if (require.main === module) {
             }).else(pay => {
                 pay.party("bob", "btc").pays("alice", "usd").amount(10, "btc")
             })
-            dsl.numeric.infinity.bound(100).perpetual(0, (x, st) => {
+            dsl.numeric.infinity.bounded(100).perpetual(0, (x, st) => {
                 return dsl.infinity.stop
             })
         })).multiple(Dsl.account("alice", "usd"), Dsl.account("bob", "btc")).enumerateWithBoundMulti([[10000000000, 200000]])

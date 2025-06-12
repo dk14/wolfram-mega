@@ -525,7 +525,7 @@ const multicontract = new Dsl(dsl => {
     const quantisationStep = 1
 
     //throws `DslErrors.InifinityError`
-    dsl.numeric.infinity.bound(100000).progress(startDate)
+    dsl.numeric.infinity.bounded(100000).progress(startDate)
         .perpetual([collateralAlice, collateralBob], (date, [notionalAlice, notionalBob]) => {
 
         const floatingRate = dsl.numeric
