@@ -183,16 +183,6 @@ All outcomes specified in either yes or no of `dsl.outcome(pubkey, yesoutcomes, 
 
 Querying mutually exclusive outcomes, e.g. `{yes = ["a"], no = ["b"]} && {yes = ["b"], no = ["a"]}` disallowed, since it can output unreachable subcontracts potentially: use typescript `!` instead, so typescript could lint unreachable code.
 
-#### Tx-aware outcomes
-
-Sometimes, outcomes have to be implied from transaction context in order to avoid third-party oracles. 
-
-Example: you might want party to be oracle itself (use its pubkey) and sign some utxo, already known to chain-interpreter (e.g. `thisTx`, CET-transaction associated with outcome of binary option) - this signature would serve as a disclosure of something and party won't get access to funds without producing such a signature (e.g. [such signature can reveal a private key behind a custom pubkey](https://muens.io/schnorr-adaptor-signature/), see Discreet crypto-loan example). Then convention would be: `$(<tx context expression>)`, instance: `$(thisTx.utxo[0].data)`.
-
-> non-utxo example: `$true` or `$false`, since non-utxo can use script-generated observations (they can introduce their own opcodes). 
-
-> *Non-utxo  chains (and smart-contract chains in general) are not recommended, since they create expensive redundancies by making their nodes to compute unlocking-logic that is not supposed to be on-chain. The code our transpiler erases is literally "smart"-contract code. The state our transpiler erases is Cardano's datum.*
-
 #### Script-generated observations
 
 `pubkey` is allowed to contain chain-specific script, if specific verification of the fact is required, rather than oracle-signature verification. It is needed in order to use cryptological proofs as true oracles, rather than third-party attestants. Convention: `$(<extra validator script>)`. Examples:
@@ -209,7 +199,10 @@ Bitcoin Script is taken as a standard for cross-chain compatibility, since it is
 
 > be aware of double-preimage attacks on Merkle-trees. Double-hash or use incompatible hashes for leafs. Make sure trees are balanced.
 
+
 This approach additionally allows for purely trustless Mega-Light mode: Bitcoin script can verify PoW done over oracle's PubKey. In absense of suitable oracle in Mega-mempools, Alice and Bob  (contract participants) can be lightweight "oracles" themselves and engage in PoW-battle in case of a dispute, as long as they both agreed on PoW-threshold before signing transactions.
+
+> *Non-utxo  chains (and smart-contract chains in general) are NOT recommended, since they create expensive redundancies by making their nodes to compute unlocking-logic that is NOT supposed to be on-chain. The code our transpiler erases is literally "smart"-contract code. The state our transpiler erases is Cardano's datum.*
 
 ### State
 
@@ -354,13 +347,14 @@ dsl.ifAtomicSwapLeg1("hashlock", "verified").then(ctx => {
     }).else(_ => {
         dsl.if("timelock", ["yes"], ["no"]).then(ctx => { //don't even think about hashlocks on bob_usd here :) the point of loan is liquidity
             ctx.party("bob", "usd").pays("alice", "usd").amount(300, "usd") // interest (will be part of collateral if it's here)
-            dsl.unsafe.if("<alice_repayment_wallet_adaptor_pubkey_schnorr>", ["$(thisTx.utxo[0].data)"], [], {}).then(ctx => {
+            dsl.unsafe.if("<alice_repayment_wallet_adaptor_pubkey_schnorr>", ["MAGIC"], [], {}).then(ctx => {
                 // ^ alice revealed private key for empty repayment wallet
                 // "proof of empty pockets"
                 dsl.if("timelock2", ["yes"], ["no"]).then(_ => {
                     //timelock2 expired - we assume Alice got money
                 }).else(ctx => {
-                    ctx.party("bob", "btc").pays("alice", "usd").amount(10, "btc") //Bob loses deposit
+                    ctx.party("bob", "btc").pays("alice").amount(10, "btc") //Bob loses deposit
+                    // alice_bob_escrow is used because `aliceTookDeposit` generates transaction spending from it to Alice
                 })
             }).else(_ => {
                 // alice did not reveal pk for repayment wallet, since Bob sent money there
@@ -371,7 +365,10 @@ dsl.ifAtomicSwapLeg1("hashlock", "verified").then(ctx => {
 })
 ```
 
-> Alice cryptomagically reveals private key for repayment wallet in order to sign deposit redemption CET (she cannot sign it without doing so). Since bob did not pay to that wallet, the key is worthless but Alice gets Bob's deposit using this "empty pockets proof". This approach is a payment oracle without third-party.
+> Alice cryptomagically reveals private key for repayment wallet in order to sign "MAGIC" (the signature itself is magically a private key). Since bob did not pay to that wallet, the key is worthless but Alice gets Bob's deposit using this "empty pockets proof". This approach is a payment oracle without third-party.
+
+> *Cryptomagic: Alice chooses random message, e.g. "MAGIC". Alice signs it with some key, but keeps signature private. Alice interprets signature as private key. Alice derives "repayment wallet" pubkey from it.*
+
 
 > Nuance: Alice can only withdraw funds from repayment wallet after grace period `deadline2`. Bob has to send money locked with `deadline2` timelock, so Alice would not empty the wallet herself. `ANYPREVOUT` BIP in BTC would address this inconvinience.
                 
