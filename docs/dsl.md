@@ -685,7 +685,7 @@ Such extra-sources however will only be queryed prior to submission of contract 
 #### Future
 DSL enumerates all possible outcomes, thus removing the need for random walk. 
 
-> if your strategy explodes numerically, the only thing you can do is to specify types properly, judging from immediate present sitation, ranges of outcomes you can yourself interpret as human and time periods you would be able to foresee yourself. 
+> if your strategy explodes numerically, the only thing you can do is to specify types properly, judging from immediate present sitation. Rely on ranges of possible outcomes you can yourself interpret as human and time periods you would be able to foresee yourself. 
 
 > no one else will do it for you: human trader is a real oracle - "oracles" in contract are just attestants. Forecast like a boss.
 
