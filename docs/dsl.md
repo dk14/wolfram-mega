@@ -348,7 +348,7 @@ dsl.ifAtomicSwapLeg1("hashlock", "verified").then(ctx => {
     }).else(_ => {
         dsl.if("timelock", ["yes"], ["no"]).then(ctx => { 
             ctx.party("bob", "usd").pays("alice", "usd").amount(300, "usd") // interest 
-            dsl.unsafe.if("alice receiving wallet empty", ["yes"], ["no"], {}).then(ctx => {
+            dsl.if("alice receiving wallet empty", ["yes"], ["no"], {}).then(ctx => {
                ctx.party("bob", "btc").pays("alice", "usd").amount(10, "btc")
             }).else(_ => {
                 // graceful termination
