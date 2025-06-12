@@ -7,6 +7,17 @@ var DslErrors;
     class PerfectHedgeError extends Error {
     }
     DslErrors.PerfectHedgeError = PerfectHedgeError;
+    class InfinityError extends Error {
+        state = undefined;
+        constructor(msg, st) {
+            super(msg);
+            this.state = st;
+        }
+    }
+    DslErrors.InfinityError = InfinityError;
+    class InfinityCountError extends Error {
+    }
+    DslErrors.InfinityCountError = InfinityCountError;
 })(DslErrors || (exports.DslErrors = DslErrors = {}));
 class Dsl {
     state = {};
@@ -152,7 +163,7 @@ class Dsl {
         const pubkeyUnique = pubkey + "-###-" + this.counter;
         if (this.state[pubkeyUnique] === undefined) {
             const max = Object.values(this.state).length === 0 ? -1 : Math.max(...Object.values(this.state).map(x => x[0]));
-            this.state[pubkeyUnique] = [max + 1, null, { t: new Set(), f: new Set() }];
+            this.state[pubkeyUnique] = [max + 1, null];
             this.checked.push(this.state[pubkeyUnique][0]);
             this.memoize.push({
                 id: pubkey, yes, no, args, pubkeyUnique
@@ -180,40 +191,16 @@ class Dsl {
         }
     }
     next() {
-        function setUnion(set, ...iterables) {
-            for (const iterable of iterables) {
-                for (const item of iterable) {
-                    set.add(item);
-                }
-            }
-        }
         this.cursor = this.root;
         this.prev = undefined;
         let i = 0;
         let cursor = true;
         let entry = undefined;
-        for (let [j, st, d] of Object.values(this.state)) {
-            if (st) {
-                setUnion(d.t, new Set(this.checked));
-            }
-            else {
-                setUnion(d.f, new Set(this.checked));
-            }
-            d.t = new Set([...d.t].filter(x => !d.f.has(x)));
-            d.f = new Set([...d.f].filter(x => !d.t.has(x)));
-            //console.log(d.t)
-        }
-        const skiplist = new Set();
         while (cursor) {
             if (Object.values(this.state).find(x => x[0] === i) === undefined) {
                 return false;
             }
             entry = Object.values(this.state).find(x => x[0] === i);
-            console.log(skiplist);
-            if (skiplist.has(i)) {
-                i++;
-                continue;
-            }
             if (entry[1] === null && cursor) {
                 entry[1] = false;
                 return true;
@@ -222,13 +209,11 @@ class Dsl {
                 return true;
             }
             if (entry[1] === true) {
-                entry[2].f.forEach(e => skiplist.add(e));
                 if (cursor === true) {
                     entry[1] = false;
                 }
             }
             else {
-                entry[2].t.forEach(e => skiplist.add(e));
                 entry[1] = true;
                 cursor = false;
             }
@@ -364,7 +349,65 @@ class Dsl {
             return this.outcome(pubkey, yes, no, args, allowTruth, strict);
         }
     };
+    infinity = {
+        move: (x) => {
+            if (x === undefined) {
+                throw new Error("Cannot move with undefined state!");
+            }
+            return x;
+        },
+        stop: undefined,
+        bound: (maxInfinity, maxCount = 10000) => ({
+            compare: (cmp) => ({
+                progress: (start, forward) => ({
+                    perpetual: (init, step) => {
+                        let cursor = start;
+                        let counter = 0;
+                        let state = init;
+                        while (cmp(cursor, maxInfinity) > 0 && counter < maxCount) {
+                            const saveState = state;
+                            state = step(cursor, state);
+                            if (state === undefined) {
+                                return;
+                            }
+                            if (state === saveState) {
+                                throw new DslErrors.InfinityError("Infinity Inferred! State did not progress! Collaterals are not decreasing?", state);
+                            }
+                            cursor = forward(cursor);
+                            counter++;
+                        }
+                        if (counter >= maxCount) {
+                            throw new DslErrors.InfinityCountError("Max count reached!");
+                        }
+                        if (cmp(cursor, maxInfinity) <= 0) {
+                            throw new DslErrors.InfinityError("Infinity Reached! Collaterals are not decreasing?", state);
+                        }
+                    }
+                })
+            })
+        })
+    };
     numeric = {
+        infinity: {
+            bound: (maxInfinity = 10000000, maxCount = 1000000000) => ({
+                progress: (start, forward = x => x + 1) => ({
+                    perpetual: (init, step) => {
+                        this.infinity
+                            .bound(maxInfinity, maxCount)
+                            .compare((a, b) => a - b)
+                            .progress(start, forward)
+                            .perpetual(init, step);
+                    }
+                }),
+                perpetual: (init, step) => {
+                    this.infinity
+                        .bound(maxInfinity, maxCount)
+                        .compare((a, b) => b - a)
+                        .progress(0, x => x + 1)
+                        .perpetual(init, step);
+                }
+            })
+        },
         outcome: (pubkey, from, to, step = 1, args = {}, allowMisplacedPay = false) => ({
             evaluate: (handler) => {
                 let numbers = [];
@@ -439,7 +482,7 @@ class Dsl {
                     if (r.length === 1 && l.length === 0) {
                         return r[0];
                     }
-                    if (this.outcome(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args)) {
+                    if (this.unsafe.outcome(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args)) {
                         if (l.length === 1) {
                             return l[0];
                         }
@@ -1155,6 +1198,9 @@ if (require.main === module) {
                 pay.party("alice", "usd").pays("bob", "btc").amount(10000000, "usd");
             }).else(pay => {
                 pay.party("bob", "btc").pays("alice", "usd").amount(10, "btc");
+            });
+            dsl.numeric.infinity.bound(100).perpetual(0, (x, st) => {
+                return dsl.infinity.stop;
             });
         })).multiple(Dsl.account("alice", "usd"), Dsl.account("bob", "btc")).enumerateWithBoundMulti([[10000000000, 200000]]);
         console.log(swap);

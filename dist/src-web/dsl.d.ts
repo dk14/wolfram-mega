@@ -11,6 +11,12 @@ type PaymentHandler = {
 export declare namespace DslErrors {
     class PerfectHedgeError extends Error {
     }
+    class InfinityError<ST> extends Error {
+        state: ST;
+        constructor(msg: string, st: ST);
+    }
+    class InfinityCountError extends Error {
+    }
 }
 export declare class Dsl {
     private state;
@@ -107,7 +113,26 @@ export declare class Dsl {
             [id: string]: string;
         }, allowTruth?: boolean, strict?: boolean) => boolean;
     };
+    infinity: {
+        move: <T>(x: T) => T;
+        stop: any;
+        bound: <T>(maxInfinity: T, maxCount?: number) => {
+            compare: (cmp: (a: T, b: T) => number) => {
+                progress: (start: T, forward: (x: T) => T) => {
+                    perpetual: <ST>(init: ST, step: (x: T, st: ST) => ST) => void;
+                };
+            };
+        };
+    };
     numeric: {
+        infinity: {
+            bound: (maxInfinity?: number, maxCount?: number) => {
+                progress: (start: number, forward?: (x: number) => number) => {
+                    perpetual: <T>(init: T, step: (x: number, st: T) => T) => void;
+                };
+                perpetual: <T>(init: T, step: (x: number, st: T) => T) => void;
+            };
+        };
         outcome: (pubkey: string, from: number, to: number, step?: number, args?: {
             [id: string]: string;
         }, allowMisplacedPay?: boolean) => {
