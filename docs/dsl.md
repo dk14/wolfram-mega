@@ -374,6 +374,18 @@ if(outcome("timelock", ["yes"], ["no"])) {
                 
 This loan is also "physically-settled" vanilla option - Bob buys an option to swap his deposit for usd.
 
+----
+
+There is a tricky niche way to implement "Proof of not receiving money" on pure btc:
+```ts
+if (observe("alicePubkey", ["ADDRESS IS EMPTY"])) {
+    ...
+}
+```
+> This is "proof of empty address". If alice signs such "ADDRESS IS EMPTY" message as an "oracle" - she would reveal private key to her repayment wallet (where time-locked funds of Bob are supposed to be sent) to the public on-chain, since signature and private key would be same (alice derives pubkey for wallet from signature of "ADDRESS IS EMPTY" itself, interpreting her own signature as a secret key). 
+
+> It does not stop Alice from slashing/rejecting received payment from Bob this way - it only proves that Alice did not receive anything. It is an option for Alice to choose between accepting incoming payment and unlocking security deposit. She would have to add her own deposit to repayment wallet MAD-style as incentive to not reject someone's payment. So applicability of this approach in actual loans is quite limited, it only works for deposits with uncertain value - otherwise it is simply equivalent to overcollaterization (for alice's security deposit - she would ask higher deposit from Bob, which would erase original incentive).
+
 #### Vanilla Future Contract
 Vanilla futures are impossible on blockchain. Such contracts are not automatable, since either of the party might not have funds in the future, thus no way to collaterize in advance.
 
