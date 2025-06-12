@@ -199,17 +199,13 @@ Or don't - up to u 🤷.
 
 ### 🚫 Perfect Hedge anti-pattern
 ```ts
-import { Dsl } from '@dk14/wolfram-mega/discreet'
-
-const maxBudgetAlice = 300
-const maxBudgetBob = 300
-const model = await (new Dsl(async dsl => {
-    if (dsl.outcome("really?", ["YES"], ["NO"])) {
-        dsl.pay(Dsl.Alice, 40) // Alice gets paid regardless of outcome
-     } else {
-        dsl.pay(Dsl.Alice, 50) // Alice gets paid regardless of outcome
-    } 
-})).enumerateWithBound(maxBudgetAlice, maxBudgetBob)
+if (dsl.outcome("really?", ["YES"], ["NO"])) {
+    // Alice gets paid regardless of outcome:
+    dsl.pay(Dsl.Alice, 40) 
+    } else {
+    // Alice gets paid regardless of outcome:
+    dsl.pay(Dsl.Alice, 50) 
+} 
 ```
 >^ this will throw a "Perfect Hedge" error. No way around it.
 
