@@ -755,6 +755,18 @@ Typesefaty of Discreet is meant to ensure this does not happen as long as logic 
 
 > Discreet relies on assumption that money supply is not "infinite" itself during lifespan of a contract. Non-zero energy/value of a unit. Units should have meaning.
 
+### Binomial pricing
+
+With great power comes great responsibility. Electricity is food, even if it comes from nuclear powerplant - there are still humans maintaining such a plant. Although nuclear powerplant is much more efficient, French are not that wrong about it.
+
+In any case, it is best to keep contracts human-interpretable, even if computational resources appear hardly bounded. It is a win-win approach - you don't have to either speculate statistical voodoo, nor waste computational resources. 
+
+Elephant cannot fly.
+
+Computer is your ally. Computer can compute nearly anything, more than you'll ever need. But computer is a bit tricky, it doesn't care about human, it does not know what human needs, it only interacts with human in exchange for some of human's energy.
+
+And silicon computer won't work without electricity - no food, no computing.
+
 ### Applicability of SMT solvers
 
 SMT solvers can only benefit the interpreter in terms of fast fail in linting. 
