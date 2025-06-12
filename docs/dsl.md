@@ -453,7 +453,7 @@ if (dsl.outcome("siglock_alice && siglock_bob && timelock $date", ["yes"], ["no"
 
 ### Numeric observations
 
-Outcomes are binary in Discreet, so interest rate drivers and such have to be enumerated and adapted. We recommend to quantize derivatives manually - to give meaning to numbers (see sets). 
+Outcomes are binary in Discreet, so interest rate drivers and such have to be enumerated and adapted. We recommend to quantize derivatives manually - to give meaning to numbers (see `set` outcomes). 
 
 If numbers are still preferred:
 
