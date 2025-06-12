@@ -902,7 +902,7 @@ dsl.unsafe.if("wow?", ["yup"], ["nope"]).then(account => {
 
 With great power comes great responsibility. Electricity is food, even if it comes from nuclear powerplant - there are still humans maintaining such a plant. Although nuclear powerplant is much more efficient, French are not that wrong about it.
 
-In any case, it is best to keep contracts human-interpretable, even if computational resources appear hardly bounded. It is a win-win approach - you don't have to neither speculate statistical voodoo, nor waste computational resources. 
+In any case, it is best to keep contracts human-interpretable, even if computational resources appear hardly bounded. It is a win-win approach - you neither speculate statistical voodoo, nor waste computational resources. 
 
 Elephant cannot fly.
 
