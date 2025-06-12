@@ -193,7 +193,7 @@ Querying mutually exclusive outcomes, e.g. `{yes = ["a"], no = ["b"]} && {yes = 
 - hashlock: `$(OP_SHA256 OP_EQUALS <locking-nonce> OP_VERIFY)`
 - merkle-tree for complex locking: `$(OP_CAT OP_SHA256 ...)` ([this](https://blog.blockstream.com/en-treesignatures/)), 
 
-Bitcoin Script is taken as a standard for cross-chain compatibility, since it is complete, compact, secure and non-redundand. There are already [eDSLs](https://scryptplatform.medium.com/introducing-scryptts-write-bitcoin-smart-contracts-in-typescript-e59845213fbc) to output such scripts.
+Bitcoin Script is taken as a standard for cross-chain compatibility, since Bitcoin Script is complete, compact, secure and non-redundand. There are already [eDSLs](https://scryptplatform.medium.com/introducing-scryptts-write-bitcoin-smart-contracts-in-typescript-e59845213fbc) to output such scripts.
 
 > bitcoin chain interpreter would be required to concatenate a script checking party/counterparty signature with the extra script provided. Privacy note: logic of lock-conditions will be revealed to the public in case if counter-party becomes malicious.
 
