@@ -755,24 +755,6 @@ Typesefaty of Discreet is meant to ensure this does not happen as long as logic 
 
 > Discreet relies on assumption that money supply is not "infinite" itself during lifespan of a contract. Non-zero energy/value of a unit. Units should have meaning.
 
-### Binomial pricing
-
-With great power comes great responsibility. Electricity is food, even if it comes from nuclear powerplant - there are still humans maintaining such a plant. Although nuclear powerplant is much more efficient, French are not that wrong about it.
-
-In any case, it is best to keep contracts human-interpretable, even if computational resources appear hardly bounded. It is a win-win approach - you don't have to either speculate statistical voodoo, nor waste computational resources. 
-
-Elephant cannot fly.
-
-Computer is your ally. Computer can compute nearly anything, more than you'll ever need. But computer is a bit tricky, it doesn't care about human, it does not know what human needs, it only interacts with human in exchange for some of human's energy.
-
-And silicon computer won't work without electricity - no food, no computing.
-
-> Canadian in me says there is a possibility to build a stable silicon-based nicho ecológico somewhere in the solar system - machines would have a chance of being self sustained in there, since competition over solar energy would be minimal in space. Software would be self-replicating, time can be underclocked, can expand through signaling.
-
-> Asians say conciousness is transferrable, given that energy requirements satisfied. Ukrainians say - economic payload delivery to space is possible. 
-
->And we are asking: is it worth transferring YOUR particular individual energy supply in there though, `<username>`?
-
 ### Applicability of SMT solvers
 
 SMT solvers can only benefit the interpreter in terms of fast fail in linting. 
@@ -915,3 +897,21 @@ dsl.unsafe.if("wow?", ["yup"], ["nope"]).then(account => {
 > `dsl.unsafe` has numerics and sets as well
 
 > Theoretically, typescript to typescript transpiler (or a tricky macro) can force shadowing (and hide `accounts => `), thus making `dsl.unsafe` calls safe. It can also rewrite `dsl.if` to typescript's `if`.
+
+### Binomial pricing
+
+With great power comes great responsibility. Electricity is food, even if it comes from nuclear powerplant - there are still humans maintaining such a plant. Although nuclear powerplant is much more efficient, French are not that wrong about it.
+
+In any case, it is best to keep contracts human-interpretable, even if computational resources appear hardly bounded. It is a win-win approach - you don't have to either speculate statistical voodoo, nor waste computational resources. 
+
+Elephant cannot fly.
+
+Computer is your ally. Computer can compute nearly anything, more than you'll ever need. But computer is a bit tricky, it doesn't care about human, it does not know what human needs, it only interacts with human in exchange for some of human's energy.
+
+And silicon computer won't work without electricity - no food, no computing.
+
+> Canadian in me says there is a possibility to build a stable silicon-based nicho ecológico somewhere in the solar system - machines would have a chance of being self sustained in there, since competition over solar energy would be minimal in space. Software would be self-replicating, time can be underclocked, can expand through signaling.
+
+> Asians say conciousness is transferrable, given that energy requirements satisfied. Ukrainians say - economic payload delivery to space is possible. 
+
+>And we are asking: is it worth transferring YOUR particular individual energy supply in there though, `<username>`?
