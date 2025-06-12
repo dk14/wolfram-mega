@@ -79,7 +79,7 @@ There is a default intepreter for [BTC-DLC](https://adiabat.github.io/dlc.pdf).
     
 > binary option contracts supported and composition (experimental). 
 
-> This is MAD (mutually assured destruction) version of DLC. If any of the parties rejects co-signing - their funds will be locked (symmetrically).
+> MAD (mutually assured destruction) version of DLC is implemented. If any of the parties rejects co-signing - their funds will be locked (symmetrically).
 
 ```ts
 import { btcDlcContractInterpreter } from '@dk14/wolfram-mega/transactions';
@@ -101,11 +101,15 @@ setInterval(() => window.stalking.trackIssuedOffers(
 
 > proposed `SIGHASH_NOINPUT` (BIP118) would remove the need for HTLC in DLC (as well as LN), if BTC adopts it. CET-pack can be co-signed before opening tx then. Signing opening tx is done atomically (Schnorr mu-sig) without need to commit deposit. Without opening tx - CET become invalid, since there is no UtXO to fit CET TX's inputs.
 
-> Mainnet version: since fund distribution of binary option is all-or-nothing - such contract can be represented with one Taproot transaction without DLC or any scripting: collateral either unlocks with Alice and adapted oracle sig  (leaf1) or Bob and adapted oracle sig (leaf2). Atomicity of co-signing would be ensured automatically. Composite contracts woulld still require binary tree of off-chain transactions and hash-time-locking though.
+Mainnet version of `btcDlcContractInterpreter` would require extra-optimizations to be secure and practically usable.
+
+> Future mainnet version. Since funds distribution of binary option is all-or-nothing - such contract can be represented with one Taproot transaction without DLC or any scripting: collateral either unlocks with Alice and adapted oracle pub (for leaf1) or Bob and adapted oracle pub (for leaf2). Atomicity of co-signing would be ensured automatically. Composite contracts woulld still require binary tree of off-chain transactions and hash-time-locking though and flattening of a tree might not be applicable.
+
+> Bitcoin Lightning version would require PTLC-cluster (channell factory) established with reasonable liquidity (in order to support barrier escrow). Funds can be routed in and out between cluster and regular LN off-chain, as long as separate "trading account" has been initially opened on-chain for PTLC-member (and cluster has enough liquidity to route funds). Using LN for trading generally requires higher liquidity stash, since payment routes can be PTLC-locked (Schnorr-locked) for a longer time in order to maintain lock on collaterals. LN is more useful for short-term bets, although since channell factories are one-hop at most, and usually bounded to a trading community - they are usable in general trading. Let's wait for BOLT standartisation...
 
 # Composite contracts 
 
-Offers in Mega can express any meaningful (finite) financial contract. `OfferTerms` (`src/protocol.ts`) is a basic abstract language (akin to Cardano Marlowe) which standardizes description of financial contracts. 
+Offers in Mega can express any meaningful (finite) financial contract. `OfferTerms` (`src/protocol.ts`) is a basic abstract language (AST, akin to Cardano Marlowe) which standardizes description of financial contracts. 
 
 Unlike Marlowe, `OfferTerms` is closer to modern quantitative finance, taking two-party binary option as a basis.
 
@@ -210,11 +214,11 @@ STAGE2 (leaf offer-chunks):
 }
 ```
 
-Unlike with Marlowe - money preservation property can be ensured in the language design, rather than with SMT-solvers.
+Unlike with Marlowe - money preservation property can be ensured in the language design, rather than with theorem proof assistants and SMT-solvers.
 
-> In the composite contract js-eDSL pseudo-code above - `receive` represents full collateral for a participant. It is implicit "syntax sugar" because it's only needed to assert money preservation (eDSL can check that collateral computed as a sum of bets made by a given party (for worst-case outcomes) equals to the number specified in `receive`).
+> In the composite contract js-eDSL pseudo-code above - `receive` represents full collateral for a participant. It is implicit "syntax sugar" because it's only needed to assert exact money preservation (trader's expectation of collaterals), the property itself is already satisfied by design - since inputs are automatically calculated (binomial pricing). DSL can additionally check that collateral computed as a sum of bets made by a given party (for worst-case outcomes) equals to the number specified in `receive`), thus replacing solver.
 
-> Note on Marlowe: ad-hoc receives in the middle of a contract have no semantics. They always have to be at the start since non-participation would trigger timeout conditions, which are meaningfully either refund or MAD-lock - due to money preservation itself. 
+> Note on Marlowe: ad-hoc receives in the middle of a contract has no semantics. They always have to be at the start since non-participation would trigger timeout conditions, which are meaningfully either refund or MAD-lock - due to money preservation itself. The only exception is crypto-loan, but such loans are mere assertions of money received outside of contract (attested by third-party or pure blockchain-script oracle, e.g.checking  input added to tx). The refill can be used to establish a new contract, but there is no need to link it on-chain, since refill cannot be guaranteed.
 
 > Every "ad-hoc" receive in reality triggers its own contract, dictating distribution of new collateral - there is no need to have dependencies between two receives from same party. New receive from same parties - new escrow contract formed.
 
@@ -233,9 +237,6 @@ It simplifies matching, since originator of the offer would not have to care abo
 Schedules (e.g. quantized  `InterestRateSwap`) are  expressed through `OfferTerms.dependsOn` reference meant to specify previous stage in a multi-stage contract. `OfferTerms.dependsOn` can be conditional on the outcome of previous stage, effectively  making such contracts stateful (state would be a set of past outcomes).
 
 
-
-_BTC-DLC matching note: Scheduled offer is finalized when first `openingTx` for the whole composite tree is co-signed (parties cross check that every subcontract is co-signed)._
-
 ### "Ad-hoc" parties in schedules
 If party has to be added "on the go" then special "new party" outcome has to be added.
 Such outcome can be attested without third-party oracle, by verifying proof of funding transaction on-chain.
@@ -243,6 +244,12 @@ Such outcome can be attested without third-party oracle, by verifying proof of f
 For BTC this would require to either: 
 - potential candidates to specify their adresses in advance (in the offer itself) together with conditions to join, 
 - or a consensus of existing parties
+
+> this would require collaterals to be pre-comitted in advance. Otherwise - it would be a separate contract - see notes on Malowe above.
+
+> There is a trivial factory pattern (for off-chain logic) - allowing to manage "ad-hoc" parties without pre-comitted collateral. Since contracts are always pairwise - you simply create new pairs and continue the existing ones as usual
+
+> pairwise contracts can interact with one another (communicate events) using hashlocks. Party in one contract can authorize action in another contract this way.
 
 ### Exponential explosion
 `OfferTerms` are meant to represent a contract with predictable execution time (Marlowe expressiveness). This approach also ensures that funds won't stuck in an escrow.
@@ -257,9 +264,9 @@ Same goes for schedules: grouping outcomes for every stage in a contract, would 
 
 _Note: explosions are explicit in Mega-contracts, unlike Web3. Turing-complete contracts in Mega are explicitly ensured for computability before creation of blockchain._
 
-#### Merkle-trees (for DSL designers)
+#### Optimisations (for DSL designers)
 
-Merkle-trees can potentially be utilized to eliminate duplicate subtcontract trees in offer trees, thus reducing risks of contract explosion to a theoretical minimum. Such approach would eliminate uneccessary intermediate state as well.
+Merkle-trees can potentially be utilized to eliminate duplicate subtcontract trees in offer trees (memoization), thus reducing risks of contract explosion to a theoretical minimum. Such approach would eliminate uneccessary intermediate state as well.
 
 Practically, it requires extra-care:
 
@@ -270,6 +277,8 @@ Practically, it requires extra-care:
   - this approach allows for fixed-max-length lists, dictionaries, any type of parsing/analysis on data from oracle. On BTC or any other chain.
   - this approach allows for typed IO in DSLs: read data-point from oracle, write funds to parties, up to n times. On BTC or any other chain.
   - BTC-DLC: proposed SIGHASH_NOINPUT would additionally allow to compress multiple recursive inlines into a single contract. Compression of higher-kind type.
+
+#### Applicability
 
 _This approach works for any Schnorr-enabled blockchain starting with BTC, it makes smart-contract VMs unneccessary_
 
@@ -293,15 +302,17 @@ It is recommended to rather bound contract complexity than use meaningless token
 
 # Contracts Typescript API (Node.js, BTC)
 
-We use BDTC-DLC for BTC-contracts. It allows arbitrary contracts on Bitcoin. 
+We use BTC-DLC for BTC-contracts. It allows arbitrary contracts on Bitcoin. 
 
-Research done:
+Research done previously, with info on BTC-DLC contracts:
 https://dk14.github.io/marlowe-wolfram-webdoc/eurocall
 
-----
+The Mega-code is in:
 `src/client-api/contracts/generate-btc-tx`
 
-This page is shown on Trader Console (see `npx mega-demo`), where you can play and familiarize yourself with parameters tx generator requires:
+----
+
+The following webpage is shown on Trader Console (see `npx mega-demo`), where you can play and familiarize yourself with parameters tx generator requires:
 
 `src/client-api/service/index.html`
 
@@ -318,10 +329,13 @@ generateCetTransaction(...)
 
 ```
 
-> DLC can also be used to generate oracle's pledge 
+> DLC can also be used to generate oracle's pledge for quorums (very optional feature in Mega)
+
 > pairs of oracles can co-sign DLC contracts refunding themselves in case of quorum. Adding HTLC to it would ensure SLA. otherwise - their funds remain locked
 
-> this would avoid 51% attack on minority - all oralces would have to agree. Majority takes all pledge can also be implemented with DLC.
+> this would avoid 51% attack on minority - all oralces would have to agree. 
+
+> Majority takes all pledge version can also be implemented with DLC.
 
 ### Full BTC DLC
 
