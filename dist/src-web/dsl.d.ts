@@ -116,7 +116,7 @@ export declare class Dsl {
     infinity: {
         move: <T>(x: T) => T;
         stop: any;
-        bound: <T>(maxInfinity: T, maxCount?: number) => {
+        bounded: <T>(maxInfinity: T, maxCount?: number) => {
             compare: (cmp: (a: T, b: T) => number) => {
                 progress: (start: T, forward: (x: T) => T) => {
                     perpetual: <ST>(init: ST, step: (x: T, st: ST) => ST) => void;
@@ -126,7 +126,7 @@ export declare class Dsl {
     };
     numeric: {
         infinity: {
-            bound: (maxInfinity?: number, maxCount?: number) => {
+            bounded: (maxInfinity?: number, maxCount?: number) => {
                 progress: (start: number, forward?: (x: number) => number) => {
                     perpetual: <T>(init: T, step: (x: number, st: T) => T) => void;
                 };

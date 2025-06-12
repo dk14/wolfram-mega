@@ -357,7 +357,7 @@ class Dsl {
             return x;
         },
         stop: undefined,
-        bound: (maxInfinity, maxCount = 10000) => ({
+        bounded: (maxInfinity, maxCount = 10000) => ({
             compare: (cmp) => ({
                 progress: (start, forward) => ({
                     perpetual: (init, step) => {
@@ -389,11 +389,11 @@ class Dsl {
     };
     numeric = {
         infinity: {
-            bound: (maxInfinity = 10000000, maxCount = 1000000000) => ({
+            bounded: (maxInfinity = 10000000, maxCount = 1000000000) => ({
                 progress: (start, forward = x => x + 1) => ({
                     perpetual: (init, step) => {
                         this.infinity
-                            .bound(maxInfinity, maxCount)
+                            .bounded(maxInfinity, maxCount)
                             .compare((a, b) => a - b)
                             .progress(start, forward)
                             .perpetual(init, step);
@@ -401,7 +401,7 @@ class Dsl {
                 }),
                 perpetual: (init, step) => {
                     this.infinity
-                        .bound(maxInfinity, maxCount)
+                        .bounded(maxInfinity, maxCount)
                         .compare((a, b) => b - a)
                         .progress(0, x => x + 1)
                         .perpetual(init, step);
@@ -1199,7 +1199,7 @@ if (require.main === module) {
             }).else(pay => {
                 pay.party("bob", "btc").pays("alice", "usd").amount(10, "btc");
             });
-            dsl.numeric.infinity.bound(100).perpetual(0, (x, st) => {
+            dsl.numeric.infinity.bounded(100).perpetual(0, (x, st) => {
                 return dsl.infinity.stop;
             });
         })).multiple(Dsl.account("alice", "usd"), Dsl.account("bob", "btc")).enumerateWithBoundMulti([[10000000000, 200000]]);
