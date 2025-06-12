@@ -921,7 +921,7 @@ Computer is your ally. Computer can compute nearly anything, more than you'll ev
 
 And domesticated silicon computer won't work without electricity - no food, no computing.
 
-> Canadian in me says there is a possibility to build a stable silicon-based nicho ecológico somewhere in the solar system - machines would have a chance of being self sustained in there, since competition over solar energy would be minimal in space. Software would be self-replicating, time can be underclocked, can expand through signaling.
+> Canadian in me says there is a possibility to build a stable silicon-based nicho ecológico somewhere in the solar system - machines would have a chance of being self sustained in there, since competition over solar energy appears to be be minimal in space. Software would be self-replicating, time can be underclocked, can expand through signaling.
 
 > Asians say conciousness is transferrable, given that energy requirements satisfied. Ukrainians say - economic payload delivery to space is possible. 
 
