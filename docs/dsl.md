@@ -455,6 +455,7 @@ if (dsl.outcome("bob and alice create an atomic swap on date $date", ["yes"], ["
         .pays("bob", mafiaDeposit.asset)
         .amount(mafiaDeposit.value / 2, mafiaDeposit.asset)
 }
+// suddenly...out of nowhere...
 ```
 
 > This contract can also be repurposed as a security deposit for vanilla [IRL](https://en.wikipedia.org/wiki/In_Real_Life) loan. Just add extra "lending" payout from Bob to Alice (or mafia to Alice). Then future one-sided "swap" would be paying it back (in exchange for satisfying mafia with payout of incentive). 
