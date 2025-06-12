@@ -769,6 +769,10 @@ And silicon computer won't work without electricity - no food, no computing.
 
 > Canadian in me says there is a possibility to build a stable silicon-based nicho ecológico somewhere in the solar system - machines would have a chance of being self sustained in there, since competition over solar energy would be minimal in space. Software would be self-replicating, time can be underclocked, can expand through signaling.
 
+> Asians say conciousness is transferrable, given that energy requirements satisfied. Ukrainians say - economic payload delivery to space is possible. 
+
+>And we are asking: is it worth transferring YOUR particular individual energy supply in there though, `<username>`?
+
 ### Applicability of SMT solvers
 
 SMT solvers can only benefit the interpreter in terms of fast fail in linting. 
