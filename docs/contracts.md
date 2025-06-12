@@ -358,7 +358,7 @@ npm run demo
 or
 
 ```
-npx run mega-demo
+npx mega-demo
 ```
 
 - Peer: http://localhost:8080/peer-monitor/
