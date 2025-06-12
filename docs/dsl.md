@@ -1,7 +1,7 @@
 
 > Experimental
 
-Discreet eDSL is a fiancial contract language compatible with Mega offers, matching, and bitcoin testnet:
+Discreet🌿 eDSL is a fiancial contract language compatible with Mega offers, matching, and bitcoin testnet:
 
 ```
 Discreet Typescript Code 
@@ -15,13 +15,13 @@ Discreet Typescript Code
 
 > "Discreet" misspelled on purpose
 
-Discreet outputs `OfferModel`, which matching engine turns into `OfferTerms`. 
+Discreet🌿 outputs `OfferModel`, which matching engine turns into `OfferTerms`. 
 
-The language is super-easy and embedded into TypeScript.
+The language🌿 is super-easy and embedded into TypeScript.
 
-Discreet rooted in modern quantitative finance and renders to a tree of binary options, thus allowing expression of **arbitrary financial contracts**.
+Discreet🌿 rooted in modern quantitative finance and renders to a tree of binary options, thus allowing expression of **arbitrary financial contracts**.
 
-Discreet is typesafe. It provides checks and restrictions allowing traders to eliminate known types of redundancies in contracts ("perfect hedges"), thus maximising trading liquidity - you only collaterize what's necceessary.
+Discreet🌿 is typesafe. It provides checks and restrictions allowing traders to eliminate known types of redundancies in contracts ("perfect hedges"), thus maximising trading liquidity - you only collaterize what's necceessary.
 
 
 ## Example
@@ -70,7 +70,7 @@ Output:
 }
 ```
 
-Discreet's streamed transpiler's output (`OfferModel`) allows for final evaluations of collaterals. 
+Discreet🌿's streamed transpiler's output (`OfferModel`) allows for final evaluations of collaterals. 
 
 > Matching has `evaluatePartyCollateral`, `evaluateCounterPartyCollateral` functions for introspection. Broadcasting `OfferModel` would automatically evaluate those.
 
@@ -96,7 +96,7 @@ Maintaing and progressing state is done in javascript with arbitrary computation
 
 ### Erasures
 
-DSL transpiler will erase javascript code, collapsing it into `observe -> pay -> ... -> observe -> pay` chains. If rendered to Bitcoin DLC - it makes contract logic 100% private - only paid amounts are visible on-chain, not why they paid.
+DSL🌿 transpiler will erase javascript code, collapsing it into `observe -> pay -> ... -> observe -> pay` chains. If rendered to Bitcoin DLC - it makes contract logic 100% private - only paid amounts are visible on-chain, not why they paid.
 
 > For other chains - worst-case scenario will expose oracle messages/signatures and corresponding paid amounts. The calculation logic is erased nevertheless.
 
@@ -171,7 +171,7 @@ const model = await (new Dsl(async dsl => {
 await database.push("a", a_nondeterministic) //[30, 31]
 ```
 
-> Discreet enumerates all possible meaningful outcomes by design - so types of outcomes in contracts have to be chosen carefully - they have to be human-interpretable, meaningful. Even if it's DOJ-index - you have to pick the ranges of values with meaning. 
+> Discreet🌿 enumerates all possible meaningful outcomes by design - so types of outcomes in contracts have to be chosen carefully - they have to be human-interpretable, meaningful. Even if it's DOJ-index - you have to pick the ranges of values with meaning. 
 
 > Ranges are allowed - 0..100 is a single outcome. Numerics on observed data (multiplications, sum) however would still require larger (but not full) enumeration. E.g. you can even "0..5", "5..10" on interest rate and then multiply, sum, recurse on it.
 
@@ -208,13 +208,13 @@ This approach additionally allows for purely trustless Mega-Duel mode: Bitcoin s
 
 ### State
 
-Discrete is at least as powerful as Cardano Marlowe. It allows stateful contracts.
+Discreet🌿 is at least as powerful as Cardano Marlowe. It allows stateful contracts.
 
 Consequently, schedules, every collaterizable ACTUS/ISDA instrument can be implemented.
 
 ### Recursion
 
-Discreet allows for recursion. `outcome` and `pay` can be in recursive calls as well, but subject to standard Discreet typesafety restrictions: no "perfect hedges".
+Discreet🌿 allows for recursion. `outcome` and `pay` can be in recursive calls as well, but subject to standard Discreet typesafety restrictions: no "perfect hedges".
 
 Every contract has a limit on maximum collateral (`enumerateWithBound(maxBudgetParty, maxBudgetCounterParty)`), thus payout recursion is bounded. Halting problem is semi-solved.
 
@@ -282,7 +282,7 @@ const fundFactory = (accumulatedFund: number, refillFund: number, refillBenefici
 
 ### Cross-currency (assets)
 
-DSL should not be responsible for asset pairs, since asset pair is assumed to be fixed between parties per (composite) contract - you specify asset pair in matching etc. Allowing one party to have several assets in a contract is equivalent to having several parties, e.g. "alice-usd", "alice-btc".
+DSL🌿 should not be responsible for asset pairs, since asset pair is assumed to be fixed between parties per (composite) contract - you specify asset pair in matching etc. Allowing one party to have several assets in a contract is equivalent to having several parties, e.g. "alice-usd", "alice-btc".
 
 > Note: since Discreet relies on binary options - there is no confusion about currency. In "alice-usd", "bob-btc" pair - Alice always gets btc, Bob always gets usd.
 
@@ -453,7 +453,7 @@ if (dsl.outcome("siglock_alice && siglock_bob && timelock $date", ["yes"], ["no"
 
 ### Numeric observations
 
-Outcomes are binary in Discreet, so interest rate drivers and such have to be enumerated and adapted. We recommend to quantize derivatives manually - to give meaning to numbers (see `set` outcomes). 
+Outcomes are binary in Discreet🌿, so interest rate drivers and such have to be enumerated and adapted. We recommend to quantize derivatives manually - to give meaning to numbers (see `set` outcomes). 
 
 If numbers are still preferred:
 
@@ -683,7 +683,7 @@ Such extra-sources however will only be queryed prior to submission of contract 
 > note: backtracking does not account for novel data, so foreseeing actual events is more important
 
 #### Future
-DSL enumerates all possible outcomes, thus removing the need for random walk. 
+DSL🌿 enumerates all possible outcomes, thus removing the need for random walk. 
 
 > if your strategy explodes numerically, the only thing you can do is to specify types properly, judging from immediate present sitation. Rely on ranges of possible outcomes you can yourself interpret as human and time periods you would be able to foresee yourself. 
 
@@ -695,11 +695,11 @@ DSL enumerates all possible outcomes, thus removing the need for random walk.
 
 Typesafety is meant to ensure energy preservation. Historically we introduced [STLC](https://en.wikipedia.org/wiki/Simply_typed_lambda_calculus) to lambdas as a way to avoid "perpetual motion". STLC represents finite computational resources completely - any other system is a tautology of STLC. 
 
-Here, in Discreet - we avoid perpetuality by design, since `enumerateWithBound` asks finite collaterals (bounded recursion).
+Here, in Discreet🌿 - we avoid perpetuality by design, since `enumerateWithBound` asks finite collaterals (bounded recursion).
 
 For code NOT involving payments (pure functions), Typescript is responsible for safety, it would give you stackoverflow. 
 
-Discreet additionally provides convinience sugar for pure functions that are meant to go beyound any known boundary (e.g. for precision):
+Discreet🌿 additionally provides convinience sugar for pure functions that are meant to go beyound any known boundary (e.g. for precision):
 
 ```ts
 const turing = (a: number) => () => {
@@ -751,7 +751,7 @@ contactEnvironment() // neurotically unreachable
 decideNextAction()
 ```
 
-Typesefaty of Discreet is meant to ensure this does not happen as long as logic of the contract is sound. 
+Typesefaty of Discreet🌿 is meant to ensure this does not happen as long as logic of the contract is sound. 
 
 > Discreet relies on assumption that money supply is not "infinite" itself during lifespan of a contract. Non-zero energy/value of a unit. Units should have meaning.
 
@@ -762,15 +762,15 @@ SMT solvers can only benefit the interpreter in terms of fast fail in linting.
 
 However, since all possible outomes have to be enumerated anyways - it does not make practical sense to lint it with SMT dolver, since even with SMT solver applied - successful validation would require to enumerate possibilities. Therefore SMT is not applied to interpreter.
 
-Heuristic branch optimizations are already in Typescript transpiler and Javascript engines. Since Discreett is an amedded DSL, your code already benefits from such optimizations.
+Heuristic branch optimizations are already in Typescript transpiler and Javascript engines. Since Discreet🌿 is an amedded DSL, your code already benefits from such optimizations.
 
-Custom assertions in your contracts can, however benefit from SMT in case contract generation depends on complex external environment itself (e.g. backtracking). Discreet is compatible with it, you can rebuild an expression for solver from `OfferModel`.
+Custom assertions in your contracts can, however benefit from SMT in case contract generation depends on complex external environment itself (e.g. backtracking). Discreet🌿 is compatible with it, you can rebuild an expression for solver from `OfferModel`.
 
 Otherwise - you can make custom assertions for your contract just by throwing an exception!
 
 ### Optimisations
 
-Discreet outputs most optimal contract theoretically possible.
+Discreet🌿 outputs most optimal contract theoretically possible.
 
 Backends are allowed to optimize ranges and such - by interpreting "0..100" as Schnorr sum of messages. They can also optimize subsequent unique matches of the same fact ("100 = 20", "100 = 30" etc, e.g. turn a set of binary options to a european call) into a single pack of CET-transactions rather than a binary tree, which would reduce amount of transactions needed to redeem the funds in worst case.
 
@@ -808,7 +808,7 @@ Memoization between parallel execution pathes is possible in theory. Decreasing 
 
 > GPU is not implemented
 
-In theory, Discreet's pricing kernel is highly parallelizable. In practice, since `dsl.outcome`s are discovered lazily it would require some initial reattempts, a bit of warm-up time until shaders can be allocated optimally.
+In theory, Discreet🌿's pricing kernel is highly parallelizable. In practice, since `dsl.outcome`s are discovered lazily it would require some initial reattempts, a bit of warm-up time until shaders can be allocated optimally.
 
 It would also limit expressiveness of your constracts to a subset of javascript, let's say with restrictions [GPU.js](https://gpu.rocks/#/) javascript transpiler [imposes](https://github.com/gpujs/gpu.js/wiki/Quick-Concepts), e.g. no external data-sources can be queryed, only subset of standard library, no promises, no workers, so on.
 
