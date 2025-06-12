@@ -237,7 +237,7 @@ Consequently, schedules, every collaterizable [ACTUS](https://www.actusfrf.org/)
 
 ### ∞ Recursion
 
-Discreet🌿 allows for recursion. `outcome` and `pay` can be in recursive calls as well, but subject to standard Discreet typesafety restrictions: no "perfect hedges".
+Discreet🌿 allows for recursion. `outcome` and `pay` can be in recursive calls as well, but subject to Discreet🌿 typesafety: no "perfect hedges".
 
 Every contract has a limit on maximum collateral (`enumerateWithBound(maxBudgetParty, maxBudgetCounterParty)`), thus payout recursion is bounded. 
 
