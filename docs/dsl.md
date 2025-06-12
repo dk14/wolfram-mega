@@ -393,7 +393,7 @@ if (observe("alicePubkey", ["ADDRESS IS EMPTY"])) {
 > It does not stop Alice from slashing/rejecting received payment from Bob this way - it only proves that Alice did not receive anything. It is an option for Alice to choose between accepting incoming payment and unlocking security deposit. She would have to add her own deposit to repayment wallet MAD-style as incentive to not reject someone's payment. So applicability of this approach in actual loans is quite limited, it only works for deposits with uncertain value - otherwise it is simply equivalent to overcollaterization (for alice's security deposit - she would ask higher deposit from Bob, which would erase original incentive).
 
 #### Vanilla Future Contract
-Vanilla futures are impossible on blockchain. Such contracts are not automatable, since either of the party might not have funds in the future, thus no way to collaterize in advance.
+Vanilla futures are impossible on blockchain. Such contracts are not automatable, since either of the party might not have funds in the future, thus no way to collaterize in advance. Vanilla future is symmetric, unlike crypto-loan.
 
 > Defi "solves" it with tokens, but tokens are not backed up by anything. You cannot tokenize a car or a human. Alice cannot go and tatoo a **unique** pubkey on a car or her body. Carol will take up on a trend and everyone will have same tatoo like idiots.
 
