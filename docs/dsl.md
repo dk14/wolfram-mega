@@ -756,6 +756,7 @@ Typesefaty of Discreet is meant to ensure this does not happen as long as logic 
 > Discreet relies on assumption that money supply is not "infinite" itself during lifespan of a contract. Non-zero energy/value of a unit. Units should have meaning.
 
 ### Applicability of SMT solvers
+> TLDR: not applicable
 
 SMT solvers can only benefit the interpreter in terms of fast fail in linting. 
 
@@ -778,6 +779,8 @@ Backends are allowed to optimize ranges and such - by interpreting "0..100" as S
 And that's it.
 
 #### Memoization
+
+> TLDR: not applicable
 
 ##### Over execution path
 
@@ -802,6 +805,8 @@ Memoization between parallel execution pathes is possible in theory. Decreasing 
 #### Parallelization
 
 ##### GPU dreaming
+
+> GPU is not implemented
 
 In theory, Discreet's pricing kernel is highly parallelizable. In practice, since `dsl.outcome`s are discovered lazily it would require some initial reattempts, a bit of warm-up time until shaders can be allocated optimally.
 
