@@ -339,13 +339,6 @@ Shortcut:
 
 ```ts
 // Borrowing contract
-//Alice keeps private
-const aliceSignature = sign("MAGIC", aliceSecret) //this value can be directly attached to "proof of empty pockets" CET as tx signature.
-const aliceRepaymentSecret = aliceSignature //a twist!
-
-//Alice shares
-const aliceRepaymentPub = derivePubkey(aliceRepaymentSecret)
-const alicePub = derivePubkey(aliceSecret)
 
 dsl.ifAtomicSwapLeg1("hashlock", "verified").then(ctx => {
     ctx.party("alice", "usd").pays("bob", "btc").amount(10000000, "usd") //alice lends bob money
@@ -353,19 +346,13 @@ dsl.ifAtomicSwapLeg1("hashlock", "verified").then(ctx => {
     dsl.if("liquidation?", ["yes"], ["no"]).then(ctx => { //price oracle
         ctx.party("bob", "btc").pays("alice", "usd").amount(10, "btc")
     }).else(_ => {
-        dsl.if("timelock", ["yes"], ["no"]).then(ctx => { //don't even think about hashlocks on bob_usd here :) the point of loan is liquidity
+        dsl.if("timelock", ["yes"], ["no"]).then(ctx => { 
             ctx.party("bob", "usd").pays("alice", "usd").amount(300, "usd") // interest 
-            dsl.unsafe.if(alicePub, ["MAGIC"], [], {}).then(ctx => {
-                // ^ alice publicly revealed `aliceRepaymentSecret`, private key for repayment wallet, since it's empty
-                // "proof of empty pockets"
-                dsl.if("timelock2", ["yes"], ["no"]).then(_ => { //grace period (OP_ANYPREVOUT would remove need for it)
-                    //grace period for proofs is over - we assume Alice actually got money, but emptied repayment wallet herself before sharing its secret
-                }).else(ctx => {
-                    // alice submitted proof within grace period
-                    ctx.party("bob", "btc").pays("alice").amount(10, "btc") //Bob loses deposit
-                })
+            dsl.unsafe.if("alice receiving wallet empty", ["yes"], ["no"], {}).then(ctx => {
+               ctx.party("bob", "btc").pays("alice", "usd").amount(10, "btc")
+
             }).else(_ => {
-                // alice did not reveal secret for repayment wallet, since Bob actually sent money there
+
                 // graceful termination
             })
         })
@@ -377,25 +364,9 @@ dsl.ifAtomicSwapLeg1("hashlock", "verified").then(ctx => {
 if(outcome("timelock", ["yes"], ["no"])) {
     //too late to pay - Bob loooses deposit
 } else {
-    if (outcome("timelock2", ["yes"], ["no"])) {
-        if(outcome(alicePub, ["MAGIC"], [])) {
-            //do not pay if alice published proof within grace period
-            //note: this contract will be on-chain at that time, so it guarantees Alice will get her money - unless she reveals signature for "MAGIC""
-
-        } else {
-            dsl.party("bob", "usd").pays(party(aliceRepaymentPub), "usd").amount(10000000, "usd") 
-        }
-    }
+    dsl.party("bob", "usd").pays(party("alice repayment"), "usd").amount(10000000, "usd") 
 }
-
-
 ```
-
-> Alice cryptomagically reveals private key for repayment wallet in order to sign "MAGIC" (the signature itself is magically a private key). Since bob did not pay to that wallet, the key is worthless but Alice gets Bob's deposit using this "empty pockets proof". This approach is a payment oracle without third-party.
-
-> *Cryptomagic: Alice chooses random message, e.g. "MAGIC". Alice signs it with her regular key, but keeps signature private. Alice interprets signature itself literally as private key. Alice derives "repayment wallet" pubkey from this "private key".*
-
-
                 
 This loan is also "physically-settled" vanilla option - Bob buys an option to swap his deposit for usd.
 
