@@ -368,7 +368,9 @@ if(outcome("timelock", ["yes"], ["no"])) {
 
 > Note: OP_ANYPREVOUT would remove a need for third-party Oracle - Bob's repayment could be attached as one of the inputs
 
-> This restriction only applies to BTC-to-asset loan. Any other loan, asset-to-asset, would rely on overlay blockchain (in OP_RETURN), thus advanced spending rules can be implemented (by issuers of corresponding assets) including OP_ANYPREVOUT, covenants and such without need to change anything about BTC protocol.
+> This restriction only applies to BTC-to-asset loan. Any other loan on Bitcoin blockchain, asset-to-asset, would rely on overlay blockchain (in OP_RETURN), thus advanced spending rules can be implemented (by issuers of corresponding assets) including OP_ANYPREVOUT, covenants and such without need to change anything about BTC protocol. Thus, no need for third-party oracle to watch payment wallets.
+
+> It is also possible to peg BTC to a securitized BTC-A asset running in overlay (e.g. ordinals), since atomic swaps between BTC and assets are possible. To not repeat USDT and CFD (contract for difference) mistakes - one has to remember that pegging is equivalent to issuing a new asset thus such BTC-A would increase supply if it's liquid enough. So atomic swaps can only be allowed between "newly issued BTC-A" and BTC going to void. Ulike with side-chains - here they would happen on the same chain (between overlay of BTC and actual BTC) and you can swap with yourself (no need to trade): "burned 0.1 BTC for 1 satochi representing it as 0.1 BTC-A asset", but only in one direction, swapping it back would require counterparty.
                 
 This loan is also "physically-settled" vanilla option - Bob buys an option to swap his deposit for usd.
 
