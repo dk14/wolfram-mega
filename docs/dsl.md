@@ -767,6 +767,8 @@ Computer is your ally. Computer can compute nearly anything, more than you'll ev
 
 And silicon computer won't work without electricity - no food, no computing.
 
+> Canadian in me says there is a possibility to build a stable silicon-based nicho ecológico somewhere in the solar system - machines would have a chance of being self sustained in there, since competition over solar energy would be minimal in space. Software would be self-replicating, time can be underclocked, can expand through signaling.
+
 ### Applicability of SMT solvers
 
 SMT solvers can only benefit the interpreter in terms of fast fail in linting. 
