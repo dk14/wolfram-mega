@@ -99,8 +99,8 @@ And when you ready - just take the risk and play with Discreet🌿 eDSL!
 ## Language
 
 There are only two constructs👷:
-- checking observations👁 - inputs from oracles (`dsl.outcome` returns `boolean`, true or false)
-- paying💳 (`dsl.pay`)
+- checking observations 👁 - inputs from oracles (`dsl.outcome` returns `boolean`, true or false)
+- paying 💳 (`dsl.pay`)
 
 Everything else you can do in javascript.
 
