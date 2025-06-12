@@ -220,6 +220,8 @@ Every contract has a limit on maximum collateral (`enumerateWithBound(maxBudgetP
 
 ### Multi-party
 
+Multi-party mode creates a set of mutual 2-party contracts. It is transparent to the user, all pairs are treated as one contract in eDSL.
+
 ```ts
 import { Dsl } from '@dk14/wolfram-mega/discreet'
 
