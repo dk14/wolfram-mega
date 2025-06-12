@@ -417,7 +417,7 @@ This loan is also "physically-settled" vanilla option - Bob buys an option to sw
 
 ----
 
-There is a tricky niche way to implement "Proof of not receiving money" on pure btc:
+There is a tricky niche way to implement "proof of not receiving money" on pure btc:
 ```ts
 if (observe("alicePubkey", ["ADDRESS IS EMPTY"])) {
     ...
