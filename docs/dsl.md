@@ -806,7 +806,6 @@ Memoization between parallel execution pathes is possible in theory. Decreasing 
 While in theory, it is possible to aggregate several `pay` constructs coming after observation is made, practically typesafety and optimality can only be achieved if such `pay`s are unambiguously associated with nearest observation of an `outcome`. Typescript allows contructs, ala:
 
 ```ts
-
 if (outcome1) {
     if (outcome2) {
         pay2
