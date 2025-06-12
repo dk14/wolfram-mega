@@ -354,10 +354,9 @@ dsl.ifAtomicSwapLeg1("hashlock", "verified").then(ctx => {
                     //timelock2 expired - we assume Alice got money
                 }).else(ctx => {
                     ctx.party("bob", "btc").pays("alice").amount(10, "btc") //Bob loses deposit
-                    // alice_bob_escrow is used because `aliceTookDeposit` generates transaction spending from it to Alice
                 })
             }).else(_ => {
-                // alice did not reveal pk for repayment wallet, since Bob sent money there
+                // alice did not reveal secret for repayment wallet, since Bob sent money there
                 // graceful termination
             })
         })
