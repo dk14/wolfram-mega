@@ -210,7 +210,7 @@ This approach additionally allows for purely trustless Mega-Duel mode: Bitcoin s
 
 Discrete is at least as powerful as Cardano Marlowe. It allows stateful contracts.
 
-Consequently, schedules, every collaterizable ACTUS instrument can be implemented.
+Consequently, schedules, every collaterizable ACTUS/ISDA instrument can be implemented.
 
 ### Recursion
 
