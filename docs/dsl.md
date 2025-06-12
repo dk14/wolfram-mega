@@ -102,6 +102,8 @@ DSL transpiler will erase javascript code, collapsing it into `observe -> pay ->
 
 No smart-contract/VM is required to run the resulting contract. Target chain only has to be able to understand scriptless scripts (support Schnorr), which most modern chains do. 
 
+> *Non-utxo  chains (and smart-contract chains in general) are NOT recommended, since they create expensive redundancies by making their nodes compute unlocking-logic that is NOT supposed to be on-chain. The code our transpiler erases is literally "smart"-contract code. The state our transpiler erases is Cardano's datum.*
+
 ### Limitations
 
 Capturing variables is unsafe outside of dsl-context
@@ -183,9 +185,9 @@ All outcomes specified in either yes or no of `dsl.outcome(pubkey, yesoutcomes, 
 
 Querying mutually exclusive outcomes, e.g. `{yes = ["a"], no = ["b"]} && {yes = ["b"], no = ["a"]}` disallowed, since it can output unreachable subcontracts potentially: use typescript `!` instead, so typescript could lint unreachable code.
 
-#### Script-generated observations
+#### Script-generated observations (advanced)
 
-`pubkey` is allowed to contain chain-specific script, if specific verification of the fact is required, rather than oracle-signature verification. It is needed in order to use cryptological proofs as true oracles, rather than third-party attestants. Convention: `$(<extra validator script>)`. Examples:
+`pubkey` is allowed to contain chain-specific script, if specific algorithmic verification of the fact is required, rather than just verification of signature from third-party attestant. It is needed in order to use cryptological proofs as true oracles. Convention: `$(<extra validator script>)`. Examples:
 
 - timelock: `$(OP_CHECKLOCKTIMEVERIFY <time> )`
 - hashlock: `$(OP_SHA256 OP_EQUALS <locking-nonce> OP_VERIFY)`
@@ -201,8 +203,6 @@ Bitcoin Script is taken as a standard for cross-chain compatibility, since it is
 
 
 This approach additionally allows for purely trustless Mega-Light mode: Bitcoin script can verify PoW done over oracle's PubKey. In absense of suitable oracle in Mega-mempools, Alice and Bob  (contract participants) can be lightweight "oracles" themselves and engage in PoW-battle in case of a dispute, as long as they both agreed on PoW-threshold before signing transactions.
-
-> *Non-utxo  chains (and smart-contract chains in general) are NOT recommended, since they create expensive redundancies by making their nodes to compute unlocking-logic that is NOT supposed to be on-chain. The code our transpiler erases is literally "smart"-contract code. The state our transpiler erases is Cardano's datum.*
 
 ### State
 
