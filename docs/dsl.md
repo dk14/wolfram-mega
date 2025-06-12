@@ -202,7 +202,7 @@ Or don't - up to u 🤷.
 if (dsl.outcome("really?", ["YES"], ["NO"])) {
     // Alice gets paid regardless of outcome:
     dsl.pay(Dsl.Alice, 40) 
-    } else {
+} else {
     // Alice gets paid regardless of outcome:
     dsl.pay(Dsl.Alice, 50) 
 } 
