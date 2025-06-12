@@ -367,7 +367,7 @@ dsl.ifAtomicSwapLeg1("hashlock", "verified").then(ctx => {
 
 > Alice cryptomagically reveals private key for repayment wallet in order to sign "MAGIC" (the signature itself is magically a private key). Since bob did not pay to that wallet, the key is worthless but Alice gets Bob's deposit using this "empty pockets proof". This approach is a payment oracle without third-party.
 
-> *Cryptomagic: Alice chooses random message, e.g. "MAGIC". Alice signs it with her regular key, but keeps signature private. Alice interprets signature itself literally as private key. Alice derives "repayment wallet" pubkey from this "private key". Note: Alice can put adaptor signature for this tx without revealing original MAGIC signature*
+> *Cryptomagic: Alice chooses random message, e.g. "MAGIC". Alice signs it with her regular key, but keeps signature private. Alice interprets signature itself literally as private key. Alice derives "repayment wallet" pubkey from this "private key".*
 
 
 > Nuance: Alice can only withdraw funds from repayment wallet after grace period `deadline2`. Bob has to send money locked with `deadline2` timelock, so Alice would not empty the wallet herself. `ANYPREVOUT` BIP in BTC would address this inconvinience.
