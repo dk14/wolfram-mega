@@ -42,6 +42,9 @@ class Dsl {
     pay(idx, amount) {
         //console.log("" + idx + "  " + amount + "  " + JSON.stringify(this.prev))
         //console.log(amount)
+        if (idx === undefined) {
+            throw new Error("party undefined");
+        }
         if (!this.protect) {
             throw new Error("should not call outside of body; use `new Dsl((dsl) => handler).enumerate()`");
         }
@@ -1014,10 +1017,10 @@ class Dsl {
                                 }
                                 if (counterparty !== undefined && sum !== 0) {
                                     if (sum > 0) {
-                                        this.pay(party, sum);
+                                        this.pay(counterparty, sum);
                                     }
                                     else {
-                                        this.pay(party === 0 ? 1 : 0, -sum);
+                                        this.pay(counterparty === 0 ? 1 : 0, -sum);
                                     }
                                 }
                                 this.cursor = saveCursor;
@@ -1120,24 +1123,6 @@ if (typeof window === 'undefined' && require.main === module) {
                             funds.pay(Dsl.Alice, 10);
                         });
                     }
-                    dsl.numeric.outcome("price?", 0, 20).evaluateWithPaymentCtx((acc, n) => {
-                        if (n > 2) {
-                            acc.party("alice").pays("bob").amount(10);
-                        }
-                        else {
-                            acc.party("bob").pays("alice").amount(30);
-                        }
-                    });
-                    dsl.set.outcome("which?", ["lol", "okay", "yaay"]).evaluate(point => {
-                        if (point === "lol") {
-                            dsl.pay(Dsl.Alice, 30);
-                        }
-                    });
-                    dsl.set.outcomeT("which?", ["lol", "okay", "yaaylol"], x => x, x => x).evaluate(point => {
-                        if (point === "lol") {
-                            dsl.pay(Dsl.Alice, 30);
-                        }
-                    });
                 }
                 else {
                     dsl.pay(Dsl.Bob, 50);
@@ -1161,11 +1146,6 @@ if (typeof window === 'undefined' && require.main === module) {
                     account.party("carol").pays("alice").amount(5);
                 }).else(account => {
                     account.party("carol").pays("alice").amount(30);
-                });
-                console.log(dsl.numeric.outcome("price?", 0, 3).value());
-                dsl.numeric.outcome("price?", 0, 5).evaluateWithPaymentCtx((account, n) => {
-                    //console.log(n)
-                    account.party("alice").pays("carol").amount(n - 2);
                 });
             }
         })).multiple("alice", "bob", "carol").enumerateWithBoundMulti([[1000, 2000], [1000, 2000], [1000, 2000]]);
