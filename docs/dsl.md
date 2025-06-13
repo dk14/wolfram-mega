@@ -967,8 +967,43 @@ Alice is clearly at advantage though. `dsl.strictlyFair = true` would enforce ve
 
 > Semantics of decidability: striclyFair here technically means "NOT strictly unfair".
 
+----
+
+P.S. For those special people in academia and technology, who think resources are unbounded, that "children are the future", there is a special kind of `unsafe` feature. If `dsl.infinity` actor model is not enough, `dsl.unsafe` has completely untractable "fault tolerant" state machine:
+
+```ts
+const initialState = {"alice": 100, "bob": 100} // collaterals
+dsl.unsafe.numeric.infinity.bounded(false)
+    .perpetual(initialState, (counter, st) => {
+
+    if (observe("eternity", ["truth"], ["nothing"])) { // or vice versa
+        return dsl.unsafe.infinity.move([{
+            alice: st.alice - 1,
+            bob: st.bob - 2
+        }, [
+            {
+                from: ["alice", "usd"],
+                to: ["bob", "sat"],
+                amount: [1, "usd"]
+            },
+            {
+                from: ["bob", "sat"],
+                to: ["alice", "usd"],
+                amount: [2, "sat"]
+            }
+        ]])
+    } else {
+        return dsl.unsafe.infinity.stop([])
+    }
+})
+```
+
+> Here we present `dsl.UNSAFE.infinity`. Welcome to the world of pricing automation. It performs automatic state repair on `PerfectHedgeError` "fault" (reverts the state of affected party and ignores its attempt to pay).
+
+> Payments have to be returned "functional way" as cashflow commands, observations can be performed as usual. Feel free to wrap it all in monads and monadic fried effects for "safe" (from reality) IO as much as your degree of higher-kind desensitization allows.
+
 #### TLDR
-The most efficent way to pay without overthinking is to use synthetic `dsl.if` to capture the branch:
+The most efficent way to pay without overthinking is to use synthetic `dsl.if` to capture the branch, so proper observation would be associated:
 
 ```ts
 dsl.if(question).then(funds => {
@@ -1017,7 +1052,7 @@ dsl.if("wow?", ["yup"], ["nope"]).then(account => {
 })
 ```
 
-If you sure, you won't accidentally pay in sub-branches (since `account` is usually shadowed), use `dsl.unsafe`
+If you sure, you won't accidentally pay in sub-branches (since `account` argument is usually shadowed), use `dsl.unsafe`
 
 ```ts
 dsl.unsafe.if("wow?", ["yup"], ["nope"]).then(account => {
@@ -1033,7 +1068,7 @@ dsl.unsafe.if("wow?", ["yup"], ["nope"]).then(account => {
 
 > `dsl.unsafe` has numerics and sets as well. 
 
-> Note - using payment contexts makes it more challenging for engineer to find a source of perfect hedge. Information is not erased (stacktrace poits to a branch responsible), just not obvious at first glance, since it does not point to `pay`. Especially with numerics where the outcome is hidden in binary tree. `PerfectHedgeError` has a `state` field to improve tracking.
+> Note - using payment contexts makes it more challenging for engineer to find a source of perfect hedge. Information is not erased (stacktrace points to a branch responsible), just not obvious at first glance, since it does not point to `pay`. Especially with numerics where the outcome is hidden in binary tree. `PerfectHedgeError` has a `state` field to improve tracking.
 
 > Theoretically, typescript to typescript transpiler (or a tricky macro) can force shadowing (and hide `accounts => `), thus making `dsl.unsafe` calls safe. It can also rewrite `dsl.if` to typescript's `if`.
 

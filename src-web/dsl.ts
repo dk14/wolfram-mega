@@ -20,6 +20,18 @@ type PaymentHandler = {
     release?: () => void
 }
 
+type PerpetualAsset = string
+
+type PerpetualCashFlow = {
+    from: [string, PerpetualAsset?]
+    to: [string, PerpetualAsset?]
+    amount: [number, PerpetualAsset?]
+}
+
+type PerpetualState<T> = {[party: string]: T}
+
+type PerpetualUpdate<T> = [PerpetualState<T>, PerpetualCashFlow[]]
+
 export const evaluatePartyCollateral = async (o?: OfferModel): Promise<number> => { //promise is to avoid stackoverflow
     if (o === undefined) {
         return 0
@@ -103,6 +115,10 @@ export class Dsl {
     public pay(idx: 0 | 1, amount: number) {
         //console.log("" + idx + "  " + amount + "  " + JSON.stringify(this.prev))
         //console.log(amount)
+
+        if (this.unssafeInifnityCtx) {
+            throw new Error("Payouts are disabled in unsafe infinity context. Specify cashflows in return instead")
+        }
 
         if (idx === undefined) {
             throw new Error("party undefined")
@@ -469,6 +485,8 @@ export class Dsl {
 
     public strictlyFair = false
 
+    private unssafeInifnityCtx = false
+
     public unsafe = {
         if: (pubkey: string, yes: string[], no: string[], args: {[id: string]: string} = {}, allowSwaps: boolean = false, allowMisplacedPay = true, strict = false) => {
             return this.if(pubkey, yes, no, args, allowSwaps, allowMisplacedPay, strict)
@@ -476,7 +494,27 @@ export class Dsl {
         numeric: {
             outcome: (pubkey: string, from: number, to: number, step: number = 1, args: {[id: string]: string} = {}, allowMisplacedPay = true, allowReplacedPay = true) => {
                 return this.numeric.outcome(pubkey, from, to, step, args, allowMisplacedPay, allowReplacedPay)
-            }
+            },
+            infinity: {
+                bounded: (maxInfinity = 10000000, maxCount = 1000000000) => ({
+                    progress: (start: number, forward: (x: number) => number = x => x + 1) => ({
+                        perpetual: <T>(init: PerpetualState<T>, step: (x: number, st: PerpetualState<T>) => PerpetualUpdate<T>) => {
+                            this.unsafe.infinity
+                            .bounded(maxInfinity, maxCount)
+                            .compare((a,b) => a - b)
+                            .progress(start, forward)
+                            .perpetual(init, step)
+                        }
+                    }),
+                    perpetual: <T>(init: PerpetualState<T>, step: (x: number, st: PerpetualState<T>) => PerpetualUpdate<T>) => {
+                        this.unsafe.infinity
+                        .bounded(maxInfinity, maxCount)
+                        .compare((a,b) => b - a)
+                        .progress(0, x => x + 1)
+                        .perpetual(init, step)
+                    }
+                })
+            },
         },
         set: {
             outcome: (pubkey: string, set:string[], args: {[id: string]: string} = {}, allowMisplacedPay = true, allowReplacedPay = true) => {
@@ -491,6 +529,66 @@ export class Dsl {
         },
         outcome: (pubkey: string, yes: string[], no: string[], args: {[id: string]: string} = {}, allowTruth = false, strict = false) => {
             return this.outcome(pubkey, yes, no, args, allowTruth, strict)
+        },
+        infinity: {
+            move: <T>(x: T) => {
+                if (x === undefined) {
+                    throw new Error("Cannot move with undefined state!")
+                }
+                return x
+            },
+            stop:  <T>(cashflows: T): [any, T] => [undefined, cashflows],
+            bounded: <T>(maxInfinity: T, maxCount = 10000) => ({
+                compare: (cmp: (a: T, b: T) => number) => ({
+                    progress: (start: T, forward: (x: T) => T) => ({
+                        perpetual: <ST>(init: PerpetualState<ST>, step: (x: T, st: PerpetualState<ST>) => PerpetualUpdate<ST>) => {
+                            let cursor = start
+                            let counter = 0
+                            let state = init
+                            while (cmp(cursor, maxInfinity) > 0 && counter < maxCount) {
+                                const saveState = state;
+                                let cashflows: PerpetualCashFlow[] = undefined;
+                                [state, cashflows] = step(cursor, state)
+
+                                cashflows.forEach(cashflow => {
+                                    try {
+                                        this.party(
+                                            cashflow.from[0], 
+                                            cashflow.from[1]
+                                        ).pays(
+                                            cashflow.to[0],
+                                            cashflow.to[1]
+                                        ).amount(
+                                            cashflow.amount[0],
+                                            cashflow.amount[1]
+                                        )
+                                    } catch (e) {
+                                        if (e instanceof DslErrors.PerfectHedgeError) {
+                                            const party = e.pair[e.partyIdx]
+                                            state[party] = saveState[party] //repair
+                                        }
+                                    }
+                                })
+                                
+                                if (state === undefined){
+                                    return
+                                }
+                                if (state === saveState) {
+                                    throw new DslErrors.InfinityError("Infinity Inferred! State did not progress! Collaterals are not decreasing?", state)
+                                }
+                                cursor = forward(cursor)
+                                counter++
+                            }
+                            if (counter >= maxCount) {
+                                throw new DslErrors.InfinityCountError("Max count reached!")
+                            }
+                            if (cmp(cursor, maxInfinity) <= 0) {
+                                throw new DslErrors.InfinityError("Infinity Reached! Collaterals are not decreasing?", state)
+                            }
+                        }
+                    })
+                })
+            })
         }
 
     }
@@ -1542,7 +1640,26 @@ if (typeof window === 'undefined' && require.main === module) {
                 pay.party("bob", "btc").pays("alice", "usd").amount(10, "btc")
             })
             dsl.numeric.infinity.bounded(100).perpetual(0, (x, st) => {
+                //return dsl.infinity.move
                 return dsl.infinity.stop
+            })
+            dsl.unsafe.numeric.infinity.bounded(100).perpetual({"alice": 100, "bob": 100}, (x, st) => {
+                const shouldnot = dsl.unsafe.infinity.move([{
+                    alice: st.alice - 1,
+                    bob: st.bob - 2
+                }, [
+                    {
+                        from: ["alice", "usd"],
+                        to: ["bob", "btc"],
+                        amount: 1
+                    },
+                    {
+                        from: ["bob", "btc"],
+                        to: ["alice", "usd"],
+                        amount: 2
+                    }
+                ]])
+                return dsl.unsafe.infinity.stop([])
             })
         })).multiple(Dsl.account("alice", "usd"), Dsl.account("bob", "btc")).enumerateWithBoundMulti([[10000000000, 200000]])
         console.log(swap)
