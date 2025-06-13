@@ -973,6 +973,7 @@ P.S. For those special people in academia and technology, who think resources ar
 
 ```ts
 const initialState = {"alice": 100, "bob": 100} // collaterals
+
 dsl.unsafe.numeric.infinity.bounded(false)
     .perpetual(initialState, (counter, st) => {
 
