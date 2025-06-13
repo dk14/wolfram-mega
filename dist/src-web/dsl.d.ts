@@ -8,6 +8,16 @@ type PaymentHandler = {
     });
     release?: () => void;
 };
+type PerpetualAsset = string;
+type PerpetualCashFlow = {
+    from: [string, PerpetualAsset?];
+    to: [string, PerpetualAsset?];
+    amount: [number, PerpetualAsset?];
+};
+type PerpetualState<T> = {
+    [party: string]: T;
+};
+type PerpetualUpdate<T> = [PerpetualState<T>, PerpetualCashFlow[]];
 export declare const evaluatePartyCollateral: (o?: OfferModel) => Promise<number>;
 export declare const evaluateCounterPartyCollateral: (o?: OfferModel) => Promise<number>;
 export declare namespace DslErrors {
@@ -86,6 +96,7 @@ export declare class Dsl {
         };
     };
     strictlyFair: boolean;
+    private unssafeInifnityCtx;
     unsafe: {
         if: (pubkey: string, yes: string[], no: string[], args?: {
             [id: string]: string;
@@ -102,6 +113,14 @@ export declare class Dsl {
                 evaluateWithPaymentCtx: (payhandler: (h: PaymentHandler, n: number) => void) => void;
                 value: () => number;
                 valueWithPaymentCtxUnsafe: () => [number, PaymentHandler];
+            };
+            infinity: {
+                bounded: (maxInfinity?: number, maxCount?: number) => {
+                    progress: (start: number, forward?: (x: number) => number) => {
+                        perpetual: <T>(init: PerpetualState<T>, step: (x: number, st: PerpetualState<T>) => PerpetualUpdate<T>) => void;
+                    };
+                    perpetual: <T>(init: PerpetualState<T>, step: (x: number, st: PerpetualState<T>) => PerpetualUpdate<T>) => void;
+                };
             };
         };
         set: {
@@ -130,6 +149,17 @@ export declare class Dsl {
         outcome: (pubkey: string, yes: string[], no: string[], args?: {
             [id: string]: string;
         }, allowTruth?: boolean, strict?: boolean) => boolean;
+        infinity: {
+            move: <T>(x: T) => T;
+            stop: <T>(cashflows: T) => [any, T];
+            bounded: <T>(maxInfinity: T, maxCount?: number) => {
+                compare: (cmp: (a: T, b: T) => number) => {
+                    progress: (start: T, forward: (x: T) => T) => {
+                        perpetual: <ST>(init: PerpetualState<ST>, step: (x: T, st: PerpetualState<ST>) => PerpetualUpdate<ST>) => void;
+                    };
+                };
+            };
+        };
     };
     infinity: {
         move: <T>(x: T) => T;

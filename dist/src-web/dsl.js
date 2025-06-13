@@ -83,6 +83,9 @@ class Dsl {
     pay(idx, amount) {
         //console.log("" + idx + "  " + amount + "  " + JSON.stringify(this.prev))
         //console.log(amount)
+        if (this.unssafeInifnityCtx) {
+            throw new Error("Payouts are disabled in unsafe infinity context. Specify cashflows in return instead");
+        }
         if (idx === undefined) {
             throw new Error("party undefined");
         }
@@ -396,6 +399,7 @@ class Dsl {
         })
     };
     strictlyFair = false;
+    unssafeInifnityCtx = false;
     unsafe = {
         if: (pubkey, yes, no, args = {}, allowSwaps = false, allowMisplacedPay = true, strict = false) => {
             return this.if(pubkey, yes, no, args, allowSwaps, allowMisplacedPay, strict);
@@ -403,7 +407,27 @@ class Dsl {
         numeric: {
             outcome: (pubkey, from, to, step = 1, args = {}, allowMisplacedPay = true, allowReplacedPay = true) => {
                 return this.numeric.outcome(pubkey, from, to, step, args, allowMisplacedPay, allowReplacedPay);
-            }
+            },
+            infinity: {
+                bounded: (maxInfinity = 10000000, maxCount = 1000000000) => ({
+                    progress: (start, forward = x => x + 1) => ({
+                        perpetual: (init, step) => {
+                            this.unsafe.infinity
+                                .bounded(maxInfinity, maxCount)
+                                .compare((a, b) => a - b)
+                                .progress(start, forward)
+                                .perpetual(init, step);
+                        }
+                    }),
+                    perpetual: (init, step) => {
+                        this.unsafe.infinity
+                            .bounded(maxInfinity, maxCount)
+                            .compare((a, b) => b - a)
+                            .progress(0, x => x + 1)
+                            .perpetual(init, step);
+                    }
+                })
+            },
         },
         set: {
             outcome: (pubkey, set, args = {}, allowMisplacedPay = true, allowReplacedPay = true) => {
@@ -418,6 +442,56 @@ class Dsl {
         },
         outcome: (pubkey, yes, no, args = {}, allowTruth = false, strict = false) => {
             return this.outcome(pubkey, yes, no, args, allowTruth, strict);
+        },
+        infinity: {
+            move: (x) => {
+                if (x === undefined) {
+                    throw new Error("Cannot move with undefined state!");
+                }
+                return x;
+            },
+            stop: (cashflows) => [undefined, cashflows],
+            bounded: (maxInfinity, maxCount = 10000) => ({
+                compare: (cmp) => ({
+                    progress: (start, forward) => ({
+                        perpetual: (init, step) => {
+                            let cursor = start;
+                            let counter = 0;
+                            let state = init;
+                            while (cmp(cursor, maxInfinity) > 0 && counter < maxCount) {
+                                const saveState = state;
+                                let cashflows = undefined;
+                                [state, cashflows] = step(cursor, state);
+                                cashflows.forEach(cashflow => {
+                                    try {
+                                        this.party(cashflow.from[0], cashflow.from[1]).pays(cashflow.to[0], cashflow.to[1]).amount(cashflow.amount[0], cashflow.amount[1]);
+                                    }
+                                    catch (e) {
+                                        if (e instanceof DslErrors.PerfectHedgeError) {
+                                            const party = e.pair[e.partyIdx];
+                                            state[party] = saveState[party]; //repair
+                                        }
+                                    }
+                                });
+                                if (state === undefined) {
+                                    return;
+                                }
+                                if (state === saveState) {
+                                    throw new DslErrors.InfinityError("Infinity Inferred! State did not progress! Collaterals are not decreasing?", state);
+                                }
+                                cursor = forward(cursor);
+                                counter++;
+                            }
+                            if (counter >= maxCount) {
+                                throw new DslErrors.InfinityCountError("Max count reached!");
+                            }
+                            if (cmp(cursor, maxInfinity) <= 0) {
+                                throw new DslErrors.InfinityError("Infinity Reached! Collaterals are not decreasing?", state);
+                            }
+                        }
+                    })
+                })
+            })
         }
     };
     infinity = {
@@ -1500,7 +1574,26 @@ if (typeof window === 'undefined' && require.main === module) {
                 pay.party("bob", "btc").pays("alice", "usd").amount(10, "btc");
             });
             dsl.numeric.infinity.bounded(100).perpetual(0, (x, st) => {
+                //return dsl.infinity.move
                 return dsl.infinity.stop;
+            });
+            dsl.unsafe.numeric.infinity.bounded(100).perpetual({ "alice": 100, "bob": 100 }, (x, st) => {
+                const shouldnot = dsl.unsafe.infinity.move([{
+                        alice: st.alice - 1,
+                        bob: st.bob - 2
+                    }, [
+                        {
+                            from: ["alice", "usd"],
+                            to: ["bob", "btc"],
+                            amount: 1
+                        },
+                        {
+                            from: ["bob", "btc"],
+                            to: ["alice", "usd"],
+                            amount: 2
+                        }
+                    ]]);
+                return dsl.unsafe.infinity.stop([]);
             });
         })).multiple(Dsl.account("alice", "usd"), Dsl.account("bob", "btc")).enumerateWithBoundMulti([[10000000000, 200000]]);
         console.log(swap);
