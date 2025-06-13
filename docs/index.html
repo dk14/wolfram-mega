@@ -128,7 +128,7 @@ animate()
 
   const code = `if (dsl.outcome("really?", ["YES"], ["NO"])) {
     dsl.pay(Dsl.Bob, 100) 
-    if (dsl.outcome("is it?", ["YES"], ["NO", "3..40"])) {
+    if (dsl.outcome("is it?", ["YES"], ["NO"])) {
         dsl.pay(Dsl.Alice, 40)
     } else {
         dsl.pay(Dsl.Bob, 50)
