@@ -52,8 +52,6 @@ export interface HashLockProvider {
     getHashUnLock: (o: OfferMsg) => Promise<string>;
 }
 export declare const hashLockProvider: HashLockProvider;
-export declare const evaluatePartyCollateral: (o?: OfferModel) => Promise<number>;
-export declare const evaluateCounterPartyCollateral: (o?: OfferModel) => Promise<number>;
 export declare const pickCps: (cfg: PreferenceModel) => Promise<OracleCapability[]>;
 export declare const matchingEngine: MatchingEngine;
 export declare function maxBy<T>(arr: T[], fn: (item: T) => number): T | undefined;

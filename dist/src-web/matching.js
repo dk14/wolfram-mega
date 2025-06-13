@@ -1,8 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.matchingEngine = exports.pickCps = exports.evaluateCounterPartyCollateral = exports.evaluatePartyCollateral = exports.hashLockProvider = exports.checkOriginatorId = exports.getOriginatorId = exports.randomInt = void 0;
+exports.matchingEngine = exports.pickCps = exports.hashLockProvider = exports.checkOriginatorId = exports.getOriginatorId = exports.randomInt = void 0;
 exports.maxBy = maxBy;
 const oracle_data_provider_1 = require("./oracle-data-provider");
+const dsl_1 = require("./dsl");
 const randomInt = (n) => {
     return Math.floor(Math.random() * n);
 };
@@ -90,24 +91,6 @@ exports.hashLockProvider = {
         return await hash(o.pow.hash + (await window.privateDB.get("secrets", "secret-hash") ?? "insecure!"));
     }
 };
-const evaluatePartyCollateral = async (o) => {
-    if (o === undefined) {
-        return 0;
-    }
-    else {
-        return o.bet[0] + Math.max(await (0, exports.evaluatePartyCollateral)(o.ifPartyWins), await (0, exports.evaluatePartyCollateral)(o.ifCounterPartyWins));
-    }
-};
-exports.evaluatePartyCollateral = evaluatePartyCollateral;
-const evaluateCounterPartyCollateral = async (o) => {
-    if (o === undefined) {
-        return 0;
-    }
-    else {
-        return o.bet[1] + Math.max(await (0, exports.evaluateCounterPartyCollateral)(o.ifPartyWins), await (0, exports.evaluateCounterPartyCollateral)(o.ifCounterPartyWins));
-    }
-};
-exports.evaluateCounterPartyCollateral = evaluateCounterPartyCollateral;
 const paging = {
     page: 0,
     chunkSize: 100
@@ -210,8 +193,8 @@ exports.matchingEngine = {
             counterpartyBetAmount: o.bet[1],
             txfee: window.txfee,
             dependsOn: o.dependsOn,
-            partyCompositeCollateralAmount: await (0, exports.evaluatePartyCollateral)(o),
-            counterpartyCompositeCollateralAmount: await (0, exports.evaluateCounterPartyCollateral)(o)
+            partyCompositeCollateralAmount: await (0, dsl_1.evaluatePartyCollateral)(o),
+            counterpartyCompositeCollateralAmount: await (0, dsl_1.evaluateCounterPartyCollateral)(o)
         };
         const offer = {
             message: "",

@@ -8,6 +8,8 @@ type PaymentHandler = {
     });
     release?: () => void;
 };
+export declare const evaluatePartyCollateral: (o?: OfferModel) => Promise<number>;
+export declare const evaluateCounterPartyCollateral: (o?: OfferModel) => Promise<number>;
 export declare namespace DslErrors {
     class PerfectHedgeError extends Error {
         state: {
@@ -25,6 +27,12 @@ export declare namespace DslErrors {
         constructor(msg: string, st: ST);
     }
     class InfinityCountError extends Error {
+    }
+    class PartyAtAdvantage extends Error {
+        amount: number;
+        partyIdx: 0 | 1;
+        pair: [string, string];
+        constructor(msg: string, amount: number, partyIdx: 0 | 1, pair: [string, string]);
     }
 }
 export declare class Dsl {
@@ -77,6 +85,7 @@ export declare class Dsl {
             };
         };
     };
+    strictlyFair: boolean;
     unsafe: {
         if: (pubkey: string, yes: string[], no: string[], args?: {
             [id: string]: string;

@@ -1,7 +1,25 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Dsl = exports.DslErrors = void 0;
+exports.Dsl = exports.DslErrors = exports.evaluateCounterPartyCollateral = exports.evaluatePartyCollateral = void 0;
 const async_mutex_1 = require("async-mutex");
+const evaluatePartyCollateral = async (o) => {
+    if (o === undefined) {
+        return 0;
+    }
+    else {
+        return o.bet[0] + Math.max(await (0, exports.evaluatePartyCollateral)(o.ifPartyWins), await (0, exports.evaluatePartyCollateral)(o.ifCounterPartyWins));
+    }
+};
+exports.evaluatePartyCollateral = evaluatePartyCollateral;
+const evaluateCounterPartyCollateral = async (o) => {
+    if (o === undefined) {
+        return 0;
+    }
+    else {
+        return o.bet[1] + Math.max(await (0, exports.evaluateCounterPartyCollateral)(o.ifPartyWins), await (0, exports.evaluateCounterPartyCollateral)(o.ifCounterPartyWins));
+    }
+};
+exports.evaluateCounterPartyCollateral = evaluateCounterPartyCollateral;
 var DslErrors;
 (function (DslErrors) {
     class PerfectHedgeError extends Error {
@@ -29,6 +47,18 @@ var DslErrors;
     class InfinityCountError extends Error {
     }
     DslErrors.InfinityCountError = InfinityCountError;
+    class PartyAtAdvantage extends Error {
+        amount;
+        partyIdx;
+        pair;
+        constructor(msg, amount, partyIdx, pair) {
+            super(msg);
+            this.amount = amount;
+            this.partyIdx = partyIdx;
+            this.pair = pair;
+        }
+    }
+    DslErrors.PartyAtAdvantage = PartyAtAdvantage;
 })(DslErrors || (exports.DslErrors = DslErrors = {}));
 class Dsl {
     state = {};
@@ -275,6 +305,14 @@ class Dsl {
             this.leafsFiltered = true;
             return undefined;
         }
+        if (this.strictlyFair) {
+            if (!model.bet[0] && model.bet[1]) {
+                throw new DslErrors.PartyAtAdvantage("Party at advantage - no premium/discount introduced", model.bet[1], 0, this.selected);
+            }
+            if (model.bet[0] && !model.bet[1]) {
+                throw new DslErrors.PartyAtAdvantage("Party at advantage - no premium/discount introduced", model.bet[0], 1, this.selected);
+            }
+        }
         if (model.ifPartyWins) {
             model.ifPartyWins = this.filterLeafs(model.ifPartyWins);
         }
@@ -357,6 +395,7 @@ class Dsl {
             })
         })
     };
+    strictlyFair = false;
     unsafe = {
         if: (pubkey, yes, no, args = {}, allowSwaps = false, allowMisplacedPay = true, strict = false) => {
             return this.if(pubkey, yes, no, args, allowSwaps, allowMisplacedPay, strict);
