@@ -978,7 +978,7 @@ dsl.unsafe.if("wow?", ["yup"], ["nope"]).then(account => {
 })
 ```
 
-> `dsl.unsafe` has numerics and sets as well
+> `dsl.unsafe` has numerics and sets as well. They still require binary choices to be made (to avoid perfect hedges), but this is bypassable by trying contexts from upper nodes in a tree in case of hedge-exception. Note: feature is not implemented yet, a hack would be to assign different ranges `const a = outcome("", 0, 50); const aa = outcome("", 0, 25); if (a === aa && a > 1){}`.
 
 > Note - using payment contexts makes it more challenging to find a source of perfect hedge. Information is not erased (stacktrace poits to a branch responsible), just not obvious at first glance, since it does not point to `pay`. Especially with numerics where the outcome is hidden in binary tree. `PerfectHedgeError` has a `state` field to improve tracking.
 
