@@ -432,7 +432,7 @@ if(outcome("timelock", ["yes"], ["no"])) {
 
 > It is also possible to peg BTC currency itself to a securitized BTC-A asset running in overlay (e.g. ordinals), since atomic swaps between BTC and assets are possible. To not repeat USDT and CFD (contract for difference) mistakes - one has to remember that pegging is equivalent to issuing a new asset thus such BTC-A would increase supply of overall BTC if it's liquid enough. So atomic swaps can only be allowed between "newly issued BTC-A" and BTC going to void. Unlike with side-chains - here swaps would happen on the same chain (between overlay of BTC and actual BTC) and you can swap with yourself (no need to trade): "burned 0.1 BTC for 1 satochi representing 0.1 BTC as 0.1 BTC-A asset", but only in one direction, swapping it back would require counterparty (would be at premium).
                 
-This loan is also "physically-settled" vanilla option - Bob buys an option to swap his deposit for usd.
+This loan is "physically-settled" vanilla option - Bob buys an option to swap his deposit for usd.
 
 ----
 
