@@ -185,7 +185,7 @@ animate()
       
           } catch (e) {
              const markers = [{
-                severity: monaco.MarkerSeverity.Error,
+                severity: monaco.MarkerSeverity.Warning,
                 startLineNumber: 0,
                 startColumn: 0,
                 endLineNumber: 100,
@@ -193,6 +193,10 @@ animate()
                 message: "Discreet🌿:" + e.message
             }];
             editor2.getModel().setValue("")
+            const linter = monaco.editor.getModelMarkers()
+            if (linter.length > 0 && !linter[0].message.includes("Discreet")) {
+              return
+            }
             monaco.editor.setModelMarkers(editor.getModel(), 'typescript', markers);
           
           }
