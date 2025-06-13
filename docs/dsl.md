@@ -965,7 +965,7 @@ Alice is clearly at advantage though. `dsl.strictlyFair = true` would enforce ve
 
 > `dsl.strictlyFair = true` is sensitive to tree balancing in `set`s and `numeric`s alike. For many cases, `unsafe.numeric` would become unusable (have to replace with `unsafe.set`). Order of members of a `set` would start matter - since it affects balancing of binary option trees. It is not left to interpreter to optimize it anymore, trees would have to be balanced manually and strictly, with proper ordering of outcomes, and mandatory premiums and discounts.
 
-> Semantics of semidecidability: striclyFair here technically means "NOT strictly unfair".
+> Semantics of decidability: striclyFair here technically means "NOT strictly unfair".
 
 #### TLDR
 The most efficent way to pay without overthinking is to use synthetic `dsl.if` to capture the branch:
