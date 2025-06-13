@@ -822,6 +822,8 @@ export class Dsl {
                                 if (allowReplacedPay && e instanceof DslErrors.PerfectHedgeError) {
                                     //propagate higher payhandler back to the leaf
                                     recurse(l.slice(0, l.length / 2), l.slice(l.length / 2), payhandlerOut)
+                                } else {
+                                    throw e
                                 }
                             }
                         }
@@ -846,6 +848,8 @@ export class Dsl {
                                 if (allowReplacedPay && e instanceof DslErrors.PerfectHedgeError) {
                                     //propagate higher payhandler back to the leaf
                                     recurse(r.slice(0, r.length / 2), r.slice(r.length / 2), payhandlerOut)
+                                } else {
+                                    throw e
                                 }
                             }
                         }
@@ -917,6 +921,8 @@ export class Dsl {
                                 if (allowReplacedPay && e instanceof DslErrors.PerfectHedgeError) {
                                     //propagate higher payhandler back to the leaf
                                     recurse(l.slice(0, l.length / 2), l.slice(l.length / 2), payhandlerOut)
+                                } else {
+                                    throw e
                                 }
                             }
                         }
@@ -941,6 +947,8 @@ export class Dsl {
                                 if (allowReplacedPay && e instanceof DslErrors.PerfectHedgeError) {
                                     //propagate higher payhandler back to the leaf
                                     recurse(r.slice(0, r.length / 2), r.slice(l.length / 2), payhandlerOut)
+                                } else {
+                                    throw e
                                 }
                             }
                         }
@@ -1012,6 +1020,8 @@ export class Dsl {
                                 if (allowReplacedPay && e instanceof DslErrors.PerfectHedgeError) {
                                     //propagate higher payhandler back to the leaf
                                     recurse(l.slice(0, l.length / 2), l.slice(l.length / 2), payhandlerOut)
+                                } else {
+                                    throw e
                                 }
                             }
                         }
@@ -1036,6 +1046,8 @@ export class Dsl {
                                 if (allowReplacedPay && e instanceof DslErrors.PerfectHedgeError) {
                                     //propagate higher payhandler back to the leaf
                                     recurse(r.slice(0, r.length / 2), r.slice(r.length / 2), payhandlerOut)
+                                } else {
+                                    throw e
                                 }
                             }
                         }
@@ -1104,6 +1116,8 @@ export class Dsl {
                                 if (allowReplacedPay && e instanceof DslErrors.PerfectHedgeError) {
                                     //propagate higher payhandler back to the leaf
                                     recurse(l.slice(0, l.length / 2), l.slice(l.length / 2), payhandlerOut)
+                                } else {
+                                    throw e
                                 }
                             }
                         }
@@ -1128,6 +1142,8 @@ export class Dsl {
                                 if (allowReplacedPay && e instanceof DslErrors.PerfectHedgeError) {
                                     //propagate higher payhandler back to the leaf
                                     recurse(r.slice(0, r.length / 2), r.slice(r.length / 2), payhandlerOut)
+                                } else {
+                                    throw e
                                 }
                             }
                         }
@@ -1197,6 +1213,8 @@ export class Dsl {
                                 if (allowReplacedPay && e instanceof DslErrors.PerfectHedgeError) {
                                     //propagate higher payhandler back to the leaf
                                     recurse(l.slice(0, l.length / 2), l.slice(l.length / 2), payhandlerOut)
+                                } else {
+                                    throw e
                                 }
                             }
                         }
@@ -1221,6 +1239,8 @@ export class Dsl {
                                 if (allowReplacedPay && e instanceof DslErrors.PerfectHedgeError) {
                                     //propagate higher payhandler back to the leaf
                                     recurse(r.slice(0, r.length / 2), r.slice(r.length / 2), payhandlerOut)
+                                } else {
+                                    throw e
                                 }
                             }
                         }
