@@ -520,6 +520,8 @@ dsl.numeric.outcome("price?", lowerBound, upperBound).evaluate(n => {
 })
 ```
 
+> Example above is a perfect hedge on its own - you'll most likely (but not necesseraly) have to match values of `n` individually in order to keep deal balanced.
+
 Multi-party:
 
 ```ts
