@@ -889,8 +889,7 @@ if (outcome1) {
 ```
 In runtime - pay1's association becomes erased and therefore ambiguous.
 
-One pay per observation enforces following form to be valid exclusively:
-
+One pay per observation enforces following form to be valid exclusively
 ```ts
 if (outcome1) {
     pay1
@@ -899,6 +898,8 @@ if (outcome1) {
     }
 }
 ```
+
+> unless you specify `allowMisplacedPay` (which is default in `unsafe`)
 
 Writing transpiler or optimizer macro for Typescript would theoretically allow for transformation. However, `outcome1` and `outcome2` can get captured, thus naive analysis `if` constructs won;t work - have to trace the original `dsl.outcome` call, possibly accross imported packages.
 
@@ -913,6 +914,38 @@ if (outcome1) {
 ```
 But, since `pay1` does not depend on `outcome2` - it would throw a "perfect hedge" error instead.
 
+Binary trees in sets and numerics make things even more interesting:
+
+```ts
+const observation = observe(1 | 2 | 3) //observe is IO!
+if (observation === 1 | 2) {
+    if (observe(1)) {
+        payToAlice(1 sat)
+    } else {
+        payToAlice(2 sats)
+    }
+} else { //3
+    payToBob(10 sats)
+}
+```
+Becomes a perfect hedge! 
+
+`allowReplacedPay` flag in numerics would rewrite this form into:
+```ts
+const observation = observe(1 | 2 | 3)
+if (observation === 1) {
+    payToAlice(1 sat)
+} else if (observation === 2) {
+    payToAlice(2 sats) 
+} else {//3
+    payToBob(10 sats)
+}
+```
+Now, if
+
+> `dsl.unsafe.numeric` enables both `allowMisplacedPay` and `allowReplacedPay`. `allowReplacedPay` is experimental.
+
+`allowReplacedPay` would technically be safe. It, however, has ambigous semantics of observation: Alice can benefit regardless of **specific** outcome, but cannot benefit from every outcome possible (`allowReplacedPay` still disallows her from benefiting unconditionally - she cannot jump higher than the top of the tree). 
 
 #### TLDR
 The most efficent way to pay without overthinking is to use synthetic `dsl.if` to capture the branch:
@@ -978,7 +1011,7 @@ dsl.unsafe.if("wow?", ["yup"], ["nope"]).then(account => {
 })
 ```
 
-> `dsl.unsafe` has numerics and sets as well. They still require binary choices to be made (to avoid perfect hedges), but this is bypassable by trying contexts from upper nodes in a tree in case of hedge-exception. Note: feature is not implemented yet, a hack would be to assign different ranges `const a = outcome("", 0, 50); const aa = outcome("", 0, 25); if (a === aa && a > 1){}`.
+> `dsl.unsafe` has numerics and sets as well. 
 
 > Note - using payment contexts makes it more challenging to find a source of perfect hedge. Information is not erased (stacktrace poits to a branch responsible), just not obvious at first glance, since it does not point to `pay`. Especially with numerics where the outcome is hidden in binary tree. `PerfectHedgeError` has a `state` field to improve tracking.
 
