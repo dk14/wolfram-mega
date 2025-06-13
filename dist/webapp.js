@@ -50,7 +50,7 @@ const oracle_data_provider_1 = require("./src-web/oracle-data-provider");
 const transactions_1 = require("./src-web/transactions");
 const sandboxjs_1 = __importDefault(require("@nyariv/sandboxjs"));
 const dsl_1 = require("./src-web/dsl");
-const safeEval = async (expression) => {
+const safeEval = async (expression, parties, bounds) => {
     const model = await (new dsl_1.Dsl(async (dsl) => {
         const prototypeWhitelist = sandboxjs_1.default.SAFE_PROTOTYPES;
         const globals = { ...sandboxjs_1.default.SAFE_GLOBALS, alert };
@@ -58,7 +58,7 @@ const safeEval = async (expression) => {
         const sandbox = new sandboxjs_1.default({ globals, prototypeWhitelist });
         const exec = sandbox.compile(expression);
         exec({ dsl, Dsl: dsl_1.Dsl }).run();
-    }).enumerateWithBound(100000, 10000));
+    }).multiple(...parties).enumerateWithBoundMulti(bounds));
     return model;
 };
 window.safeEval = safeEval;

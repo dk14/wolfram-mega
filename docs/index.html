@@ -169,7 +169,7 @@ animate()
       editor.getModel().onDidChangeContent(async (event) => {
           const execute = editor.getValue()
           try {
-              const res = await window.safeEval(execute);
+              const res = await window.safeEval(execute, ["alice", "bob"], [[100000, 100000]]);
               monaco.editor.setModelMarkers(editor.getModel(), 'typescript', [])
               editor2.getModel().setValue(JSON.stringify(res, null, 2))
       

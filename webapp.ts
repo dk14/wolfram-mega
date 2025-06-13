@@ -43,13 +43,13 @@ declare global {
 
         hashLockProvider: HashLockProvider
 
-        safeEval: (expression: string) => Promise<any>
+        safeEval: (expression: string, parties: string[], bounds: [number, number][]) => Promise<any>
 
         test: boolean
     }
 }
 
-const safeEval = async (expression: string): Promise<any> => {
+const safeEval = async (expression: string, parties: string[], bounds: [number, number][]): Promise<any> => {
     
     const model = await (new Dsl(async dsl => {
 
@@ -61,7 +61,7 @@ const safeEval = async (expression: string): Promise<any> => {
         const exec = sandbox.compile(expression)
     
         exec({dsl, Dsl}).run()
-    }).enumerateWithBound(100000, 10000))
+    }).multiple(...parties).enumerateWithBoundMulti(bounds))
     return model
 }
 
