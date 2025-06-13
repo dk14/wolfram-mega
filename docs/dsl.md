@@ -976,7 +976,10 @@ dsl.unsafe.if("wow?", ["yup"], ["nope"]).then(account => {
 
 > `dsl.unsafe` has numerics and sets as well
 
+> Note - using payment contexts makes it more challenging to find a source of perfect hedge. Information is not erased (stacktrace poits to a branch responsible), just not obvious at first glance, since it does not point to `pay`. Especially with numerics where the outcome is hidden in binary tree. `PerfectHedgeError` has a `state` field to improve tracking.
+
 > Theoretically, typescript to typescript transpiler (or a tricky macro) can force shadowing (and hide `accounts => `), thus making `dsl.unsafe` calls safe. It can also rewrite `dsl.if` to typescript's `if`.
+
 
 ## Biomial pricing (conclusion)
 
