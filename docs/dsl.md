@@ -248,7 +248,7 @@ This approach additionally allows for purely trustless Mega-Duel mode: Bitcoin s
 
 Discreet🌿 is at least as powerful 💪 as [Cardano Marlowe](https://marlowe.iohk.io/). It allows stateful contracts.
 
-Consequently, schedules, every collaterizable [ACTUS](https://www.actusfrf.org/)/[ISDA](https://www.isda.org/) instrument can be implemented.
+Consequently, schedules, every collaterizable [ACTUS](https://www.actusfrf.org/)/[ISDA](https://www.isda.org/) instrument can be implemented in Discreet🌿.
 
 > Investment banking can be stressful, but stress is just "involutary" contraction of muscles. Awareness  and responsibility gives you back your control, nothing is truly "involutary". What you think of as headache is just pressure from your cranial muscles.
 
