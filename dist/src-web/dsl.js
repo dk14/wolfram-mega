@@ -5,6 +5,11 @@ const async_mutex_1 = require("async-mutex");
 var DslErrors;
 (function (DslErrors) {
     class PerfectHedgeError extends Error {
+        state;
+        constructor(msg, st) {
+            super(msg);
+            this.state = st;
+        }
     }
     DslErrors.PerfectHedgeError = PerfectHedgeError;
     class InfinityError extends Error {
@@ -60,7 +65,7 @@ class Dsl {
                     this.prev.betOn = true;
                 }
                 else {
-                    throw new DslErrors.PerfectHedgeError("Perfect hedge! Trader not allowed to benefit regardless of outcome. Your trade is overcollaterized!");
+                    throw new DslErrors.PerfectHedgeError("Perfect hedge! Trader not allowed to benefit regardless of outcome. Your trade is overcollaterized!", this.state);
                 }
             }
             if (!this.lastOutcome && idx === 0) {
@@ -68,7 +73,7 @@ class Dsl {
                     this.prev.betOn = false;
                 }
                 else {
-                    throw new DslErrors.PerfectHedgeError("Perfect hedge! Trader not allowed to benefit regardless of outcome. Your trade is overcollaterized!");
+                    throw new DslErrors.PerfectHedgeError("Perfect hedge! Trader not allowed to benefit regardless of outcome. Your trade is overcollaterized!", this.state);
                 }
             }
         }
@@ -78,7 +83,7 @@ class Dsl {
                     this.prev.betOn = false;
                 }
                 else {
-                    throw new DslErrors.PerfectHedgeError("Perfect hedge! Trader not allowed to benefit regardless of outcome. Your trade is overcollaterized!");
+                    throw new DslErrors.PerfectHedgeError("Perfect hedge! Trader not allowed to benefit regardless of outcome. Your trade is overcollaterized!", this.state);
                 }
             }
             if (!this.lastOutcome && idx === 1) {
@@ -86,7 +91,7 @@ class Dsl {
                     this.prev.betOn = true;
                 }
                 else {
-                    throw new DslErrors.PerfectHedgeError("Perfect hedge! Trader not allowed to benefit regardless of outcome. Your trade is overcollaterized!");
+                    throw new DslErrors.PerfectHedgeError("Perfect hedge! Trader not allowed to benefit regardless of outcome. Your trade is overcollaterized!", this.state);
                 }
             }
         }
@@ -822,7 +827,7 @@ class Dsl {
                                 sum -= amount;
                             }
                             else {
-                                throw new DslErrors.PerfectHedgeError("Perfect Hedge! Party cannot benefit regardless of outcome!");
+                                throw new DslErrors.PerfectHedgeError("Perfect Hedge! Party cannot benefit regardless of outcome!", this.state);
                             }
                         }
                     },
@@ -925,7 +930,7 @@ class Dsl {
                             pay: (idx, amount) => {
                                 if (counterparty === undefined || idx === counterparty) {
                                     if (party !== undefined && counterparty !== undefined && party === counterparty) {
-                                        throw new DslErrors.PerfectHedgeError("Perfect Hedge! Party cannot benefit regardless of outcome!");
+                                        throw new DslErrors.PerfectHedgeError("Perfect Hedge! Party cannot benefit regardless of outcome!", this.state);
                                     }
                                     counterparty = idx;
                                     sum += amount;
@@ -935,7 +940,7 @@ class Dsl {
                                         sum -= amount;
                                     }
                                     else {
-                                        throw new DslErrors.PerfectHedgeError("Perfect Hedge! Party cannot benefit regardless of outcome!");
+                                        throw new DslErrors.PerfectHedgeError("Perfect Hedge! Party cannot benefit regardless of outcome!", this.state);
                                     }
                                 }
                             },

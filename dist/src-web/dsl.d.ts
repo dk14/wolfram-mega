@@ -10,6 +10,12 @@ type PaymentHandler = {
 };
 export declare namespace DslErrors {
     class PerfectHedgeError extends Error {
+        state: {
+            [pubkey: string]: [number, boolean];
+        };
+        constructor(msg: string, st: {
+            [pubkey: string]: [number, boolean];
+        });
     }
     class InfinityError<ST> extends Error {
         state: ST;
