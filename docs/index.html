@@ -83,11 +83,10 @@
 
 <script>
 
-window.addEventListener("load", () => {
+const visuals = () => {
 
-setTimeout(() => {
+
   const canvas = document.getElementById("canvas")
-console.log(canvas)
 
 const context = new AudioContext();
 const visualizer = butterchurn.default.createVisualizer(context, canvas, {
@@ -112,9 +111,18 @@ function animate() {
 
 animate()
 
-})
 
-}, 1000)
+
+
+}
+
+window.addEventListener("load", async () => {
+    const cancel = setInterval(() => {
+      visuals()
+      clearInterval(cancel)  
+    }, 1000)
+
+})
 
 
 
@@ -142,16 +150,15 @@ animate()
 }
   `
 
-  window.addEventListener("load", async () => {
+   const editing = async () => {
     require.config({
       paths: { vs: "https://cdn.jsdelivr.net/npm/monaco-editor@0.27.0/min/vs" }
     })
     
     require(["vs/editor/editor.main"], async function () {
     
-      setTimeout(() => {
 
-        const editor2 = monaco.editor.create(document.getElementById("container2"), {
+      const editor2 = monaco.editor.create(document.getElementById("container2"), {
         value: '',
         language: "json",
         automaticLayout: true,
@@ -213,7 +220,7 @@ animate()
                 startColumn: 0,
                 endLineNumber: line + 1,
                 endColumn: 0,
-                message: "Discreet🌿:" + e.message
+                message: "Discreet🌿:" + error.message
             }];
             editor2.getModel().setValue("")
             monaco.editor.setModelMarkers(editor.getModel(), 'typescript', markers);
@@ -223,42 +230,38 @@ animate()
 
             if(window.findExactLineUnsafe) {
               const el = document.createElement('script');
-          el.innerText = `
-          const line = {};
-          Error.captureStackTrace(line);
-          window.startLine = parseInt(line.stack.split("at")[2].split("index.html")[1].split(":")[1]);
+              el.innerText = `
+              const line = {};
+              Error.captureStackTrace(line);
+              window.startLine = parseInt(line.stack.split("at")[2].split("index.html")[1].split(":")[1]);
 
-          ` + `window.safeEval(\`${editor.getValue()}\`, ['alice', 'bob'], [[10000, 1000])`
+              ` + `window.safeEval(\`${editor.getValue()}\`, ['alice', 'bob'], [[10000, 1000])`
 
-          document.body.append(el);
+              document.body.append(el);
 
-           setTimeout(() => {
-              el.remove()
-            }, 2000)
-          }
-
-           
+              setTimeout(() => {
+                  el.remove()
+                }, 2000)
+              }
           
-
-          
-      });
-          }, 3000)
-
+            });
+      }, 2000)
 
       editor.getModel().setValue(code)
 
       
       editor._themeService.setTheme('vs-dark')
-
-     
-
-      }, 2000)
-       
-
-
-      
+        
     })
-  })
+  }
+
+   window.addEventListener("load", async () => {
+      const cancel = setInterval(() => {
+        editing()
+        clearInterval(cancel)  
+      }, 1000)
+
+   })
 </script>
 
 </body>
