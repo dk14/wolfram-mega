@@ -13,13 +13,14 @@ import { p2pktr } from "../contracts/btc/tx";
 import Sandbox from "@nyariv/sandboxjs";
 import { p2pNode } from "../../p2p";
 
-
 const safeEval = (expression: string, data: any): any => {
     const sandbox = new Sandbox()
     const exec = sandbox.compile("return " + expression)
     const res = exec(data).run()
     return res
 }
+
+
 
 export const startTraderService = (cfg: MempoolConfig<PeerAddr>, storage = traderStorage(cfg.trader.dbPath, 1)) => {
     global.cfg = cfg

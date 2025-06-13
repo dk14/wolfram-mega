@@ -27,6 +27,7 @@ declare global {
         privateDB: IDBPDatabase<unknown>;
         webOracleFacts: IDBPDatabase<unknown>;
         hashLockProvider: HashLockProvider;
+        safeEval: (expression: string) => Promise<any>;
         test: boolean;
     }
 }

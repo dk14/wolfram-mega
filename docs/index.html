@@ -13,6 +13,11 @@
   rel="stylesheet"
   href="//cdn.jsdelivr.net/npm/prism-themes@1/themes/prism-one-dark.min.css"/>
   
+  <link
+			rel="stylesheet"
+			data-name="vs/editor/editor.main"
+			href="https://cdn.jsdelivr.net/npm/monaco-editor@0.27.0/min/vs/editor/editor.main.css"
+		/>
 </head>
 <body>
   <div id="app"></div>
@@ -109,6 +114,85 @@ animate()
 })
 
 
+
+</script>
+
+
+<script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.27.0/min/vs/loader.js"></script>
+
+ <script src="../mega-peers.min.js" type="module"></script>
+
+
+<script type="module">
+
+
+  const code = `if (dsl.outcome("really?", ["YES"], ["NO"])) {
+    dsl.pay(Dsl.Bob, 100) 
+    if (dsl.outcome("is it?", ["YES"], ["NO", "3..40"])) {
+        dsl.pay(Dsl.Alice, 40)
+    } else {
+        dsl.pay(Dsl.Bob, 50)
+    } 
+} else {
+    dsl.pay(Dsl.Alice, 20)
+}
+  `
+
+  window.addEventListener("load", async () => {
+    require.config({
+      paths: { vs: "https://cdn.jsdelivr.net/npm/monaco-editor@0.27.0/min/vs" }
+    })
+    
+    require(["vs/editor/editor.main"], async function () {
+    
+       const editor2 = monaco.editor.create(document.getElementById("container2"), {
+        value: '',
+        language: "json",
+        automaticLayout: true,
+        readOnly: true
+      })
+
+      editor2._themeService.setTheme('vs-dark')
+
+      const editor = monaco.editor.create(document.getElementById("container"), {
+        value: code,
+        language: "javascript",
+        automaticLayout: true
+      })
+    
+      editor.getModel().onDidChangeContent(async (event) => {
+          const execute = editor.getValue()
+          try {
+              const res = await window.safeEval(execute);
+              monaco.editor.setModelMarkers(editor.getModel(), 'typescript', [])
+              editor2.getModel().setValue(JSON.stringify(res, null, 2))
+      
+          } catch (e) {
+             var markers = [{
+                severity: monaco.MarkerSeverity.Error,
+                startLineNumber: 0,
+                startColumn: 0,
+                endLineNumber: 100,
+                endColumn: 0,
+                message: "Discreet🌿:" + e.message
+            }];
+            editor2.getModel().setValue("")
+            monaco.editor.setModelMarkers(editor.getModel(), 'typescript', markers);
+          
+          }
+      });
+
+      editor.getModel().setValue(code)
+
+      
+      editor._themeService.setTheme('vs-dark')
+
+     
+
+
+      
+    })
+  })
 </script>
 
 </body>

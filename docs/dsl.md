@@ -87,6 +87,9 @@ P.S. If comments and sections [disturb](https://en.wikipedia.org/wiki/David_Drai
 
 And when you ready - just take the risk and play with Discreet🌿 eDSL!
 
+<div id="container" style="width:100%;height:30vh;border:1px solid grey"></div>
+<div id="container2" style="width:100%;height:30vh;border:1px solid grey"></div>
+
 
 ## Guarantees
 - money preservation: all outputs of transaction equal sum of all inputs

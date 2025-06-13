@@ -12,6 +12,8 @@ import { TraderQuery, database, Storage, indexDBstorage } from './src-web/impl/s
 import { cfg, configureWebMocks, nodeMock } from './webcfg';
 import { dataProvider } from './src-web/oracle-data-provider';
 import { btcDlcContractInterpreter } from './src-web/transactions';
+import Sandbox from '@nyariv/sandboxjs';
+import { Dsl } from './src-web/dsl';
 
 export interface BtcApi {
     generateDlcContract:(params: btc.DlcParams) => Promise<btc.DlcContract>
@@ -41,9 +43,30 @@ declare global {
 
         hashLockProvider: HashLockProvider
 
+        safeEval: (expression: string) => Promise<any>
+
         test: boolean
     }
 }
+
+const safeEval = async (expression: string): Promise<any> => {
+    
+    const model = await (new Dsl(async dsl => {
+
+        const prototypeWhitelist = Sandbox.SAFE_PROTOTYPES;
+        const globals = {...Sandbox.SAFE_GLOBALS, alert};
+        prototypeWhitelist.set(Dsl, new Set());
+
+        const sandbox = new Sandbox({globals, prototypeWhitelist})
+        const exec = sandbox.compile(expression)
+    
+        exec({dsl, Dsl}).run()
+    }).enumerateWithBound(100000, 10000))
+    return model
+}
+
+window.safeEval = safeEval
+
 
 window.txfee = 2000
 

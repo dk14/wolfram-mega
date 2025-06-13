@@ -1,5 +1,6 @@
 import { Mutex } from "async-mutex"
 import { OfferModel } from "./matching"
+import { isBrowser } from "../src/util"
 
 type CacheEntry  = {
     id: string
@@ -82,6 +83,24 @@ export class Dsl {
             if (!this.lastOutcome && idx === 0) {
                 if(this.prev.betOn === undefined || this.prev.betOn === false) {
                     this.prev.betOn = false
+                } else {
+                    throw new DslErrors.PerfectHedgeError("Perfect hedge! Trader not allowed to benefit regardless of outcome. Your trade is overcollaterized!")
+                }
+            }
+        }
+
+        if (this.lastOutcome !== null) {
+            if (this.lastOutcome && idx === 1) {
+                if (this.prev.betOn === undefined || this.prev.betOn === false) {
+                    this.prev.betOn = false
+                } else {
+                    throw new DslErrors.PerfectHedgeError("Perfect hedge! Trader not allowed to benefit regardless of outcome. Your trade is overcollaterized!")
+                }
+            }
+    
+            if (!this.lastOutcome && idx === 1) {
+                if(this.prev.betOn === undefined || this.prev.betOn === true) {
+                    this.prev.betOn = true
                 } else {
                     throw new DslErrors.PerfectHedgeError("Perfect hedge! Trader not allowed to benefit regardless of outcome. Your trade is overcollaterized!")
                 }
@@ -1150,7 +1169,7 @@ export class Dsl {
     }
 }
 
-if (require.main === module) {
+if (typeof window === 'undefined' && require.main === module) {
     (async () => {
         const model = await (new Dsl(async dsl => {
             const a = 60
@@ -1226,12 +1245,12 @@ if (require.main === module) {
             const capitalisationDates = new Set(["next week"])
             const notional = 10000
             const floatingLegIndex = "interest rate index?"
-            const fixedRate = 3
+            const fixedRate = 0.8
             const quantisationStep = 1
 
             dates.reduce(([capitalisation1, capitalisation2], date) => {
                 const [floatingRate, accounts] = dsl.numeric
-                    .outcome(floatingLegIndex, 1, 3, quantisationStep, {date})
+                    .outcome(floatingLegIndex, 0, 1, quantisationStep, {date})
                     .valueWithPaymentCtxUnsafe()
 
                 if (capitalisationDates.has(date)) {
