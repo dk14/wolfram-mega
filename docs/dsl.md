@@ -959,7 +959,7 @@ if (obs1){
 }
 ```
 
-The collateral required from Alice would be zero, but Bob would be auto-refunded on his remaining collateral. Thus it is not a perfect hedge, no issues with liquidity.
+The collateral required from Alice would be zero, and Bob would be auto-refunded on his remaining collateral. Thus it is not a perfect hedge, no issues with liquidity.
 
 Alice is clearly at advantage though. `dsl.strictlyFair = true` would enforce verification.
 
