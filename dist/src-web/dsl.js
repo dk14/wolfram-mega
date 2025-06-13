@@ -6,9 +6,15 @@ var DslErrors;
 (function (DslErrors) {
     class PerfectHedgeError extends Error {
         state;
-        constructor(msg, st) {
+        amount;
+        partyIdx;
+        pair;
+        constructor(msg, st, amount, partyIdx, pair) {
             super(msg);
             this.state = st;
+            this.amount = amount;
+            this.partyIdx = partyIdx;
+            this.pair = pair;
         }
     }
     DslErrors.PerfectHedgeError = PerfectHedgeError;
@@ -65,7 +71,7 @@ class Dsl {
                     this.prev.betOn = true;
                 }
                 else {
-                    throw new DslErrors.PerfectHedgeError("Perfect hedge! Trader not allowed to benefit regardless of outcome. Your trade is overcollaterized!", this.state);
+                    throw new DslErrors.PerfectHedgeError("Perfect hedge! Trader not allowed to benefit regardless of outcome. Your trade is overcollaterized!", this.state, amount, idx, this.selected);
                 }
             }
             if (!this.lastOutcome && idx === 0) {
@@ -73,7 +79,7 @@ class Dsl {
                     this.prev.betOn = false;
                 }
                 else {
-                    throw new DslErrors.PerfectHedgeError("Perfect hedge! Trader not allowed to benefit regardless of outcome. Your trade is overcollaterized!", this.state);
+                    throw new DslErrors.PerfectHedgeError("Perfect hedge! Trader not allowed to benefit regardless of outcome. Your trade is overcollaterized!", this.state, amount, idx, this.selected);
                 }
             }
         }
@@ -83,7 +89,7 @@ class Dsl {
                     this.prev.betOn = false;
                 }
                 else {
-                    throw new DslErrors.PerfectHedgeError("Perfect hedge! Trader not allowed to benefit regardless of outcome. Your trade is overcollaterized!", this.state);
+                    throw new DslErrors.PerfectHedgeError("Perfect hedge! Trader not allowed to benefit regardless of outcome. Your trade is overcollaterized!", this.state, amount, idx, this.selected);
                 }
             }
             if (!this.lastOutcome && idx === 1) {
@@ -91,7 +97,7 @@ class Dsl {
                     this.prev.betOn = true;
                 }
                 else {
-                    throw new DslErrors.PerfectHedgeError("Perfect hedge! Trader not allowed to benefit regardless of outcome. Your trade is overcollaterized!", this.state);
+                    throw new DslErrors.PerfectHedgeError("Perfect hedge! Trader not allowed to benefit regardless of outcome. Your trade is overcollaterized!", this.state, amount, idx, this.selected);
                 }
             }
         }
@@ -356,16 +362,16 @@ class Dsl {
             return this.if(pubkey, yes, no, args, allowSwaps, allowMisplacedPay, strict);
         },
         numeric: {
-            outcome: (pubkey, from, to, step = 1, args = {}, allowMisplacedPay = true) => {
-                return this.numeric.outcome(pubkey, from, to, step, args, allowMisplacedPay);
+            outcome: (pubkey, from, to, step = 1, args = {}, allowMisplacedPay = true, allowReplacedPay = true) => {
+                return this.numeric.outcome(pubkey, from, to, step, args, allowMisplacedPay, allowReplacedPay);
             }
         },
         set: {
-            outcome: (pubkey, set, args = {}, allowMisplacedPay = true) => {
-                return this.set.outcome(pubkey, set, args, allowMisplacedPay);
+            outcome: (pubkey, set, args = {}, allowMisplacedPay = true, allowReplacedPay = true) => {
+                return this.set.outcome(pubkey, set, args, allowMisplacedPay, allowReplacedPay);
             },
-            outcomeT: (pubkey, set, renderer, parser, args = {}, allowMisplacedPay = true) => {
-                return this.set.outcomeT(pubkey, set, renderer, parser, args, allowMisplacedPay);
+            outcomeT: (pubkey, set, renderer, parser, args = {}, allowMisplacedPay = true, allowReplacedPay = true) => {
+                return this.set.outcomeT(pubkey, set, renderer, parser, args, allowMisplacedPay, allowReplacedPay);
             }
         },
         ifAtomicSwapLeg1: (lock = "TRUTH", unlockOutcome = "true", allowMisplacedPay = true) => {
@@ -434,7 +440,7 @@ class Dsl {
                 }
             })
         },
-        outcome: (pubkey, from, to, step = 1, args = {}, allowMisplacedPay = false) => ({
+        outcome: (pubkey, from, to, step = 1, args = {}, allowMisplacedPay = false, allowReplacedPay = false) => ({
             evaluate: (handler) => {
                 let numbers = [];
                 for (let i = from; i <= to; i += step) {
@@ -471,7 +477,7 @@ class Dsl {
                 for (let i = from; i <= to; i += step) {
                     numbers.push(i);
                 }
-                const recurse = (l, r) => {
+                const recurse = (l, r, payhandlerOut) => {
                     if (l.length === 0) {
                         return;
                     }
@@ -480,21 +486,63 @@ class Dsl {
                     }
                     this.unsafe.if(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args, false, allowMisplacedPay).then(h => {
                         if (l.length === 1) {
-                            payhandler(h, l[0]);
+                            try {
+                                payhandler(h, l[0]);
+                            }
+                            catch (e) {
+                                if (allowReplacedPay && e instanceof DslErrors.PerfectHedgeError) {
+                                    if (payhandlerOut === null) {
+                                        throw e;
+                                    }
+                                    payhandler(payhandlerOut, l[0]);
+                                }
+                                else {
+                                    throw e;
+                                }
+                            }
                         }
                         else {
-                            recurse(l.slice(0, l.length / 2), l.slice(l.length / 2));
+                            try {
+                                recurse(l.slice(0, l.length / 2), l.slice(l.length / 2), h);
+                            }
+                            catch (e) {
+                                if (allowReplacedPay && e instanceof DslErrors.PerfectHedgeError) {
+                                    //propagate higher payhandler back to the leaf
+                                    recurse(l.slice(0, l.length / 2), l.slice(l.length / 2), payhandlerOut);
+                                }
+                            }
                         }
                     }).else(h => {
                         if (r.length === 1) {
-                            payhandler(h, r[0]);
+                            try {
+                                payhandler(h, l[0]);
+                            }
+                            catch (e) {
+                                if (allowReplacedPay && e instanceof DslErrors.PerfectHedgeError) {
+                                    if (payhandlerOut === null) {
+                                        throw e;
+                                    }
+                                    payhandler(payhandlerOut, r[0]);
+                                }
+                                else {
+                                    throw e;
+                                }
+                            }
                         }
                         else {
-                            recurse(r.slice(0, r.length / 2), r.slice(r.length / 2));
+                            try {
+                                recurse(r.slice(0, r.length / 2), r.slice(r.length / 2), h);
+                            }
+                            catch (e) {
+                                if (allowReplacedPay && e instanceof DslErrors.PerfectHedgeError) {
+                                    //propagate higher payhandler back to the leaf
+                                    recurse(r.slice(0, r.length / 2), r.slice(r.length / 2), payhandlerOut);
+                                }
+                            }
                         }
                     });
                 };
-                recurse(numbers.slice(0, numbers.length / 2), numbers.slice(numbers.length / 2));
+                recurse(numbers.slice(0, numbers.length / 2), numbers.slice(numbers.length / 2), null);
             },
             value: () => {
                 let numbers = [];
@@ -538,7 +586,7 @@ class Dsl {
                     nn = n;
                     hh = h;
                 };
-                const recurse = (l, r) => {
+                const recurse = (l, r, payhandlerOut) => {
                     if (l.length === 0) {
                         return;
                     }
@@ -547,28 +595,70 @@ class Dsl {
                     }
                     this.unsafe.if(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args, false, allowMisplacedPay).then(h => {
                         if (l.length === 1) {
-                            payhandler(h, l[0]);
+                            try {
+                                payhandler(h, l[0]);
+                            }
+                            catch (e) {
+                                if (allowReplacedPay && e instanceof DslErrors.PerfectHedgeError) {
+                                    if (payhandlerOut === null) {
+                                        throw e;
+                                    }
+                                    payhandler(payhandlerOut, l[0]);
+                                }
+                                else {
+                                    throw e;
+                                }
+                            }
                         }
                         else {
-                            recurse(l.slice(0, l.length / 2), l.slice(l.length / 2));
+                            try {
+                                recurse(l.slice(0, l.length / 2), l.slice(l.length / 2), h);
+                            }
+                            catch (e) {
+                                if (allowReplacedPay && e instanceof DslErrors.PerfectHedgeError) {
+                                    //propagate higher payhandler back to the leaf
+                                    recurse(l.slice(0, l.length / 2), l.slice(l.length / 2), payhandlerOut);
+                                }
+                            }
                         }
                     }).else(h => {
                         if (r.length === 1) {
-                            payhandler(h, r[0]);
+                            try {
+                                payhandler(h, r[0]);
+                            }
+                            catch (e) {
+                                if (allowReplacedPay && e instanceof DslErrors.PerfectHedgeError) {
+                                    if (payhandlerOut === null) {
+                                        throw e;
+                                    }
+                                    payhandler(payhandlerOut, r[0]);
+                                }
+                                else {
+                                    throw e;
+                                }
+                            }
                         }
                         else {
-                            recurse(r.slice(0, r.length / 2), r.slice(r.length / 2));
+                            try {
+                                recurse(r.slice(0, r.length / 2), r.slice(r.length / 2), h);
+                            }
+                            catch (e) {
+                                if (allowReplacedPay && e instanceof DslErrors.PerfectHedgeError) {
+                                    //propagate higher payhandler back to the leaf
+                                    recurse(r.slice(0, r.length / 2), r.slice(r.length / 2), payhandlerOut);
+                                }
+                            }
                         }
                     });
                 };
-                recurse(numbers.slice(0, numbers.length / 2), numbers.slice(numbers.length / 2));
+                recurse(numbers.slice(0, numbers.length / 2), numbers.slice(numbers.length / 2), null);
                 this.unfinalized++;
                 return [nn, hh];
             }
         })
     };
     set = {
-        outcome: (pubkey, set, args = {}, allowMisplacedPay = false) => ({
+        outcome: (pubkey, set, args = {}, allowMisplacedPay = false, allowReplacedPay = false) => ({
             evaluate: (handler) => {
                 const recurse = (l, r) => {
                     if (l.length === 0) {
@@ -597,7 +687,7 @@ class Dsl {
                 recurse(set.slice(0, set.length / 2), set.slice(set.length / 2));
             },
             evaluateWithPaymentCtx: (payhandler) => {
-                const recurse = (l, r) => {
+                const recurse = (l, r, payhandlerOut) => {
                     if (l.length === 0) {
                         return;
                     }
@@ -606,21 +696,63 @@ class Dsl {
                     }
                     this.if(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args, false, allowMisplacedPay).then(h => {
                         if (l.length === 1) {
-                            payhandler(h, l[0]);
+                            try {
+                                payhandler(h, l[0]);
+                            }
+                            catch (e) {
+                                if (allowReplacedPay && e instanceof DslErrors.PerfectHedgeError) {
+                                    if (payhandlerOut === null) {
+                                        throw e;
+                                    }
+                                    payhandler(payhandlerOut, l[0]);
+                                }
+                                else {
+                                    throw e;
+                                }
+                            }
                         }
                         else {
-                            recurse(l.slice(0, l.length / 2), l.slice(l.length / 2));
+                            try {
+                                recurse(l.slice(0, l.length / 2), l.slice(l.length / 2), h);
+                            }
+                            catch (e) {
+                                if (allowReplacedPay && e instanceof DslErrors.PerfectHedgeError) {
+                                    //propagate higher payhandler back to the leaf
+                                    recurse(l.slice(0, l.length / 2), l.slice(l.length / 2), payhandlerOut);
+                                }
+                            }
                         }
                     }).else(h => {
                         if (r.length === 1) {
-                            payhandler(h, r[0]);
+                            try {
+                                payhandler(h, r[0]);
+                            }
+                            catch (e) {
+                                if (allowReplacedPay && e instanceof DslErrors.PerfectHedgeError) {
+                                    if (payhandlerOut === null) {
+                                        throw e;
+                                    }
+                                    payhandler(payhandlerOut, r[0]);
+                                }
+                                else {
+                                    throw e;
+                                }
+                            }
                         }
                         else {
-                            recurse(r.slice(0, r.length / 2), r.slice(r.length / 2));
+                            try {
+                                recurse(r.slice(0, r.length / 2), r.slice(r.length / 2), h);
+                            }
+                            catch (e) {
+                                if (allowReplacedPay && e instanceof DslErrors.PerfectHedgeError) {
+                                    //propagate higher payhandler back to the leaf
+                                    recurse(r.slice(0, r.length / 2), r.slice(l.length / 2), payhandlerOut);
+                                }
+                            }
                         }
                     });
                 };
-                recurse(set.slice(0, set.length / 2), set.slice(set.length / 2));
+                recurse(set.slice(0, set.length / 2), set.slice(set.length / 2), null);
             },
             value: () => {
                 const recurse = (l, r) => {
@@ -656,7 +788,7 @@ class Dsl {
                     nn = n;
                     hh = h;
                 };
-                const recurse = (l, r) => {
+                const recurse = (l, r, payhandlerOut) => {
                     if (l.length === 0) {
                         return;
                     }
@@ -665,26 +797,68 @@ class Dsl {
                     }
                     this.if(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args, false, allowMisplacedPay).then(h => {
                         if (l.length === 1) {
-                            payhandler(h, l[0]);
+                            try {
+                                payhandler(h, l[0]);
+                            }
+                            catch (e) {
+                                if (allowReplacedPay && e instanceof DslErrors.PerfectHedgeError) {
+                                    if (payhandlerOut === null) {
+                                        throw e;
+                                    }
+                                    payhandler(payhandlerOut, l[0]);
+                                }
+                                else {
+                                    throw e;
+                                }
+                            }
                         }
                         else {
-                            recurse(l.slice(0, l.length / 2), l.slice(l.length / 2));
+                            try {
+                                recurse(l.slice(0, l.length / 2), l.slice(l.length / 2), h);
+                            }
+                            catch (e) {
+                                if (allowReplacedPay && e instanceof DslErrors.PerfectHedgeError) {
+                                    //propagate higher payhandler back to the leaf
+                                    recurse(l.slice(0, l.length / 2), l.slice(l.length / 2), payhandlerOut);
+                                }
+                            }
                         }
                     }).else(h => {
                         if (r.length === 1) {
-                            payhandler(h, r[0]);
+                            try {
+                                payhandler(h, r[0]);
+                            }
+                            catch (e) {
+                                if (allowReplacedPay && e instanceof DslErrors.PerfectHedgeError) {
+                                    if (payhandlerOut === null) {
+                                        throw e;
+                                    }
+                                    payhandler(payhandlerOut, r[0]);
+                                }
+                                else {
+                                    throw e;
+                                }
+                            }
                         }
                         else {
-                            recurse(r.slice(0, r.length / 2), r.slice(r.length / 2));
+                            try {
+                                recurse(r.slice(0, r.length / 2), r.slice(r.length / 2), h);
+                            }
+                            catch (e) {
+                                if (allowReplacedPay && e instanceof DslErrors.PerfectHedgeError) {
+                                    //propagate higher payhandler back to the leaf
+                                    recurse(r.slice(0, r.length / 2), r.slice(r.length / 2), payhandlerOut);
+                                }
+                            }
                         }
                     });
                 };
-                recurse(set.slice(0, set.length / 2), set.slice(set.length / 2));
+                recurse(set.slice(0, set.length / 2), set.slice(set.length / 2), null);
                 this.unfinalized++;
                 return [nn, hh];
             }
         }),
-        outcomeT: (pubkey, set, renderer, parser, args = {}, allowMisplacedPay = false) => ({
+        outcomeT: (pubkey, set, renderer, parser, args = {}, allowMisplacedPay = false, allowReplacedPay = false) => ({
             evaluate: (handler) => {
                 const recurse = (l, r) => {
                     if (l.length === 0) {
@@ -713,7 +887,7 @@ class Dsl {
                 recurse(set.slice(0, set.length / 2), set.slice(set.length / 2));
             },
             evaluateWithPaymentCtx: (payhandler) => {
-                const recurse = (l, r) => {
+                const recurse = (l, r, payhandlerOut) => {
                     if (l.length === 0) {
                         return;
                     }
@@ -722,21 +896,63 @@ class Dsl {
                     }
                     this.if(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args, false, allowMisplacedPay).then(h => {
                         if (l.length === 1) {
-                            payhandler(h, l[0]);
+                            try {
+                                payhandler(h, l[0]);
+                            }
+                            catch (e) {
+                                if (allowReplacedPay && e instanceof DslErrors.PerfectHedgeError) {
+                                    if (payhandlerOut === null) {
+                                        throw e;
+                                    }
+                                    payhandler(payhandlerOut, l[0]);
+                                }
+                                else {
+                                    throw e;
+                                }
+                            }
                         }
                         else {
-                            recurse(l.slice(0, l.length / 2), l.slice(l.length / 2));
+                            try {
+                                recurse(l.slice(0, l.length / 2), l.slice(l.length / 2), h);
+                            }
+                            catch (e) {
+                                if (allowReplacedPay && e instanceof DslErrors.PerfectHedgeError) {
+                                    //propagate higher payhandler back to the leaf
+                                    recurse(l.slice(0, l.length / 2), l.slice(l.length / 2), payhandlerOut);
+                                }
+                            }
                         }
                     }).else(h => {
                         if (r.length === 1) {
-                            payhandler(h, r[0]);
+                            try {
+                                payhandler(h, r[0]);
+                            }
+                            catch (e) {
+                                if (allowReplacedPay && e instanceof DslErrors.PerfectHedgeError) {
+                                    if (payhandlerOut === null) {
+                                        throw e;
+                                    }
+                                    payhandler(payhandlerOut, r[0]);
+                                }
+                                else {
+                                    throw e;
+                                }
+                            }
                         }
                         else {
-                            recurse(r.slice(0, r.length / 2), r.slice(r.length / 2));
+                            try {
+                                recurse(r.slice(0, r.length / 2), r.slice(r.length / 2), h);
+                            }
+                            catch (e) {
+                                if (allowReplacedPay && e instanceof DslErrors.PerfectHedgeError) {
+                                    //propagate higher payhandler back to the leaf
+                                    recurse(r.slice(0, r.length / 2), r.slice(r.length / 2), payhandlerOut);
+                                }
+                            }
                         }
                     });
                 };
-                recurse(set.slice(0, set.length / 2), set.slice(set.length / 2));
+                recurse(set.slice(0, set.length / 2), set.slice(set.length / 2), null);
             },
             value: () => {
                 const recurse = (l, r) => {
@@ -772,7 +988,7 @@ class Dsl {
                     nn = n;
                     hh = h;
                 };
-                const recurse = (l, r) => {
+                const recurse = (l, r, payhandlerOut) => {
                     if (l.length === 0) {
                         return;
                     }
@@ -781,21 +997,63 @@ class Dsl {
                     }
                     const rt = this.if(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args, false, allowMisplacedPay).then(h => {
                         if (l.length === 1) {
-                            payhandler(h, l[0]);
+                            try {
+                                payhandler(h, l[0]);
+                            }
+                            catch (e) {
+                                if (allowReplacedPay && e instanceof DslErrors.PerfectHedgeError) {
+                                    if (payhandlerOut === null) {
+                                        throw e;
+                                    }
+                                    payhandler(payhandlerOut, l[0]);
+                                }
+                                else {
+                                    throw e;
+                                }
+                            }
                         }
                         else {
-                            recurse(l.slice(0, l.length / 2), l.slice(l.length / 2));
+                            try {
+                                recurse(l.slice(0, l.length / 2), l.slice(l.length / 2), h);
+                            }
+                            catch (e) {
+                                if (allowReplacedPay && e instanceof DslErrors.PerfectHedgeError) {
+                                    //propagate higher payhandler back to the leaf
+                                    recurse(l.slice(0, l.length / 2), l.slice(l.length / 2), payhandlerOut);
+                                }
+                            }
                         }
                     }).else(h => {
                         if (r.length === 1) {
-                            payhandler(h, r[0]);
+                            try {
+                                payhandler(h, r[0]);
+                            }
+                            catch (e) {
+                                if (allowReplacedPay && e instanceof DslErrors.PerfectHedgeError) {
+                                    if (payhandlerOut === null) {
+                                        throw e;
+                                    }
+                                    payhandler(payhandlerOut, r[0]);
+                                }
+                                else {
+                                    throw e;
+                                }
+                            }
                         }
                         else {
-                            recurse(r.slice(0, r.length / 2), r.slice(r.length / 2));
+                            try {
+                                recurse(r.slice(0, r.length / 2), r.slice(r.length / 2), h);
+                            }
+                            catch (e) {
+                                if (allowReplacedPay && e instanceof DslErrors.PerfectHedgeError) {
+                                    //propagate higher payhandler back to the leaf
+                                    recurse(r.slice(0, r.length / 2), r.slice(r.length / 2), payhandlerOut);
+                                }
+                            }
                         }
                     });
                 };
-                recurse(set.slice(0, set.length / 2), set.slice(set.length / 2));
+                recurse(set.slice(0, set.length / 2), set.slice(set.length / 2), null);
                 this.unfinalized++;
                 return [nn, hh];
             }
@@ -827,7 +1085,7 @@ class Dsl {
                                 sum -= amount;
                             }
                             else {
-                                throw new DslErrors.PerfectHedgeError("Perfect Hedge! Party cannot benefit regardless of outcome!", this.state);
+                                throw new DslErrors.PerfectHedgeError("Perfect Hedge! Party cannot benefit regardless of outcome!", this.state, amount, idx, this.selected);
                             }
                         }
                     },
@@ -930,7 +1188,7 @@ class Dsl {
                             pay: (idx, amount) => {
                                 if (counterparty === undefined || idx === counterparty) {
                                     if (party !== undefined && counterparty !== undefined && party === counterparty) {
-                                        throw new DslErrors.PerfectHedgeError("Perfect Hedge! Party cannot benefit regardless of outcome!", this.state);
+                                        throw new DslErrors.PerfectHedgeError("Perfect Hedge! Party cannot benefit regardless of outcome!", this.state, amount, idx, this.selected);
                                     }
                                     counterparty = idx;
                                     sum += amount;
@@ -940,7 +1198,7 @@ class Dsl {
                                         sum -= amount;
                                     }
                                     else {
-                                        throw new DslErrors.PerfectHedgeError("Perfect Hedge! Party cannot benefit regardless of outcome!", this.state);
+                                        throw new DslErrors.PerfectHedgeError("Perfect Hedge! Party cannot benefit regardless of outcome!", this.state, amount, idx, this.selected);
                                     }
                                 }
                             },
