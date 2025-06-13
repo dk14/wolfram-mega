@@ -165,13 +165,23 @@ animate()
         language: "javascript",
         automaticLayout: true
       })
+
+      document.getElementById("parties").onchange = () => {
+        editor.getModel().setValue(editor.getValue() + "\n")
+      }
+
+       document.getElementById("budgets").onchange = () => {
+        editor.getModel().setValue(editor.getValue() + "\n")
+      }
     
       editor.getModel().onDidChangeContent(async (event) => {
           const execute = editor.getValue()
           try {
-              const res = await window.safeEval(execute, ["alice", "bob"], [[100000, 100000]]);
+              const parties = document.getElementById("parties").value.split(",")
+              const budgets = document.getElementById("budgets").value.split(",").map(x => x.split(":").map(x => parseInt(x)))
+              const res = await window.safeEval(execute, parties, budgets);
               monaco.editor.setModelMarkers(editor.getModel(), 'typescript', [])
-              editor2.getModel().setValue(JSON.stringify(res, null, 2))
+              editor2.getModel().setValue(JSON.stringify(res, null, 2));
       
           } catch (e) {
              var markers = [{

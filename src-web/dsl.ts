@@ -129,8 +129,8 @@ export class Dsl {
         if (idx === 1) {
             this.collateral2 += amount
             if (this.collateral2 > this.budgetBound2) {
-                const party = this.selected[0] ?? "Alice"
-                throw new Error(`exceeded budget ${this.budgetBound1} for ${party}, for outcomes:` + JSON.stringify(this.state))
+                const party = this.selected[1] ?? "Bob"
+                throw new Error(`exceeded budget ${this.budgetBound2} for ${party}, for outcomes:` + JSON.stringify(this.state))
             }
         }
        
