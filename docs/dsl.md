@@ -92,6 +92,8 @@ And when you ready - just take the risk and play with Discreet🌿 eDSL!
 <input type="text" maxlength="20" id="parties" value="alice,bob"/> bounds:
 <input type="text" maxlength="20" id="budgets" value="1000:1000"/>
 
+> update the page if tryout didn't start
+
 
 ## Guarantees
 - money preservation: all outputs of transaction equal sum of all inputs
