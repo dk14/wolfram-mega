@@ -941,7 +941,6 @@ if (observation === 1) {
     payToBob(10 sats)
 }
 ```
-Now, if
 
 > `dsl.unsafe.numeric` enables both `allowMisplacedPay` and `allowReplacedPay`. `allowReplacedPay` is experimental.
 
