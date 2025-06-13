@@ -23,13 +23,13 @@ export declare const evaluateCounterPartyCollateral: (o?: OfferModel) => Promise
 export declare namespace DslErrors {
     class PerfectHedgeError extends Error {
         state: {
-            [pubkey: string]: [number, boolean];
+            [pubkey: string]: [number, boolean, any];
         };
         amount: number;
         partyIdx: 0 | 1;
         pair: [string, string];
         constructor(msg: string, st: {
-            [pubkey: string]: [number, boolean];
+            [pubkey: string]: [number, boolean, any];
         }, amount: number, partyIdx: 0 | 1, pair: [string, string]);
     }
     class InfinityError<ST> extends Error {
@@ -172,6 +172,7 @@ export declare class Dsl {
             };
         };
     };
+    private ignoreObserveChecks;
     numeric: {
         infinity: {
             bounded: (maxInfinity?: number, maxCount?: number) => {

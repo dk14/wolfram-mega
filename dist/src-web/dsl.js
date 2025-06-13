@@ -197,6 +197,10 @@ class Dsl {
     memoize = [];
     checked = [];
     outcome(pubkey, yes, no, args = {}, allowTruth = false, strict = true) {
+        const pubkeyUnique = pubkey + "-###-" + JSON.stringify(yes) + JSON.stringify(no) + JSON.stringify(args);
+        if (this.ignoreObserveChecks) {
+            return this.state[pubkeyUnique][1];
+        }
         yes.sort();
         no.sort();
         this.counter++;
@@ -225,10 +229,9 @@ class Dsl {
         if (!this.protect) {
             throw "should not call outside of body; use `new Dsl((dsl) => handler).enumerate()`";
         }
-        const pubkeyUnique = pubkey + "-###-" + this.counter;
         if (this.state[pubkeyUnique] === undefined) {
             const max = Object.values(this.state).length === 0 ? -1 : Math.max(...Object.values(this.state).map(x => x[0]));
-            this.state[pubkeyUnique] = [max + 1, null];
+            this.state[pubkeyUnique] = [max + 1, null, args];
             this.checked.push(this.state[pubkeyUnique][0]);
             this.memoize.push({
                 id: pubkey, yes, no, args, pubkeyUnique
@@ -238,7 +241,7 @@ class Dsl {
         else {
             this.checked.push(this.state[pubkeyUnique][0]);
             if (this.memoize.find(x => x.id === pubkey && JSON.stringify(x.yes.sort()) === JSON.stringify(yes.sort()) && JSON.stringify(x.no.sort()) === JSON.stringify(no.sort()) && JSON.stringify(x.args) === JSON.stringify(args)) !== undefined) {
-                throw new Error("Cannot query same observation twice. Save it into const instead: const obs1 = observe(...)");
+                throw new Error("Cannot query same observation twice. Save it into const instead: const obs1 = observe(...); args=" + JSON.stringify(args));
             }
             const sameQuery = this.memoize.find(x => x.id === pubkey);
             if (strict && sameQuery && JSON.stringify(sameQuery.yes.concat(sameQuery.no).sort()) !== JSON.stringify(yes.concat(no).sort())) {
@@ -532,6 +535,7 @@ class Dsl {
             })
         })
     };
+    ignoreObserveChecks = false;
     numeric = {
         infinity: {
             bounded: (maxInfinity = 10000000, maxCount = 1000000000) => ({
@@ -695,10 +699,11 @@ class Dsl {
                 }
                 let nn = numbers[0];
                 let hh = undefined;
-                const payhandler = (h, n) => {
+                let payhandler = (h, n) => {
                     nn = n;
                     hh = h;
                 };
+                let argument = args;
                 const recurse = (l, r, payhandlerOut) => {
                     if (l.length === 0) {
                         return;
@@ -706,7 +711,7 @@ class Dsl {
                     if (r.length === 0) {
                         return;
                     }
-                    this.unsafe.if(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args, false, allowMisplacedPay).then(h => {
+                    this.unsafe.if(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), argument, false, allowMisplacedPay).then(h => {
                         if (l.length === 1) {
                             try {
                                 payhandler(h, l[0]);
@@ -760,7 +765,6 @@ class Dsl {
                             }
                             catch (e) {
                                 if (allowReplacedPay && e instanceof DslErrors.PerfectHedgeError) {
-                                    //propagate higher payhandler back to the leaf
                                     recurse(r.slice(0, r.length / 2), r.slice(r.length / 2), payhandlerOut);
                                 }
                                 else {
@@ -772,6 +776,24 @@ class Dsl {
                 };
                 recurse(numbers.slice(0, numbers.length / 2), numbers.slice(numbers.length / 2), null);
                 this.unfinalized++;
+                if (allowReplacedPay) {
+                    const saveRelease = hh.release;
+                    hh.release = () => {
+                        payhandler = (ignore, nn) => {
+                            this.unfinalized++;
+                            saveRelease();
+                        };
+                        this.unfinalized--;
+                        try {
+                            this.ignoreObserveChecks = true;
+                            recurse(numbers.slice(0, numbers.length / 2), numbers.slice(numbers.length / 2), null);
+                        }
+                        catch (e) {
+                            this.ignoreObserveChecks = false;
+                            throw e;
+                        }
+                    };
+                }
                 return [nn, hh];
             }
         })
@@ -1121,7 +1143,7 @@ class Dsl {
             valueWithPaymentCtxUnsafe: () => {
                 let nn = set[0];
                 let hh = undefined;
-                const payhandler = (h, n) => {
+                let payhandler = (h, n) => {
                     nn = n;
                     hh = h;
                 };
@@ -1198,6 +1220,13 @@ class Dsl {
                 };
                 recurse(set.slice(0, set.length / 2), set.slice(set.length / 2), null);
                 this.unfinalized++;
+                const saveRelease = hh.release;
+                hh.release = () => {
+                    payhandler = (ignore, nn) => {
+                        hh.release();
+                    };
+                    recurse(set.slice(0, set.length / 2), set.slice(set.length / 2), null);
+                };
                 return [nn, hh];
             }
         })
@@ -1485,9 +1514,10 @@ class Dsl {
                 this.counter = 0;
                 this.lastOutcome = undefined;
                 this.flag = false;
+                //console.log("---" + JSON.stringify(this.state))
                 await this.body(this);
                 if (this.unfinalized !== 0) {
-                    throw new Error("" + this.unfinalized + " resource locks are not released! Every `[v, payments] = valueWithPaymentCtxUnsafe` must have a corresponding `payments.finalize()`");
+                    throw new Error("" + this.unfinalized + " resource locks are not released! Every `[v, payments] = valueWithPaymentCtxUnsafe` must have a corresponding `payments.release()`");
                 }
             }
             catch (e) {
