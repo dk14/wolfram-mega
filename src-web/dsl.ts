@@ -50,11 +50,11 @@ export const evaluateCounterPartyCollateral = async (o?: OfferModel): Promise<nu
 
 export namespace DslErrors {
     export class PerfectHedgeError extends Error {
-        public state: {[pubkey: string]: [number, boolean]}
+        public state: {[pubkey: string]: [number, boolean, any]}
         public amount: number
         public partyIdx: 0 | 1
         public pair: [string, string]
-        constructor(msg: string, st: {[pubkey: string]: [number, boolean]}, amount: number, partyIdx: 0 | 1, pair: [string, string]) {
+        constructor(msg: string, st: {[pubkey: string]: [number, boolean, any]}, amount: number, partyIdx: 0 | 1, pair: [string, string]) {
             super(msg)
             this.state = st
             this.amount = amount
@@ -89,7 +89,7 @@ export namespace DslErrors {
 
 export class Dsl {
 
-    private state: {[pubkey: string]: [number, boolean]} = {}
+    private state: {[pubkey: string]: [number, boolean, any]} = {}
 
     private template(): OfferModel {
         const model: OfferModel = {
@@ -243,6 +243,10 @@ export class Dsl {
     private checked = []
 
     public outcome(pubkey: string, yes: string[], no: string[], args: {[id: string]: string} = {}, allowTruth = false, strict = true): boolean {
+        const pubkeyUnique = pubkey + "-###-"  + JSON.stringify(yes) + JSON.stringify(no) + JSON.stringify(args);
+        if(this.ignoreObserveChecks) {
+            return this.state[pubkeyUnique][1]
+        }
         yes.sort()
         no.sort()
         this.counter++
@@ -278,10 +282,10 @@ export class Dsl {
         if (!this.protect) {
             throw "should not call outside of body; use `new Dsl((dsl) => handler).enumerate()`"
         }
-        const pubkeyUnique = pubkey + "-###-" + this.counter
+        
         if (this.state[pubkeyUnique] === undefined) {
             const max = Object.values(this.state).length === 0 ? -1 : Math.max(...Object.values(this.state).map(x => x[0]))
-            this.state[pubkeyUnique] = [max + 1, null]
+            this.state[pubkeyUnique] = [max + 1, null, args]
             this.checked.push(this.state[pubkeyUnique][0])
             this.memoize.push({
                 id: pubkey, yes, no, args, pubkeyUnique
@@ -289,8 +293,8 @@ export class Dsl {
             throw "uninitialized"
         } else {
             this.checked.push(this.state[pubkeyUnique][0])
-            if (this.memoize.find(x => x.id === pubkey && JSON.stringify(x.yes.sort()) === JSON.stringify(yes.sort()) && JSON.stringify(x.no.sort()) === JSON.stringify(no.sort()) && JSON.stringify(x.args) === JSON.stringify(args)) !== undefined) {
-                throw new Error("Cannot query same observation twice. Save it into const instead: const obs1 = observe(...)")
+            if ( this.memoize.find(x => x.id === pubkey && JSON.stringify(x.yes.sort()) === JSON.stringify(yes.sort()) && JSON.stringify(x.no.sort()) === JSON.stringify(no.sort()) && JSON.stringify(x.args) === JSON.stringify(args)) !== undefined) {
+                throw new Error("Cannot query same observation twice. Save it into const instead: const obs1 = observe(...); args=" + JSON.stringify(args))
             }
             const sameQuery = this.memoize.find(x => x.id === pubkey)
             if (strict && sameQuery && JSON.stringify(sameQuery.yes.concat(sameQuery.no).sort()) !== JSON.stringify(yes.concat(no).sort())) {
@@ -314,7 +318,7 @@ export class Dsl {
         this.prev = undefined
         let i = 0
         let cursor = true
-        let entry: [number, Boolean] = undefined
+        let entry: [number, Boolean, any] = undefined
 
         
         while (cursor) {
@@ -632,6 +636,7 @@ export class Dsl {
         })
     }
 
+    private ignoreObserveChecks = false
     public numeric = {
         infinity: {
             bounded: (maxInfinity = 10000000, maxCount = 1000000000) => ({
@@ -789,10 +794,12 @@ export class Dsl {
 
                 let nn = numbers[0]
                 let hh = undefined
-                const payhandler = (h: PaymentHandler, n: number) => {
+                let payhandler = (h: PaymentHandler, n: number) => {
                     nn = n
                     hh = h
                 }
+
+                let argument = args
                 
                 const recurse = (l: number[], r: number[], payhandlerOut: PaymentHandler) => {
                     if (l.length === 0) {
@@ -801,12 +808,13 @@ export class Dsl {
                     if (r.length === 0) {
                         return
                     }
-                    this.unsafe.if(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args, false, allowMisplacedPay).then(h => {
+                    this.unsafe.if(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), argument, false, allowMisplacedPay).then(h => {
                         if (l.length === 1) {
                             try {
                                 payhandler(h, l[0])
                             } catch (e) {
                                 if (allowReplacedPay && e instanceof DslErrors.PerfectHedgeError) {
+                                    
                                     if (payhandlerOut === null) {
                                         throw e
                                     }
@@ -819,10 +827,14 @@ export class Dsl {
                             try {
                                 recurse(l.slice(0, l.length / 2), l.slice(l.length / 2), h)
                             } catch (e) {
+                                
                                 if (allowReplacedPay && e instanceof DslErrors.PerfectHedgeError) {
                                     //propagate higher payhandler back to the leaf
+                                    
+                                    
                                     recurse(l.slice(0, l.length / 2), l.slice(l.length / 2), payhandlerOut)
                                 } else {
+                                    
                                     throw e
                                 }
                             }
@@ -836,6 +848,7 @@ export class Dsl {
                                     if (payhandlerOut === null) {
                                         throw e
                                     }
+                                    
                                     payhandler(payhandlerOut, r[0])
                                 } else {
                                     throw e
@@ -846,7 +859,6 @@ export class Dsl {
                                 recurse(r.slice(0, r.length / 2), r.slice(r.length / 2), h)
                             } catch (e) {
                                 if (allowReplacedPay && e instanceof DslErrors.PerfectHedgeError) {
-                                    //propagate higher payhandler back to the leaf
                                     recurse(r.slice(0, r.length / 2), r.slice(r.length / 2), payhandlerOut)
                                 } else {
                                     throw e
@@ -858,6 +870,29 @@ export class Dsl {
 
                 recurse(numbers.slice(0, numbers.length / 2), numbers.slice(numbers.length / 2), null)
                 this.unfinalized++
+
+                if (allowReplacedPay) {
+                    const saveRelease = hh.release
+                    hh.release = () => {
+                        payhandler = (ignore, nn) => {
+                            this.unfinalized++
+                            saveRelease()
+                        }
+
+                        this.unfinalized--
+                        try {
+                            this.ignoreObserveChecks = true
+                            recurse(numbers.slice(0, numbers.length / 2), numbers.slice(numbers.length / 2), null)
+                        } catch (e) {
+                            this.ignoreObserveChecks = false
+                            throw e
+                        }
+                        
+
+                    }
+
+                }
+                
 
                 return [nn, hh]
             }
@@ -1179,8 +1214,8 @@ export class Dsl {
             },
             valueWithPaymentCtxUnsafe: (): [T, PaymentHandler] => {
                 let nn = set[0]
-                let hh = undefined
-                const payhandler = (h: PaymentHandler, n: T) => {
+                let hh: PaymentHandler = undefined
+                let payhandler = (h: PaymentHandler, n: T) => {
                     nn = n
                     hh = h
                 }
@@ -1249,6 +1284,16 @@ export class Dsl {
 
                 recurse(set.slice(0, set.length / 2), set.slice(set.length / 2), null)
                 this.unfinalized++
+
+                const saveRelease = hh.release
+                hh.release = () => {
+                    payhandler = (ignore, nn) => {
+                        hh.release()
+                    }
+
+                    recurse(set.slice(0, set.length / 2), set.slice(set.length / 2), null)
+
+                }
 
                 return [nn, hh]
             }
@@ -1537,9 +1582,10 @@ export class Dsl {
                 this.counter = 0
                 this.lastOutcome = undefined
                 this.flag = false
+                //console.log("---" + JSON.stringify(this.state))
                 await this.body(this)
                 if (this.unfinalized !== 0) {
-                    throw new Error("" + this.unfinalized + " resource locks are not released! Every `[v, payments] = valueWithPaymentCtxUnsafe` must have a corresponding `payments.finalize()`")
+                    throw new Error("" + this.unfinalized + " resource locks are not released! Every `[v, payments] = valueWithPaymentCtxUnsafe` must have a corresponding `payments.release()`")
                 }
             } catch (e) {
                 if (e === "uninitialized" || e === "skip") {
