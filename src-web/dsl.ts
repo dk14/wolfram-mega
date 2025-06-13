@@ -20,6 +20,22 @@ type PaymentHandler = {
     release?: () => void
 }
 
+export const evaluatePartyCollateral = async (o?: OfferModel): Promise<number> => { //promise is to avoid stackoverflow
+    if (o === undefined) {
+        return 0
+    } else {
+        return o.bet[0] + Math.max(await evaluatePartyCollateral(o.ifPartyWins), await evaluatePartyCollateral(o.ifCounterPartyWins))
+    }  
+}
+
+export const evaluateCounterPartyCollateral = async (o?: OfferModel): Promise<number> => { //promise is to avoid stackoverflow
+    if (o === undefined) {
+        return 0
+    } else {
+        return o.bet[1] + Math.max(await evaluateCounterPartyCollateral(o.ifPartyWins), await evaluateCounterPartyCollateral(o.ifCounterPartyWins))
+    }
+}
+
 export namespace DslErrors {
     export class PerfectHedgeError extends Error {
         public state: {[pubkey: string]: [number, boolean]}
@@ -42,6 +58,21 @@ export namespace DslErrors {
         }
     }
     export class InfinityCountError extends Error {}
+
+    export class PartyAtAdvantage extends Error {
+        public amount: number
+        public partyIdx: 0 | 1
+        public pair: [string, string]
+
+        constructor(msg: string, amount: number, partyIdx: 0 | 1, pair: [string, string]) {
+            super(msg)
+
+            this.amount = amount
+            this.partyIdx = partyIdx
+            this.pair = pair
+        }
+    }
+
 }
 
 export class Dsl {
@@ -324,7 +355,17 @@ export class Dsl {
         }
         if (!model.bet[0] && !model.bet[1] && !model.ifPartyWins && !model.ifCounterPartyWins) {
             this.leafsFiltered = true
+
             return undefined
+        }
+        if (this.strictlyFair) {
+            if (!model.bet[0] && model.bet[1]) {
+                throw new DslErrors.PartyAtAdvantage("Party at advantage - no premium/discount introduced", model.bet[1], 0, this.selected)
+            }
+
+            if (model.bet[0] && !model.bet[1]) {
+                throw new DslErrors.PartyAtAdvantage("Party at advantage - no premium/discount introduced", model.bet[0], 1, this.selected)
+            }
         }
 
         if (model.ifPartyWins) {
@@ -425,6 +466,8 @@ export class Dsl {
             }) 
         })    
     }
+
+    public strictlyFair = false
 
     public unsafe = {
         if: (pubkey: string, yes: string[], no: string[], args: {[id: string]: string} = {}, allowSwaps: boolean = false, allowMisplacedPay = true, strict = false) => {

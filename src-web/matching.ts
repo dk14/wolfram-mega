@@ -4,6 +4,7 @@ import { AcceptOffer, DependsOn, FactRequest, HashCashPow, Offer, OfferMsg, Offe
 import { BtcApi } from "../webapp"
 import { OracleDataProvider, dataProvider, webOracle } from "./oracle-data-provider";
 import { TraderQuery } from "./impl/storage";
+import { evaluateCounterPartyCollateral, evaluatePartyCollateral } from "./dsl";
 
 export const randomInt = (n: number): number => {
     return Math.floor(Math.random() * n);
@@ -151,22 +152,6 @@ export const hashLockProvider: HashLockProvider = {
     },
     getHashUnLock: async function (o: OfferMsg): Promise<string> {
         return await hash(o.pow.hash + (await window.privateDB.get("secrets", "secret-hash") ?? "insecure!"))
-    }
-}
-
-export const evaluatePartyCollateral = async (o?: OfferModel): Promise<number> => { //promise is to avoid stackoverflow
-    if (o === undefined) {
-        return 0
-    } else {
-        return o.bet[0] + Math.max(await evaluatePartyCollateral(o.ifPartyWins), await evaluatePartyCollateral(o.ifCounterPartyWins))
-    }  
-}
-
-export const evaluateCounterPartyCollateral = async (o?: OfferModel): Promise<number> => { //promise is to avoid stackoverflow
-    if (o === undefined) {
-        return 0
-    } else {
-        return o.bet[1] + Math.max(await evaluateCounterPartyCollateral(o.ifPartyWins), await evaluateCounterPartyCollateral(o.ifCounterPartyWins))
     }
 }
 

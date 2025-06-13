@@ -830,7 +830,7 @@ Otherwise - you can make custom assertions for your contract just by throwing an
 
 Discreet🌿 outputs most optimal contract theoretically possible.
 
-Backends are allowed to optimize ranges and such - by interpreting "0..100" as Schnorr sum of messages. They can also optimize subsequent unique matches of the same fact ("100 = 20", "100 = 30" etc, e.g. turn a set of binary options to a european call) into a single pack of CET-transactions rather than a binary tree, which would reduce amount of transactions needed to redeem the funds in worst case.
+Backends are allowed to optimize ranges and such - by interpreting "0..100" as Schnorr sum of messages. They can also optimize subsequent unique matches of the same fact ("100 = 20", "100 = 30" etc, e.g. turn a set of binary options to a european call) into a single pack of CET-transactions rather than a binary tree, which would reduce amount of transactions needed to redeem the funds in worst case. Interpreter can rebalance payment tree.
 
 
 > Numbers and sets are implemented as binary search trees in Discreet. They are as optimal as possible.
@@ -947,6 +947,25 @@ Now, if
 
 `allowReplacedPay` would technically be safe. It, however, has ambigous semantics of observation: Alice can benefit regardless of **specific** outcome, but cannot benefit from every outcome possible (`allowReplacedPay` still disallows her from benefiting unconditionally - she cannot jump higher than the top of the tree). 
 
+> None of `unsafe` operations directly disable `PerfectHedge` check. They only speculate on semantics of observation.
+
+For instance, this form is allowed, even without unsafe:
+
+```ts
+if (obs1){
+    payAlice(1 sat)
+    if (obs2) {
+        payAlice(2 sat)
+    }
+}
+```
+
+The collateral required from Alice would be zero, but Bob would be auto-refunded on his remaining collateral. Thus it is not a perfect hedge, no issues with liquidity.
+
+Alice is clearly at advantage though. `dsl.strictlyFair = true` would enforce verification.
+
+> `dsl.strictlyFair = true` is sensitive to tree balancing in `set`s and `numeric`s alike. For many cases, `unsafe.numeric` would become unusable (have to replace with `unsafe.set`). Order of members of a `set` would start matter - since it affects balancing of binary option trees. It is not left to interpreter to optimize it anymore, trees would have to be balanced manually and strictly, with proper ordering of outcomes, and mandatory premiums and discounts.
+
 #### TLDR
 The most efficent way to pay without overthinking is to use synthetic `dsl.if` to capture the branch:
 
@@ -1013,7 +1032,7 @@ dsl.unsafe.if("wow?", ["yup"], ["nope"]).then(account => {
 
 > `dsl.unsafe` has numerics and sets as well. 
 
-> Note - using payment contexts makes it more challenging to find a source of perfect hedge. Information is not erased (stacktrace poits to a branch responsible), just not obvious at first glance, since it does not point to `pay`. Especially with numerics where the outcome is hidden in binary tree. `PerfectHedgeError` has a `state` field to improve tracking.
+> Note - using payment contexts makes it more challenging for engineer to find a source of perfect hedge. Information is not erased (stacktrace poits to a branch responsible), just not obvious at first glance, since it does not point to `pay`. Especially with numerics where the outcome is hidden in binary tree. `PerfectHedgeError` has a `state` field to improve tracking.
 
 > Theoretically, typescript to typescript transpiler (or a tricky macro) can force shadowing (and hide `accounts => `), thus making `dsl.unsafe` calls safe. It can also rewrite `dsl.if` to typescript's `if`.
 
