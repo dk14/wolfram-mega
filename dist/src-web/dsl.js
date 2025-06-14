@@ -342,10 +342,10 @@ class Dsl {
     multiparty = [];
     selected = [undefined, undefined];
     isSelected0 = (party) => {
-        return this.selected[0] !== undefined && this.selected[0] === party;
+        return this.selected[0] && this.selected[0] === party;
     };
     isSelected1 = (party) => {
-        return this.selected[0] !== undefined && this.selected[1] === party;
+        return this.selected[0] && this.selected[1] === party;
     };
     multiple = (...parties) => {
         if (this.multiparty.length > 0) {
@@ -364,6 +364,12 @@ class Dsl {
     party = (partyName, partyAsset) => ({
         pays: (counterpartyName, counterpartyAsset) => ({
             amount: (amount, asset) => {
+                if (partyName === undefined) {
+                    throw Error("Party undefined");
+                }
+                if (counterpartyName === undefined) {
+                    throw Error("Counter-party undefined");
+                }
                 const party = partyName + (partyAsset ? "_" + partyAsset : "");
                 const counterparty = counterpartyName + (counterpartyAsset ? "_" + counterpartyAsset : "");
                 if (partyAsset !== asset) {
@@ -1128,7 +1134,7 @@ class Dsl {
                             if (sum > 0) {
                                 this.pay(party, sum);
                             }
-                            else {
+                            else if (sum < 0) {
                                 this.pay(party === 0 ? 1 : 0, -sum);
                             }
                         }
@@ -1155,7 +1161,7 @@ class Dsl {
                             if (sum > 0) {
                                 this.pay(party, sum);
                             }
-                            else {
+                            else if (sum < 0) {
                                 this.pay(party === 0 ? 1 : 0, -sum);
                             }
                         }
@@ -1244,7 +1250,7 @@ class Dsl {
                                     if (sum > 0) {
                                         this.pay(counterparty, sum);
                                     }
-                                    else {
+                                    else if (sum < 0) {
                                         this.pay(counterparty === 0 ? 1 : 0, -sum);
                                     }
                                 }
@@ -1271,7 +1277,7 @@ class Dsl {
                                     if (sum > 0) {
                                         this.pay(counterparty, sum);
                                     }
-                                    else {
+                                    else if (sum < 0) {
                                         this.pay(counterparty === 0 ? 1 : 0, -sum);
                                     }
                                 }
