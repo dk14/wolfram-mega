@@ -342,10 +342,10 @@ class Dsl {
     multiparty = [];
     selected = [undefined, undefined];
     isSelected0 = (party) => {
-        return this.selected[0] === party;
+        return this.selected[0] !== undefined && this.selected[0] === party;
     };
     isSelected1 = (party) => {
-        return this.selected[1] === party;
+        return this.selected[0] !== undefined && this.selected[1] === party;
     };
     multiple = (...parties) => {
         if (this.multiparty.length > 0) {
