@@ -552,45 +552,51 @@ export class Dsl {
                             let cursor = start
                             let counter = 0
                             let state = init
-                            while (cmp(cursor, maxInfinity) > 0 && counter < maxCount) {
-                                const saveState = state;
-                                let cashflows: PerpetualCashFlow[] = undefined;
-                                [state, cashflows] = step(cursor, state)
+                            this.unssafeInifnityCtx = true
+                            try {
+                                while (cmp(cursor, maxInfinity) > 0 && counter < maxCount) {
+                                    const saveState = state;
+                                    let cashflows: PerpetualCashFlow[] = undefined;
+                                    
+                                    [state, cashflows] = step(cursor, state)
 
-                                cashflows.forEach(cashflow => {
-                                    try {
-                                        this.party(
-                                            cashflow.from[0], 
-                                            cashflow.from[1]
-                                        ).pays(
-                                            cashflow.to[0],
-                                            cashflow.to[1]
-                                        ).amount(
-                                            cashflow.amount[0],
-                                            cashflow.amount[1]
-                                        )
-                                    } catch (e) {
-                                        if (e instanceof DslErrors.PerfectHedgeError) {
-                                            const party = e.pair[e.partyIdx]
-                                            state[party] = saveState[party] //repair
+                                    cashflows.forEach(cashflow => {
+                                        try {
+                                            this.party(
+                                                cashflow.from[0], 
+                                                cashflow.from[1]
+                                            ).pays(
+                                                cashflow.to[0],
+                                                cashflow.to[1]
+                                            ).amount(
+                                                cashflow.amount[0],
+                                                cashflow.amount[1]
+                                            )
+                                        } catch (e) {
+                                            if (e instanceof DslErrors.PerfectHedgeError) {
+                                                const party = e.pair[e.partyIdx]
+                                                state[party] = saveState[party] //repair
+                                            }
                                         }
+                                    })
+                                    
+                                    if (state === undefined){
+                                        return
                                     }
-                                })
-                                
-                                if (state === undefined){
-                                    return
+                                    if (state === saveState) {
+                                        throw new DslErrors.InfinityError("Infinity Inferred! State did not progress! Collaterals are not decreasing?", state)
+                                    }
+                                    cursor = forward(cursor)
+                                    counter++
                                 }
-                                if (state === saveState) {
-                                    throw new DslErrors.InfinityError("Infinity Inferred! State did not progress! Collaterals are not decreasing?", state)
+                                if (counter >= maxCount) {
+                                    throw new DslErrors.InfinityCountError("Max count reached!")
                                 }
-                                cursor = forward(cursor)
-                                counter++
-                            }
-                            if (counter >= maxCount) {
-                                throw new DslErrors.InfinityCountError("Max count reached!")
-                            }
-                            if (cmp(cursor, maxInfinity) <= 0) {
-                                throw new DslErrors.InfinityError("Infinity Reached! Collaterals are not decreasing?", state)
+                                if (cmp(cursor, maxInfinity) <= 0) {
+                                    throw new DslErrors.InfinityError("Infinity Reached! Collaterals are not decreasing?", state)
+                                }
+                            } finally {
+                                this.unssafeInifnityCtx = false
                             }
                         }
                     })
