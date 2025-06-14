@@ -64,12 +64,12 @@ const configureWebMocks = async () => {
         await window.privateDB.add("secrets", "cRFAdefAzpxzKduj3F9wf3qSTgA5johBBqPZZT72hh46dgCRr997", pub1);
         await window.privateDB.add("secrets", "cPCMiHyZQt7UWF9y49CaW7ckT9FaFQj5ChnEbXnF51WwEcp6Agkq", pub2);
         await window.privateDB.add("secrets", "cW3z2LN7rwnomrds4cF2PJhbrCmFPkX1Q8KY5Fe6F6myRotHFXrv", pubOracleCp);
+        await window.webOracleFacts.add("answers", "YES", pubOracleCp);
+        await window.webOracleFacts.add("answers", "YES", pubOracleCp2);
     }
     catch (e) {
         console.error(e);
     }
-    await window.webOracleFacts.add("answers", "YES", pubOracleCp);
-    await window.webOracleFacts.add("answers", "YES", pubOracleCp2);
     window.address = (0, tx_1.p2pktr)(pub1).address;
     window.pubkey = pub1;
     const testPow = {
