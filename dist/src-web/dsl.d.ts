@@ -126,15 +126,15 @@ export declare class Dsl {
         set: {
             outcome: (pubkey: string, set: string[], args?: {
                 [id: string]: string;
-            }, allowMisplacedPay?: boolean) => {
+            }, allowMisplacedPay?: boolean, allowFork?: boolean) => {
                 evaluate: (handler: (n: string) => void) => void;
                 evaluateWithPaymentCtx: (payhandler: (h: PaymentHandler, n: string) => void) => void;
                 value: () => string;
                 valueWithPaymentCtxUnsafe: () => [string, PaymentHandler];
             };
-            outcomeT: <T>(pubkey: string, set: T[], renderer: (x: T) => string, parser: (s: string) => T, args?: {
+            outcomeT: <T>(pubkey: string, set: T[], renderer: (x: T) => string, args?: {
                 [id: string]: string;
-            }, allowMisplacedPay?: boolean) => {
+            }, allowMisplacedPay?: boolean, allowFork?: boolean) => {
                 evaluate: (handler: (n: T) => void) => void;
                 evaluateWithPaymentCtx: (payhandler: (h: PaymentHandler, n: T) => void) => void;
                 value: () => T;
@@ -194,15 +194,15 @@ export declare class Dsl {
     set: {
         outcome: (pubkey: string, set: string[], args?: {
             [id: string]: string;
-        }, allowMisplacedPay?: boolean) => {
+        }, allowMisplacedPay?: boolean, allowFork?: boolean) => {
             evaluate: (handler: (n: string) => void) => void;
             evaluateWithPaymentCtx: (payhandler: (h: PaymentHandler, n: string) => void) => void;
             value: () => string;
             valueWithPaymentCtxUnsafe: () => [string, PaymentHandler];
         };
-        outcomeT: <T>(pubkey: string, set: T[], renderer: (x: T) => string, parser: (s: string) => T, args?: {
+        outcomeT: <T>(pubkey: string, set: T[], renderer: (x: T) => string, args?: {
             [id: string]: string;
-        }, allowMisplacedPay?: boolean) => {
+        }, allowMisplacedPay?: boolean, allowFork?: boolean) => {
             evaluate: (handler: (n: T) => void) => void;
             evaluateWithPaymentCtx: (payhandler: (h: PaymentHandler, n: T) => void) => void;
             value: () => T;
