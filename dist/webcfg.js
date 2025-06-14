@@ -155,6 +155,8 @@ const configureWebMocks = async () => {
     catch {
     }
     try {
+        await api_1.api.announceCapability(exports.cfg, testCp2);
+        await window.storage.addCp(testCp2);
     }
     catch {
     }

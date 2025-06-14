@@ -100,6 +100,7 @@ const adaptorInbound = (c, server) => {
 };
 const browserPeerAPI = async () => {
     console.log("Creating webrtc peer: " + global.cfg.hostname);
+    cfg.webrtcPeerServer.secure = false;
     const jspeer = new p2pjs.Peer(cfg.hostname, cfg.webrtcPeerServer);
     await new Promise(resolve => {
         jspeer.on('open', function (id) {
