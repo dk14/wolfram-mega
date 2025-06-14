@@ -118,7 +118,7 @@ await configureWebMocks()
 
 window.pool = ndapi
 
-if (!global.isTest) {
+if (!global.isTest && !window.test) {
     startP2P(global.cfg, await browserPeerAPI())
      setInterval(() => window.stalking.trackIssuedOffers({
         "bitcoin-testnet": btcDlcContractInterpreter
