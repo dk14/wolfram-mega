@@ -1005,7 +1005,7 @@ dsl.unsafe.numeric.infinity.bounded(false)
 > note: there is a distinction between desensitization and confluence. Confluence might be appropriate when a certain problem is solved, business is finished. Desensitization turns you into academic ghost - your publications will be haunting engineers and educators, wether you intended it or not.
 
 #### TLDR
-The most efficent way to pay without overthinking is to use synthetic `dsl.if` to capture the branch, so proper observation would be associated:
+The most efficent way to multi-pay without overthinking is to use synthetic `dsl.if` to capture the branch, so proper observation would be associated:
 
 ```ts
 dsl.if(question).then(funds => {
