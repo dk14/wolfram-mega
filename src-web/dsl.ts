@@ -416,11 +416,11 @@ export class Dsl {
     private selected: [string, string] = [undefined, undefined]
 
     private isSelected0 = (party: string) => {
-        return this.selected[0] !== undefined && this.selected[0] === party 
+        return this.selected[0] && this.selected[0] === party 
     }
 
     private isSelected1 = (party: string) => {
-        return this.selected[0] !== undefined && this.selected[1] === party 
+        return this.selected[0] && this.selected[1] === party 
     }
 
     public multiple = (...parties: string[]) => {
@@ -441,6 +441,12 @@ export class Dsl {
     public party = (partyName: string, partyAsset?: string) => ({
         pays: (counterpartyName: string, counterpartyAsset?: string) => ({
             amount: (amount: number, asset?: string) => {
+                if (partyName === undefined) {
+                    throw Error("Party undefined")
+                }
+                if (counterpartyName === undefined) {
+                    throw Error("Counter-party undefined")
+                }
                 const party = partyName + (partyAsset ? "_" + partyAsset : "")
                 const counterparty = counterpartyName + (counterpartyAsset ? "_" + counterpartyAsset : "")
                 if  (partyAsset !== asset) {
@@ -1225,7 +1231,7 @@ export class Dsl {
                         if (party !== undefined && sum !== 0) {
                             if (sum > 0) {
                                 this.pay(party, sum)
-                            } else {
+                            } else if (sum < 0) {
                                 this.pay(party === 0 ? 1: 0, -sum)
                             } 
                         }
@@ -1252,7 +1258,7 @@ export class Dsl {
                         if (party !== undefined && sum !== 0) {
                             if (sum > 0) {
                                 this.pay(party, sum)
-                            } else {
+                            } else if (sum < 0) {
                                 this.pay(party === 0 ? 1: 0, -sum)
                             } 
                         }
@@ -1337,7 +1343,7 @@ export class Dsl {
                                 if (counterparty !== undefined && sum !== 0) {
                                     if (sum > 0) {
                                         this.pay(counterparty, sum)
-                                    } else {
+                                    } else if (sum < 0) {
                                         this.pay(counterparty === 0 ? 1: 0, -sum)
                                     } 
                                 }
@@ -1363,7 +1369,7 @@ export class Dsl {
                                 if (counterparty !== undefined && sum !== 0) {
                                     if (sum > 0) {
                                         this.pay(counterparty, sum)
-                                    } else {
+                                    } else if (sum < 0) {
                                         this.pay(counterparty === 0 ? 1: 0, -sum)
                                     }
                                 }
