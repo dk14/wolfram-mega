@@ -13,6 +13,8 @@ import fetchMock from 'fetch-mock';
 
 
 import wrtc from '@roamhq/wrtc';
+import { api } from "../../src/api";
+import { testOfferMsg } from "../../webcfg";
 
 RTCPeerConnection = wrtc.RTCPeerConnection;
 RTCIceCandidate = wrtc.RTCIceCandidate;
@@ -31,6 +33,7 @@ Blob.prototype.arrayBuffer = function() {
 const data = fs.readFileSync("wolfram-mega-spec.yaml").toString("utf-8")
 
 
+
 fetchMock.config.allowRelativeUrls = true
 fetchMock.mockGlobal().route("./../wolfram-mega-spec.yaml", data)
 
@@ -40,13 +43,11 @@ const mockUtxo2 = [{"txid":"d816a61c588840463fb8b59eee2cae55c53b5e7d680315aba65d
 
 
 fetchMock.mockGlobal().route("https://mempool.space/testnet/api/address/tb1pudlyenkk7426rvsx84j97qddf4tuc8l63suz62xeq4s6j3wmuylq0j54ex/utxo", JSON.stringify(mockUtxo1))
-fetchMock.mockGlobal().route("https://mempool.space/testnet/api/address/tb1p0l5zsw2lv9pu99dwzckjxhpufdvvylapl5spn6yd54vhnwa989hq20cvyv/utxo", JSON.stringify(mockUtxo2))
-
-
+fetchMock.mockGlobal().route("https://mempool.space/testnet/api/address/tb1p0l5zsw2lv9pu99dwzckjxhpufdvvylapl5spn6yd54vhnwa989hq20cvyv/utxo", JSON.stringify(mockUtxo2));
 
 require('./../../webapp');
 
-(async () => {
+const promise = new Promise(async (resolve) => {
     await global.initWebapp
 
     global.cfg.webrtcPeerServer = {
@@ -55,6 +56,14 @@ require('./../../webapp');
         path: "/",
         pingInterval: 100
     }
+
+    await api.publishOffer(global.cfg, testOfferMsg)
+    await window.storage.addOffer(testOfferMsg)
+    global.initWebapp = promise
+    resolve(null)
 })
+
+
+
 
 export const configure = true

@@ -57,15 +57,54 @@ export const cfg: MempoolConfig<any> = {
     }
 }
 
+
+const pub1 = "e37e4cced6f555a1b2063d645f01ad4d57cc1ffa8c382d28d90561a945dbe13e"
+const pub2 = "7fe828395f6143c295ae162d235c3c4b58c27fa1fd2019e88da55979bba5396e"
+const pubOracleCp = "07508128697f7a1aca5c3e86292daa4b08f76e68b405e4b4ffe50d066ade55c3"
+const pubOracleCp2 = "7fe828395f6143c295ae162d235c3c4b58c27fa1fd2019e88da55979bba5396e"
+
+
+const testPow: HashCashPow = {
+    difficulty: 0,
+    algorithm: 'SHA256',
+    hash: 'TEST-OFFER',
+    magicNo: 0
+}
+
+const testFactRequest: FactRequest = {
+    capabilityPubKey: pubOracleCp,
+    arguments: {}
+}
+
+const testOfferTerms: OfferTerms = {
+    question: testFactRequest,
+    partyBetsOn: ["YES"],
+    counterPartyBetsOn: ["NO"],
+    partyBetAmount: 4000,
+    counterpartyBetAmount: 2087,
+    txfee: 2000
+}
+
+
+const testOffer: Offer = {
+    message: '',
+    customContract: '',
+    terms: testOfferTerms,
+    blockchain: 'bitcoin-testnet',
+    contact: ''
+}
+
+export const testOfferMsg: OfferMsg = {
+    seqNo: 0,
+    cTTL: 0,
+    pow: testPow,
+    content: testOffer
+}
+
 export const configureWebMocks = async () => {
 
     
 
-
-    const pub1 = "e37e4cced6f555a1b2063d645f01ad4d57cc1ffa8c382d28d90561a945dbe13e"
-    const pub2 = "7fe828395f6143c295ae162d235c3c4b58c27fa1fd2019e88da55979bba5396e"
-    const pubOracleCp = "07508128697f7a1aca5c3e86292daa4b08f76e68b405e4b4ffe50d066ade55c3"
-    const pubOracleCp2 = "7fe828395f6143c295ae162d235c3c4b58c27fa1fd2019e88da55979bba5396e"
 
     try {
         await window.privateDB.add("secrets", "cRFAdefAzpxzKduj3F9wf3qSTgA5johBBqPZZT72hh46dgCRr997", pub1)
@@ -80,44 +119,6 @@ export const configureWebMocks = async () => {
     window.address = p2pktr(pub1).address
     window.pubkey = pub1
  
-
-    const testPow: HashCashPow = {
-        difficulty: 0,
-        algorithm: 'SHA256',
-        hash: 'TEST-OFFER',
-        magicNo: 0
-    }
-
-    const testFactRequest: FactRequest = {
-        capabilityPubKey: pubOracleCp,
-        arguments: {}
-    }
-
-    const testOfferTerms: OfferTerms = {
-        question: testFactRequest,
-        partyBetsOn: ["YES"],
-        counterPartyBetsOn: ["NO"],
-        partyBetAmount: 4000,
-        counterpartyBetAmount: 2087,
-        txfee: 2000
-    }
-
-
-    const testOffer: Offer = {
-        message: '',
-        customContract: '',
-        terms: testOfferTerms,
-        blockchain: 'bitcoin-testnet',
-        contact: ''
-    }
-
-    const testOfferMsg: OfferMsg = {
-        seqNo: 0,
-        cTTL: 0,
-        pow: testPow,
-        content: testOffer
-    }
-
     const mockPow: HashCashPow = {
         difficulty: 0,
         algorithm: 'SHA256',
@@ -179,15 +180,11 @@ export const configureWebMocks = async () => {
     }
 
     try {
-        await ndapi.announceCapability(cfg, testCp2)
-        await window.storage.addCp(testCp2)
+
     } catch {
         
     }
     
-
-    await ndapi.publishOffer(cfg, testOfferMsg)
-    await window.storage.addOffer(testOfferMsg)
 
 }
 
