@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.matchingEngine = exports.pickCps = exports.hashLockProvider = exports.checkOriginatorId = exports.getOriginatorId = exports.randomInt = void 0;
 exports.maxBy = maxBy;
 const oracle_data_provider_1 = require("./oracle-data-provider");
+const storage_1 = require("./impl/storage");
 const dsl_1 = require("./dsl");
 const randomInt = (n) => {
     return Math.floor(Math.random() * n);
@@ -397,6 +398,9 @@ exports.matchingEngine = {
         }));
         const together = myModels.concat(theirModels);
         return Object.values(Object.groupBy(together, x => x.orderId)).map(copies => maxBy(copies, x => statusRank(x.status)));
+    },
+    reset: async function () {
+        await (0, storage_1.clearDb)();
     }
 };
 function maxBy(arr, fn) {

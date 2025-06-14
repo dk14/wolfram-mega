@@ -44,6 +44,7 @@ export interface MatchingEngine {
     broadcastOffer: (o: OfferModel) => Promise<string>;
     acceptOffer: (o: OfferModel) => Promise<void>;
     listOrders: (limit: number) => Promise<OfferModel[]>;
+    reset: () => Promise<void>;
 }
 export declare const getOriginatorId: () => string;
 export declare const checkOriginatorId: (id: string) => boolean;

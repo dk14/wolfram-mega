@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.indexDBstorage = exports.database = void 0;
+exports.indexDBstorage = exports.clearDb = exports.database = void 0;
 const idb_1 = require("idb");
 const database = async () => {
     return await (0, idb_1.openDB)('store', 1, {
@@ -15,6 +15,25 @@ const database = async () => {
     });
 };
 exports.database = database;
+const clearDb = async () => {
+    const db = await (0, idb_1.openDB)('store', 1, {
+        upgrade(db) {
+            db.createObjectStore('oracles');
+            db.createObjectStore('cps');
+            db.createObjectStore('reports');
+            db.createObjectStore('offers');
+            db.createObjectStore('issued-reports');
+            db.createObjectStore('issued-offers');
+        },
+    });
+    db.clear('oracles');
+    db.clear('cps');
+    db.clear('reports');
+    db.clear('offers');
+    db.clear('issued-reports');
+    db.clear('issued-offers');
+};
+exports.clearDb = clearDb;
 const indexDBstorage = (db) => {
     return {
         addOracle: async function (o) {
