@@ -205,6 +205,7 @@ Or don't - up to u 🤷.
 > We really discourage large contracts on Discreet, but they are quite possible nevertheless.
 
 ### 🚫 Perfect Hedge anti-pattern
+Benefiting regardless of outcome is a result of overcollaterization. If Alice winseither 40 or 50 - there is no point of betting 40, can just bet 10 instead.
 ```ts
 if (dsl.outcome("really?", ["YES"], ["NO"])) {
     // Alice gets paid regardless of outcome:
@@ -218,7 +219,13 @@ if (dsl.outcome("really?", ["YES"], ["NO"])) {
 
 ### 👁 Outcomes
 
+Same question cannot be quryed more than once.
+
 All outcomes specified in either yes or no of `dsl.outcome(pubkey, yesoutcomes, nooutcomes`) must have distinct semantics. Otherwise typesafety of "not querying the same outcome twice" would be broken. 
+
+> Breaking semantics of outcomes would allow Alice to bypass "perfect hedge" restriction with double-nested `if`. 
+
+> For outcomes in mutually-exclusive relation - we provide `dsl.set` as a wrapper around binary outcomes. It allows expressing any operation on sets.
 
 Querying mutually exclusive outcomes, e.g. `{yes = ["a"], no = ["b"]} && {yes = ["b"], no = ["a"]}` disallowed, since it can output unreachable subcontracts potentially: use typescript `!` instead, so typescript could lint unreachable code.
 
