@@ -59,6 +59,9 @@ var DslErrors;
         }
     }
     DslErrors.PartyAtAdvantage = PartyAtAdvantage;
+    class EmptyDslOutput extends Error {
+    }
+    DslErrors.EmptyDslOutput = EmptyDslOutput;
 })(DslErrors || (exports.DslErrors = DslErrors = {}));
 class Dsl {
     state = {};
@@ -308,7 +311,7 @@ class Dsl {
     leafsFiltered = false;
     filterLeafs(model) {
         if (model === undefined) {
-            throw new Error("Empty DSL model output!");
+            throw new DslErrors.EmptyDslOutput("Empty DSL model output!");
         }
         if (!model.bet[0] && !model.bet[1] && !model.ifPartyWins && !model.ifCounterPartyWins) {
             this.leafsFiltered = true;
@@ -1301,8 +1304,18 @@ class Dsl {
                 if (!collateralBounds[i]) {
                     throw Error("Specify bounds for a pair " + pair + " at index: " + i);
                 }
-                const subcontract = await this.enumerateWithBound(collateralBounds[i][0], collateralBounds[i][1]);
-                return [pair[0], pair[1], subcontract];
+                try {
+                    const subcontract = await this.enumerateWithBound(collateralBounds[i][0], collateralBounds[i][1]);
+                    return [pair[0], pair[1], subcontract];
+                }
+                catch (e) {
+                    if (e instanceof DslErrors.EmptyDslOutput) {
+                        return [pair[0], pair[1], undefined];
+                    }
+                    else {
+                        throw e;
+                    }
+                }
             });
         }));
         this.multiflag = false;

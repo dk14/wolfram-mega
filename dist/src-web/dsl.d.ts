@@ -44,6 +44,8 @@ export declare namespace DslErrors {
         pair: [string, string];
         constructor(msg: string, amount: number, partyIdx: 0 | 1, pair: [string, string]);
     }
+    class EmptyDslOutput extends Error {
+    }
 }
 export declare class Dsl {
     private state;
