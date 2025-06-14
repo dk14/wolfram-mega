@@ -138,7 +138,13 @@ export const configureWebMocks = async () => {
         oracleSignatureType: 'SHA256'
     }
 
-    await window.storage.addOracle(testOracle)
+    try{
+        await window.storage.addOracle(testOracle)
+    } catch {
+
+    }
+
+   
 
     const testCp: OracleCapability = {
         oraclePubKey: pubOracleCp,
@@ -166,12 +172,22 @@ export const configureWebMocks = async () => {
         tags: ["world"]
     }
 
-    await ndapi.announceOracle(cfg, testOracle)
-    await ndapi.announceCapability(cfg, testCp)
-    await window.storage.addCp(testCp)
 
-    await ndapi.announceCapability(cfg, testCp2)
-    await window.storage.addCp(testCp2)
+    try{
+        await ndapi.announceOracle(cfg, testOracle)
+        await ndapi.announceCapability(cfg, testCp)
+        await window.storage.addCp(testCp)
+    } catch {
+        
+    }
+
+    try {
+        await ndapi.announceCapability(cfg, testCp2)
+        await window.storage.addCp(testCp2)
+    } catch {
+        
+    }
+    
 
     await ndapi.publishOffer(cfg, testOfferMsg)
     await window.storage.addOffer(testOfferMsg)
