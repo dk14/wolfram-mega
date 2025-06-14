@@ -245,18 +245,21 @@ export class Dsl {
     public outcome(pubkey: string, yes: string[], no: string[], args: {[id: string]: string} = {}, allowTruth = false, strict = true): boolean {
         const pubkeyUnique = pubkey + "-###-"  + JSON.stringify(yes) + JSON.stringify(no) + JSON.stringify(args);
         if(this.ignoreObserveChecks) {
+            if (!this.state[pubkeyUnique]) {
+                throw new Error("Did not find state while editing the tree: " + pubkeyUnique + "\n" + this.state)
+            }
             return this.state[pubkeyUnique][1]
         }
         yes.sort()
         no.sort()
         this.counter++
 
-        if ((new Set(yes)).values.length === yes.length) {
-            throw Error("Duplicate outcomes")
+        if ((new Set(yes)).size !== yes.length) {
+            throw Error("Duplicate outcomes:" + JSON.stringify(yes))
         }
 
-        if ((new Set(no)).values.length === no.length) {
-            throw Error("Duplicate outcomes")
+        if ((new Set(no)).size !== no.length) {
+            throw Error("Duplicate outcomes: " + JSON.stringify(no))
         }
 
         if (strict && (yes.length === 0 || no.length === 0)) {
@@ -496,8 +499,8 @@ export class Dsl {
             return this.if(pubkey, yes, no, args, allowSwaps, allowMisplacedPay, strict)
         },
         numeric: {
-            outcome: (pubkey: string, from: number, to: number, step: number = 1, args: {[id: string]: string} = {}, allowMisplacedPay = true, allowReplacedPay = true) => {
-                return this.numeric.outcome(pubkey, from, to, step, args, allowMisplacedPay, allowReplacedPay)
+            outcome: (pubkey: string, from: number, to: number, step: number = 1, args: {[id: string]: string} = {}, allowMisplacedPay = true) => {
+                return this.numeric.outcome(pubkey, from, to, step, args, allowMisplacedPay)
             },
             infinity: {
                 bounded: (maxInfinity = 10000000, maxCount = 1000000000) => ({
@@ -521,11 +524,11 @@ export class Dsl {
             },
         },
         set: {
-            outcome: (pubkey: string, set:string[], args: {[id: string]: string} = {}, allowMisplacedPay = true, allowReplacedPay = true) => {
-                return this.set.outcome(pubkey, set, args, allowMisplacedPay, allowReplacedPay)
+            outcome: (pubkey: string, set:string[], args: {[id: string]: string} = {}, allowMisplacedPay = true) => {
+                return this.set.outcome(pubkey, set, args, allowMisplacedPay)
             },
-            outcomeT: <T>(pubkey: string, set:T[], renderer: (x: T) => string, parser: (s: string) => T, args: {[id: string]: string} = {},  allowMisplacedPay = true, allowReplacedPay = true) => {
-                return this.set.outcomeT(pubkey, set, renderer, parser, args, allowMisplacedPay, allowReplacedPay)
+            outcomeT: <T>(pubkey: string, set:T[], renderer: (x: T) => string, parser: (s: string) => T, args: {[id: string]: string} = {},  allowMisplacedPay = true) => {
+                return this.set.outcomeT(pubkey, set, renderer, parser, args, allowMisplacedPay)
             }
         },
         ifAtomicSwapLeg1: (lock: string = "TRUTH", unlockOutcome: string = "true", allowMisplacedPay = true) => {
@@ -658,7 +661,7 @@ export class Dsl {
                 }
             })
         },
-        outcome: (pubkey: string, from: number, to: number, step: number = 1, args: {[id: string]: string} = {}, allowMisplacedPay = false, allowReplacedPay = false) => ({
+        outcome: (pubkey: string, from: number, to: number, step: number = 1, args: {[id: string]: string} = {}, allowMisplacedPay = false) => ({
             evaluate: (handler: (n: number) => void) => {
                 let numbers = []
                 for (let i = from; i <= to; i += step) {
@@ -674,13 +677,17 @@ export class Dsl {
                     }
                     if (this.outcome(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args)) {
                         if (l.length === 1) {
-                            handler(l[0])
+                            if (this.unsafe.outcome(pubkey, l.map(x => x.toString()), [])) {
+                                handler(l[0])
+                            }
                         } else {
                             recurse(l.slice(0, l.length / 2), l.slice(l.length / 2))
                         }
                     } else {
                         if (r.length === 1) {
-                            handler(r[0])   
+                            if (this.unsafe.outcome(pubkey, r.map(x => x.toString()), [])) {
+                                handler(r[0])
+                            }
                         } else {
                             recurse(r.slice(0, r.length / 2), r.slice(r.length / 2))
                         }
@@ -704,52 +711,22 @@ export class Dsl {
                     }
                     this.unsafe.if (pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args, false, allowMisplacedPay).then(h => {
                         if (l.length === 1) {
-                            try {
+                            this.unsafe.if (pubkey, l.map(x => x.toString()), [], args, false, allowMisplacedPay).then(h => {
                                 payhandler(h, l[0])
-                            } catch (e) {
-                                if (allowReplacedPay && e instanceof DslErrors.PerfectHedgeError) {
-                                    if (payhandlerOut === null) {
-                                        throw e
-                                    }
-                                    payhandler(payhandlerOut, l[0])
-                                } else {
-                                    throw e
-                                }
-                            }
-                        } else {
-                            try {
-                                recurse(l.slice(0, l.length / 2), l.slice(l.length / 2), h)
-                            } catch (e) {
-                                if (allowReplacedPay && e instanceof DslErrors.PerfectHedgeError) {
-                                    //propagate higher payhandler back to the leaf
-                                    recurse(l.slice(0, l.length / 2), l.slice(l.length / 2), payhandlerOut)
-                                }
-                            }
+                            })
                             
+                        } else {
+                            recurse(l.slice(0, l.length / 2), l.slice(l.length / 2), h)
                         }
                     }).else(h => {
                         if (r.length === 1) {
-                            try {
-                                payhandler(h, l[0])
-                            } catch (e) {
-                                if (allowReplacedPay && e instanceof DslErrors.PerfectHedgeError) {
-                                    if (payhandlerOut === null) {
-                                        throw e
-                                    }
-                                    payhandler(payhandlerOut, r[0])
-                                } else {
-                                    throw e
-                                }
-                            }
+                            
+                            payhandler(h, l[0])
+                            
                         } else {
-                            try {
-                                recurse(r.slice(0, r.length / 2), r.slice(r.length / 2), h)
-                            } catch (e) {
-                                if (allowReplacedPay && e instanceof DslErrors.PerfectHedgeError) {
-                                    //propagate higher payhandler back to the leaf
-                                    recurse(r.slice(0, r.length / 2), r.slice(r.length / 2), payhandlerOut)
-                                }
-                            }
+                            
+                            recurse(r.slice(0, r.length / 2), r.slice(r.length / 2), h)
+                            
                         }
                     })
                 }
@@ -771,7 +748,11 @@ export class Dsl {
                     }
                     if (this.unsafe.outcome(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args)) {
                         if (l.length === 1) {
-                            return l[0]
+                            if (this.unsafe.outcome(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args)){
+                                return l[0]
+                            } else {
+                                throw "skip"
+                            }
                         } else {
                             return recurse(l.slice(0, l.length / 2), l.slice(l.length / 2))
                         }
@@ -810,60 +791,17 @@ export class Dsl {
                     }
                     this.unsafe.if(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), argument, false, allowMisplacedPay).then(h => {
                         if (l.length === 1) {
-                            try {
+                            this.unsafe.if (pubkey, l.map(x => x.toString()), [], args, false, allowMisplacedPay).then(h => {
                                 payhandler(h, l[0])
-                            } catch (e) {
-                                if (allowReplacedPay && e instanceof DslErrors.PerfectHedgeError) {
-                                    
-                                    if (payhandlerOut === null) {
-                                        throw e
-                                    }
-                                    payhandler(payhandlerOut, l[0])
-                                } else {
-                                    throw e
-                                }
-                            }
+                            })
                         } else {
-                            try {
-                                recurse(l.slice(0, l.length / 2), l.slice(l.length / 2), h)
-                            } catch (e) {
-                                
-                                if (allowReplacedPay && e instanceof DslErrors.PerfectHedgeError) {
-                                    //propagate higher payhandler back to the leaf
-                                    
-                                    
-                                    recurse(l.slice(0, l.length / 2), l.slice(l.length / 2), payhandlerOut)
-                                } else {
-                                    
-                                    throw e
-                                }
-                            }
+                            recurse(l.slice(0, l.length / 2), l.slice(l.length / 2), h)
                         }
                     }).else(h => {
                         if (r.length === 1) {
-                            try {
-                                payhandler(h, r[0])
-                            } catch (e) {
-                                if (allowReplacedPay && e instanceof DslErrors.PerfectHedgeError) {
-                                    if (payhandlerOut === null) {
-                                        throw e
-                                    }
-                                    
-                                    payhandler(payhandlerOut, r[0])
-                                } else {
-                                    throw e
-                                }
-                            }
+                            payhandler(h, r[0])
                         } else {
-                            try {
-                                recurse(r.slice(0, r.length / 2), r.slice(r.length / 2), h)
-                            } catch (e) {
-                                if (allowReplacedPay && e instanceof DslErrors.PerfectHedgeError) {
-                                    recurse(r.slice(0, r.length / 2), r.slice(r.length / 2), payhandlerOut)
-                                } else {
-                                    throw e
-                                }
-                            }
+                            recurse(r.slice(0, r.length / 2), r.slice(r.length / 2), h)
                         }
                     })
                 }
@@ -871,36 +809,18 @@ export class Dsl {
                 recurse(numbers.slice(0, numbers.length / 2), numbers.slice(numbers.length / 2), null)
                 this.unfinalized++
 
-                if (allowReplacedPay) {
-                    const saveRelease = hh.release
-                    hh.release = () => {
-                        payhandler = (ignore, nn) => {
-                            this.unfinalized++
-                            saveRelease()
-                        }
-
-                        this.unfinalized--
-                        try {
-                            this.ignoreObserveChecks = true
-                            recurse(numbers.slice(0, numbers.length / 2), numbers.slice(numbers.length / 2), null)
-                        } catch (e) {
-                            this.ignoreObserveChecks = false
-                            throw e
-                        }
-                        
-
-                    }
-
+                if (hh === undefined) {
+                    this.unfinalized--
+                    throw "skip"
                 }
                 
-
                 return [nn, hh]
             }
         })
     }
 
     public set = {
-        outcome: (pubkey: string, set:string[], args: {[id: string]: string} = {}, allowMisplacedPay = false, allowReplacedPay = false) => ({
+        outcome: (pubkey: string, set:string[], args: {[id: string]: string} = {}, allowMisplacedPay = false) => ({
             evaluate: (handler: (n: string) => void) => {
                 const recurse = (l: string[], r: string[]) => {
                     if (l.length === 0) {
@@ -911,7 +831,10 @@ export class Dsl {
                     }
                     if (this.unsafe.outcome(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args)) {
                         if (l.length === 1) {
-                            handler(l[0])
+                            if (this.unsafe.outcome(pubkey, l, [])) {
+                                handler(l[0])
+                            }
+                            
                         } else {
                             recurse(l.slice(0, l.length / 2), l.slice(l.length / 2))
                         }
@@ -937,55 +860,15 @@ export class Dsl {
                     }
                     this.if (pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args, false, allowMisplacedPay).then(h => {
                         if (l.length === 1) {
-                            try {
-                                payhandler(h, l[0])
-                            } catch (e) {
-                                if (allowReplacedPay && e instanceof DslErrors.PerfectHedgeError) {
-                                    if (payhandlerOut === null) {
-                                        throw e
-                                    }
-                                    payhandler(payhandlerOut, l[0])
-                                } else {
-                                    throw e
-                                }
-                            }
+                            payhandler(h, l[0])
                         } else {
-                            try {
-                                recurse(l.slice(0, l.length / 2), l.slice(l.length / 2), h)
-                            } catch (e) {
-                                if (allowReplacedPay && e instanceof DslErrors.PerfectHedgeError) {
-                                    //propagate higher payhandler back to the leaf
-                                    recurse(l.slice(0, l.length / 2), l.slice(l.length / 2), payhandlerOut)
-                                } else {
-                                    throw e
-                                }
-                            }
+                            recurse(l.slice(0, l.length / 2), l.slice(l.length / 2), h)
                         }
                     }).else(h => {
                         if (r.length === 1) {
-                             try {
-                                payhandler(h, r[0])
-                            } catch (e) {
-                                if (allowReplacedPay && e instanceof DslErrors.PerfectHedgeError) {
-                                    if (payhandlerOut === null) {
-                                        throw e
-                                    }
-                                    payhandler(payhandlerOut, r[0])
-                                } else {
-                                    throw e
-                                }
-                            }
+                            payhandler(h, r[0])
                         } else {
-                            try {
-                                recurse(r.slice(0, r.length / 2), r.slice(r.length / 2), h)
-                            } catch (e) {
-                                if (allowReplacedPay && e instanceof DslErrors.PerfectHedgeError) {
-                                    //propagate higher payhandler back to the leaf
-                                    recurse(r.slice(0, r.length / 2), r.slice(l.length / 2), payhandlerOut)
-                                } else {
-                                    throw e
-                                }
-                            }
+                            recurse(r.slice(0, r.length / 2), r.slice(r.length / 2), h)
                         }
                     })
                 }
@@ -1022,12 +905,13 @@ export class Dsl {
             valueWithPaymentCtxUnsafe: (): [string, PaymentHandler] => {
                 let nn = set[0]
                 let hh = undefined
+
                 const payhandler = (h: PaymentHandler, n: string) => {
                     nn = n
                     hh = h
                 }
                 
-                const recurse = (l: string[], r: string[], payhandlerOut: PaymentHandler) => {
+                const recurse = (l: string[], r: string[]) => {
                     if (l.length === 0) {
                         return
                     }
@@ -1036,67 +920,26 @@ export class Dsl {
                     }
                     this.if(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args, false, allowMisplacedPay).then(h => {
                         if (l.length === 1) {
-                             try {
-                                payhandler(h, l[0])
-                            } catch (e) {
-                                if (allowReplacedPay && e instanceof DslErrors.PerfectHedgeError) {
-                                    if (payhandlerOut === null) {
-                                        throw e
-                                    }
-                                    payhandler(payhandlerOut, l[0])
-                                } else {
-                                    throw e
-                                }
-                            }
+                            payhandler(h, l[0])
                         } else {
-                            try {
-                                recurse(l.slice(0, l.length / 2), l.slice(l.length / 2), h)
-                            } catch (e) {
-                                if (allowReplacedPay && e instanceof DslErrors.PerfectHedgeError) {
-                                    //propagate higher payhandler back to the leaf
-                                    recurse(l.slice(0, l.length / 2), l.slice(l.length / 2), payhandlerOut)
-                                } else {
-                                    throw e
-                                }
-                            }
+                            recurse(l.slice(0, l.length / 2), l.slice(l.length / 2))
                         }
                     }).else(h => {
                         if (r.length === 1) {
-                             try {
-                                payhandler(h, r[0])
-                            } catch (e) {
-                                if (allowReplacedPay && e instanceof DslErrors.PerfectHedgeError) {
-                                    if (payhandlerOut === null) {
-                                        throw e
-                                    }
-                                    payhandler(payhandlerOut, r[0])
-                                } else {
-                                    throw e
-                                }
-                            }
+                            payhandler(h, r[0])
                         } else {
-                            try {
-                                recurse(r.slice(0, r.length / 2), r.slice(r.length / 2), h)
-                            } catch (e) {
-                                if (allowReplacedPay && e instanceof DslErrors.PerfectHedgeError) {
-                                    //propagate higher payhandler back to the leaf
-                                    recurse(r.slice(0, r.length / 2), r.slice(r.length / 2), payhandlerOut)
-                                } else {
-                                    throw e
-                                }
-                            }
+                            recurse(r.slice(0, r.length / 2), r.slice(r.length / 2))
                         }
                     })
-
                 }
 
-                recurse(set.slice(0, set.length / 2), set.slice(set.length / 2), null)
+                recurse(set.slice(0, set.length / 2), set.slice(set.length / 2))
                 this.unfinalized++
 
                 return [nn, hh]
             }
         }),
-        outcomeT: <T>(pubkey: string, set:T[], renderer: (x: T) => string, parser: (s: string) => T, args: {[id: string]: string} = {},  allowMisplacedPay = false, allowReplacedPay = false) => ({
+        outcomeT: <T>(pubkey: string, set:T[], renderer: (x: T) => string, parser: (s: string) => T, args: {[id: string]: string} = {},  allowMisplacedPay = false) => ({
             evaluate: (handler: (n: T) => void) => {
                  const recurse = (l: T[], r: T[]) => {
                     if (l.length === 0) {
@@ -1123,7 +966,7 @@ export class Dsl {
                 recurse(set.slice(0, set.length / 2), set.slice(set.length / 2))
             },
             evaluateWithPaymentCtx: (payhandler: (h: PaymentHandler, n: T) => void) => {
-                const recurse = (l: T[], r: T[], payhandlerOut: PaymentHandler) => {
+                const recurse = (l: T[], r: T[]) => {
                     if (l.length === 0) {
                         return
                     }
@@ -1132,60 +975,22 @@ export class Dsl {
                     }
                     this.if (pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args, false, allowMisplacedPay).then(h => {
                         if (l.length === 1) {
-                            try {
-                                payhandler(h, l[0])
-                            } catch (e) {
-                                if (allowReplacedPay && e instanceof DslErrors.PerfectHedgeError) {
-                                    if (payhandlerOut === null) {
-                                        throw e
-                                    }
-                                    payhandler(payhandlerOut, l[0])
-                                } else {
-                                    throw e
-                                }
-                            }
+                            payhandler(h, l[0])             
                         } else {
-                            try {
-                                recurse(l.slice(0, l.length / 2), l.slice(l.length / 2), h)
-                            } catch (e) {
-                                if (allowReplacedPay && e instanceof DslErrors.PerfectHedgeError) {
-                                    //propagate higher payhandler back to the leaf
-                                    recurse(l.slice(0, l.length / 2), l.slice(l.length / 2), payhandlerOut)
-                                } else {
-                                    throw e
-                                }
-                            }
+                            recurse(l.slice(0, l.length / 2), l.slice(l.length / 2))
+
                         }
                     }).else(h => {
                         if (r.length === 1) {
-                            try {
-                                payhandler(h, r[0])
-                            } catch (e) {
-                                if (allowReplacedPay && e instanceof DslErrors.PerfectHedgeError) {
-                                    if (payhandlerOut === null) {
-                                        throw e
-                                    }
-                                    payhandler(payhandlerOut, r[0])
-                                } else {
-                                    throw e
-                                }
-                            }
+                            payhandler(h, r[0])
+                            
                         } else {
-                            try {
-                                recurse(r.slice(0, r.length / 2), r.slice(r.length / 2), h)
-                            } catch (e) {
-                                if (allowReplacedPay && e instanceof DslErrors.PerfectHedgeError) {
-                                    //propagate higher payhandler back to the leaf
-                                    recurse(r.slice(0, r.length / 2), r.slice(r.length / 2), payhandlerOut)
-                                } else {
-                                    throw e
-                                }
-                            }
+                            recurse(r.slice(0, r.length / 2), r.slice(r.length / 2))
                         }
                     })
                 }
 
-                recurse(set.slice(0, set.length / 2), set.slice(set.length / 2), null)
+                recurse(set.slice(0, set.length / 2), set.slice(set.length / 2))
             },
             value: (): T => {
                 const recurse = (l: T[], r: T[]) => {
@@ -1229,71 +1034,21 @@ export class Dsl {
                     }
                     const rt = this.if(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args, false, allowMisplacedPay).then(h => {
                         if (l.length === 1) {
-                            try {
-                                payhandler(h, l[0])
-                            } catch (e) {
-                                if (allowReplacedPay && e instanceof DslErrors.PerfectHedgeError) {
-                                    if (payhandlerOut === null) {
-                                        throw e
-                                    }
-                                    payhandler(payhandlerOut, l[0])
-                                } else {
-                                    throw e
-                                }
-                            }
+                            payhandler(h, l[0])
                         } else {
-                            try {
-                                recurse(l.slice(0, l.length / 2), l.slice(l.length / 2), h)
-                            } catch (e) {
-                                if (allowReplacedPay && e instanceof DslErrors.PerfectHedgeError) {
-                                    //propagate higher payhandler back to the leaf
-                                    recurse(l.slice(0, l.length / 2), l.slice(l.length / 2), payhandlerOut)
-                                } else {
-                                    throw e
-                                }
-                            }
+                            recurse(l.slice(0, l.length / 2), l.slice(l.length / 2), h)
                         }
                     }).else(h => {
                         if (r.length === 1) {
-                           try {
-                                payhandler(h, r[0])
-                            } catch (e) {
-                                if (allowReplacedPay && e instanceof DslErrors.PerfectHedgeError) {
-                                    if (payhandlerOut === null) {
-                                        throw e
-                                    }
-                                    payhandler(payhandlerOut, r[0])
-                                } else {
-                                    throw e
-                                }
-                            }
+                            payhandler(h, r[0])
                         } else {
-                            try {
-                                recurse(r.slice(0, r.length / 2), r.slice(r.length / 2), h)
-                            } catch (e) {
-                                if (allowReplacedPay && e instanceof DslErrors.PerfectHedgeError) {
-                                    //propagate higher payhandler back to the leaf
-                                    recurse(r.slice(0, r.length / 2), r.slice(r.length / 2), payhandlerOut)
-                                } else {
-                                    throw e
-                                }
-                            }
+                            recurse(r.slice(0, r.length / 2), r.slice(r.length / 2), h) 
                         }
                     })
                 }
 
                 recurse(set.slice(0, set.length / 2), set.slice(set.length / 2), null)
                 this.unfinalized++
-
-                const saveRelease = hh.release
-                hh.release = () => {
-                    payhandler = (ignore, nn) => {
-                        hh.release()
-                    }
-
-                    recurse(set.slice(0, set.length / 2), set.slice(set.length / 2), null)
-
-                }
 
                 return [nn, hh]
             }
@@ -1589,7 +1344,7 @@ export class Dsl {
                 }
             } catch (e) {
                 if (e === "uninitialized" || e === "skip") {
-
+                    //console.log("---")
                 } else {
                     throw e
                 }
@@ -1664,7 +1419,7 @@ if (typeof window === 'undefined' && require.main === module) {
             const quantisationStep = 1
 
             dates.reduce(([capitalisation1, capitalisation2], date) => {
-                const [floatingRate, accounts] = dsl.numeric
+                const [floatingRate, accounts] = dsl.unsafe.numeric
                     .outcome(floatingLegIndex, 0, 1, quantisationStep, {date})
                     .valueWithPaymentCtxUnsafe()
 

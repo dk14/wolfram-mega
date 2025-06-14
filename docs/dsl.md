@@ -916,35 +916,7 @@ But, since `pay1` does not depend on `outcome2` - it would throw a "perfect hedg
 
 Binary trees in sets and numerics make things even more interesting:
 
-```ts
-const observation = observe(1 | 2 | 3) //observe is IO!
-if (observation === 1 | 2) {
-    if (observe(1)) {
-        payToAlice(1 sat)
-    } else {
-        payToAlice(2 sats)
-    }
-} else { //3
-    payToBob(10 sats)
-}
-```
-Becomes a perfect hedge! 
-
-`allowReplacedPay` flag in numerics would rewrite this form into:
-```ts
-const observation = observe(1 | 2 | 3)
-if (observation === 1) {
-    payToAlice(1 sat)
-} else if (observation === 2) {
-    payToAlice(2 sats) 
-} else {//3
-    payToBob(10 sats)
-}
-```
-
-> `dsl.unsafe.numeric` enables both `allowMisplacedPay` and `allowReplacedPay`. `allowReplacedPay` is experimental.
-
-`allowReplacedPay` would technically be safe. It, however, has ambigous semantics of observation: Alice can benefit regardless of **specific** outcome, but cannot benefit from every outcome possible (`allowReplacedPay` still disallows her from benefiting unconditionally - she cannot jump higher than the top of the tree). 
+They introduce ambigous semantics of observation: Alice can benefit regardless of **specific** outcome, but cannot benefit from every outcome possible.
 
 > None of `unsafe` operations directly disable `PerfectHedge` check. They only speculate on semantics of observation.
 
