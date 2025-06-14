@@ -308,7 +308,7 @@ class Dsl {
     leafsFiltered = false;
     filterLeafs(model) {
         if (model === undefined) {
-            throw new Error("Empty output!");
+            throw new Error("Empty DSL model output!");
         }
         if (!model.bet[0] && !model.bet[1] && !model.ifPartyWins && !model.ifCounterPartyWins) {
             this.leafsFiltered = true;
