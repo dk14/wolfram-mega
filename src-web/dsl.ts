@@ -669,6 +669,9 @@ export class Dsl {
         },
         outcome: (pubkey: string, from: number, to: number, step: number = 1, args: {[id: string]: string} = {}, allowMisplacedPay = false, allowFork = false) => ({
             evaluate: (handler: (n: number) => void) => {
+                if (allowFork) {
+                    this.ignoreObserveChecks = true
+                }
                 let numbers = []
                 for (let i = from; i <= to; i += step) {
                     numbers.push(i)
@@ -684,7 +687,7 @@ export class Dsl {
                     if (this.outcome(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args, false, false)) {
                         if (l.length === 1) {
                             if (allowFork) {
-                                if (this.unsafe.outcome(pubkey, l.map(x => x.toString()), [])) {
+                                if (this.outcome(pubkey, l.map(x => x.toString()), ["$$$$false"])) {
                                     handler(l[0])
                                 }
                             } else {
@@ -723,7 +726,7 @@ export class Dsl {
                     this.unsafe.if (pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args, false, allowMisplacedPay).then(h => {
                         if (l.length === 1) {
                             if (allowFork) {
-                                this.unsafe.if (pubkey, l.map(x => x.toString()), [], args, false, allowMisplacedPay).then(h => {
+                                this.unsafe.if (pubkey, l.map(x => x.toString()), ["$$$$false"], args, false, allowMisplacedPay).then(h => {
                                     payhandler(h, l[0])
                                 })
                             } else {
@@ -764,7 +767,7 @@ export class Dsl {
                     if (this.unsafe.outcome(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args)) {
                         if (l.length === 1) {
                             if (allowFork) {
-                                if (this.unsafe.outcome(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args)){
+                                if (this.unsafe.outcome(pubkey, l.map(x => x.toString()), ["$$$$false"], args)){
                                     return l[0]
                                 } else {
                                     throw "skip"
@@ -857,7 +860,7 @@ export class Dsl {
                     if (this.unsafe.outcome(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args)) {
                         if (l.length === 1) {
                             if (allowFork) {
-                                if (this.unsafe.outcome(pubkey, l, [])) {
+                                if (this.unsafe.outcome(pubkey, l, ["$$$$false"])) {
                                     handler(l[0])
                                 }
                             } else {
@@ -889,7 +892,7 @@ export class Dsl {
                     this.if (pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args, false, allowMisplacedPay).then(h => {
                         if (l.length === 1) {
                             if (allowFork) {
-                                this.if(pubkey, l.map(x => x.toString()), [], args, false, allowMisplacedPay).then(h => {
+                                this.if(pubkey, l.map(x => x.toString()), ["$$$$false"], args, false, allowMisplacedPay).then(h => {
                                     payhandler(h, l[0])
                                 })
                             } else {
@@ -922,7 +925,7 @@ export class Dsl {
                     if (this.outcome(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args)) {
                         if (l.length === 1) {
                             if (allowFork) {
-                                if (this.outcome(pubkey, l.map(x => x.toString()), [], args)) {
+                                if (this.outcome(pubkey, l.map(x => x.toString()), ["$$$$false"], args)) {
                                     return l[0]
                                 }
                             } else {
@@ -961,7 +964,7 @@ export class Dsl {
                     this.if(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args, false, allowMisplacedPay).then(h => {
                         if (l.length === 1) {
                             if (allowFork) {
-                                this.if(pubkey, l.map(x => x.toString()), [], args, false, allowMisplacedPay).then(h => {
+                                this.if(pubkey, l.map(x => x.toString()), ["$$$$false"], args, false, allowMisplacedPay).then(h => {
                                     payhandler(h, l[0])
                                 })
                             } else {
@@ -1002,7 +1005,7 @@ export class Dsl {
                     if (this.unsafe.outcome(pubkey, l.map(x => renderer(x)), r.map(x => renderer(x)), args)) {
                         if (l.length === 1) {
                            if (allowFork) {
-                                if (this.unsafe.outcome(pubkey, l.map(x => renderer(x)), [])) {
+                                if (this.unsafe.outcome(pubkey, l.map(x => renderer(x)), ["$$$$false"])) {
                                     handler(l[0])
                                 }
                             } else {
@@ -1033,7 +1036,7 @@ export class Dsl {
                     this.if (pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args, false, allowMisplacedPay).then(h => {
                         if (l.length === 1) {
                             if (allowFork) {
-                                this.if(pubkey, l.map(x => x.toString()), [], args, false, allowMisplacedPay).then(h => {
+                                this.if(pubkey, l.map(x => x.toString()), ["$$$$false"], args, false, allowMisplacedPay).then(h => {
                                     payhandler(h, l[0])
                                 })
                             } else {
@@ -1066,7 +1069,7 @@ export class Dsl {
                     if (this.outcome(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args)) {
                         if (l.length === 1) {
                             if (allowFork) {
-                                if (this.outcome(pubkey, l.map(x => x.toString()), [], args)) {
+                                if (this.outcome(pubkey, l.map(x => x.toString()), ["$$$$false"], args)) {
                                     return l[0]
                                 }
                             } else {
@@ -1104,7 +1107,7 @@ export class Dsl {
                     const rt = this.if(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args, false, allowMisplacedPay).then(h => {
                         if (l.length === 1) {
                             if (allowFork) {
-                                this.if(pubkey, l.map(x => x.toString()), [], args, false, allowMisplacedPay).then(h => {
+                                this.if(pubkey, l.map(x => x.toString()), ["$$$$false"], args, false, allowMisplacedPay).then(h => {
                                     payhandler(h, l[0])
                                 })
                             } else {
@@ -1546,6 +1549,9 @@ if (typeof window === 'undefined' && require.main === module) {
                 
             }).else(pay => {
                 pay.party("bob", "btc").pays("alice", "usd").amount(10, "btc")
+            })
+            dsl.numeric.outcome("???", 0, 3).evaluate(x => {
+                dsl.pay(Dsl.Alice, 10)
             })
             dsl.numeric.infinity.bounded(100).perpetual(0, (x, st) => {
                 //return dsl.infinity.move
