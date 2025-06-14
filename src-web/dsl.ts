@@ -1136,6 +1136,7 @@ export class Dsl {
         })
     }
 
+    public disablePartyRoleReversal = false
 
     public if = (pubkey: string, yes: string[], no: string[], args: {[id: string]: string} = {}, allowSwaps: boolean = false, allowMisplacedPay = false, strict = true) => {
         let contradiction = false
@@ -1159,6 +1160,9 @@ export class Dsl {
                             party = idx
                         } else {
                             if (party !== undefined && idx !== party){
+                                if (this.disablePartyRoleReversal){
+                                    throw new Error("Party role reversal is disabled!")
+                                }
                                 sum -= amount
                             } else {
                                 throw new DslErrors.PerfectHedgeError ("Perfect Hedge! Party cannot benefit regardless of outcome!", this.state, amount, idx, this.selected)
@@ -1268,6 +1272,9 @@ export class Dsl {
                                     sum += amount
                                 } else {
                                     if (counterparty !== undefined && idx !== counterparty){
+                                         if (this.disablePartyRoleReversal){
+                                            throw new Error("Party role reversal is disabled!")
+                                        }
                                         sum -= amount
                                     } else {
                                         throw new DslErrors.PerfectHedgeError ("Perfect Hedge! Party cannot benefit regardless of outcome!", this.state, amount, idx, this.selected)
