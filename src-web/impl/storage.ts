@@ -22,6 +22,26 @@ export const database = async (): Promise<IDBPDatabase<unknown>> => {
     })
 }
 
+export const clearDb = async (): Promise<void> => {
+    const db = await openDB('store', 1, {
+        upgrade(db) {
+        db.createObjectStore('oracles');
+        db.createObjectStore('cps');
+        db.createObjectStore('reports');
+        db.createObjectStore('offers');
+        db.createObjectStore('issued-reports');
+        db.createObjectStore('issued-offers');
+        },
+    })
+    db.clear('oracles')
+    db.clear('cps')
+    db.clear('reports')
+    db.clear('offers')
+    db.clear('issued-reports')
+    db.clear('issued-offers')
+
+}
+
 export const indexDBstorage = (db: IDBPDatabase<unknown>): Storage => {
     return {
         addOracle: async function (o: OracleId): Promise<boolean> {
