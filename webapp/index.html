@@ -210,7 +210,7 @@
                 background: #04AA6D;
                 cursor: pointer;
             }
-                            
+      
               
         </style>
     </head>
@@ -220,7 +220,7 @@
 <div>Balance: <font color="cyan">10,000 sat</font>
 Address: <font color="blue">n3W8YyK59F6vQe34uQ8n835L627k2J</font> <img src="./assets/copy.svg" class="copy-button" onclick="alert('copy!')"></div></pre>
 
-        <div id="matching"class="scrollable" ></div>
+        <div id="matching"class="scrollable" ><p id="loading" style="color: #00FF00; font-size: 24px; font-family: monospace">Loading...</p></div>
         <div id="contracts" class="scrollable" style="display:none"></div>
         <div id="profile" class="scrollable profile" style="display:none" class="profile">
             <div class="profile-group">
@@ -340,42 +340,7 @@ Address: <font color="blue">n3W8YyK59F6vQe34uQ8n835L627k2J</font> <img src="./as
                     tags: ["sports", "politics"],
                     txfee: 1000
                 },
-                offers: [{
-                    id: "1",
-                    bet: [100, 1],
-                    oracles: [wolfram],
-                    question: "human  extinct \n in 20 years?",
-                    accepted: false,
-                    txid: "",
-
-                },
-                {
-                    id: "2",
-                    bet: [50, 1],
-                    oracles: [wolfram],
-                    question: "human extinct \n in 10 years?",
-                    accepted: false,
-                    txid: "",
-
-                },
-                {
-                    id: "3",
-                    bet: [20, 1],
-                    oracles: [wolfram],
-                    question: "human extinct \n in 5 years?",
-                    accepted: false,
-                    txid: "",
-
-                },
-                {
-                    id: "4",
-                    bet: [5, 1],
-                    oracles: [wolfram],
-                    question: "human extinct \n in 1 year?",
-                    accepted: false,
-                    txid: "",
-
-                }],
+                offers: [],
                 contracts: [
             
                 ]
@@ -460,6 +425,7 @@ Address: <font color="blue">n3W8YyK59F6vQe34uQ8n835L627k2J</font> <img src="./as
                         confirmed = true
                     }
                     if (confirmed) {
+                        console.log(offer.status)
                             if (offer.role === 'initiator') {
                                 window.matching.broadcastOffer(offer)
                             } else {
@@ -532,11 +498,25 @@ Address: <font color="blue">n3W8YyK59F6vQe34uQ8n835L627k2J</font> <img src="./as
 
             }
 
-            model.offers.forEach(offer => {
-                renderOfferPreview(document.getElementById("matching"), offer)
-            })
-            
-             
+            const maxMatching = 3
+            let offersFound = 0
+
+            const camcel = setInterval(async () => {
+                if (offersFound >= maxMatching - 1) {
+                    clearInterval(camcel)
+                }
+                try {
+                    const offer = await window.matching.generateOffer(model.profile)
+                    offersFound++
+                    window.model.offers.push(offer)
+                    renderOfferPreview(document.getElementById("matching"), offer)
+                    document.getElementById("loading").innerText = ""
+                    
+                } catch {
+
+                }
+
+            }, 500)
             
             window.renderOfferDetails = (offer) => {
                 switchTab("offer")

@@ -228,7 +228,7 @@ export const matchingEngine: MatchingEngine = {
             id: "aaa",
             bet: [partyBetAmount, counterpartyBetAmount],
             oracles: [{
-                capabilityPub: "",
+                capabilityPub: cp.capabilityPubKey,
                 oracle: cp.oraclePubKey,
                 endpoint: "http://localhost:8080"
             }],
