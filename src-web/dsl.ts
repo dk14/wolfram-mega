@@ -681,7 +681,7 @@ export class Dsl {
                     if (r.length === 0) {
                         return
                     }
-                    if (this.outcome(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args)) {
+                    if (this.outcome(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args, false, false)) {
                         if (l.length === 1) {
                             if (allowFork) {
                                 if (this.unsafe.outcome(pubkey, l.map(x => x.toString()), [])) {
