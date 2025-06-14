@@ -111,7 +111,7 @@ Composite contracts:
 npm run webtest-it-composite
 ```
 
-> You supposed to see STALKER logs unless p2p fails. WebRTC requires internet connection. Current version uses peerjs discovery service which is not always reliable.
+> You supposed to see STALKER logs unless initialisation fails. Current version uses peerjs discovery service (with jsdom) which is not always reliable.
 
 ## Run on node.js
 
