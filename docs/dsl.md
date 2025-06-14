@@ -651,7 +651,7 @@ dsl.set.outcome("which?", ["lol", "okay", "yaay"]).evaluate(point => {
     } 
 })
 
-dsl.set.outcomeT<string>("which?", ["lol", "okay", "yaaylol"], x => x, x => x).evaluate(point => {
+dsl.set.outcomeT<string>("which?", ["lol", "okay", "yaaylol"], x => x).evaluate(point => {
     if (point === "lol") {
         dsl.pay(Dsl.Alice, 30)
     } 

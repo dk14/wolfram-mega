@@ -524,11 +524,11 @@ export class Dsl {
             },
         },
         set: {
-            outcome: (pubkey: string, set:string[], args: {[id: string]: string} = {}, allowMisplacedPay = true) => {
-                return this.set.outcome(pubkey, set, args, allowMisplacedPay)
+            outcome: (pubkey: string, set:string[], args: {[id: string]: string} = {}, allowMisplacedPay = true, allowFork = true) => {
+                return this.set.outcome(pubkey, set, args, allowMisplacedPay, allowFork)
             },
-            outcomeT: <T>(pubkey: string, set:T[], renderer: (x: T) => string, parser: (s: string) => T, args: {[id: string]: string} = {},  allowMisplacedPay = true) => {
-                return this.set.outcomeT(pubkey, set, renderer, parser, args, allowMisplacedPay)
+            outcomeT: <T>(pubkey: string, set:T[], renderer: (x: T) => string, args: {[id: string]: string} = {},  allowMisplacedPay = true, allowFork = true) => {
+                return this.set.outcomeT(pubkey, set, renderer, args, allowMisplacedPay, allowFork)
             }
         },
         ifAtomicSwapLeg1: (lock: string = "TRUTH", unlockOutcome: string = "true", allowMisplacedPay = true) => {
@@ -839,7 +839,7 @@ export class Dsl {
     }
 
     public set = {
-        outcome: (pubkey: string, set:string[], args: {[id: string]: string} = {}, allowMisplacedPay = false) => ({
+        outcome: (pubkey: string, set:string[], args: {[id: string]: string} = {}, allowMisplacedPay = false, allowFork = true) => ({
             evaluate: (handler: (n: string) => void) => {
                 const recurse = (l: string[], r: string[]) => {
                     if (l.length === 0) {
@@ -850,10 +850,13 @@ export class Dsl {
                     }
                     if (this.unsafe.outcome(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args)) {
                         if (l.length === 1) {
-                            if (this.unsafe.outcome(pubkey, l, [])) {
+                            if (allowFork) {
+                                if (this.unsafe.outcome(pubkey, l, [])) {
+                                    handler(l[0])
+                                }
+                            } else {
                                 handler(l[0])
-                            }
-                            
+                            }   
                         } else {
                             recurse(l.slice(0, l.length / 2), l.slice(l.length / 2))
                         }
@@ -870,7 +873,7 @@ export class Dsl {
             },
             evaluateWithPaymentCtx: (payhandler: (h: PaymentHandler, n: string) => void) => {
 
-                 const recurse = (l: string[], r: string[], payhandlerOut: PaymentHandler) => {
+                 const recurse = (l: string[], r: string[]) => {
                     if (l.length === 0) {
                         return
                     }
@@ -879,21 +882,27 @@ export class Dsl {
                     }
                     this.if (pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args, false, allowMisplacedPay).then(h => {
                         if (l.length === 1) {
-                            payhandler(h, l[0])
+                            if (allowFork) {
+                                this.if(pubkey, l.map(x => x.toString()), [], args, false, allowMisplacedPay).then(h => {
+                                    payhandler(h, l[0])
+                                })
+                            } else {
+                                payhandler(h, l[0])
+                            }                           
                         } else {
-                            recurse(l.slice(0, l.length / 2), l.slice(l.length / 2), h)
+                            recurse(l.slice(0, l.length / 2), l.slice(l.length / 2))
                         }
                     }).else(h => {
                         if (r.length === 1) {
                             payhandler(h, r[0])
                         } else {
-                            recurse(r.slice(0, r.length / 2), r.slice(r.length / 2), h)
+                            recurse(r.slice(0, r.length / 2), r.slice(r.length / 2))
                         }
                     })
                 }
 
 
-                recurse(set.slice(0, set.length / 2), set.slice(set.length / 2), null)
+                recurse(set.slice(0, set.length / 2), set.slice(set.length / 2))
 
             },
             value: (): string => {
@@ -906,7 +915,13 @@ export class Dsl {
                     }
                     if (this.outcome(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args)) {
                         if (l.length === 1) {
-                            return l[0]
+                            if (allowFork) {
+                                if (this.outcome(pubkey, l.map(x => x.toString()), [], args)) {
+                                    return l[0]
+                                }
+                            } else {
+                                return l[0]
+                            }
                         } else {
                             return recurse(l.slice(0, l.length / 2), l.slice(l.length / 2))
                         }
@@ -939,7 +954,13 @@ export class Dsl {
                     }
                     this.if(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args, false, allowMisplacedPay).then(h => {
                         if (l.length === 1) {
-                            payhandler(h, l[0])
+                            if (allowFork) {
+                                this.if(pubkey, l.map(x => x.toString()), [], args, false, allowMisplacedPay).then(h => {
+                                    payhandler(h, l[0])
+                                })
+                            } else {
+                                payhandler(h, l[0])
+                            }
                         } else {
                             recurse(l.slice(0, l.length / 2), l.slice(l.length / 2))
                         }
@@ -955,10 +976,15 @@ export class Dsl {
                 recurse(set.slice(0, set.length / 2), set.slice(set.length / 2))
                 this.unfinalized++
 
+                if (hh === undefined) {
+                    this.unfinalized--
+                    throw "skip"
+                }
+
                 return [nn, hh]
             }
         }),
-        outcomeT: <T>(pubkey: string, set:T[], renderer: (x: T) => string, parser: (s: string) => T, args: {[id: string]: string} = {},  allowMisplacedPay = false) => ({
+        outcomeT: <T>(pubkey: string, set:T[], renderer: (x: T) => string, args: {[id: string]: string} = {},  allowMisplacedPay = false, allowFork = false) => ({
             evaluate: (handler: (n: T) => void) => {
                  const recurse = (l: T[], r: T[]) => {
                     if (l.length === 0) {
@@ -967,9 +993,15 @@ export class Dsl {
                     if (r.length === 0) {
                         return
                     }
-                    if (this.unsafe.outcome(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args)) {
+                    if (this.unsafe.outcome(pubkey, l.map(x => renderer(x)), r.map(x => renderer(x)), args)) {
                         if (l.length === 1) {
-                            handler(l[0])
+                           if (allowFork) {
+                                if (this.unsafe.outcome(pubkey, l.map(x => renderer(x)), [])) {
+                                    handler(l[0])
+                                }
+                            } else {
+                                handler(l[0])
+                            }  
                         } else {
                             recurse(l.slice(0, l.length / 2), l.slice(l.length / 2))
                         }
@@ -994,7 +1026,13 @@ export class Dsl {
                     }
                     this.if (pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args, false, allowMisplacedPay).then(h => {
                         if (l.length === 1) {
-                            payhandler(h, l[0])             
+                            if (allowFork) {
+                                this.if(pubkey, l.map(x => x.toString()), [], args, false, allowMisplacedPay).then(h => {
+                                    payhandler(h, l[0])
+                                })
+                            } else {
+                                payhandler(h, l[0])
+                            }            
                         } else {
                             recurse(l.slice(0, l.length / 2), l.slice(l.length / 2))
 
@@ -1021,7 +1059,13 @@ export class Dsl {
                     }
                     if (this.outcome(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args)) {
                         if (l.length === 1) {
-                            return l[0]
+                            if (allowFork) {
+                                if (this.outcome(pubkey, l.map(x => x.toString()), [], args)) {
+                                    return l[0]
+                                }
+                            } else {
+                                return l[0]
+                            }
                         } else {
                             return recurse(l.slice(0, l.length / 2), l.slice(l.length / 2))
                         }
@@ -1053,7 +1097,13 @@ export class Dsl {
                     }
                     const rt = this.if(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args, false, allowMisplacedPay).then(h => {
                         if (l.length === 1) {
-                            payhandler(h, l[0])
+                            if (allowFork) {
+                                this.if(pubkey, l.map(x => x.toString()), [], args, false, allowMisplacedPay).then(h => {
+                                    payhandler(h, l[0])
+                                })
+                            } else {
+                                payhandler(h, l[0])
+                            }
                         } else {
                             recurse(l.slice(0, l.length / 2), l.slice(l.length / 2), h)
                         }
@@ -1068,6 +1118,11 @@ export class Dsl {
 
                 recurse(set.slice(0, set.length / 2), set.slice(set.length / 2), null)
                 this.unfinalized++
+
+                if (hh === undefined) {
+                    this.unfinalized--
+                    throw "skip"
+                }
 
                 return [nn, hh]
             }
