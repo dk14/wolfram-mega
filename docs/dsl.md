@@ -205,6 +205,8 @@ Or don't - up to u 🤷.
 > We really discourage large contracts on Discreet, but they are quite possible nevertheless.
 
 ### 🚫 Perfect Hedge anti-pattern
+> note: while there is a trivial algorithm to convert inoptimal contract to the optimal one, it cannot be applied in practice. It would not express what YOU meant, your thoughts, yourself, your personality.
+
 Benefiting regardless of outcome is a result of overcollaterization. If Alice wins either 40 or 50 - there is no point betting more than 10. Otherwise she would lock 40 sats for no reason 🤷.
 ```ts
 if (dsl.outcome("really?", ["YES"], ["NO"])) {
@@ -218,6 +220,7 @@ if (dsl.outcome("really?", ["YES"], ["NO"])) {
 >^ this will throw a "Perfect Hedge" error. No way around it.
 
 Proper contract:
+
 ```ts
 if (dsl.outcome("really?", ["YES"], ["NO"])) {
     dsl.pay(Dsl.Alice, 10) 
@@ -227,6 +230,7 @@ if (dsl.outcome("really?", ["YES"], ["NO"])) {
 ...yields same profit.
 
 Now Alice has extra 40 satochi to buy coffee today, rather than in uncertain future.
+
 
 ### 👁 Outcomes
 
