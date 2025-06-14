@@ -15,6 +15,8 @@ global.document = window.document;
 global.localStorage = undefined;
 const fetch_mock_1 = __importDefault(require("fetch-mock"));
 const wrtc_1 = __importDefault(require("@roamhq/wrtc"));
+const api_1 = require("../../src/api");
+const webcfg_1 = require("../../webcfg");
 RTCPeerConnection = wrtc_1.default.RTCPeerConnection;
 RTCIceCandidate = wrtc_1.default.RTCIceCandidate;
 RTCSessionDescription = wrtc_1.default.RTCSessionDescription;
@@ -34,7 +36,7 @@ const mockUtxo2 = [{ "txid": "d816a61c588840463fb8b59eee2cae55c53b5e7d680315aba6
 fetch_mock_1.default.mockGlobal().route("https://mempool.space/testnet/api/address/tb1pudlyenkk7426rvsx84j97qddf4tuc8l63suz62xeq4s6j3wmuylq0j54ex/utxo", JSON.stringify(mockUtxo1));
 fetch_mock_1.default.mockGlobal().route("https://mempool.space/testnet/api/address/tb1p0l5zsw2lv9pu99dwzckjxhpufdvvylapl5spn6yd54vhnwa989hq20cvyv/utxo", JSON.stringify(mockUtxo2));
 require('./../../webapp');
-(async () => {
+const promise = new Promise(async (resolve) => {
     await global.initWebapp;
     global.cfg.webrtcPeerServer = {
         host: "localhost",
@@ -42,6 +44,10 @@ require('./../../webapp');
         path: "/",
         pingInterval: 100
     };
+    await api_1.api.publishOffer(global.cfg, webcfg_1.testOfferMsg);
+    await window.storage.addOffer(webcfg_1.testOfferMsg);
+    global.initWebapp = promise;
+    resolve(null);
 });
 exports.configure = true;
 //# sourceMappingURL=configure.js.map
