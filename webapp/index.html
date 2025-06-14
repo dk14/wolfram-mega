@@ -328,6 +328,10 @@ Address: <font color="blue">n3W8YyK59F6vQe34uQ8n835L627k2J</font> <img src="./as
                 reports: []
             }
 
+            document.getElementById("oracle-strength").onchange = () => {
+                 window.model.profile.minOracleRank = getElementById("oracle-strength").value
+            }
+
 
 
             window.model = {
