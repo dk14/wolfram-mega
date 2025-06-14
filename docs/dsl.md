@@ -224,7 +224,7 @@ if (dsl.outcome("really?", ["YES"], ["NO"])) {
 } else {
 } 
 ```
-Yields same profit.
+...yields same profit.
 
 ### 👁 Outcomes
 
