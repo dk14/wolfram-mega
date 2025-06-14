@@ -238,7 +238,7 @@ All outcomes specified in either yes or no of `dsl.outcome(pubkey, yesoutcomes, 
 
 > For outcomes in mutually-exclusive relation - we provide `dsl.set` as a wrapper around binary outcomes. It allows expressing any operation on sets.
 
-Querying mutually exclusive outcomes directly, e.g. `{yes = ["a"], no = ["b"]} && {yes = ["b"], no = ["a"]}` disallowed, since it can potentially output unreachable subcontracts : use typescript `!` instead, so typescript could lint unreachable code.
+Querying mutually exclusive outcomes directly, e.g. `{yes = ["a"], no = ["b"]} && {yes = ["b"], no = ["a"]}` disallowed, since it can potentially output unreachable subcontracts: use typescript's NOT (`!`) on captured outcome instead, so typescript could lint unreachable code.
 
 P.S. There is always `dsl.unsafe.outcome` if this stresses you out.
 
