@@ -336,7 +336,7 @@ export const matchingEngine: MatchingEngine = {
         }
 
         if (o.status !== 'matching') {
-            throw new Error("progresssed offers not accepted. status must be 'matching'")
+            throw new Error("progresssed offers not accepted. status must be 'matching'; found:" + o.status)
         }
         if (o.role !== 'acceptor') {
             throw new Error("you must be acceptor; use broadcastOffer to broadcast")

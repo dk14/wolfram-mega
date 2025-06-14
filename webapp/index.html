@@ -238,7 +238,7 @@ Address: <font color="blue">n3W8YyK59F6vQe34uQ8n835L627k2J</font> <img src="./as
                     <button class="tag-button" id="tag-world" onclick="window.removeInterest('world')">world</button>
                 </div>
                 <pre><input id="interest" class="add-interest"> <button id="add-interest-button" class="add-interest-button">+</button></pre>
-                <input id="confirm_orders" type="checkbox" name="confirm" checked>
+                <input id="confirm_orders" type="checkbox" name="confirm">
                 <label for="confirm"> ask order confirmation</label><br>
             </div>
             <hr>
@@ -376,63 +376,7 @@ Address: <font color="blue">n3W8YyK59F6vQe34uQ8n835L627k2J</font> <img src="./as
                     txid: "",
 
                 }],
-                contracts: [{
-                        id: "",
-                        bet: [100, 1],
-                        betOn: true,
-                        oracles: [wolfram],
-                        question: "am i gonna win???",
-                        accepted: false,
-                        txid: "",
-                        status: "MATCHING"
-
-                    },
-            
-                    {
-                        id: "",
-                        bet: [100, 1],
-                        betOn: true,
-                        oracles: [wolfram],
-                        question: "am i gonna win???",
-                        accepted: false,
-                        txid: "",
-                        status: "TX_READY",
-                        tx: ""
-
-                    },
-                    {
-                        id: "",
-                        bet: [100, 1],
-                        betOn: true,
-                        oracles: [wolfram],
-                        question: "am i gonna win???",
-                        accepted: false,
-                        txid: "",
-                        status: "SUBMIT"
-
-                    },
-                    {
-                        id: "",
-                        bet: [50, 1],
-                        betOn: true,
-                        oracles: [wolfram],
-                        question: "am i gonna win???",
-                        accepted: false,
-                        txid: "",
-                        status: "WIN"
-
-                    },
-                    {
-                        id: "",
-                        bet: [20, 1],
-                        betOn: true,
-                        oracles: [wolfram],
-                        question: "am i gonna win???",
-                        accepted: false,
-                        txid: "",
-                        status: "LOST"
-
-                    }
+                contracts: [
             
                 ]
             }
@@ -509,9 +453,13 @@ Address: <font color="blue">n3W8YyK59F6vQe34uQ8n835L627k2J</font> <img src="./as
                 yesSvg.src = "./assets/yes.svg"
                 yesSvg.className = "offer-button"
                 yesSvg.onclick = () => {
+                    let confirmed = undefined
                     if (document.getElementById("confirm_orders").checked) {
-                        const confirmed = confirm("Bet " + offer.bet[0] + " sat on '" + offer.question + "'")
-                        if (confirmed) {
+                        confirmed = confirm("Bet " + offer.bet[1] + " sat against '" + offer.question + "'")
+                    } else {
+                        confirmed = true
+                    }
+                    if (confirmed) {
                             if (offer.role === 'initiator') {
                                 window.matching.broadcastOffer(offer)
                             } else {
@@ -523,7 +471,6 @@ Address: <font color="blue">n3W8YyK59F6vQe34uQ8n835L627k2J</font> <img src="./as
                             }
                             
                         }
-                    } 
                 }
 
 
@@ -531,21 +478,24 @@ Address: <font color="blue">n3W8YyK59F6vQe34uQ8n835L627k2J</font> <img src="./as
                 noSvg.src = "./assets/no.svg"
                 noSvg.className = "offer-button"
                 noSvg.onclick = () => {
+                    let confirmed = undefined
                     if (document.getElementById("confirm_orders").checked) {
-                        const confirmed = confirm("Bet " + offer.bet[1] + " sat against '" + offer.question + "'")
-                        if (confirmed) {
-                            if (offer.role === 'initiator') {
-                                window.matching.broadcastOffer(offer)
+                        confirmed = confirm("Bet " + offer.bet[1] + " sat against '" + offer.question + "'")
+                    } else {
+                        confirmed = true
+                    }          
+                    if (confirmed) {
+                        if (offer.role === 'initiator') {
+                            window.matching.broadcastOffer(offer)
+                        } else {
+                            if (offer.betOn) {
+                                window.matching.acceptOffer(offer)
                             } else {
-                                if (offer.betOn) {
-                                    window.matching.acceptOffer(offer)
-                                } else {
-                                    console.log("Needs opposite position to accept")
-                                }
-                                
-                            }  
-                        }
-                    }
+                                console.log("Needs opposite position to accept")
+                            }
+                            
+                        }  
+                    }     
                 }
                     
 
@@ -632,9 +582,16 @@ Address: <font color="blue">n3W8YyK59F6vQe34uQ8n835L627k2J</font> <img src="./as
 
             setInterval(async () => {
                 document.getElementById("contracts").innerHTML = "";
-                (await window.matching.listOrders(20)).forEach(contract => {
+                model.contracts = []
+                const orders = await window.matching.listOrders(20)
+                orders.forEach(contract => {
                     renderContractPreview(document.getElementById("contracts"), contract)
+                    model.contracts.push(contract)
                 })
+                if (model.contracts.length > 0) {
+                    document.getElementById("contracts_obj").getSVGDocument().getElementById("contracts_svg").setAttribute("fill", "blue")
+                }
+                
             }, 1000)
             
             
