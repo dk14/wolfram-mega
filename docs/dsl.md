@@ -89,8 +89,8 @@ And when you ready - just take the risk and play with Discreet🌿 eDSL!
 
 <div id="container" style="width:100%;height:30vh;border:1px solid grey"></div>
 <div id="container2" style="width:100%;height:30vh;border:1px solid grey"></div>
-<input type="text" maxlength="20" id="parties" value="alice,bob"/> bounds:
-<input type="text" maxlength="20" id="budgets" value="1000:1000"/>
+<input type="text" maxlength="60" id="parties" value="alice,bob"/> bounds:
+<input type="text" maxlength="60" id="budgets" value="1000:1000"/>
 
 > update the page if tryout didn't start
 

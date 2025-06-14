@@ -416,11 +416,11 @@ export class Dsl {
     private selected: [string, string] = [undefined, undefined]
 
     private isSelected0 = (party: string) => {
-        return this.selected[0] === party 
+        return this.selected[0] !== undefined && this.selected[0] === party 
     }
 
     private isSelected1 = (party: string) => {
-        return this.selected[1] === party 
+        return this.selected[0] !== undefined && this.selected[1] === party 
     }
 
     public multiple = (...parties: string[]) => {
