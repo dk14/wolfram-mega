@@ -64,6 +64,9 @@ setInterval(() => window.stalking.trackIssuedOffers(
 const myOffer = await window.matching.generateOffer(preferences)
 await window.matching.broadcastOffer(myOffer)
 ```
+<!-- ### Submit composite offer: -->
+
+<!-- <div id="blocklyDiv" style="height: 480px; width: 600px;"></div> -->
 
 ## List orders
 
@@ -116,7 +119,6 @@ Unlike Marlowe, `OfferTerms` is closer to modern quantitative finance, taking tw
 Traders can write their own interpreter for `OfferTerms` since the logic is trivial: binary options which can depend on outcomes of other binary options (`OfferTerms.dependsOn`). 
 
 > This approach is compatible with [Bitcoin DLC](https://adiabat.github.io/dlc.pdf), since trading app developers can simply generate a tree of CET transactions straightforwardly from `OfferTerms`. It also allows to generate contracts for any chain, given that `OfferTerms` interpreter is written for that chain.
-
 
 ## Example
 Here's non-composite binary option:

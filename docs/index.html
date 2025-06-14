@@ -274,5 +274,115 @@ window.addEventListener("load", async () => {
    })
 </script>
 
+<script src="https://unpkg.com/blockly/blockly_compressed.js"></script>
+<script src="https://unpkg.com/blockly/javascript_compressed"></script>
+
+<script type="module">
+
+   const blocklyStart = new Promise(async (resolve, reject) => {    
+    
+      try {
+        const workspace = Blockly.inject('blocklyDiv', { /* config */ });
+
+        const code = javascriptGenerator.workspaceToCode(workspace);
+
+          const definitions = Blockly.createBlockDefinitionsFromJsonArray([{
+            type: 'binary_if',
+            message0: 'if %1 observes yes ($2) then go %3\n else observes no ($4) go %5;\n I bet %6 on: %7 yes; You bet %8 against',
+            args0: [
+              {
+                type: 'field_string',
+                name: 'ORACLE_PUB',
+              },
+              {
+                type: 'field_string',
+                name: 'YES_OUTCOMES',
+              },
+              {
+                type: 'binary_if',
+                name: 'PARTY_WINS',
+              },
+              {
+                type: 'field_string',
+                name: 'NO_OUTCOMES',
+              },
+              {
+                type: 'binary_if',
+                name: 'COUNTERPARTY_WINS',
+              },
+              {
+                type: 'field_number',
+                name: 'PARTY_BET',
+              },
+              {
+                type: 'field_boolean',
+                name: 'PARTY_BETS_ON',
+              },
+              {
+                type: 'field_number',
+                name: 'COUNTERPARTY_BET',
+              },
+
+            ]
+          }
+        ]);
+
+        javascript.javascriptGenerator.forBlock['my_custom_block'] = function(block, generator) {
+          const oraclePub = block.getFieldValue('ORACLE_PUB');
+          const yes = block.getFieldValue('YES_OUTCOMES');
+          const no = block.getFieldValue('NO_OUTCOMES');
+          const aliceWins = block.getFieldValue('PARTY_WINS');
+          const bobWins = block.getFieldValue('COUNTERPARTY_WINS');
+          const aliceBets = block.getFieldValue('PARTY_BET');
+          const aliceBetsOn = block.getFieldValue('PARTY_BETS_ON');
+          const bobBets = block.getFieldValue('COUNTERPARTY_BET');
+
+          return `{
+  "id": "",
+  "bet": [
+        ${aliceBets},
+        ${bobBets}
+  ],
+  "betOn": ${aliceBetsOn},
+  "oracles": [
+    {
+      "capabilityPub": "${oraclePub}",
+      "params": {}
+    }
+  ],
+  "question": "",
+  "status": "matching",
+  "blockchain": "",
+  "role": "initiator",
+  "yesOutcomes": [
+        ${yes.split(",").map(x => '"' + x + '"').join(",")}
+  ],
+  "noOutcomes": [
+     ${no.split(",").map(x => '"' + x + '"').join(",")}
+  ],
+  "ifPartyWins": ${aliceWins}
+  "ifPartyWins": ${bobWins}
+
+}`;
+        }
+
+        const jsCode = () => javascript.javascriptGenerator.workspaceToCode(workspace);
+
+        resolve(editor)
+      } catch(e) {
+        reject(e)
+      }
+   })
+        
+
+   window.addEventListener("load", async () => {
+      const cancel = setInterval(async () => {
+        await blocklyStart
+        clearInterval(cancel)  
+      }, 1000)
+
+   })
+</script>
+
 </body>
 </html>
