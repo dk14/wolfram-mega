@@ -209,6 +209,7 @@ export declare class Dsl {
             valueWithPaymentCtxUnsafe: () => [T, PaymentHandler];
         };
     };
+    disablePartyRoleReversal: boolean;
     if: (pubkey: string, yes: string[], no: string[], args?: {
         [id: string]: string;
     }, allowSwaps?: boolean, allowMisplacedPay?: boolean, strict?: boolean) => {

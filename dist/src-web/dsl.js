@@ -1035,6 +1035,7 @@ class Dsl {
             }
         })
     };
+    disablePartyRoleReversal = false;
     if = (pubkey, yes, no, args = {}, allowSwaps = false, allowMisplacedPay = false, strict = true) => {
         let contradiction = false;
         const yesSet = new Set(yes);
@@ -1058,6 +1059,9 @@ class Dsl {
                         }
                         else {
                             if (party !== undefined && idx !== party) {
+                                if (this.disablePartyRoleReversal) {
+                                    throw new Error("Party role reversal is disabled!");
+                                }
                                 sum -= amount;
                             }
                             else {
@@ -1171,6 +1175,9 @@ class Dsl {
                                 }
                                 else {
                                     if (counterparty !== undefined && idx !== counterparty) {
+                                        if (this.disablePartyRoleReversal) {
+                                            throw new Error("Party role reversal is disabled!");
+                                        }
                                         sum -= amount;
                                     }
                                     else {
