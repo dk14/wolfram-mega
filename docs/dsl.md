@@ -1002,6 +1002,8 @@ dsl.unsafe.numeric.infinity.bounded(false)
 
 > Payments have to be returned "functional way" as cashflow commands, observations can be performed as usual. Feel free to wrap it all in monads and monadic fried effects for "safe" (from reality) IO as much as your degree of higher-kind desensitization allows.
 
+> note: there is a distinction between desensitization and confluence. Confluence might be appropriate when a certain problem is solved, business is finished. Desensitization turns you into academic ghost - your publications will be haunting engineers and educators, wether you intended it or not.
+
 #### TLDR
 The most efficent way to pay without overthinking is to use synthetic `dsl.if` to capture the branch, so proper observation would be associated:
 
