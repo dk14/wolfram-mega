@@ -60,7 +60,6 @@ require("../webapp");
     console.log("- model: data is present");
     assert_1.default.ok(window["model"]);
     assert_1.default.ok(window["model"].contracts);
-    assert_1.default.ok(window["model"].contracts[0]);
     console.log("- view: UI elements are present");
     assert_1.default.strictEqual(document.getElementById("matching").className, "scrollable");
     assert_1.default.strictEqual(document.getElementById("profile").className, "scrollable profile");

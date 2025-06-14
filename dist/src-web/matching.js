@@ -151,7 +151,7 @@ exports.matchingEngine = {
             id: "aaa",
             bet: [partyBetAmount, counterpartyBetAmount],
             oracles: [{
-                    capabilityPub: "",
+                    capabilityPub: cp.capabilityPubKey,
                     oracle: cp.oraclePubKey,
                     endpoint: "http://localhost:8080"
                 }],
@@ -249,7 +249,7 @@ exports.matchingEngine = {
             throw new Error("integrity: cannot accept dependant offer (`dependsOn` must be undefined). root offer is required to accept");
         }
         if (o.status !== 'matching') {
-            throw new Error("progresssed offers not accepted. status must be 'matching'");
+            throw new Error("progresssed offers not accepted. status must be 'matching'; found:" + o.status);
         }
         if (o.role !== 'acceptor') {
             throw new Error("you must be acceptor; use broadcastOffer to broadcast");
