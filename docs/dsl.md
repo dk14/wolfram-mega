@@ -205,7 +205,7 @@ Or don't - up to u 🤷.
 > We really discourage large contracts on Discreet, but they are quite possible nevertheless.
 
 ### 🚫 Perfect Hedge anti-pattern
-> note: while there is a trivial algorithm to convert inoptimal contract to the optimal one, it cannot be applied in practice. It would not express what YOU meant, your thoughts, yourself, your personality.
+> note: while there is a trivial algorithm to convert inoptimal contract to the optimal one, it cannot be applied in practice. It would not express what YOU meant, your thoughts, your "self", your personality.
 
 Benefiting regardless of outcome is a result of overcollaterization. If Alice wins either 40 or 50 - there is no point betting more than 10. Otherwise she would lock 40 sats for no reason 🤷.
 ```ts
