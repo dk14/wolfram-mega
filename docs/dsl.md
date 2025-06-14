@@ -1091,4 +1091,4 @@ And domesticated silicon computer won't work without electricity - no food, no c
 
 > Asians🇯🇵 say conciousness is transferrable, given that energy requirements satisfied. Ukrainians🇺🇦 say - economic payload delivery to space is possible. 
 
->And we are asking: is it worth transferring YOUR particular individual energy supply in there though, `<username>`?
+>And weת are asking: is it worth transferring YOUR particular individual energy supply in there though, `<username>`?
