@@ -85,6 +85,8 @@ export namespace DslErrors {
         }
     }
 
+    export class EmptyDslOutput extends Error {}
+
 }
 
 export class Dsl {
@@ -374,7 +376,7 @@ export class Dsl {
 
     private filterLeafs(model: OfferModel): OfferModel {
         if (model === undefined) {
-            throw new Error("Empty DSL model output!")
+            throw new DslErrors.EmptyDslOutput("Empty DSL model output!")
         }
         if (!model.bet[0] && !model.bet[1] && !model.ifPartyWins && !model.ifCounterPartyWins) {
             this.leafsFiltered = true
@@ -1399,8 +1401,17 @@ export class Dsl {
                 if (!collateralBounds[i]) {
                     throw Error("Specify bounds for a pair " + pair + " at index: " + i)
                 }
-                const subcontract = await this.enumerateWithBound(collateralBounds[i][0], collateralBounds[i][1])
+                try {
+                    const subcontract = await this.enumerateWithBound(collateralBounds[i][0], collateralBounds[i][1])
                 return [pair[0], pair[1], subcontract]
+                } catch (e) {
+                    if (e instanceof DslErrors.EmptyDslOutput) {
+                        return [pair[0], pair[1], undefined]
+                    } else {
+                        throw e
+                    }
+                }
+                
             })
         }))
         this.multiflag = false
