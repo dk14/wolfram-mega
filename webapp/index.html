@@ -470,7 +470,7 @@ Address: <font color="blue">n3W8YyK59F6vQe34uQ8n835L627k2J</font> <img src="./as
 
             }
 
-            window.createOfferInfo = (offer) => {
+            window.createOfferInfo = (offer, isTentative = false) => {
                 const offerInfo = document.createElement("div")
                 const offerQuestion = document.createElement("pre")
                 offerQuestion.innerHTML = `<font color="purple">${offer.question}</font>`
@@ -485,7 +485,7 @@ Address: <font color="blue">n3W8YyK59F6vQe34uQ8n835L627k2J</font> <img src="./as
                 offerInfo.appendChild(offerBet)
                 offerInfo.appendChild(oracle)
 
-                if (offer.status) {
+                if (offer.status && !isTentative) {
                     const offerStatus = document.createElement("pre")
                     offerStatus.innerHTML = `<font color="white">${offer.status}</font>`
                     offerInfo.appendChild(offerStatus)
@@ -549,7 +549,7 @@ Address: <font color="blue">n3W8YyK59F6vQe34uQ8n835L627k2J</font> <img src="./as
                 updateSvg.src = "./assets/cycle.svg"
                 updateSvg.className = "offer-button"
                 
-                const offerInfo = createOfferInfo(offer)
+                const offerInfo = createOfferInfo(offer, true)
                 offerInfo.className = "offer-info"
                
 
