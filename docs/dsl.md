@@ -205,7 +205,7 @@ Or don't - up to u 🤷.
 > We really discourage large contracts on Discreet, but they are quite possible nevertheless.
 
 ### 🚫 Perfect Hedge anti-pattern
-Benefiting regardless of outcome is a result of overcollaterization. If Alice winseither 40 or 50 - there is no point of betting 40, can just bet 10 instead.
+Benefiting regardless of outcome is a result of overcollaterization. If Alice wins either 40 or 50 - there is no point betting more than 10. Otherwise she would lock 40 sats for no reason 🤷.
 ```ts
 if (dsl.outcome("really?", ["YES"], ["NO"])) {
     // Alice gets paid regardless of outcome:
@@ -216,6 +216,15 @@ if (dsl.outcome("really?", ["YES"], ["NO"])) {
 } 
 ```
 >^ this will throw a "Perfect Hedge" error. No way around it.
+
+Proper contract:
+```ts
+if (dsl.outcome("really?", ["YES"], ["NO"])) {
+    dsl.pay(Dsl.Alice, 10) 
+} else {
+} 
+```
+Yields same profit.
 
 ### 👁 Outcomes
 
