@@ -29,6 +29,7 @@
                 width: 97%;
                 left: 1%;
                 bottom:3%;
+                height: 130px;
             }
 
             .profile, .offer-view {
@@ -42,8 +43,8 @@
 
             .scrollable {
                 overflow-y: scroll;
-                height: 73%;
-                
+                height: 65%;
+                 
                 -ms-overflow-style: none;  /* Internet Explorer 10+ */
                 scrollbar-width: none;  /* Firefox */
             }
@@ -244,6 +245,8 @@ Address: <font color="blue">n3W8YyK59F6vQe34uQ8n835L627k2J</font> <img src="./as
             <hr>
             <div class="profile-group">
                 <pre><h3>Withdraw funds:</h3> amount: <input class="send-funds-amount" type="number" value="0"><br><br> address: <input class="send-funds-address" value="n3W8YyK59F6vQe34uQ8n835L627k2J"> <button class="send-funds-button">Send</button></pre>
+
+                <button class="send-funds-button" onclick="window.matching.reset();">Reset</button>
             </div>
         </div>
 
