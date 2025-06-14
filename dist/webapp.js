@@ -96,7 +96,7 @@ global.initWebapp = new Promise(async (resolve) => {
     window.stalking = stalking_1.stalkingEngine;
     await (0, webcfg_1.configureWebMocks)();
     window.pool = api_1.api;
-    if (!global.isTest) {
+    if (!global.isTest && !window.test) {
         (0, p2p_1.startP2P)(global.cfg, await (0, p2p_webrtc_1.browserPeerAPI)());
         setInterval(() => window.stalking.trackIssuedOffers({
             "bitcoin-testnet": transactions_1.btcDlcContractInterpreter
