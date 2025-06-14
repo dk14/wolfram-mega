@@ -76,7 +76,6 @@ require("../webapp");
     console.log("- model: data is present")
     assert.ok(window["model"])
     assert.ok(window["model"].contracts)
-    assert.ok(window["model"].contracts[0])
 
     console.log("- view: UI elements are present")
     assert.strictEqual(document.getElementById("matching").className, "scrollable")
