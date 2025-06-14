@@ -226,6 +226,8 @@ if (dsl.outcome("really?", ["YES"], ["NO"])) {
 ```
 ...yields same profit.
 
+Now Alice has extra 40 satochi to buy coffee today, rather than in uncertain future.
+
 ### 👁 Outcomes
 
 Same question cannot be quryed more than once.
