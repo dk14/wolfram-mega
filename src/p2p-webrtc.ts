@@ -76,6 +76,7 @@ const adaptorInbound = (c: p2pjs.DataConnection, server: string): Peer => {
 
 export const browserPeerAPI: () => Promise<PeerApi> = async () => {
     console.log("Creating webrtc peer: " + global.cfg.hostname)
+    cfg.webrtcPeerServer.secure = false
     const jspeer = new p2pjs.Peer(cfg.hostname, cfg.webrtcPeerServer)
 
     await new Promise(resolve => {

@@ -181,6 +181,9 @@ export const configureWebMocks = async () => {
 
     try {
 
+        await ndapi.announceCapability(cfg, testCp2)
+         await window.storage.addCp(testCp2)
+
     } catch {
         
     }
