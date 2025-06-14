@@ -411,8 +411,8 @@ class Dsl {
             return this.if(pubkey, yes, no, args, allowSwaps, allowMisplacedPay, strict);
         },
         numeric: {
-            outcome: (pubkey, from, to, step = 1, args = {}, allowMisplacedPay = true) => {
-                return this.numeric.outcome(pubkey, from, to, step, args, allowMisplacedPay);
+            outcome: (pubkey, from, to, step = 1, args = {}, allowMisplacedPay = true, allowFork = true) => {
+                return this.numeric.outcome(pubkey, from, to, step, args, allowMisplacedPay, allowFork);
             },
             infinity: {
                 bounded: (maxInfinity = 10000000, maxCount = 1000000000) => ({
@@ -560,7 +560,7 @@ class Dsl {
                 }
             })
         },
-        outcome: (pubkey, from, to, step = 1, args = {}, allowMisplacedPay = false) => ({
+        outcome: (pubkey, from, to, step = 1, args = {}, allowMisplacedPay = false, allowFork = false) => ({
             evaluate: (handler) => {
                 let numbers = [];
                 for (let i = from; i <= to; i += step) {
@@ -575,7 +575,12 @@ class Dsl {
                     }
                     if (this.outcome(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args)) {
                         if (l.length === 1) {
-                            if (this.unsafe.outcome(pubkey, l.map(x => x.toString()), [])) {
+                            if (allowFork) {
+                                if (this.unsafe.outcome(pubkey, l.map(x => x.toString()), [])) {
+                                    handler(l[0]);
+                                }
+                            }
+                            else {
                                 handler(l[0]);
                             }
                         }
@@ -610,9 +615,14 @@ class Dsl {
                     }
                     this.unsafe.if(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args, false, allowMisplacedPay).then(h => {
                         if (l.length === 1) {
-                            this.unsafe.if(pubkey, l.map(x => x.toString()), [], args, false, allowMisplacedPay).then(h => {
+                            if (allowFork) {
+                                this.unsafe.if(pubkey, l.map(x => x.toString()), [], args, false, allowMisplacedPay).then(h => {
+                                    payhandler(h, l[0]);
+                                });
+                            }
+                            else {
                                 payhandler(h, l[0]);
-                            });
+                            }
                         }
                         else {
                             recurse(l.slice(0, l.length / 2), l.slice(l.length / 2), h);
@@ -642,11 +652,16 @@ class Dsl {
                     }
                     if (this.unsafe.outcome(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args)) {
                         if (l.length === 1) {
-                            if (this.unsafe.outcome(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args)) {
-                                return l[0];
+                            if (allowFork) {
+                                if (this.unsafe.outcome(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args)) {
+                                    return l[0];
+                                }
+                                else {
+                                    throw "skip";
+                                }
                             }
                             else {
-                                throw "skip";
+                                return l[0];
                             }
                         }
                         else {
@@ -685,9 +700,14 @@ class Dsl {
                     }
                     this.unsafe.if(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), argument, false, allowMisplacedPay).then(h => {
                         if (l.length === 1) {
-                            this.unsafe.if(pubkey, l.map(x => x.toString()), [], args, false, allowMisplacedPay).then(h => {
+                            if (allowFork) {
+                                this.unsafe.if(pubkey, l.map(x => x.toString()), [], args, false, allowMisplacedPay).then(h => {
+                                    payhandler(h, l[0]);
+                                });
+                            }
+                            else {
                                 payhandler(h, l[0]);
-                            });
+                            }
                         }
                         else {
                             recurse(l.slice(0, l.length / 2), l.slice(l.length / 2), h);
@@ -1311,7 +1331,7 @@ if (typeof window === 'undefined' && require.main === module) {
             const fixedRate = 0.8;
             const quantisationStep = 1;
             dates.reduce(([capitalisation1, capitalisation2], date) => {
-                const [floatingRate, accounts] = dsl.unsafe.numeric
+                const [floatingRate, accounts] = dsl.numeric
                     .outcome(floatingLegIndex, 0, 1, quantisationStep, { date })
                     .valueWithPaymentCtxUnsafe();
                 if (capitalisationDates.has(date)) {

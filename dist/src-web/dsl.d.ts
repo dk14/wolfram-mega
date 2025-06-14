@@ -108,7 +108,7 @@ export declare class Dsl {
         numeric: {
             outcome: (pubkey: string, from: number, to: number, step?: number, args?: {
                 [id: string]: string;
-            }, allowMisplacedPay?: boolean) => {
+            }, allowMisplacedPay?: boolean, allowFork?: boolean) => {
                 evaluate: (handler: (n: number) => void) => void;
                 evaluateWithPaymentCtx: (payhandler: (h: PaymentHandler, n: number) => void) => void;
                 value: () => number;
@@ -184,7 +184,7 @@ export declare class Dsl {
         };
         outcome: (pubkey: string, from: number, to: number, step?: number, args?: {
             [id: string]: string;
-        }, allowMisplacedPay?: boolean) => {
+        }, allowMisplacedPay?: boolean, allowFork?: boolean) => {
             evaluate: (handler: (n: number) => void) => void;
             evaluateWithPaymentCtx: (payhandler: (h: PaymentHandler, n: number) => void) => void;
             value: () => number;
