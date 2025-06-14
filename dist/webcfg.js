@@ -118,7 +118,11 @@ const configureWebMocks = async () => {
         oracleSignature: '',
         oracleSignatureType: 'SHA256'
     };
-    await window.storage.addOracle(testOracle);
+    try {
+        await window.storage.addOracle(testOracle);
+    }
+    catch {
+    }
     const testCp = {
         oraclePubKey: pubOracleCp,
         capabilityPubKey: pubOracleCp,
@@ -143,11 +147,19 @@ const configureWebMocks = async () => {
         endpoint: "weboracle:local",
         tags: ["world"]
     };
-    await api_1.api.announceOracle(exports.cfg, testOracle);
-    await api_1.api.announceCapability(exports.cfg, testCp);
-    await window.storage.addCp(testCp);
-    await api_1.api.announceCapability(exports.cfg, testCp2);
-    await window.storage.addCp(testCp2);
+    try {
+        await api_1.api.announceOracle(exports.cfg, testOracle);
+        await api_1.api.announceCapability(exports.cfg, testCp);
+        await window.storage.addCp(testCp);
+    }
+    catch {
+    }
+    try {
+        await api_1.api.announceCapability(exports.cfg, testCp2);
+        await window.storage.addCp(testCp2);
+    }
+    catch {
+    }
     await api_1.api.publishOffer(exports.cfg, testOfferMsg);
     await window.storage.addOffer(testOfferMsg);
 };
