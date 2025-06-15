@@ -1015,18 +1015,22 @@ if(obs1 === 2) {
 
 Turning on `dsl.superMode` `dsl.megaMode` would disable all semantical bypasses. It makes interest rate swaps and such... purely binary, disallowing unsafe computation on interest rate. Perpetual swap becomes perpetual binary swap. 
 
+> modes are disabled by default in order to not limit freedom of self-expression!
+
 There are convinience wrappers, for contract refactoring purposes:
 
 ```ts
-dsl.insecurity.startMegaMode()
+dsl.security.startMegaMode()
 
 //...
-dsl.insecurity.disableMegaMode() //opens insecure section
+dsl.insecurity.open.disableMegaMode()
 
-dsl.insecurity.enableMegaMode()
+//... use numerics and such
+
+dsl.insecurity.close.enableMegaMode()
 ```
 
-> Just to re-iterate: any computation of payout on the outcome itself (except splitting it into two categories ONCE) is unsafe. Re-using same observation with a different split is unsafe. Both allow. Interest rate drivers in finance are unsafe (proof is above) - they overcollaterize, only matching on a sin. The only drivative that is safe is hedge-purified binary option.
+> Just to re-iterate: any computation of payout on the outcome itself (except splitting it into two categories ONCE) is unsafe. Re-using same observation with a different split is unsafe (iid requirement). Both Interest rate drivers in finance are unsafe - they overcollaterize, only matching on a single split of interest driver can work. The only derivative that is secure is hedge-purified binary option.
 
 Many complex derivative instruments are unsafe. Proof by induction:
 
@@ -1062,7 +1066,7 @@ if (obs === 1) {
 }
 ```
 
-Interest rate driver takes same form, `pay(10 * obs)` is:
+Interest rate driver takes the form above, `pay(10 * obs)` is:
 
 ```ts
 if (obs === 1) {
@@ -1076,7 +1080,7 @@ if (obs === 1) {
 
 > Set of expected outcomes can safely depend on previous observation (given that observations themselves are independent) - thus it is safe to let's say adjust matching ranges depending on previous unique outcomes.
 
-> TLDR: the only set that is safe from overcollaterization - is the one that can be observed and classified only once, the one that independent (or rather independently judged as true or false) from any other observation (otherwise uniqueness would be unsound). `numeric` and `set` are meant for special "cool" people in a world of quantitative finance. Be cool!
+> TLDR: the only true observation of a set that is safe from overcollaterization - is the one that can be observed and classified only once, the one that is independent (or rather independently judged as true or false) from any other observation (otherwise uniqueness would be unsound). `numeric` and `set` are meant for special "cool" people in a world of quantitative finance. Be cool!
 
 ----
 
