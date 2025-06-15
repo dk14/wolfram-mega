@@ -554,6 +554,8 @@ dsl.numeric.outcome("price?", lowerBound, upperBound).evaluate(n => {
 
 > More strict semantics of observation - can be achieved by using `dsl.strictlyFair = true` (see technical notes). The strictest option is `dsl.strictlyFair = true && dsl.StrictlyStrict = true` which disallows any complex condition.
 
+> `dsl.strictlyOneLeafPays` and `dsl.strictlyOneLeafPairPays` allow to ensure that payment only happens in a single leaf of a tree. `strictlyOneLeafPairPays` is weaker and allows one leaf per party (strictest perfect hedge check).
+
 Multi-party:
 
 ```ts

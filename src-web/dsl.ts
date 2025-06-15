@@ -84,6 +84,22 @@ export namespace DslErrors {
         }
     }
 
+     export class OnePayPerCondition extends Error {
+        public amount: number
+        public partyIdx: 0 | 1
+        public pair: [string, string]
+        public state: {[pubkey: string]: [number, boolean, any]}
+
+        constructor(msg: string, amount: number, partyIdx: 0 | 1, pair: [string, string], state:{[pubkey: string]: [number, boolean, any]}) {
+            super(msg)
+
+            this.amount = amount
+            this.partyIdx = partyIdx
+            this.pair = pair
+            this.state = state
+        }
+    }
+
     export class ComplexConditions extends Error {
         public amount: number
         public partyIdx: 0 | 1
@@ -126,6 +142,11 @@ export class Dsl {
     private lastOutcome = undefined
 
     private flag = false
+
+    private alicePayCounter = 0
+    private bobPayCounter = 0
+    private aliceTrackers: {[id: string]: number} = {}
+    private bobTrackers: {[id: string]: number} = {}
 
     public pay(idx: 0 | 1, amount: number) {
         //console.log("" + idx + "  " + amount + "  " + JSON.stringify(this.prev))
@@ -190,8 +211,10 @@ export class Dsl {
         }
 
         if (idx == 0) {
+            this.alicePayCounter++
             this.prev.bet[1] = Math.round(amount)
         } else {
+            this.bobPayCounter++
             this.prev.bet[0] = Math.round(amount)
         }
         this.flag = true
@@ -212,7 +235,8 @@ export class Dsl {
             }
         }
        
-
+        
+        
     }
 
     private enrichAndProgress(aliceOutcome: boolean, pubkey: string, yes: string[], no: string[], args: {[id: string]: string} = {}) {
@@ -260,6 +284,10 @@ export class Dsl {
     public superStrict = false
 
     public megaStrict = false
+
+    public strictlyOneLeafPays = false
+
+    public strictlyOneLeafPairPays = false
 
     public outcome(pubkey: string, yes: string[], no: string[], args: {[id: string]: string} = {}, allowTruth = false, strict = true): boolean {
         const pubkeyUnique = pubkey + "-###-"  + JSON.stringify(yes) + JSON.stringify(no) + JSON.stringify(args);
@@ -749,7 +777,23 @@ export class Dsl {
                     }
                 }
 
+                const saveAlicePayCounter = this.alicePayCounter
+                const saveBobPayCounter = this.bobPayCounter
+
                 recurse(numbers.slice(0, numbers.length / 2), numbers.slice(numbers.length / 2))
+
+                const id = this.megaStrict ? pubkey : pubkey + JSON.stringify(args)
+
+                this.aliceTrackers[id] += (this.alicePayCounter - saveAlicePayCounter) > 0 ? 1 : 0
+                this.bobTrackers[id] += (this.bobPayCounter - saveBobPayCounter) > 0 ? 1 : 0
+
+                if (this.strictlyOneLeafPays && (this.aliceTrackers[id] > 1 || this.bobPayCounter[id] > 1)) {
+                    throw new DslErrors.OnePayPerCondition("Only one leaf in a tree is alowed to pay", undefined, undefined, this.selected, this.state)
+                }
+
+                if (this.strictlyOneLeafPairPays && (this.aliceTrackers[id] > 1 || this.bobPayCounter[id] > 1)) {
+                    throw new DslErrors.PerfectHedgeError("Only one pair in a tree is alowed to pay", this.state, undefined, undefined, this.selected)
+                }
                 
             },
             evaluateWithPaymentCtx: (payhandler: (h: PaymentHandler, n: number) => void) => {
@@ -919,7 +963,25 @@ export class Dsl {
                     }
                 }
 
+                const saveAlicePayCounter = this.alicePayCounter
+                const saveBobPayCounter = this.bobPayCounter
+
                 recurse(set.slice(0, set.length / 2), set.slice(set.length / 2))
+
+                const id = this.megaStrict ? pubkey : pubkey + JSON.stringify(args)
+
+                this.aliceTrackers[id] += (this.alicePayCounter - saveAlicePayCounter) > 0 ? 1 : 0
+                this.bobTrackers[id] += (this.bobPayCounter - saveBobPayCounter) > 0 ? 1 : 0
+
+                if (this.strictlyOneLeafPays && (this.aliceTrackers[id] > 1 || this.bobPayCounter[id] > 1)) {
+                    throw new DslErrors.OnePayPerCondition("Only one leaf in a tree is alowed to pay", undefined, undefined, this.selected, this.state)
+                }
+
+                if (this.strictlyOneLeafPairPays && (this.aliceTrackers[id] > 1 || this.bobPayCounter[id] > 1)) {
+                    throw new DslErrors.PerfectHedgeError("Only one pair in a tree is alowed to pay", this.state, undefined, undefined, this.selected)
+                }
+
+                
             },
             evaluateWithPaymentCtx: (payhandler: (h: PaymentHandler, n: string) => void) => {
 
@@ -951,6 +1013,9 @@ export class Dsl {
                     })
                 }
 
+                if (this.strictlyOneLeafPays || this.strictlyOneLeafPairPays) {
+                    throw Error("Leaf strictness tracking is not available in this mode. Use `evaluate`")
+                }
 
                 recurse(set.slice(0, set.length / 2), set.slice(set.length / 2))
 
@@ -982,6 +1047,10 @@ export class Dsl {
                             return recurse(r.slice(0, r.length / 2), r.slice(r.length / 2))
                         }
                     }
+                }
+
+                if (this.strictlyOneLeafPays || this.strictlyOneLeafPairPays) {
+                    throw Error("Leaf strictness tracking is not available in this mode. Use `evaluate`")
                 }
 
                 return recurse(set.slice(0, set.length / 2), set.slice(set.length / 2))
@@ -1021,6 +1090,10 @@ export class Dsl {
                             recurse(r.slice(0, r.length / 2), r.slice(r.length / 2))
                         }
                     })
+                }
+
+                if (this.strictlyOneLeafPays || this.strictlyOneLeafPairPays) {
+                    throw Error("Leaf strictness tracking is not available in this mode. Use `evaluate`")
                 }
 
                 recurse(set.slice(0, set.length / 2), set.slice(set.length / 2))
@@ -1064,7 +1137,24 @@ export class Dsl {
                     }
                 }
 
+                const saveAlicePayCounter = this.alicePayCounter
+                const saveBobPayCounter = this.bobPayCounter
+
                 recurse(set.slice(0, set.length / 2), set.slice(set.length / 2))
+
+                const id = this.megaStrict ? pubkey : pubkey + JSON.stringify(args)
+
+                this.aliceTrackers[id] += (this.alicePayCounter - saveAlicePayCounter) > 0 ? 1 : 0
+                this.bobTrackers[id] += (this.bobPayCounter - saveBobPayCounter) > 0 ? 1 : 0
+
+                if (this.strictlyOneLeafPays && (this.aliceTrackers[id] > 1 || this.bobPayCounter[id] > 1)) {
+                    throw new DslErrors.OnePayPerCondition("Only one leaf in a tree is alowed to pay", undefined, undefined, this.selected, this.state)
+                }
+
+                if (this.strictlyOneLeafPairPays && (this.aliceTrackers[id] > 1 || this.bobPayCounter[id] > 1)) {
+                    throw new DslErrors.PerfectHedgeError("Only one pair in a tree is alowed to pay", this.state, undefined, undefined, this.selected)
+                }
+                
             },
             evaluateWithPaymentCtx: (payhandler: (h: PaymentHandler, n: T) => void) => {
                 const recurse = (l: T[], r: T[]) => {
@@ -1097,6 +1187,10 @@ export class Dsl {
                     })
                 }
 
+                if (this.strictlyOneLeafPays || this.strictlyOneLeafPairPays) {
+                    throw Error("Leaf strictness tracking is not available in this mode. Use `evaluate`")
+                }
+
                 recurse(set.slice(0, set.length / 2), set.slice(set.length / 2))
             },
             value: (): T => {
@@ -1126,6 +1220,10 @@ export class Dsl {
                             return recurse(r.slice(0, r.length / 2), r.slice(r.length / 2))
                         }
                     }
+                }
+
+                if (this.strictlyOneLeafPays || this.strictlyOneLeafPairPays) {
+                    throw Error("Leaf strictness tracking is not available in this mode. Use `evaluate`")
                 }
 
                 return recurse(set.slice(0, set.length / 2), set.slice(set.length / 2))
@@ -1164,6 +1262,10 @@ export class Dsl {
                             recurse(r.slice(0, r.length / 2), r.slice(r.length / 2), h) 
                         }
                     })
+                }
+
+                if (this.strictlyOneLeafPays || this.strictlyOneLeafPairPays) {
+                    throw Error("Leaf strictness tracking is not available in this mode. Use `evaluate`")
                 }
 
                 recurse(set.slice(0, set.length / 2), set.slice(set.length / 2), null)
