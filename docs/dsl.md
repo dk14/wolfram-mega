@@ -894,6 +894,15 @@ Typesefaty of Discreet🌿 is meant to ensure this does not happen as long as lo
 
 > Discreet relies on assumption that money supply is not "infinite" itself during lifespan of a contract. Non-zero energy/value of a unit. Units should have meaning.
 
+### Non-determinsstic state
+Every call to Discreet script's body (`dsl => ...`) is protected by a mutex (`async-mutex` library) during enumeration. This should allow safe `pay` in fire and forget `await` (since mutexes have access to that information from js Scheduler API).
+
+This approach allows for synchronization-safe use of external services in script body.
+
+> `async-mutex` is third-party library, so no guarantees. In `nodejs` environment using `await mutex.runExclusive` instead of `await` makes differnece as well as in browser. Some custom js execution envornments (VMs) might require `await` on `dsl.if` and derived constructs, which we skipped in this doc.
+
+> awaits on `dsl.if` while not required, still might benefit in terms of tractability of errors: otherwise, you might see `PerfectHedge` where you'd logically expect `OnePayPerObservation`. `allowReplacedPay` from `unsafe`, while compatible with fire and forget, would still make errors even less tractable.
+
 ### Applicability of SMT solvers
 > TLDR: not applicable
 
