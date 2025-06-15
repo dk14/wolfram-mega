@@ -8,6 +8,7 @@ export interface PreferenceModel {
     minOracleRank: number;
     tags: string[];
     txfee: number;
+    preferBetsToGenerate?: [number[], number[]];
 }
 export interface CapabilityModel {
     capabilityPub: string;

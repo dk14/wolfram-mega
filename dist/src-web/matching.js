@@ -154,9 +154,9 @@ exports.matchingEngine = {
             throw "no capabilities found";
         }
         const cp = candidates[(0, exports.randomInt)(candidates.length)];
-        const partyBetAmountOptions = [1, 100, 200, 500];
+        const partyBetAmountOptions = cfg.preferBetsToGenerate ? cfg.preferBetsToGenerate[0] : [1, 100, 200, 500];
         const partyBetAmount = partyBetAmountOptions[(0, exports.randomInt)(partyBetAmountOptions.length)];
-        const counterpartyBetAmountOptions = [5, 250, 300, 500];
+        const counterpartyBetAmountOptions = cfg.preferBetsToGenerate ? cfg.preferBetsToGenerate[1] : [5, 250, 300, 500];
         const counterpartyBetAmount = counterpartyBetAmountOptions[(0, exports.randomInt)(counterpartyBetAmountOptions.length)];
         const model = {
             id: "aaa",
