@@ -154,7 +154,8 @@ export const configureWebMocks = async () => {
         oracleSignatureType: 'SHA256',
         pow: mockPow,
         endpoint: "weboracle:local",
-        tags: ["world"]
+        tags: ["world"],
+        answers: ["YES", "NO"]
     }
 
     const testCp2: OracleCapability = {
@@ -167,7 +168,8 @@ export const configureWebMocks = async () => {
         oracleSignatureType: 'SHA256',
         pow: mockPow,
         endpoint: "weboracle:local",
-        tags: ["world"]
+        tags: ["world"],
+        answers: ["YES", "NO"]
     }
 
 

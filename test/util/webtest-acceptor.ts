@@ -6,7 +6,7 @@ import { configure } from "./configure";
 configure
 
 import { btcDlcContractInterpreter } from "../../src-web/transactions";
-import { PreferenceModel, CapabilityModel, OfferModel, MatchingEngine } from "../../src-web/matching";
+import { PreferenceModel, CapabilityModel, OfferModel, MatchingEngine } from "../../src-web/models";
 import { dataProvider } from "../../src-web/oracle-data-provider";
 import { p2pNode, startP2P } from "../../src/p2p";
 import { browserPeerAPI } from "../../src/p2p-webrtc";

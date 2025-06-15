@@ -5,14 +5,11 @@ import { BtcApi } from "../webapp"
 import { OracleDataProvider, dataProvider, webOracle } from "./oracle-data-provider";
 import { clearDb, TraderQuery } from "./impl/storage";
 import { evaluateCounterPartyCollateral, evaluatePartyCollateral } from "./dsl";
+import { MatchingEngine, OfferModel, OfferStatus, PreferenceModel } from "./models";
 
 export const randomInt = (n: number): number => {
     return Math.floor(Math.random() * n);
 }
-
-export type OfferStatus = 'matching' | 'accepted' | 'oracle committed' | 'signing' 
-| 'opening tx available' | 'tx submitted' | 'outcome revealed' | 'redeem tx available' | 'redeemed'
-
 
 const detectStatus = async (o: Offer, cp: OracleCapability, provider: OracleDataProvider): Promise<OfferStatus> => {
     if (o.accept) {
@@ -59,55 +56,6 @@ const statusRank = (status: OfferStatus): number => {
         'redeemed' : 9
     }
     return map[status]
-}
-
-export interface PreferenceModel {
-    minOracleRank: number,
-    tags: string[],
-    txfee: number
-}
-
-
-export interface CapabilityModel {
-    capabilityPub: string
-    oracle?: string
-    endpoint?: string
-    params?: {[id: string]: string}
-    answer?: string
-}
-
-export interface OfferModel {
-    id: string
-    bet: [number, number]
-    betOn?: boolean,
-    oracles: CapabilityModel[],
-    question: string,
-    txid?: string,
-    tx?: string,
-    redemtion_txid?: string,
-    redemtion_tx?: string,
-    status: OfferStatus,
-    blockchain: string,
-    role: 'initiator' | 'acceptor'
-    dependsOn?: DependsOn,
-    orderId?: string,
-    yesOutcomes?: string[],
-    noOutcomes?: string[],
-    ifPartyWins?: OfferModel
-    ifCounterPartyWins?: OfferModel
-    recurse?: boolean //internal use
-}
-
-export interface MatchingEngine {
-    pickOffer: (cfg: PreferenceModel) => Promise<OfferModel>
-    collectQuestions: (cfg: PreferenceModel) => Promise<string[]>
-    collectOffers: (cfg: PreferenceModel) => Promise<string[]>
-    generateOffer: (cfg: PreferenceModel) => Promise<OfferModel>
-    broadcastOffer: (o: OfferModel) => Promise<string>
-    acceptOffer: (o: OfferModel) => Promise<void>
-    listOrders: (limit: number) => Promise<OfferModel[]>
-    removeOrder: (orderId: string) => Promise<void>
-    reset: () => Promise<void>
 }
 
 const capabilityFilter = (tag: string) => {
@@ -165,7 +113,12 @@ const paging = {
 export const pickCps= async (cfg: PreferenceModel): Promise<OracleCapability[]> => {
     const oracles = await window.storage.queryOracles({where: async x => true}, paging)
     return (await Promise.all(oracles.map(async o => {
-        const cps = await window.storage.queryCapabilities({where: async x => x.oraclePubKey === o.pubkey}, paging)
+        const cps = await window.storage.queryCapabilities({
+            where: async x => 
+                x.oraclePubKey === o.pubkey
+                && x.answers[0] === 'YES'
+                && x.answers[1] === 'NO' 
+        }, paging)
         const strength = o.pow.difficulty + cps.reduce((sum, cp) => sum + cp.pow.difficulty, 0)
 
         const reports = await window.storage.queryReports({where: async x => x.oraclePubKey === o.pubkey}, paging)
@@ -178,7 +131,11 @@ export const matchingEngine: MatchingEngine = {
     pickOffer: async function (cfg: PreferenceModel): Promise<OfferModel> {
         const top = new Set((await pickCps(cfg)).map(x => x.capabilityPubKey));
 
-        const candidates = (await window.storage.queryOffers({ where: async (x) => !x.content.accept && top.has(x.content.terms.question.capabilityPubKey) }, paging));
+        const candidates = (await window.storage.queryOffers({ 
+            where: async (x) => 
+                !x.content.accept 
+                && top.has(x.content.terms.question.capabilityPubKey)
+        }, paging));
 
         const offer = candidates[randomInt(candidates.length)];
 

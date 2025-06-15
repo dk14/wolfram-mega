@@ -1,6 +1,5 @@
 import { Mutex } from "async-mutex"
-import { OfferModel } from "./matching"
-import { isBrowser } from "../src/util"
+import { OfferModel } from "./models"
 
 type CacheEntry  = {
     id: string

@@ -4,7 +4,7 @@ import { OracleId, OracleCapability, OfferMsg, Report, PagingDescriptor, Commitm
 import { Api, FacilitatorNode, api as ndapi} from './src/api';
 import * as btc from "./src/client-api/contracts/generate-btc-tx";
 import { IDBPDatabase, openDB } from 'idb';
-import { CapabilityModel, HashLockProvider, MatchingEngine, OfferModel, PreferenceModel, hashLockProvider, matchingEngine } from './src-web/matching';
+import { HashLockProvider,  hashLockProvider, matchingEngine } from './src-web/matching';
 import { p2pktr } from './src/client-api/contracts/btc/tx';
 import { stalkingEngine, StalkingEngine } from './src-web/stalking';
 import { browserPeerAPI } from './src/p2p-webrtc';
@@ -14,6 +14,7 @@ import { dataProvider } from './src-web/oracle-data-provider';
 import { btcDlcContractInterpreter } from './src-web/transactions';
 import Sandbox from '@nyariv/sandboxjs';
 import { Dsl } from './src-web/dsl';
+import { MatchingEngine } from './src-web/models';
 
 export interface BtcApi {
     generateDlcContract:(params: btc.DlcParams) => Promise<btc.DlcContract>
