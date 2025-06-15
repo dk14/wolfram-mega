@@ -52,7 +52,7 @@ await window.matching.broadcastOffer(myOffer)
 
 ```ts
 
-import { CapabilityModel, OfferModel } from '@dk14/wolfram-mega/matching'
+import { CapabilityModel, OfferModel } from '@dk14/wolfram-mega/models'
 
 const oracles = await window.storage.queryCapabilities(
     {where: async x => true}, 

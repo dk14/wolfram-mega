@@ -44,6 +44,7 @@
     "./oracle-endpoint-api": "./dist/src/client-api/oracle-endpoint-api.js",
     "./contracts/btc": "./dist/src/client-api/contracts/generate-btc-tx.js",
     "./matching": "./dist/src-web/matching.js",
+    "./models": "./dist/src-web/models.js",
     "./oracle-data-provider": "./dist/src-web/oracle-data-provider.js",
     "./stalking": "./dist/src-web/stalking.js",
     "./chain-interpreter": "./dist/src-web/transactions.js",
