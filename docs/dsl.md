@@ -554,7 +554,7 @@ dsl.numeric.outcome("price?", lowerBound, upperBound).evaluate(n => {
 
 > More strict semantics of observation - can be achieved by using `dsl.strictlyFair = true` (see technical notes). The strictest option is `dsl.strictlyFair = true && dsl.StrictlyStrict = true` which disallows any complex condition.
 
-> `dsl.strictlyOneLeafPays` and `dsl.strictlyOneLeafPairPays` allow to ensure that payment only happens in a single leaf of a tree. `strictlyOneLeafPairPays` is weaker and allows one leaf per party (strictest perfect hedge check).
+> `dsl.strictlyOneLeafPays` and `dsl.strictlyOneLeafPairPays` allow to ensure that payment only happens in a single leaf of a tree. `strictlyOneLeafPairPays` is weaker and allows one leaf per party (strictest perfect hedge check on numbers).
 
 Multi-party:
 
@@ -691,6 +691,8 @@ dsl.set.outcomeT<string>("which?", ["lol", "okay", "yaaylol"], x => x).evaluate(
     } 
 })
 ```
+
+> note: strict modes for numbers, work for sets as well
 
 #### ⇌ Quantized auction
 
