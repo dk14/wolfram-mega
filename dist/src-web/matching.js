@@ -5,6 +5,8 @@ exports.maxBy = maxBy;
 const oracle_data_provider_1 = require("./oracle-data-provider");
 const storage_1 = require("./impl/storage");
 const dsl_1 = require("./dsl");
+const generate_btc_tx_1 = require("../src/client-api/contracts/generate-btc-tx");
+const transactions_1 = require("./transactions");
 const randomInt = (n) => {
     return Math.floor(Math.random() * n);
 };
@@ -430,6 +432,18 @@ exports.matchingEngine = {
             }, pagedescriptor));
             window.storage.removeIssuedOffers(others.map(x => x.pow.hash));
         }
+    },
+    takeWinnings: async function (amount, destination, txfee) {
+        const utxos = await (0, transactions_1.getSimpleUtXo)(amount, window.address, txfee);
+        const params = {
+            aliceIn: utxos,
+            alicePub: window.pubkey,
+            aliceAmountIn: utxos.map(x => x.value),
+            changeAlice: utxos.map(x => x.value).reduce((a, b) => a + b) - amount,
+            txfee: txfee,
+            destinationAddr: destination
+        };
+        return await (0, generate_btc_tx_1.generateSimpleTransaction)(params);
     }
 };
 function maxBy(arr, fn) {

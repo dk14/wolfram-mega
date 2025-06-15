@@ -40,6 +40,7 @@ export interface OfferModel {
     ifCounterPartyWins?: OfferModel;
     recurse?: boolean;
 }
+export type TxRaw = string;
 export interface MatchingEngine {
     pickOffer: (cfg: PreferenceModel) => Promise<OfferModel>;
     collectQuestions: (cfg: PreferenceModel) => Promise<string[]>;
@@ -50,5 +51,6 @@ export interface MatchingEngine {
     listOrders: (limit: number) => Promise<OfferModel[]>;
     removeOrder: (orderId: string) => Promise<void>;
     reset: () => Promise<void>;
+    takeWinnings: (amount: number, destination: string, txfee: number) => Promise<TxRaw>;
 }
 export {};
