@@ -1666,6 +1666,7 @@ class Dsl {
         }
         this.protect = true;
         let next = true;
+        const mutex = new async_mutex_1.Mutex();
         while (next) {
             try {
                 this.collateral1 = 0;
@@ -1678,7 +1679,7 @@ class Dsl {
                 this.lastOutcome = undefined;
                 this.flag = false;
                 //console.log("---" + JSON.stringify(this.state))
-                await this.body(this);
+                await mutex.runExclusive(async () => await this.body(this));
                 if (this.unfinalized !== 0) {
                     throw new Error("" + this.unfinalized + " resource locks are not released! Every `[v, payments] = valueWithPaymentCtxUnsafe` must have a corresponding `payments.release()`");
                 }
