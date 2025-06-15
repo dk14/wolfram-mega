@@ -311,7 +311,7 @@ function schnorrSignerInteractive(pub1, pub2, session, signer = ((0, util_2.isBr
 }
 const txApi = () => {
     return {
-        genSimpleTx: async (aliceIn, alicePub, aliceAmounts, changeAlice, txfee) => {
+        genSimpleTx: async (aliceIn, alicePub, aliceAmounts, changeAlice, txfee, destinationAddr) => {
             const psbt = new bitcoin.Psbt({ network: net });
             const aliceP2TR = (0, exports.p2pktr)(alicePub);
             console.log("alice_addr = " + aliceP2TR.address);
@@ -325,7 +325,7 @@ const txApi = () => {
                 });
             });
             psbt.addOutput({
-                address: (0, exports.p2pktr)(alicePub).address,
+                address: destinationAddr,
                 value: aliceAmount - txfee
             });
             if (changeAlice !== 0) {

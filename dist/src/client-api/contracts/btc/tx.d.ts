@@ -8,7 +8,7 @@ export interface Tx {
     hex: string;
 }
 export interface TxApi {
-    genSimpleTx(aliceIn: UTxO[], alicePub: string, aliceAmounts: number[], changeAlice: number, txfee: number): Promise<Tx>;
+    genSimpleTx(aliceIn: UTxO[], alicePub: string, aliceAmounts: number[], changeAlice: number, txfee: number, destinationAddr: string): Promise<Tx>;
     genOpeningTx(aliceIn: UTxO[], bobIn: UTxO[], alicePub: string, bobPub: string, aliceAmounts: number[], bobAmounts: number[], changeAlice: number, changeBob: number, txfee: number, openingSession?: OpeningTxSession): Promise<Tx>;
     genClosingTx(multiIn: UTxO, alicePub: string, bobPub: string, aliceAmount: number, bobAmount: number, txfee: number): Promise<Tx>;
     genAliceCet(multiIn: UTxO, alicePub: string, bobPub: string, adaptorPub: string, aliceAmount: number, bobAmount: number, txfee: number, session?: PublicSession, stateAmount?: number): Promise<Tx>;

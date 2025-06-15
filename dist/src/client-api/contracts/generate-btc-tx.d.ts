@@ -9,6 +9,7 @@ export interface SimpleParams {
     aliceAmountIn: number[];
     changeAlice: number;
     txfee: number;
+    destinationAddr: string;
 }
 export interface OpeningParams {
     aliceIn: UTxO[];

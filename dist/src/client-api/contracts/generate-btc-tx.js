@@ -7,7 +7,7 @@ const tx_1 = require("./btc/tx");
 const schnorr = (0, schnorr_1.schnorrApi)();
 const tx = (0, tx_1.txApi)(schnorr);
 const generateSimpleTransaction = async (params) => {
-    return (await tx.genSimpleTx(params.aliceIn, params.alicePub, params.aliceAmountIn, params.changeAlice, params.txfee))?.hex;
+    return (await tx.genSimpleTx(params.aliceIn, params.alicePub, params.aliceAmountIn, params.changeAlice, params.txfee, params.destinationAddr))?.hex;
 };
 exports.generateSimpleTransaction = generateSimpleTransaction;
 const generateOpeningTransaction = async (params) => {
