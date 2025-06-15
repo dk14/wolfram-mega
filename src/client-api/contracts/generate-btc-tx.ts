@@ -12,7 +12,6 @@ const tx = txApi(schnorr)
 export interface SimpleParams {
     aliceIn: UTxO[],
     alicePub: PubKey,
-    bobPub: PubKey,
     aliceAmountIn: number[],
     changeAlice: number,
     txfee: number
