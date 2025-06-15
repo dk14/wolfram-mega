@@ -529,6 +529,12 @@ class Dsl {
     static account(partyName, partyAsset) {
         return partyName + "_" + partyAsset;
     }
+    static mutual(...parties) {
+        return parties.join("+");
+    }
+    static refund(party) {
+        return party + "_refund";
+    }
     unfinalized = 0;
     static track = {};
     static recurse = {

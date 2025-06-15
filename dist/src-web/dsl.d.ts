@@ -134,6 +134,8 @@ export declare class Dsl {
         };
     };
     static account(partyName: string, partyAsset: string): string;
+    static mutual(...parties: string[]): string;
+    static refund(party: string): string;
     private unfinalized;
     private static track;
     static recurse: {
