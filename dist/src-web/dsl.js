@@ -298,25 +298,7 @@ class Dsl {
                     throw new Error('Super mode has to be enabled first!');
                 }
                 this.superMode = false;
-            },
-            disableFairMode: () => {
-                if (this.fairModeStarted) {
-                    throw new Error('Fair mode has to be started with `startSuperMode`!');
-                }
-                if (!this.strictlyFair) {
-                    throw new Error('Fair mode has to be enabled first!');
-                }
-                this.strictlyFair = false;
-            },
-            disableStrictMode: () => {
-                if (this.superModeStarted) {
-                    throw new Error('Strict mode has to be started with `startSuperMode`!');
-                }
-                if (!this.strictlyStrict) {
-                    throw new Error('Strict mode has to be enabled first!');
-                }
-                this.strictlyStrict = false;
-            },
+            }
         },
         close: {
             enableMegaMode: () => {
@@ -336,24 +318,6 @@ class Dsl {
                     throw new Error('Mega mode has to be disabled first!');
                 }
                 this.superMode = false;
-            },
-            enableFairMode: () => {
-                if (this.fairModeStarted) {
-                    throw new Error('Fair mode has to be started with `startMegaMode`!');
-                }
-                if (this.megaMode) {
-                    throw new Error('Fair mode has to be disabled first!');
-                }
-                this.strictlyFair = false;
-            },
-            enableStrictMode: () => {
-                if (this.strictModeStarted) {
-                    throw new Error('Strict mode has to be started with `startMegaMode`!');
-                }
-                if (this.strictlyFair) {
-                    throw new Error('Strict mode has to be disabled first!');
-                }
-                this.strictlyFair = false;
             }
         }
     };

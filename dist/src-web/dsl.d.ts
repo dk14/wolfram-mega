@@ -97,14 +97,10 @@ export declare class Dsl {
         open: {
             disableMegaMode: () => void;
             disableSuperMode: () => void;
-            disableFairMode: () => void;
-            disableStrictMode: () => void;
         };
         close: {
             enableMegaMode: () => void;
             enableSuperMode: () => void;
-            enableFairMode: () => void;
-            enableStrictMode: () => void;
         };
     };
     strictlyOneLeafPays: boolean;
