@@ -1,11 +1,15 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.generateChildDlcContract = exports.generateDlcContract = exports.generateCetRedemptionTransaction = exports.generateCetTransaction = exports.generateClosingTransaction = exports.generateOpeningTransaction = void 0;
+exports.generateChildDlcContract = exports.generateDlcContract = exports.generateCetRedemptionTransaction = exports.generateCetTransaction = exports.generateClosingTransaction = exports.generateOpeningTransaction = exports.generateSimpleTransaction = void 0;
 exports.doubleSHA256reversed = doubleSHA256reversed;
 const schnorr_1 = require("./btc/schnorr");
 const tx_1 = require("./btc/tx");
 const schnorr = (0, schnorr_1.schnorrApi)();
 const tx = (0, tx_1.txApi)(schnorr);
+const generateSimpleTransaction = async (params) => {
+    return (await tx.genSimpleTx(params.aliceIn, params.alicePub, params.aliceAmountIn, params.changeAlice, params.txfee))?.hex;
+};
+exports.generateSimpleTransaction = generateSimpleTransaction;
 const generateOpeningTransaction = async (params) => {
     return (await tx.genOpeningTx(params.aliceIn, params.bobIn, params.alicePub, params.bobPub, params.aliceAmountIn, params.bobAmountIn, params.changeAlice, params.changeBob, params.txfee, params.openingSession))?.hex;
 };

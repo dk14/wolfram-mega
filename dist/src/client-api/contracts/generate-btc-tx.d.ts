@@ -3,6 +3,13 @@ export type PubKey = string;
 export type Hex = string;
 export type Msg = string;
 export type TxId = string;
+export interface SimpleParams {
+    aliceIn: UTxO[];
+    alicePub: PubKey;
+    aliceAmountIn: number[];
+    changeAlice: number;
+    txfee: number;
+}
 export interface OpeningParams {
     aliceIn: UTxO[];
     bobIn: UTxO[];
@@ -63,6 +70,7 @@ export interface CetRedemptionParams {
     txfee: number;
     session?: PublicSession;
 }
+export declare const generateSimpleTransaction: (params: SimpleParams) => Promise<Hex>;
 export declare const generateOpeningTransaction: (params: OpeningParams) => Promise<Hex>;
 export declare const generateClosingTransaction: (params: ClosingParams) => Promise<Hex>;
 export declare const generateCetTransaction: (params: CetParams, vout?: number) => Promise<Hex>;

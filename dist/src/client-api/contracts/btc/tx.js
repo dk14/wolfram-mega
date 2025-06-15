@@ -96,6 +96,23 @@ function schnorrSignerSingle(pub, session = { sigs: [] }, out = 0) {
         }
     };
 }
+function schnorrSignerSingleWebSimple(pub) {
+    return {
+        publicKey: Buffer.from(pub, "hex"),
+        network: net,
+        async sign(hash, lowR) {
+            return null;
+        },
+        async signSchnorr(hash) {
+            const secret = await window.privateDB.get("secrets", pub);
+            const signature = schnorr.sign(Buffer.from(bs58_1.default.decode(secret)).toString("hex").substring(2, 64 + 2), hash);
+            return signature;
+        },
+        getPublicKey() {
+            return Buffer.from(pub, "hex");
+        }
+    };
+}
 function schnorrSignerSingleWeb(pub, session, out) {
     return {
         publicKey: Buffer.from(pub, "hex"),
@@ -294,6 +311,43 @@ function schnorrSignerInteractive(pub1, pub2, session, signer = ((0, util_2.isBr
 }
 const txApi = () => {
     return {
+        genSimpleTx: async (aliceIn, alicePub, aliceAmounts, changeAlice, txfee) => {
+            const psbt = new bitcoin.Psbt({ network: net });
+            const aliceP2TR = (0, exports.p2pktr)(alicePub);
+            console.log("alice_addr = " + aliceP2TR.address);
+            const aliceAmount = aliceAmounts.reduce((a, b) => a + b) - changeAlice;
+            aliceIn.forEach((utxo, i) => {
+                psbt.addInput({
+                    hash: utxo.txid,
+                    index: utxo.vout,
+                    witnessUtxo: { value: aliceAmounts[i], script: aliceP2TR.output },
+                    tapInternalKey: Buffer.from(alicePub, "hex")
+                });
+            });
+            psbt.addOutput({
+                address: (0, exports.p2pktr)(alicePub).address,
+                value: aliceAmount - txfee
+            });
+            if (changeAlice !== 0) {
+                psbt.addOutput({
+                    address: aliceP2TR.address,
+                    value: changeAlice
+                });
+            }
+            for (let i = 0; i < aliceIn.length; i++) {
+                if ((0, util_2.isBrowser)() || global.isTest) {
+                    await psbt.signInputAsync(i, schnorrSignerSingleWebSimple(alicePub));
+                }
+                else {
+                    await psbt.signInputAsync(i, schnorrSignerSingle(alicePub));
+                }
+            }
+            psbt.finalizeAllInputs();
+            return {
+                txid: psbt.extractTransaction().getId(),
+                hex: psbt.extractTransaction().toHex()
+            };
+        },
         genOpeningTx: async (aliceIn, bobIn, alicePub, bobPub, aliceAmounts, bobAmounts, changeAlice, changeBob, txfee, session = null) => {
             const psbt = new bitcoin.Psbt({ network: net });
             const aliceP2TR = (0, exports.p2pktr)(alicePub);
