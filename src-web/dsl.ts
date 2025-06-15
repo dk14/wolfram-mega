@@ -1104,7 +1104,7 @@ export class Dsl {
                     return no
                 }
             },
-            outcomeT: <T>(pubkey: string, yes: T, no: T, renderer: (x: T) => string = x => x.toString(), args: {[id: string]: string} = {}): T => {
+            outcomeT: <T1, T2>(pubkey: string, yes: T1, no: T2, renderer: (x: T1 | T2) => string = x => x.toString(), args: {[id: string]: string} = {}): T1 | T2 => {
                 if (this.outcome(pubkey, [renderer(yes)], [renderer(no)], args)) {
                     return yes
                 } else {
@@ -1124,13 +1124,13 @@ export class Dsl {
                     }
                 }
             },
-            ifT: <T>(pubkey: string, yes: T, no: T, renderer: (x: T) => string = x => x.toString(), args: {[id: string]: string} = {}) => {
+            ifT: <T1, T2>(pubkey: string, yes: T1, no: T2, renderer: (x: T1 | T2) => string = x => x.toString(), args: {[id: string]: string} = {}) => {
                 const iff = this.if(pubkey, [renderer(yes)], [renderer(no)], args)
                 return {
-                    then: (handler: (v: T, p: PaymentHandler) => void) => {
+                    then: (handler: (v: T1, p: PaymentHandler) => void) => {
                         const thenn = iff.then(h => handler(yes, h))
                         return {
-                            else: (handler: (v: T, p: PaymentHandler) => void) => {
+                            else: (handler: (v: T2, p: PaymentHandler) => void) => {
                                 return thenn.else(h => handler(no, h))
                             }
                         }
