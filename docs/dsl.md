@@ -380,7 +380,7 @@ if (dsl.bool.safe.outcome("carol authorized?", "yes", "no"))){
     return dsl.infinity.move(newstate)
 }
 ```
-> there is no common sense reason to let a particular third-party (e.g. government) authorize your deal, unless carol has to be part in the contract itself (locking conditions within multi-party contract, which itself likely come from miscalculation too). 
+> there is no common sense reason to let a particular third-party (e.g. government) authorize your deal, unless carol takes part in the contract herself (locking conditions within multi-party contract, which itself likely come from miscalculation too). 
 
 > Proper oracles and proper conditions should be used instead, e.g. "earthquake detected?". Mega itself is more reliable attestant than government agency.
 
