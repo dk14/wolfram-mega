@@ -225,6 +225,13 @@ export declare class Dsl {
         };
     };
     private ignoreObserveChecks;
+    bool: {
+        safe: {
+            outcome: (pubkey: string, yes: string, no: string, args?: {
+                [id: string]: string;
+            }) => boolean;
+        };
+    };
     numeric: {
         infinity: {
             bounded: (maxInfinity?: number, maxCount?: number) => {
@@ -232,6 +239,18 @@ export declare class Dsl {
                     perpetual: <T>(init: T, step: (x: number, st: T) => T) => void;
                 };
                 perpetual: <T>(init: T, step: (x: number, st: T) => T) => void;
+            };
+        };
+        safe: {
+            outcome: (pubkey: string, yes: number, no: number, args?: {
+                [id: string]: string;
+            }) => number;
+            if: (pubkey: string, yes: number, no: number, args?: {
+                [id: string]: string;
+            }) => {
+                then: (handler: (v: number, p: PaymentHandler) => void) => {
+                    else: (handler: (v: number, p: PaymentHandler) => void) => void;
+                };
             };
         };
         outcome: (pubkey: string, from: number, to: number, step?: number, args?: {
@@ -244,6 +263,28 @@ export declare class Dsl {
         };
     };
     set: {
+        safe: {
+            outcome: (pubkey: string, yes: string, no: string, args?: {
+                [id: string]: string;
+            }, allowMisplacedPay?: boolean) => string;
+            outcomeT: <T>(pubkey: string, yes: T, no: T, renderer?: (x: T) => string, args?: {
+                [id: string]: string;
+            }) => T;
+            if: (pubkey: string, yes: string, no: string, args?: {
+                [id: string]: string;
+            }) => {
+                then: (handler: (v: string, p: PaymentHandler) => void) => {
+                    else: (handler: (v: string, p: PaymentHandler) => void) => void;
+                };
+            };
+            ifT: <T>(pubkey: string, yes: T, no: T, renderer?: (x: T) => string, args?: {
+                [id: string]: string;
+            }) => {
+                then: (handler: (v: T, p: PaymentHandler) => void) => {
+                    else: (handler: (v: T, p: PaymentHandler) => void) => void;
+                };
+            };
+        };
         outcome: (pubkey: string, set: string[], args?: {
             [id: string]: string;
         }, allowMisplacedPay?: boolean, allowFork?: boolean) => {

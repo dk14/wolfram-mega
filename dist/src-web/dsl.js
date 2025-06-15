@@ -726,6 +726,13 @@ class Dsl {
         })
     };
     ignoreObserveChecks = false;
+    bool = {
+        safe: {
+            outcome: (pubkey, yes, no, args = {}) => {
+                return this.outcome(pubkey, [yes], [no], args);
+            }
+        },
+    };
     numeric = {
         infinity: {
             bounded: (maxInfinity = 10000000, maxCount = 1000000000) => ({
@@ -746,6 +753,29 @@ class Dsl {
                         .perpetual(init, step);
                 }
             })
+        },
+        safe: {
+            outcome: (pubkey, yes, no, args = {}) => {
+                if (this.outcome(pubkey, [`${yes}`], [`${no}`], args)) {
+                    return yes;
+                }
+                else {
+                    return no;
+                }
+            },
+            if: (pubkey, yes, no, args = {}) => {
+                const iff = this.if(pubkey, [`${yes}`], [`${no}`], args);
+                return {
+                    then: (handler) => {
+                        const thenn = iff.then(h => handler(yes, h));
+                        return {
+                            else: (handler) => {
+                                return thenn.else(h => handler(no, h));
+                            }
+                        };
+                    }
+                };
+            }
         },
         outcome: (pubkey, from, to, step = 1, args = {}, allowMisplacedPay = false, allowFork = false) => ({
             evaluate: (handler) => {
@@ -933,6 +963,50 @@ class Dsl {
         })
     };
     set = {
+        safe: {
+            outcome: (pubkey, yes, no, args = {}, allowMisplacedPay = false) => {
+                if (this.outcome(pubkey, [yes], [no], args)) {
+                    return yes;
+                }
+                else {
+                    return no;
+                }
+            },
+            outcomeT: (pubkey, yes, no, renderer = x => x.toString(), args = {}) => {
+                if (this.outcome(pubkey, [renderer(yes)], [renderer(no)], args)) {
+                    return yes;
+                }
+                else {
+                    return no;
+                }
+            },
+            if: (pubkey, yes, no, args = {}) => {
+                const iff = this.if(pubkey, [yes], [no], args);
+                return {
+                    then: (handler) => {
+                        const thenn = iff.then(h => handler(yes, h));
+                        return {
+                            else: (handler) => {
+                                return thenn.else(h => handler(no, h));
+                            }
+                        };
+                    }
+                };
+            },
+            ifT: (pubkey, yes, no, renderer = x => x.toString(), args = {}) => {
+                const iff = this.if(pubkey, [renderer(yes)], [renderer(no)], args);
+                return {
+                    then: (handler) => {
+                        const thenn = iff.then(h => handler(yes, h));
+                        return {
+                            else: (handler) => {
+                                return thenn.else(h => handler(no, h));
+                            }
+                        };
+                    }
+                };
+            }
+        },
         outcome: (pubkey, set, args = {}, allowMisplacedPay = false, allowFork = true) => ({
             evaluate: (handler) => {
                 const recurse = (l, r) => {
