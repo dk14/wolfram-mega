@@ -472,7 +472,7 @@ if (observe("alicePubkey", ["ADDRESS IS EMPTY"])) {
     ...
 }
 ```
-> This is "proof of empty address". If alice signs such "ADDRESS IS EMPTY" message as an "oracle" - she would reveal private key to her repayment wallet (where grace-period locked funds of Bob are supposed to be present) to the public on-chain, since signature and private key would be same (alice derives pubkey for wallet from signature of "ADDRESS IS EMPTY" itself, interpreting her own signature as a secret key). 
+> This is "proof of empty address". If alice signs such "ADDRESS IS EMPTY" message as an "oracle" - she would reveal private key to her repayment wallet (where grace-period locked funds of Bob are supposed to be present) to the public on-chain, since signature and private key would be same (alice derives pubkey for wallet from signature of "ADDRESS IS EMPTY" itself, interpreting her own signature as a secret key). Thus Alice would burn the address.
 
 > It does not stop Alice from slashing/rejecting received payment from Bob this way - it only proves that Alice did not receive anything. It is an option for Alice to choose between accepting incoming payment and unlocking security deposit. She would have to add her own deposit to repayment wallet MAD-style as incentive to not reject someone's payment. So applicability of this approach in actual loans is quite limited, it only works for deposits with uncertain value - otherwise it is simply equivalent to overcollaterization (for alice's security deposit - she would ask higher deposit from Bob, which would erase original incentive).
 
