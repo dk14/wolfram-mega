@@ -994,7 +994,7 @@ Alice is clearly at advantage though. `dsl.strictlyFair = true` would enforce ve
 `dsl.numeric` and `dsl.set`, even in their safe mode, rely on  being able to query same question twice, this leads to imperfection:
 
 ```ts
-if(obs1 === 1) {
+if(obs === 1) {
     payAlice(40)
 } else if (obs === 2) {
     payAlice(50)
