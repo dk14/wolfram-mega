@@ -257,6 +257,10 @@ export class Dsl {
 
     private checked = []
 
+    public superStrict = false
+
+    public megaStrict = false
+
     public outcome(pubkey: string, yes: string[], no: string[], args: {[id: string]: string} = {}, allowTruth = false, strict = true): boolean {
         const pubkeyUnique = pubkey + "-###-"  + JSON.stringify(yes) + JSON.stringify(no) + JSON.stringify(args);
         if(this.ignoreObserveChecks) {
@@ -317,6 +321,14 @@ export class Dsl {
             const sameQuery = this.memoize.find(x => x.id === pubkey)
             if (strict && sameQuery && JSON.stringify(sameQuery.yes.concat(sameQuery.no).sort()) !== JSON.stringify(yes.concat(no).sort())) {
                  throw new Error("Set of overall outcomes must be same, regardless of parameters! " + sameQuery.yes.concat(sameQuery.no).sort() + " != " + yes.concat(no).sort())
+            }
+
+            if (this.superStrict && sameQuery && JSON.stringify(sameQuery.args) === JSON.stringify(sameQuery.args)) {
+                throw new Error("Cannot query same observation twice! Super strictly! Arguments are allowed to vary")
+            }
+
+            if (this.megaStrict && sameQuery) {
+                throw new Error("Cannot query same observation twice! MEGA strictly!")
             }
 
             const contradiction = this.memoize.find(x => x.id === pubkey && JSON.stringify(x.yes.sort()) === JSON.stringify(no.sort()) && JSON.stringify(x.no.sort()) === JSON.stringify(yes.sort()) && JSON.stringify(x.args) === JSON.stringify(args))

@@ -250,7 +250,9 @@ All outcomes specified in either yes or no of `dsl.outcome(pubkey, yesoutcomes, 
 
 Querying mutually exclusive outcomes directly, e.g. `{yes = ["a"], no = ["b"]} && {yes = ["b"], no = ["a"]}` disallowed, since it can potentially output unreachable subcontracts: use typescript's NOT (`!`) on captured outcome instead, so typescript could lint unreachable code.
 
-P.S. There is always `dsl.unsafe.outcome` if this stresses you out.
+> Requirements on observations can be even stricter: `dsl.superStrict = true` would allow re-use of same pub only if `args` are different. `dsl.megaStrict` would disallow re-use of same oracle completely. The only loophole it leaves is soundness itself (e.g. two oracles might be answering same question).
+
+P.S. There is always `dsl.unsafe.outcome` if all this stresses you out.
 
 #### 🤔 Script-generated observations (advanced)
 > u can skip this...
