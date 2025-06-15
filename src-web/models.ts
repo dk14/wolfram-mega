@@ -13,7 +13,8 @@ export interface DependsOn { //for schedules, aka stateful multi-stage contracts
 export interface PreferenceModel {
     minOracleRank: number,
     tags: string[],
-    txfee: number
+    txfee: number,
+    preferBetsToGenerate?: [number[], number[]]
 }
 
 

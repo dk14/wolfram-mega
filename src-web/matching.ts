@@ -180,9 +180,9 @@ export const matchingEngine: MatchingEngine = {
 
         const cp = candidates[randomInt(candidates.length)];
 
-        const partyBetAmountOptions = [1, 100, 200, 500];
+        const partyBetAmountOptions = cfg.preferBetsToGenerate ? cfg.preferBetsToGenerate[0] : [1, 100, 200, 500];
         const partyBetAmount = partyBetAmountOptions[randomInt(partyBetAmountOptions.length)];
-        const counterpartyBetAmountOptions = [5, 250, 300, 500];
+        const counterpartyBetAmountOptions = cfg.preferBetsToGenerate ? cfg.preferBetsToGenerate[1] : [5, 250, 300, 500];
         const counterpartyBetAmount = counterpartyBetAmountOptions[randomInt(counterpartyBetAmountOptions.length)];
 
         const model: OfferModel = {
