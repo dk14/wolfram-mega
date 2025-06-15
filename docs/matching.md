@@ -85,7 +85,7 @@ await window.matching.listOrders(30)
 ```
 
 ## Auto-negotiation
-Stalker API can negotiate blockchain-transactions for an accepted offer using a given blockchain interpreter (see Contracts doc) and publish transactions on-chain if needed:
+Stalker API can negotiate blockchain-transactions for an **accepted** offer using a given blockchain interpreter (see Contracts doc) and publish transactions on-chain if needed:
 
 ```ts
 import { dataProvider } from '@dk14/wolfram-mega/oracle-data-provider';
@@ -97,7 +97,7 @@ setInterval(() => window.stalking.trackIssuedOffers(
     dataProvider
 ), 1000)
 ```
-p2p of 2 nodes example (BTC-DLC negotiation over WebRTC):
+"p2p for 2" example (BTC-DLC negotiation over WebRTC):
 
 ```bash
 npm run webtest-it
@@ -116,7 +116,7 @@ npm run webtest-it-composite trace
 
 > Internet is required (for discovery) since local peerjs `PeerServer` discovery does not work (it does not establish connection between local peers properly).
 
-## Run on node.js
+## Tricks to run web-api on node.js
 
 ```ts
 import { cfg } from '@dk14/wolfram-mega/webcfg';
@@ -134,7 +134,13 @@ window.matching
 window.stalking
 ```
 
+> matching and stalking don't require peerjs. You can use regular TCP-Bitcoin Mega P2P instead of `browserPeerAPI()`. Just `startP2P(global.cfg)`. 
 
+> matching and stalking use `window` as a dependency injector, so `window` has to be defined: `import { configure }` does it for you, it also initializes everything necessary, including database for secret keys. You can use `matching` and `stalking` without configure as long as storage, traderAPI defined (using btc interpreter would also require IndexedDB for secrets and mocked weboracle, see `./webcfg.ts`). 
+
+> `discreet` dsl (`src-web/dsl.ts`) only depends on `OfferModel`(`src-web/models.ts`) - feel free to use Discreet on node without any extra steps. Language will be kept self-contained - there is nothing more to add (other than fixes, tests and minor improvements).
+
+> `configure` gives you mocks, configuration, initialization and in memory "persistence". `window.storage = <your implementation of StorageAPI>` gives you any persistence. `window.traderApi = ...` gives you any trader API with any PoW implementation. `window.btc = ` gives you custom APIs for working with btc transactions. See `./webapp.ts` for examples.
 
 
 # Matching Protocol
@@ -143,7 +149,7 @@ See `src-web\matching` for code examples.
 
 ## Matching Workflow
 
-If the whole contract is negotiated through the Mega, offer updates will form a chain, through back-references (`previousAcceptRef` in `AcceptOffer`, `acceptRef` in `FinalizeOffer`).
+If the whole contract is negotiated through the Mega, offer updates will form a chain, through back-references (`previousAcceptRef` in `AcceptOffer`, `acceptRef` in `FinalizeOffer`, see `protocol.ts`).
 
 ```
 Offer 
