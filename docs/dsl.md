@@ -764,6 +764,16 @@ dsl.if(receivePaymentPubKeyAdapted, ["true"], ["false"], {}).then(accounts => {
 
 > If there is no trusted oracle to check delivery - then MAD on the receiving wallet of the auction (distinct wallet per participant) plus MAD security deposit from auction.
 
+### ❗ Assertions
+
+To assert worst-case collaterals so far:
+```ts
+dsl.assert.budget(Dsl.Alice, 1000)
+dsl.assert.parties("alice", "bob").budget(0 | 1, 1000)
+dsl.assert.sum.budget(1000) // alice and bob
+dsl.assert.sum.parties("alice", "bob").budget(1000) // per trading pair
+```
+> other assertions can be done by simply throwing an exception
 
 ## Algorithmic Trading
 

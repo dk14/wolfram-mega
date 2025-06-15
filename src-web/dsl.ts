@@ -1282,6 +1282,70 @@ export class Dsl {
         })
     }
 
+    public assert = {
+        sum: {
+            budget: (amount: number) => {
+                if (this.collateral1 + this.collateral2 > amount) {
+                    throw Error(`Max mutual budget assertion: ${this.collateral1} > ${amount}`)
+                }    
+            },
+            parties: (party1: string, party2: string) => ({
+                budget: (amount: number) => {
+                    if (this.isSelected0(party1) && this.isSelected1(party2)){
+                        if (this.collateral1 + this.collateral2 > amount) {
+                            throw Error(`Max mutual budget assertion: ${this.collateral1} > ${amount}`)
+                        }
+                    }
+                    if (this.isSelected0(party2) && this.isSelected1(party1)){
+                        if (this.collateral1 + this.collateral2 > amount) {
+                            throw Error(`Max mutual budget assertion: ${this.collateral1} > ${amount}`)
+                        }
+                    }
+                            
+                }
+            })
+        },
+        budget: (idx: 0, amount: number) => {
+            if (idx == 0) {
+                if (this.collateral1 > amount) {
+                    throw Error(`Max Alice budget assertion: ${this.collateral1} > ${amount}`)
+                } 
+            } else {
+                if (this.collateral1 > amount) {
+                    throw Error(`Max Bob budget assertion: ${this.collateral2} > ${amount}`)
+                }
+            }
+            
+        },
+        parties: (party1: string, party2: string) => ({
+            budget: (idx: 0, amount: number) => {
+                if (this.isSelected0(party1) && this.isSelected1(party2)){
+                    if (idx == 0) {
+                        if (this.collateral1 > amount) {
+                            throw Error(`Max ${party1} budget assertion (against ${party2}): ${this.collateral1} > ${amount}`)
+                        } 
+                    } else {
+                        if (this.collateral1 > amount) {
+                            throw Error(`Max ${party2} budget assertion (against ${party1}): ${this.collateral2} > ${amount}`)
+                        }
+                    }  
+                }
+                if (this.isSelected0(party2) && this.isSelected1(party1)){
+                    if (idx == 0) {
+                        if (this.collateral1 > amount) {
+                            throw Error(`Max ${party2} budget assertion (against ${party1}): ${this.collateral1} > ${amount}`)
+                        } 
+                    } else {
+                        if (this.collateral1 > amount) {
+                            throw Error(`Max ${party1} budget assertion (against ${party2}): ${this.collateral2} > ${amount}`)
+                        }
+                    }  
+                }
+                          
+            }
+        })
+    }
+
     public disablePartyRoleReversal = false
 
     public if = (pubkey: string, yes: string[], no: string[], args: {[id: string]: string} = {}, allowSwaps: boolean = false, allowMisplacedPay = false, strict = true) => {
