@@ -18,7 +18,7 @@ npm run build
 ## Start collectors
 
 ```ts
-import { PreferenceModel } from '@dk14/wolfram-mega/matching'
+import { PreferenceModel } from '@dk14/wolfram-mega/models'
 
 const preferences: PreferenceModel = {
     minOraclePow: 0,
