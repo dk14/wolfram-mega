@@ -281,9 +281,9 @@ export class Dsl {
 
     private checked = []
 
-    public superStrict = false
+    public superMode = false
 
-    public megaStrict = false
+    public megaMode = false
 
     public strictlyOneLeafPays = false
 
@@ -351,11 +351,11 @@ export class Dsl {
                  throw new Error("Set of overall outcomes must be same, regardless of parameters! " + sameQuery.yes.concat(sameQuery.no).sort() + " != " + yes.concat(no).sort())
             }
 
-            if (this.superStrict && sameQuery && JSON.stringify(sameQuery.args) === JSON.stringify(sameQuery.args)) {
+            if (this.superMode && sameQuery && JSON.stringify(sameQuery.args) === JSON.stringify(sameQuery.args)) {
                 throw new Error("Cannot query same observation twice! Super strictly! Arguments are allowed to vary")
             }
 
-            if (this.megaStrict && sameQuery) {
+            if (this.megaMode && sameQuery) {
                 throw new Error("Cannot query same observation twice! MEGA strictly!")
             }
 
@@ -782,7 +782,7 @@ export class Dsl {
 
                 recurse(numbers.slice(0, numbers.length / 2), numbers.slice(numbers.length / 2))
 
-                const id = this.megaStrict ? pubkey : pubkey + JSON.stringify(args)
+                const id = this.megaMode ? pubkey : pubkey + JSON.stringify(args)
 
                 this.aliceTrackers[id] += (this.alicePayCounter - saveAlicePayCounter) > 0 ? 1 : 0
                 this.bobTrackers[id] += (this.bobPayCounter - saveBobPayCounter) > 0 ? 1 : 0
@@ -968,7 +968,7 @@ export class Dsl {
 
                 recurse(set.slice(0, set.length / 2), set.slice(set.length / 2))
 
-                const id = this.megaStrict ? pubkey : pubkey + JSON.stringify(args)
+                const id = this.megaMode ? pubkey : pubkey + JSON.stringify(args)
 
                 this.aliceTrackers[id] += (this.alicePayCounter - saveAlicePayCounter) > 0 ? 1 : 0
                 this.bobTrackers[id] += (this.bobPayCounter - saveBobPayCounter) > 0 ? 1 : 0
@@ -1142,7 +1142,7 @@ export class Dsl {
 
                 recurse(set.slice(0, set.length / 2), set.slice(set.length / 2))
 
-                const id = this.megaStrict ? pubkey : pubkey + JSON.stringify(args)
+                const id = this.megaMode ? pubkey : pubkey + JSON.stringify(args)
 
                 this.aliceTrackers[id] += (this.alicePayCounter - saveAlicePayCounter) > 0 ? 1 : 0
                 this.bobTrackers[id] += (this.bobPayCounter - saveBobPayCounter) > 0 ? 1 : 0
