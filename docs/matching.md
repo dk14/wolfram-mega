@@ -24,7 +24,7 @@ const preferences: PreferenceModel = {
     minOraclePow: 0,
     minOracleReputation: 0,
     tags: ["sports", "world"],
-    txfee: 0
+    txfee: 1
 }
 
 window.matching.collectQuestions(preferences)
