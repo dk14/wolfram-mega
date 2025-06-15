@@ -1013,11 +1013,22 @@ if(obs1 === 2) {
 }
 ```
 
-Turning on `dsl.superMode` `dsl.megaMode` would disable all semantical bypasses. It makes interest rate swaps and such purely binary, disallowing unsafe computation on interest rate. Perpetual swap becomes perpetual binary swap. 
+Turning on `dsl.superMode` `dsl.megaMode` would disable all semantical bypasses. It makes interest rate swaps and such... purely binary, disallowing unsafe computation on interest rate. Perpetual swap becomes perpetual binary swap. 
+
+There are convinience wrappers, for contract refactoring purposes:
+
+```ts
+dsl.insecurity.startMegaMode()
+
+//...
+dsl.insecurity.disableMegaMode() //opens insecure section
+
+dsl.insecurity.enableMegaMode()
+```
 
 > Just to re-iterate: any computation of payout on the outcome itself (except splitting it into two categories ONCE) is unsafe. Re-using same observation with a different split is unsafe. Both allow. Interest rate drivers in finance are unsafe (proof is above) - they overcollaterize, only matching on a sin. The only drivative that is safe is hedge-purified binary option.
 
-Proof by induction:
+Many complex derivative instruments are unsafe. Proof by induction:
 
 ```ts
 if(obs === 1) { //observation
@@ -1061,11 +1072,9 @@ if (obs === 1) {
 } else if (obs === 3) {
     pay(30)
 } else ...
-
 ```
 
-
-> Set of expected outcomes can safely depend on previous observation (given that observations themselves are independant) - thus it is safe to let's say adjust matching ranges depending on previous unique outcomes.
+> Set of expected outcomes can safely depend on previous observation (given that observations themselves are independent) - thus it is safe to let's say adjust matching ranges depending on previous unique outcomes.
 
 > TLDR: the only set that is safe from overcollaterization - is the one that can be observed and classified only once, the one that independent (or rather independently judged as true or false) from any other observation (otherwise uniqueness would be unsound). `numeric` and `set` are meant for special "cool" people in a world of quantitative finance. Be cool!
 

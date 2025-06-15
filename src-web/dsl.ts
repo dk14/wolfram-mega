@@ -285,6 +285,75 @@ export class Dsl {
 
     public megaMode = false
 
+    private megaModeStarted = false
+    private superModeStarted = false
+
+    public insecurity = {
+        startMegaMode: () => {
+            if (this.collateral1 > 0 && this.collateral2 > 0 && this.counter > 0) {
+                throw new Error('Mega mode has to be started before any payouts or observations happen!')
+            }
+            if (this.megaMode) {
+                throw new Error('Mega mode already enabled manually!')
+            }
+            this.megaModeStarted = true
+            this.megaMode = true
+
+        },
+        disableMegaMode: () => {
+            if (this.megaMode) {
+                throw new Error('Mega mode has to be started with `startMegaMode`!')
+            }
+            if (!this.megaMode) {
+                throw new Error('Mega mode has to be enabled first!')
+            }
+            this.megaMode = false
+        },
+        enableMegaMode: () => {
+            if (this.megaMode) {
+                throw new Error('Mega mode has to be started with `startMegaMode`!')
+            }
+            if (this.megaMode) {
+                throw new Error('Mega mode has to be disabled first!')
+            }
+            this.megaMode = false
+        },
+        startSuperMode: () => {
+            if (this.collateral1 > 0 && this.collateral2 > 0 && this.counter > 0) {
+                throw new Error('Super mode has to be started before any payouts or observations happen!')
+            }
+            if (this.superMode) {
+                throw new Error('Super mode already enabled manually!')
+            }
+            this.superModeStarted = true
+            this.superMode = true
+
+        },
+        disableSuperMode: () => {
+            if (this.superMode) {
+                throw new Error('Super mode has to be started with `startSuperMode`!')
+            }
+            if (!this.superMode) {
+                throw new Error('Super mode has to be enabled first!')
+            }
+            this.superMode = false
+        },
+        enableSuperMode: () => {
+            if (this.superMode) {
+                throw new Error('Mega mode has to be started with `startMegaMode`!')
+            }
+            if (this.superMode) {
+                throw new Error('Mega mode has to be disabled first!')
+            }
+            this.superMode = false
+        }
+
+
+
+
+        
+    }
+
     public strictlyOneLeafPays = false
 
     public strictlyOneLeafPairPays = false
