@@ -763,8 +763,8 @@ class Dsl {
                     return no;
                 }
             },
-            if: (pubkey, yes, no, args = {}) => {
-                const iff = this.if(pubkey, [`${yes}`], [`${no}`], args);
+            if: (pubkey, yes, no, args = {}, allowSwaps = false, allowMisplacedPay = false, strict = true) => {
+                const iff = this.if(pubkey, [`${yes}`], [`${no}`], args, allowSwaps, allowMisplacedPay, strict);
                 return {
                     then: (handler) => {
                         const thenn = iff.then(h => handler(yes, h));

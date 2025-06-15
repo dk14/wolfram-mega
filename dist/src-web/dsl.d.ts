@@ -247,7 +247,7 @@ export declare class Dsl {
             }) => number;
             if: (pubkey: string, yes: number, no: number, args?: {
                 [id: string]: string;
-            }) => {
+            }, allowSwaps?: boolean, allowMisplacedPay?: boolean, strict?: boolean) => {
                 then: (handler: (v: number, p: PaymentHandler) => void) => {
                     else: (handler: (v: number, p: PaymentHandler) => void) => void;
                 };
