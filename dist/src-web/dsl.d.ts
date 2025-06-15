@@ -237,6 +237,18 @@ export declare class Dsl {
             valueWithPaymentCtxUnsafe: () => [T, PaymentHandler];
         };
     };
+    assert: {
+        sum: {
+            budget: (amount: number) => void;
+            parties: (party1: string, party2: string) => {
+                budget: (amount: number) => void;
+            };
+        };
+        budget: (idx: 0, amount: number) => void;
+        parties: (party1: string, party2: string) => {
+            budget: (idx: 0, amount: number) => void;
+        };
+    };
     disablePartyRoleReversal: boolean;
     if: (pubkey: string, yes: string[], no: string[], args?: {
         [id: string]: string;
