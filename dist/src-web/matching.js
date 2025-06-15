@@ -401,6 +401,25 @@ exports.matchingEngine = {
     },
     reset: async function () {
         await (0, storage_1.clearDb)();
+    },
+    removeOrder: async function (hash) {
+        const pagedescriptor = {
+            page: 0,
+            chunkSize: 100
+        };
+        const progressed = (await window.storage.queryIssuedOffers({
+            where: async (x) => x.pow.hash === hash
+        }, pagedescriptor))[0];
+        const cp = (await window.storage.queryCapabilities({
+            where: async (x) => x.capabilityPubKey === progressed.content.terms.question.capabilityPubKey
+        }, pagedescriptor))[0];
+        const status = await detectStatus(progressed.content, cp, oracle_data_provider_1.dataProvider);
+        if (status === 'matching' || status === 'redeem tx available' || status === 'tx submitted') {
+            const others = (await window.storage.queryIssuedOffers({
+                where: async (x) => x.content.orderId && x.content.orderId === progressed.content.orderId
+            }, pagedescriptor));
+            window.storage.removeIssuedOffers(others.map(x => x.pow.hash));
+        }
     }
 };
 function maxBy(arr, fn) {
