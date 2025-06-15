@@ -369,7 +369,7 @@ As mentioned above, early termination is as good as sending remaining funds to e
 party("alice").pays(Dsl.mutual("alice", "bob")).amount(100)
 party("bob").pays(Dsl.mutual("alice", "bob")).amount(10)
 ```
-In case if early termination has to beauthorized by third-party, third-party becomes an oracle:
+In case if early termination has to be authorized by third-party, third-party becomes an oracle:
 
 ```ts
 if (dsl.bool.safe.outcome("carol authorized?", "yes", "no"))){
