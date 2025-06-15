@@ -44,7 +44,7 @@ import { api } from "../../src/api";
         const offer: OfferModel = await (new Promise((resolve, reject) => {
             const cancel = setInterval(async () => {
                 i++
-                if (i > 20) {
+                if (i > 80) {
                     clearInterval(cancel)
                     reject("OFFER DID NOT MATCH!")
                 } else {

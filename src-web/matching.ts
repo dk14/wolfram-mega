@@ -70,6 +70,9 @@ const oneElemPage = {
 const tempId = randomInt(1200000).toString()
 
 export const getOriginatorId = (): string => { //TODO generate per trade
+    if (window.address) {
+        return window.address
+    }
     if (localStorage === undefined) {
         return tempId
     }

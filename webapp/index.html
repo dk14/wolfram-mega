@@ -481,8 +481,17 @@ Address: <font color="blue" id="wallet-address">n3W8YyK59F6vQe34uQ8n835L627k2J</
                 panel.appendChild(updateSvg)
                 panel.appendChild(offerInfo)
 
-                
+                if (offer.role !== 'initiator' && offer.betOn) {
+                    yesSvg.style = "filter: grayscale(1)"
+                }
                 panel.appendChild(yesSvg)
+
+                if (offer.role !== 'initiator' && !offer.betOn) {
+                    //noSvg.style = "filter: grayscale(3)"
+                } 
+                panel.appendChild(noSvg)
+        
+               
                 panel.appendChild(noSvg)
                 panel.appendChild(downArrowSvg)
 
@@ -527,17 +536,21 @@ Address: <font color="blue" id="wallet-address">n3W8YyK59F6vQe34uQ8n835L627k2J</
             }
 
             setInterval(async () => {
-
-                const address =  window.address.length > 20 ? 
+                try {
+                    const address =  window.address.length > 20 ? 
                     window.address.slice(0, 40) + "..."//"n3W8YyK59F6vQe34uQ8n835L627k2J"
                     : window.address
 
-                const stats = await (await fetch("https://mempool.space/testnet/api/address/" + window.address)).json()
-                const bal = stats.chain_stats.funded_txo_sum - stats.chain_stats.spent_txo_sum
-                const balance = bal.toLocaleString() + " sat"
-            
-                document.getElementById("wallet-address").innerText = address
-                document.getElementById("wallet-balance").innerText = balance
+                    const stats = await (await fetch("https://mempool.space/testnet/api/address/" + window.address)).json()
+                    const bal = stats.chain_stats.funded_txo_sum - stats.chain_stats.spent_txo_sum
+                    const balance = bal.toLocaleString() + " sat"
+                
+                    document.getElementById("wallet-address").innerText = address
+                    document.getElementById("wallet-balance").innerText = balance
+
+                } catch {
+
+                }
             }, 1000)
             
             window.renderOfferDetails = (offer) => {
@@ -593,7 +606,12 @@ Address: <font color="blue" id="wallet-address">n3W8YyK59F6vQe34uQ8n835L627k2J</
                     model.contracts.push(contract)
                 })
                 if (model.contracts.length > 0) {
-                    document.getElementById("contracts_obj").getSVGDocument().getElementById("contracts_svg").setAttribute("fill", "blue")
+                    try {
+                        document.getElementById("contracts_obj").getSVGDocument().getElementById("contracts_svg").setAttribute("fill", "blue")
+                    } catch {
+
+                    }
+                    
                 }
                 
             }, 1000)

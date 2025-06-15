@@ -119,6 +119,7 @@
     "uint8array-tools": "^0.0.9",
     "url": "^0.11.4",
     "wait-on": "^8.0.3",
+    "whatwg-fetch": "^3.6.20",
     "ws": "^8.18.2"
   },
   "files": [

@@ -111,7 +111,7 @@ Composite contracts:
 npm run webtest-it-composite
 ```
 
-> You supposed to see STALKER logs unless initialisation fails. Current version uses peerjs discovery service (with jsdom) which is not always reliable.
+> You suppose to see STALKER logs (from both initiator and acceptor) as well as `[receive][cmd offer]` in trace, unless initialisation fails. Current version uses peerjs discovery and communication (with jsdom to mock it) which is not always reliable.
 
 ## Run on node.js
 
