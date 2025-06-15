@@ -361,7 +361,25 @@ const fundFactory = (accumulatedFund: number, refillFund: number, refillBenefici
 
 > Exercise: enjoy rewriting this fund into 1-to-1 deal between you and the actual contributor, rather than an abstract beneficiary.
 
+#### ⏰💦 Early termination
 
+As mentioned above, early termination is as good as sending remaining funds to either party/parties (unilateral) or multisig account (bilateral), no reason to continue after that. For the latter special syntax sugar is provided:
+
+```ts
+party("alice").pays(Dsl.mutual("alice", "bob")).amount(100)
+party("bob").pays(Dsl.mutual("alice", "bob")).amount(10)
+```
+In case if early termination has to beauthorized by third-party, third-party becomes an oracle:
+
+```ts
+if (dsl.bool.safe.outcome("carol authorized?", "yes", "no"))){
+    party("alice").pays(Dsl.refund("alice")).amount(100)
+    party("bob").pays(Dsl.refund("bob")).amount(10) 
+    return dsl.infinity.stop   
+} else {
+    return dsl.infinity.move(newstate)
+}
+```
 ### 🚗 Cross-currency (assets)
 
 DSL🌿 should not be responsible for asset pairs ₿🪙, since asset pair is assumed to be fixed between parties per (composite) contract - you specify asset pair in matching etc. Allowing one party to have several assets in a contract is equivalent to having several parties, e.g. "alice-usd", "alice-btc".

@@ -627,6 +627,14 @@ export class Dsl {
         return partyName + "_" + partyAsset
     }
 
+    public static mutual(...parties: string[]) {
+        return parties.join("+")
+    }
+
+    public static refund(party: string) {
+        return party + "_refund"
+    }
+
     private unfinalized = 0
 
 
