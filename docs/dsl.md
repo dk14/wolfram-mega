@@ -901,7 +901,7 @@ This approach allows for synchronization-safe use of external services in script
 
 > `async-mutex` is third-party library, so no guarantees. In `nodejs` environment using `await mutex.runExclusive` instead of `await` makes differnece as well as in browser. Some custom js execution envornments (VMs) might require `await` on `dsl.if` and derived constructs, which we skipped in this doc.
 
-> awaits on `dsl.if` while not required, still might benefit in terms of tractability of errors: otherwise, you might see `PerfectHedge` where you'd logically expect `OnePayPerObservation`. `allowReplacedPay` from `unsafe`, while compatible with fire and forget, would still make errors even less tractable.
+> awaits on `dsl.if` while not required, still might benefit in terms of tractability of errors: otherwise, you might see `PerfectHedge` where you'd logically expect `OnePayPerObservation` or even vice-versa. `allowReplacedPay` from `unsafe`, while compatible with fire and forget, would still make errors even less tractable.
 
 ### Applicability of SMT solvers
 > TLDR: not applicable
