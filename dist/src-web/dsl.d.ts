@@ -81,8 +81,8 @@ export declare class Dsl {
     private counter;
     private memoize;
     private checked;
-    superStrict: boolean;
-    megaStrict: boolean;
+    superMode: boolean;
+    megaMode: boolean;
     strictlyOneLeafPays: boolean;
     strictlyOneLeafPairPays: boolean;
     outcome(pubkey: string, yes: string[], no: string[], args?: {

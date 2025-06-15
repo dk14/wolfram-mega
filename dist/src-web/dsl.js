@@ -231,8 +231,8 @@ class Dsl {
     counter = 0;
     memoize = [];
     checked = [];
-    superStrict = false;
-    megaStrict = false;
+    superMode = false;
+    megaMode = false;
     strictlyOneLeafPays = false;
     strictlyOneLeafPairPays = false;
     outcome(pubkey, yes, no, args = {}, allowTruth = false, strict = true) {
@@ -289,10 +289,10 @@ class Dsl {
             if (strict && sameQuery && JSON.stringify(sameQuery.yes.concat(sameQuery.no).sort()) !== JSON.stringify(yes.concat(no).sort())) {
                 throw new Error("Set of overall outcomes must be same, regardless of parameters! " + sameQuery.yes.concat(sameQuery.no).sort() + " != " + yes.concat(no).sort());
             }
-            if (this.superStrict && sameQuery && JSON.stringify(sameQuery.args) === JSON.stringify(sameQuery.args)) {
+            if (this.superMode && sameQuery && JSON.stringify(sameQuery.args) === JSON.stringify(sameQuery.args)) {
                 throw new Error("Cannot query same observation twice! Super strictly! Arguments are allowed to vary");
             }
-            if (this.megaStrict && sameQuery) {
+            if (this.megaMode && sameQuery) {
                 throw new Error("Cannot query same observation twice! MEGA strictly!");
             }
             const contradiction = this.memoize.find(x => x.id === pubkey && JSON.stringify(x.yes.sort()) === JSON.stringify(no.sort()) && JSON.stringify(x.no.sort()) === JSON.stringify(yes.sort()) && JSON.stringify(x.args) === JSON.stringify(args));
@@ -668,7 +668,7 @@ class Dsl {
                 const saveAlicePayCounter = this.alicePayCounter;
                 const saveBobPayCounter = this.bobPayCounter;
                 recurse(numbers.slice(0, numbers.length / 2), numbers.slice(numbers.length / 2));
-                const id = this.megaStrict ? pubkey : pubkey + JSON.stringify(args);
+                const id = this.megaMode ? pubkey : pubkey + JSON.stringify(args);
                 this.aliceTrackers[id] += (this.alicePayCounter - saveAlicePayCounter) > 0 ? 1 : 0;
                 this.bobTrackers[id] += (this.bobPayCounter - saveBobPayCounter) > 0 ? 1 : 0;
                 if (this.strictlyOneLeafPays && (this.aliceTrackers[id] > 1 || this.bobPayCounter[id] > 1)) {
@@ -845,7 +845,7 @@ class Dsl {
                 const saveAlicePayCounter = this.alicePayCounter;
                 const saveBobPayCounter = this.bobPayCounter;
                 recurse(set.slice(0, set.length / 2), set.slice(set.length / 2));
-                const id = this.megaStrict ? pubkey : pubkey + JSON.stringify(args);
+                const id = this.megaMode ? pubkey : pubkey + JSON.stringify(args);
                 this.aliceTrackers[id] += (this.alicePayCounter - saveAlicePayCounter) > 0 ? 1 : 0;
                 this.bobTrackers[id] += (this.bobPayCounter - saveBobPayCounter) > 0 ? 1 : 0;
                 if (this.strictlyOneLeafPays && (this.aliceTrackers[id] > 1 || this.bobPayCounter[id] > 1)) {
@@ -1013,7 +1013,7 @@ class Dsl {
                 const saveAlicePayCounter = this.alicePayCounter;
                 const saveBobPayCounter = this.bobPayCounter;
                 recurse(set.slice(0, set.length / 2), set.slice(set.length / 2));
-                const id = this.megaStrict ? pubkey : pubkey + JSON.stringify(args);
+                const id = this.megaMode ? pubkey : pubkey + JSON.stringify(args);
                 this.aliceTrackers[id] += (this.alicePayCounter - saveAlicePayCounter) > 0 ? 1 : 0;
                 this.bobTrackers[id] += (this.bobPayCounter - saveBobPayCounter) > 0 ? 1 : 0;
                 if (this.strictlyOneLeafPays && (this.aliceTrackers[id] > 1 || this.bobPayCounter[id] > 1)) {
