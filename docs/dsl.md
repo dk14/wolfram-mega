@@ -895,7 +895,7 @@ Typesefaty of Discreet🌿 is meant to ensure this does not happen as long as lo
 > Discreet relies on assumption that money supply is not "infinite" itself during lifespan of a contract. Non-zero energy/value of a unit. Units should have meaning.
 
 ### Non-determinsstic state
-Every call to Discreet script's body (`dsl => ...`) is protected by a mutex (`async-mutex` library) during enumeration. This should allow safe `pay` in fire and forget `await` (since mutexes have access to that information from js Scheduler API).
+Every call to Discreet script's body (`dsl => ...`) is protected by a mutex (`async-mutex` library) during enumeration. This should allow safe `pay` in fire and forget with no `await` (since mutexes have access to that information from js Scheduler API).
 
 This approach allows for synchronization-safe use of external services in script body.
 
