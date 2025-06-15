@@ -3,8 +3,6 @@ import { resolve } from "path"
 import { PublicSession } from "../src/client-api/contracts/btc/tx"
 import { CetRedemptionParams, ChildDlcParams, DlcContract, DlcParams, doubleSHA256reversed } from "../src/client-api/contracts/generate-btc-tx"
 import { Commitment, Fact, OfferMsg, OfferTerms } from "../src/protocol"
-import { PreferenceModel } from "./matching"
-import { off } from "process"
 
 type TxId = string
 type TxBody = string

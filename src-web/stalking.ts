@@ -1,7 +1,7 @@
 import { UTxO } from "../src/client-api/contracts/btc/tx"
 import { doubleSHA256reversed } from "../src/client-api/contracts/generate-btc-tx"
 import { Commitment, Fact, FactRequest, OfferMsg } from "../src/protocol"
-import { PreferenceModel, checkOriginatorId, getOriginatorId, maxBy, randomInt } from "./matching"
+import { checkOriginatorId, getOriginatorId, maxBy, randomInt } from "./matching"
 import { OracleDataProvider } from "./oracle-data-provider"
 import { ContractInterpreter } from "./transactions"
 
