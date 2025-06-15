@@ -963,7 +963,7 @@ In theory, Discreet🌿's pricing kernel is highly parallelizable. In practice, 
 
 It would also limit expressiveness of your constracts to a subset of javascript, let's say with restrictions [GPU.js](https://gpu.rocks/#/) javascript transpiler [imposes](https://github.com/gpujs/gpu.js/wiki/Quick-Concepts), e.g. no external data-sources can be queryed, only subset of standard library, no promises, no workers, so on.
 
-#### Web-workers
+##### Web-worker dreaming
 > webworkers not implemented
 
 Webworkers would allow larger subset of javascript than GPU. 
