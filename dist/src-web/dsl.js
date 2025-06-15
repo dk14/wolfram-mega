@@ -235,7 +235,7 @@ class Dsl {
     megaMode = false;
     megaModeStarted = false;
     superModeStarted = false;
-    insecurity = {
+    security = {
         startMegaMode: () => {
             if (this.collateral1 > 0 && this.collateral2 > 0 && this.counter > 0) {
                 throw new Error('Mega mode has to be started before any payouts or observations happen!');
@@ -246,24 +246,6 @@ class Dsl {
             this.megaModeStarted = true;
             this.megaMode = true;
         },
-        disableMegaMode: () => {
-            if (this.megaMode) {
-                throw new Error('Mega mode has to be started with `startMegaMode`!');
-            }
-            if (!this.megaMode) {
-                throw new Error('Mega mode has to be enabled first!');
-            }
-            this.megaMode = false;
-        },
-        enableMegaMode: () => {
-            if (this.megaMode) {
-                throw new Error('Mega mode has to be started with `startMegaMode`!');
-            }
-            if (this.megaMode) {
-                throw new Error('Mega mode has to be disabled first!');
-            }
-            this.megaMode = false;
-        },
         startSuperMode: () => {
             if (this.collateral1 > 0 && this.collateral2 > 0 && this.counter > 0) {
                 throw new Error('Super mode has to be started before any payouts or observations happen!');
@@ -273,24 +255,48 @@ class Dsl {
             }
             this.superModeStarted = true;
             this.superMode = true;
+        }
+    };
+    insecurity = {
+        open: {
+            disableMegaMode: () => {
+                if (this.megaMode) {
+                    throw new Error('Mega mode has to be started with `startMegaMode`!');
+                }
+                if (!this.megaMode) {
+                    throw new Error('Mega mode has to be enabled first!');
+                }
+                this.megaMode = false;
+            },
+            disableSuperMode: () => {
+                if (this.superMode) {
+                    throw new Error('Super mode has to be started with `startSuperMode`!');
+                }
+                if (!this.superMode) {
+                    throw new Error('Super mode has to be enabled first!');
+                }
+                this.superMode = false;
+            },
         },
-        disableSuperMode: () => {
-            if (this.superMode) {
-                throw new Error('Super mode has to be started with `startSuperMode`!');
+        close: {
+            enableMegaMode: () => {
+                if (this.megaMode) {
+                    throw new Error('Mega mode has to be started with `startMegaMode`!');
+                }
+                if (this.megaMode) {
+                    throw new Error('Mega mode has to be disabled first!');
+                }
+                this.megaMode = false;
+            },
+            enableSuperMode: () => {
+                if (this.superMode) {
+                    throw new Error('Mega mode has to be started with `startMegaMode`!');
+                }
+                if (this.superMode) {
+                    throw new Error('Mega mode has to be disabled first!');
+                }
+                this.superMode = false;
             }
-            if (!this.superMode) {
-                throw new Error('Super mode has to be enabled first!');
-            }
-            this.superMode = false;
-        },
-        enableSuperMode: () => {
-            if (this.superMode) {
-                throw new Error('Mega mode has to be started with `startMegaMode`!');
-            }
-            if (this.superMode) {
-                throw new Error('Mega mode has to be disabled first!');
-            }
-            this.superMode = false;
         }
     };
     strictlyOneLeafPays = false;
@@ -343,7 +349,7 @@ class Dsl {
         else {
             this.checked.push(this.state[pubkeyUnique][0]);
             if (this.memoize.find(x => x.id === pubkey && JSON.stringify(x.yes.sort()) === JSON.stringify(yes.sort()) && JSON.stringify(x.no.sort()) === JSON.stringify(no.sort()) && JSON.stringify(x.args) === JSON.stringify(args)) !== undefined) {
-                throw new Error("Cannot query same observation twice. Save it into const instead: const obs1 = observe(...); args=" + JSON.stringify(args));
+                throw new Error("Cannot query same observation twice. Save it into const instead: const obs1 = outcome(...); args=" + JSON.stringify(args));
             }
             const sameQuery = this.memoize.find(x => x.id === pubkey);
             if (strict && sameQuery && JSON.stringify(sameQuery.yes.concat(sameQuery.no).sort()) !== JSON.stringify(yes.concat(no).sort())) {
@@ -357,7 +363,7 @@ class Dsl {
             }
             const contradiction = this.memoize.find(x => x.id === pubkey && JSON.stringify(x.yes.sort()) === JSON.stringify(no.sort()) && JSON.stringify(x.no.sort()) === JSON.stringify(yes.sort()) && JSON.stringify(x.args) === JSON.stringify(args));
             if (contradiction !== undefined) {
-                throw new Error("Cannot query the opposite of checked observation. Save it into const and inverse instead: const obs1 = !observe(...)");
+                throw new Error("Cannot query the opposite of checked observation. Save it into const and inverse instead: const obs1 = outcome(...); const obs2 = !obs1");
             }
             this.enrichAndProgress(this.state[pubkeyUnique][1], pubkeyUnique, yes, no, args);
             this.memoize.push({

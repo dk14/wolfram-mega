@@ -85,13 +85,19 @@ export declare class Dsl {
     megaMode: boolean;
     private megaModeStarted;
     private superModeStarted;
-    insecurity: {
+    security: {
         startMegaMode: () => void;
-        disableMegaMode: () => void;
-        enableMegaMode: () => void;
         startSuperMode: () => void;
-        disableSuperMode: () => void;
-        enableSuperMode: () => void;
+    };
+    insecurity: {
+        open: {
+            disableMegaMode: () => void;
+            disableSuperMode: () => void;
+        };
+        close: {
+            enableMegaMode: () => void;
+            enableSuperMode: () => void;
+        };
     };
     strictlyOneLeafPays: boolean;
     strictlyOneLeafPairPays: boolean;
