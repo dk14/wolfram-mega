@@ -369,7 +369,7 @@ As mentioned above, early termination is as good as sending remaining funds to e
 party("alice").pays(Dsl.mutual("alice", "bob")).amount(100)
 party("bob").pays(Dsl.mutual("alice", "bob")).amount(10)
 ```
-In case if early termination has to be authorized by third-party, third-party becomes an oracle:
+In case if early termination has to be authorized by third-party, third-party becomes an "oracle":
 
 ```ts
 if (dsl.bool.safe.outcome("carol authorized?", "yes", "no"))){
@@ -380,6 +380,10 @@ if (dsl.bool.safe.outcome("carol authorized?", "yes", "no"))){
     return dsl.infinity.move(newstate)
 }
 ```
+> there is no common sense reason to let a particular third-party (e.g. government) authorize your deal, unless carol has to be part in the contract itself (locking conditions within multi-party contract, which itself likely come from miscalculation too). 
+
+> Proper oracles and proper conditions should be used instead, e.g. "earthquake detected?". Mega itself is more reliable attestant than government agency.
+
 ### 🚗 Cross-currency (assets)
 
 DSL🌿 should not be responsible for asset pairs ₿🪙, since asset pair is assumed to be fixed between parties per (composite) contract - you specify asset pair in matching etc. Allowing one party to have several assets in a contract is equivalent to having several parties, e.g. "alice-usd", "alice-btc".
