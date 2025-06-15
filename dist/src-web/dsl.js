@@ -260,7 +260,7 @@ class Dsl {
     insecurity = {
         open: {
             disableMegaMode: () => {
-                if (this.megaMode) {
+                if (this.megaModeStarted) {
                     throw new Error('Mega mode has to be started with `startMegaMode`!');
                 }
                 if (!this.megaMode) {
@@ -269,7 +269,7 @@ class Dsl {
                 this.megaMode = false;
             },
             disableSuperMode: () => {
-                if (this.superMode) {
+                if (this.superModeStarted) {
                     throw new Error('Super mode has to be started with `startSuperMode`!');
                 }
                 if (!this.superMode) {
