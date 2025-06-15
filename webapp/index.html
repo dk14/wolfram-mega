@@ -541,7 +541,9 @@ Address: <font color="blue">n3W8YyK59F6vQe34uQ8n835L627k2J</font> <img src="./as
                 const removeSvg = document.createElement("img")
                 removeSvg.src = "./assets/remove.svg"
                 removeSvg.className = "offer-button"
-
+                removeSvg.onclick = () => {
+                    window.matching.removeOrder(contract.id)
+                }
 
                 const offerInfo = createOfferInfo(contract)
                 offerInfo.className = "contract-info"

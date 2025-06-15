@@ -106,6 +106,7 @@ export interface MatchingEngine {
     broadcastOffer: (o: OfferModel) => Promise<string>
     acceptOffer: (o: OfferModel) => Promise<void>
     listOrders: (limit: number) => Promise<OfferModel[]>
+    removeOrder: (orderId: string) => Promise<void>
     reset: () => Promise<void>
 }
 
@@ -511,7 +512,29 @@ export const matchingEngine: MatchingEngine = {
         return Object.values(Object.groupBy(together, x => x.orderId)).map(copies => maxBy(copies, x => statusRank(x.status)));
     },
     reset: async function (): Promise<void> {
-        await clearDb()
+        await clearDb();
+    },
+    removeOrder: async function (hash: string): Promise<void> {
+        const pagedescriptor = {
+            page: 0,
+            chunkSize: 100
+        };
+        const progressed = (await window.storage.queryIssuedOffers({
+            where: async (x) => x.pow.hash === hash
+        }, pagedescriptor))[0]
+
+        const cp = (await window.storage.queryCapabilities({
+            where: async (x) => x.capabilityPubKey === progressed.content.terms.question.capabilityPubKey
+        }, pagedescriptor))[0]
+
+        const status = await detectStatus(progressed.content, cp, dataProvider)
+        if (status === 'matching' || status === 'redeem tx available' || status === 'tx submitted') {
+            const others = (await window.storage.queryIssuedOffers({
+                where: async (x) => x.content.orderId && x.content.orderId === progressed.content.orderId
+            }, pagedescriptor));
+
+            window.storage.removeIssuedOffers(others.map(x => x.pow.hash))
+        }      
     }
 }
 
