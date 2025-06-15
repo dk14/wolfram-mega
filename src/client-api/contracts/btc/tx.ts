@@ -39,7 +39,7 @@ export interface Tx {
 }
 
 export interface TxApi {
-    genSimpleTx(aliceIn: UTxO[], alicePub: string, aliceAmounts: number[], changeAlice: number, txfee: number): Promise<Tx>
+    genSimpleTx(aliceIn: UTxO[], alicePub: string, aliceAmounts: number[], changeAlice: number, txfee: number, destinationAddr: string): Promise<Tx>
     genOpeningTx(aliceIn: UTxO[], bobIn: UTxO[], alicePub: string, bobPub: string, aliceAmounts: number[], bobAmounts: number[], changeAlice: number, changeBob: number, txfee: number, openingSession?: OpeningTxSession): Promise<Tx>
     genClosingTx(multiIn: UTxO, alicePub: string, bobPub: string, aliceAmount: number, bobAmount: number, txfee: number): Promise<Tx>
     genAliceCet(multiIn: UTxO, alicePub: string, bobPub: string, adaptorPub: string, aliceAmount: number, bobAmount: number, txfee: number, session?: PublicSession, stateAmount?: number): Promise<Tx>
@@ -396,7 +396,7 @@ function schnorrSignerInteractive(pub1: string, pub2: string, session: PublicSes
 
 export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
     return {
-        genSimpleTx: async(aliceIn: UTxO[], alicePub: string, aliceAmounts: number[], changeAlice: number, txfee: number): Promise<Tx> => {
+        genSimpleTx: async(aliceIn: UTxO[], alicePub: string, aliceAmounts: number[], changeAlice: number, txfee: number, destinationAddr: string): Promise<Tx> => {
             const psbt = new bitcoin.Psbt({ network: net})
             const aliceP2TR = p2pktr(alicePub)
             console.log("alice_addr = " + aliceP2TR.address)
@@ -413,7 +413,7 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
             })      
 
             psbt.addOutput({
-                address: p2pktr(alicePub).address!,
+                address: destinationAddr,
                 value: aliceAmount - txfee
             });
 

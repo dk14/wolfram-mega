@@ -14,7 +14,8 @@ export interface SimpleParams {
     alicePub: PubKey,
     aliceAmountIn: number[],
     changeAlice: number,
-    txfee: number
+    txfee: number,
+    destinationAddr: string
 }
 
 export interface OpeningParams {
@@ -87,7 +88,9 @@ export const generateSimpleTransaction = async (params: SimpleParams): Promise<H
         params.alicePub,
         params.aliceAmountIn, 
         params.changeAlice,
-        params.txfee))?.hex
+        params.txfee,
+        params.destinationAddr
+    ))?.hex
 }
 
 export const generateOpeningTransaction = async (params: OpeningParams): Promise<Hex> => {

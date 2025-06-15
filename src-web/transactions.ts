@@ -43,6 +43,31 @@ const scan = (arr, reducer, seed) => {
 }
 
 
+export const getSimpleUtXo = async (amount: number, addressIn: string, txfee: number): Promise<UTxO[]> => {
+
+    const utxoExplore = async (address: string): Promise<UTxO[]> => {
+       return (await (await fetch (`https://mempool.space/testnet/api/address/${address}/utxo`)).json())
+    }
+
+    const getMultipleUtxo = (utxos: UTxO[], amount: number): UTxO[] => {
+        if (utxos.find(a => a.value > amount + txfee / 2)) {
+            return [utxos.find(a => a.value > amount + txfee / 2)]
+        } else if (utxos.length > 0) {
+            utxos.sort((a, b) => a.age - b.age)
+            const i = scan(utxos.map(x => x.value), (a, b) => a + b, 0).findIndex(x => x > amount + txfee / 2)
+
+            if (i !== -1) {
+                return utxos.slice(0, i + 1)      
+            } else {
+                throw new Error(`not enough funds: ${utxos.map(x => x.value).reduce((a, b) => a + b)} < ${amount + txfee / 2} ${amount}`)
+            }
+        }
+    }
+
+    return getMultipleUtxo(await utxoExplore(addressIn), amount)
+
+}
+
 const getUtXo = async (offer: OfferMsg): Promise<Inputs> => {
 
     const terms = offer.content.terms
@@ -75,7 +100,7 @@ const getUtXo = async (offer: OfferMsg): Promise<Inputs> => {
             if (i !== -1) {
                 return utxos.slice(0, i + 1)      
             } else {
-                throw `not enough funds: ${utxos.map(x => x.value).reduce((a, b) => a + b)} < ${amount + txfee / 2} ${terms.partyBetAmount}`
+                throw new Error(`not enough funds: ${utxos.map(x => x.value).reduce((a, b) => a + b)} < ${amount + txfee / 2} ${terms.partyBetAmount}`)
             }
         }
     }
