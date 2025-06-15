@@ -1644,7 +1644,7 @@ class Dsl {
                 if (this.strictModeStarted && !this.strictlyStrict) {
                     throw new Error("All insecure strict mode escape sections must be closed! Forgot `insecure.close.enableMode`?");
                 }
-                if (this.superMode && !this.superMode) {
+                if (this.superModeStarted && !this.superMode) {
                     throw new Error("All insecure super mode escape sections must be closed! Forgot `insecure.close.enableMode`?");
                 }
                 if (this.fairModeStarted && !this.strictlyFair) {
