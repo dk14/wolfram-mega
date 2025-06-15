@@ -218,8 +218,8 @@
     <body style="background-color:black;">
 
         <pre class="wallet">
-<div>Balance: <font color="cyan">10,000 sat</font>
-Address: <font color="blue">n3W8YyK59F6vQe34uQ8n835L627k2J</font> <img src="./assets/copy.svg" class="copy-button" onclick="alert('copy!')"></div></pre>
+<div>Balance: <font color="cyan" id="wallet-balance">10,000 sat</font>
+Address: <font color="blue" id="wallet-address">n3W8YyK59F6vQe34uQ8n835L627k2J</font> <img src="./assets/copy.svg" class="copy-button" onclick="alert('copy!')"></div></pre>
 
         <div id="matching"class="scrollable" ><p id="loading" style="color: #00FF00; font-size: 24px; font-family: monospace">Loading...</p></div>
         <div id="contracts" class="scrollable" style="display:none"></div>
@@ -520,6 +520,13 @@ Address: <font color="blue">n3W8YyK59F6vQe34uQ8n835L627k2J</font> <img src="./as
                 }
 
             }, 500)
+
+            setInterval(async () => {
+                const address = "n3W8YyK59F6vQe34uQ8n835L627k2J"
+                const balance = "10,000 sat"
+                document.getElementById("wallet-address").innerText = address
+                document.getElementById("wallet-balance").innerText = balance
+            }, 1000)
             
             window.renderOfferDetails = (offer) => {
                 switchTab("offer")
