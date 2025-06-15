@@ -267,9 +267,9 @@ export declare class Dsl {
             outcome: (pubkey: string, yes: string, no: string, args?: {
                 [id: string]: string;
             }, allowMisplacedPay?: boolean) => string;
-            outcomeT: <T>(pubkey: string, yes: T, no: T, renderer?: (x: T) => string, args?: {
+            outcomeT: <T1, T2>(pubkey: string, yes: T1, no: T2, renderer?: (x: T1 | T2) => string, args?: {
                 [id: string]: string;
-            }) => T;
+            }) => T1 | T2;
             if: (pubkey: string, yes: string, no: string, args?: {
                 [id: string]: string;
             }) => {
@@ -277,11 +277,11 @@ export declare class Dsl {
                     else: (handler: (v: string, p: PaymentHandler) => void) => void;
                 };
             };
-            ifT: <T>(pubkey: string, yes: T, no: T, renderer?: (x: T) => string, args?: {
+            ifT: <T1, T2>(pubkey: string, yes: T1, no: T2, renderer?: (x: T1 | T2) => string, args?: {
                 [id: string]: string;
             }) => {
-                then: (handler: (v: T, p: PaymentHandler) => void) => {
-                    else: (handler: (v: T, p: PaymentHandler) => void) => void;
+                then: (handler: (v: T1, p: PaymentHandler) => void) => {
+                    else: (handler: (v: T2, p: PaymentHandler) => void) => void;
                 };
             };
         };
