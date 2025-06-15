@@ -44,6 +44,12 @@ export declare namespace DslErrors {
         pair: [string, string];
         constructor(msg: string, amount: number, partyIdx: 0 | 1, pair: [string, string]);
     }
+    class ComplexConditions extends Error {
+        amount: number;
+        partyIdx: 0 | 1;
+        pair: [string, string];
+        constructor(msg: string, amount: number, partyIdx: 0 | 1, pair: [string, string]);
+    }
     class EmptyDslOutput extends Error {
     }
 }
@@ -76,6 +82,7 @@ export declare class Dsl {
     private budgetBound1;
     private budgetBound2;
     private leafsFiltered;
+    strictlyStrict: boolean;
     private filterLeafs;
     private multiparty;
     private selected;

@@ -59,6 +59,18 @@ var DslErrors;
         }
     }
     DslErrors.PartyAtAdvantage = PartyAtAdvantage;
+    class ComplexConditions extends Error {
+        amount;
+        partyIdx;
+        pair;
+        constructor(msg, amount, partyIdx, pair) {
+            super(msg);
+            this.amount = amount;
+            this.partyIdx = partyIdx;
+            this.pair = pair;
+        }
+    }
+    DslErrors.ComplexConditions = ComplexConditions;
     class EmptyDslOutput extends Error {
     }
     DslErrors.EmptyDslOutput = EmptyDslOutput;
@@ -309,7 +321,8 @@ class Dsl {
     budgetBound1 = 0;
     budgetBound2 = 0;
     leafsFiltered = false;
-    filterLeafs(model) {
+    strictlyStrict = false;
+    filterLeafs(model, assertNoZeros = false) {
         if (model === undefined) {
             throw new DslErrors.EmptyDslOutput("Empty DSL model output!");
         }
@@ -323,6 +336,11 @@ class Dsl {
             }
             if (model.bet[0] && !model.bet[1]) {
                 throw new DslErrors.PartyAtAdvantage("Party at advantage - no premium/discount introduced", model.bet[0], 1, this.selected);
+            }
+        }
+        if (assertNoZeros) {
+            if (!model.bet[0] && !model.bet[1]) {
+                throw new DslErrors.ComplexConditions("Strict Semantics of observation: complex conditions are disallowed!", model.bet[0], 1, this.selected);
             }
         }
         if (model.ifPartyWins) {
@@ -1369,6 +1387,9 @@ class Dsl {
         while (this.leafsFiltered) {
             this.leafsFiltered = false;
             result = this.filterLeafs(result);
+        }
+        if (this.strictlyStrict) {
+            this.filterLeafs(result, true);
         }
         return result;
     }
