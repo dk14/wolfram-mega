@@ -250,7 +250,7 @@ All outcomes specified in either yes or no of `dsl.outcome(pubkey, yesoutcomes, 
 
 Querying mutually exclusive outcomes directly, e.g. `{yes = ["a"], no = ["b"]} && {yes = ["b"], no = ["a"]}` disallowed, since it can potentially output unreachable subcontracts: use typescript's NOT (`!`) on captured outcome instead, so typescript could lint unreachable code.
 
-> Requirements on observations can be even stronger: `dsl.superMode = true` would allow re-use of same pub ONLY if `args` are different. `dsl.megaMode` would disallow re-use of same oracle completely. The only loophole it leaves is soundness itself (e.g. two oracles might be answering same question).
+> Requirements on observations can be even stronger: `dsl.superMode = true` would allow re-use of same pub ONLY if `args` are different. `dsl.megaMode` would disallow re-use of same oracle completely. It indirectly disables intuinistic `numeric`s and `set`s, leaving pure binary judgements over types (true sets). The only loophole it leaves is soundness itself (e.g. two oracles might be answering same question). 
 
 P.S. There is always `dsl.unsafe.outcome` if all this stresses you out.
 
@@ -987,6 +987,87 @@ Alice is clearly at advantage though. `dsl.strictlyFair = true` would enforce ve
 > `dsl.strictlyFair = true` is sensitive to tree balancing in `set`s and `numeric`s alike. For many cases, `unsafe.numeric` would become unusable (have to replace with `unsafe.set`). Order of members of a `set` would start matter - since it affects balancing of binary option trees. It is not left to interpreter to optimize it anymore, trees would have to be balanced manually and strictly, with proper ordering of outcomes, and mandatory premiums and discounts.
 
 > Semantics of decidability: striclyFair here technically means "NOT strictly unfair".
+
+----
+#### Perfect-hedge
+
+`dsl.numeric` and `dsl.set`, even in their safe mode, rely on  being able to query same question twice, this leads to non-optimality:
+
+```ts
+if(obs1 === 1) {
+    payAlice(40)
+} else if (obs === 2) {
+    payAlice(50)
+} else if (obs === 3) {
+    payBob(10)
+}
+```
+
+Can be optimized to:
+
+```ts
+if(obs1 === 2) {
+    payAlice(10)
+} else if (obs === 3) {
+    payBob(10)
+}
+```
+
+Turning on `dsl.superMode` `dsl.megaMode` would disable all semantical bypasses. It makes interest rate swaps and such purely binary, disallowing unsafe computation on interest rate. Perpetual swap becomes perpetual binary swap. 
+
+> Just to re-iterate: any computation of payout on the outcome itself (except splitting it into two categories ONCE) is unsafe. Re-using same observation with a different split is unsafe. Both allow. Interest rate drivers in finance are unsafe (proof is above) - they overcollaterize, only matching on a sin. The only drivative that is safe is hedge-purified binary option.
+
+Proof by induction:
+
+```ts
+if(obs === 1) { //observation
+    payAlice(50) 
+} else if (obs === 2) {
+    payAlice(40)
+} else if (obs === 3) {
+    payAlice(10)
+}
+```
+
+becomes:
+
+```ts
+if (obs === 1) {
+    payAlice(40)
+} else if (obs === 2) {
+    payAlice(30)
+} else if (obs === 3) {
+    //payAlice(0)
+}
+```
+becomes:
+```ts
+if (obs === 1) { 
+    payAlice(10)
+} else if (obs === 2) {
+    //payAlice(0)
+} else if (obs === 3) {
+    //payAlice(0)
+}
+```
+
+Interest rate driver takes same form, `pay(10 * obs)` is:
+
+```ts
+if (obs === 1) {
+    pay(10)
+} else if (obs === 2) {
+    pay(20)
+} else if (obs === 3) {
+    pay(30)
+} else ...
+
+```
+
+
+> Set of expected outcomes can safely depend on previous observation (given that observations themselves are independant) - thus it is safe to let's say adjust matching ranges depending on previous unique outcomes.
+
+> TLDR: the only set that is safe from overcollaterization - is the one that can be observed and classified only once, the one that independent (or rather independently judged as true or false) from any other observation (otherwise uniqueness would be unsound). `numeric` and `set` are meant for special "cool" people in a world of quantitative finance. Be cool!
 
 ----
 
