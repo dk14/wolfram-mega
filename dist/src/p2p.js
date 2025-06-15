@@ -129,7 +129,7 @@ const startP2P = async (cfg, peerApi = exports.serverPeerAPI) => {
         if (peersAnnounced > (cfg.peerAnnouncementQuota ?? 10))
             return;
         console.log("Announce: " + peer.server + ":" + peer.port);
-        console.log(peers.map(p => p.addr));
+        console.log("peers: " + JSON.stringify(peers.map(p => p.addr)));
         peers.forEach(p => {
             if (p.addr.server === peer.server && p.addr.port === peer.port) {
             }

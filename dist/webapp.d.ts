@@ -3,9 +3,10 @@ import { OracleId, OracleCapability } from './src/protocol';
 import { Api } from './src/api';
 import * as btc from "./src/client-api/contracts/generate-btc-tx";
 import { IDBPDatabase } from 'idb';
-import { HashLockProvider, MatchingEngine } from './src-web/matching';
+import { HashLockProvider } from './src-web/matching';
 import { StalkingEngine } from './src-web/stalking';
 import { TraderQuery, Storage } from './src-web/impl/storage';
+import { MatchingEngine } from './src-web/models';
 export interface BtcApi {
     generateDlcContract: (params: btc.DlcParams) => Promise<btc.DlcContract>;
     generateChildDlcContract: (params: btc.ChildDlcParams) => Promise<btc.DlcContract>;

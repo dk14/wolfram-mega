@@ -133,7 +133,8 @@ const configureWebMocks = async () => {
         oracleSignatureType: 'SHA256',
         pow: mockPow,
         endpoint: "weboracle:local",
-        tags: ["world"]
+        tags: ["world"],
+        answers: ["YES", "NO"]
     };
     const testCp2 = {
         oraclePubKey: pubOracleCp,
@@ -145,7 +146,8 @@ const configureWebMocks = async () => {
         oracleSignatureType: 'SHA256',
         pow: mockPow,
         endpoint: "weboracle:local",
-        tags: ["world"]
+        tags: ["world"],
+        answers: ["YES", "NO"]
     };
     try {
         await api_1.api.announceOracle(exports.cfg, testOracle);

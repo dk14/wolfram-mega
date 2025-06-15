@@ -1,4 +1,4 @@
-import { OfferModel } from "./matching";
+import { OfferModel } from "./models";
 type PaymentHandler = {
     pay: (idx: 0 | 1, amount: number) => void;
     party: (partyName: string, partyAsset?: string) => ({

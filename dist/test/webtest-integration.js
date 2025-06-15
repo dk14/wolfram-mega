@@ -4,7 +4,11 @@ exports.configure = void 0;
 const child_process_1 = require("child_process");
 const peer_1 = require("peer");
 exports.configure = true;
-const peerServer = (0, peer_1.PeerServer)({ port: 9009, path: "/" }); // this requires internet lol
+const peerServer = (0, peer_1.PeerServer)({ port: 9000, path: "/hello" });
+peerServer.listen();
+peerServer.on('connection', (client) => {
+    console.error("[peer-server]: connected:" + client.getId());
+});
 const initiatorId = "initiator-" + Math.floor(Math.random() * 1000000);
 const acceptorId = "acceptor-" + Math.floor(Math.random() * 1000000);
 const initiator = (0, child_process_1.spawn)("npx", ["tsx", "test/util/webtest-initiator.ts", process.argv[4] ?? initiatorId, process.argv[5] ?? acceptorId, process.argv[3] ?? "non-composite"]);

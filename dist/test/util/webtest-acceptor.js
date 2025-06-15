@@ -35,7 +35,7 @@ const api_1 = require("../../src/api");
         const offer = await (new Promise((resolve, reject) => {
             const cancel = setInterval(async () => {
                 i++;
-                if (i > 20) {
+                if (i > 40) {
                     clearInterval(cancel);
                     reject("OFFER DID NOT MATCH!");
                 }

@@ -10,6 +10,8 @@ global.isTest = true;
 const jsdom_1 = require("jsdom");
 const webpage = fs_1.default.readFileSync("webapp/index.html").toString("utf-8");
 const jsdom = new jsdom_1.JSDOM(webpage, { runScripts: "dangerously" });
+const fetchPkg = 'node_modules/whatwg-fetch/dist/fetch.umd.js';
+jsdom.window.eval(fs_1.default.readFileSync(fetchPkg, 'utf-8'));
 global.window = jsdom.window;
 global.document = window.document;
 global.localStorage = undefined;
@@ -38,12 +40,14 @@ fetch_mock_1.default.mockGlobal().route("https://mempool.space/testnet/api/addre
 require('./../../webapp');
 const promise = new Promise(async (resolve) => {
     await global.initWebapp;
+    /**
     global.cfg.webrtcPeerServer = {
         host: "localhost",
-        port: 9009,
-        path: "/",
-        pingInterval: 100
-    };
+        port: 9000,
+        path: "/hello",
+        pingInterval: 1000
+    }
+    */
     await api_1.api.publishOffer(global.cfg, webcfg_1.testOfferMsg);
     await window.storage.addOffer(webcfg_1.testOfferMsg);
     global.initWebapp = promise;

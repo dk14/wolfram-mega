@@ -64,6 +64,9 @@ const oneElemPage = {
 };
 const tempId = (0, exports.randomInt)(1200000).toString();
 const getOriginatorId = () => {
+    if (window.address) {
+        return window.address;
+    }
     if (localStorage === undefined) {
         return tempId;
     }
@@ -99,7 +102,11 @@ const paging = {
 const pickCps = async (cfg) => {
     const oracles = await window.storage.queryOracles({ where: async (x) => true }, paging);
     return (await Promise.all(oracles.map(async (o) => {
-        const cps = await window.storage.queryCapabilities({ where: async (x) => x.oraclePubKey === o.pubkey }, paging);
+        const cps = await window.storage.queryCapabilities({
+            where: async (x) => x.oraclePubKey === o.pubkey
+                && x.answers[0] === 'YES'
+                && x.answers[1] === 'NO'
+        }, paging);
         const strength = o.pow.difficulty + cps.reduce((sum, cp) => sum + cp.pow.difficulty, 0);
         const reports = await window.storage.queryReports({ where: async (x) => x.oraclePubKey === o.pubkey }, paging);
         const reputation = reports.reduce((sum, r) => sum + r.pow.difficulty, 0);
@@ -110,7 +117,10 @@ exports.pickCps = pickCps;
 exports.matchingEngine = {
     pickOffer: async function (cfg) {
         const top = new Set((await (0, exports.pickCps)(cfg)).map(x => x.capabilityPubKey));
-        const candidates = (await window.storage.queryOffers({ where: async (x) => !x.content.accept && top.has(x.content.terms.question.capabilityPubKey) }, paging));
+        const candidates = (await window.storage.queryOffers({
+            where: async (x) => !x.content.accept
+                && top.has(x.content.terms.question.capabilityPubKey)
+        }, paging));
         const offer = candidates[(0, exports.randomInt)(candidates.length)];
         if (!offer) {
             throw "no offers found in database; db.length =" + candidates.length;
