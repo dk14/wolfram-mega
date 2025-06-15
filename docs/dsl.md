@@ -51,22 +51,28 @@ Output:
 
 ```ts
 {
-  "id": "",
-  "bet": [ 160, 20 ],
-  "betOn": false,
-  "oracles": [{"capabilityPub": "really?"}],
-  "status": "matching",
-  "blockchain": "",
-  "role": "initiator",
-  "ifPartyWins": {
     "id": "",
-    "bet": [50, 40],
-    "betOn": true,
-    "oracles": [{ "capabilityPub": "is it?" }],
+    "bet": [160, 20],
+    "betOn": false,
+    "oracles": [{"capabilityPub": "really?", "params": {}}],
+    "question": "",
     "status": "matching",
     "blockchain": "",
-    "role": "initiator"
-  }
+    "role": "initiator",
+    "yesOutcomes": ["YES"],
+    "noOutcomes": ["NO"],
+    "ifPartyWins": {
+        "id": "",
+        "bet": [50, 40],
+        "betOn": true,
+        "oracles": [{"capabilityPub": "is it?", "params": {}}],
+        "question": "",
+        "status": "matching",
+        "blockchain": "",
+        "role": "initiator",
+        "yesOutcomes": ["YES"],
+        "noOutcomes": ["3..40", "NO"]
+    }
 }
 ```
 
