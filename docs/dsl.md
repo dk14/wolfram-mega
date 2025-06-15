@@ -989,9 +989,9 @@ Alice is clearly at advantage though. `dsl.strictlyFair = true` would enforce ve
 > Semantics of decidability: striclyFair here technically means "NOT strictly unfair".
 
 ----
-#### Perfect-hedge
+#### Imperfect hedge
 
-`dsl.numeric` and `dsl.set`, even in their safe mode, rely on  being able to query same question twice, this leads to non-optimality:
+`dsl.numeric` and `dsl.set`, even in their safe mode, rely on  being able to query same question twice, this leads to imperfection:
 
 ```ts
 if(obs1 === 1) {
