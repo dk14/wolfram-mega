@@ -703,7 +703,9 @@ dsl.set.outcomeT<string>("which?", ["lol", "okay", "yaaylol"], x => x).evaluate(
 })
 ```
 
-> note: strict modes for numbers, work for sets as well
+> strict modes for numbers, apply to sets as well 
+
+> `dsl.set.safe` works too
 
 #### ⇌ Quantized auction
 
