@@ -846,6 +846,15 @@ export class Dsl {
     }
 
     private ignoreObserveChecks = false
+
+    public bool = {
+        safe: {
+            outcome: (pubkey: string, yes: string, no: string, args: {[id: string]: string} = {}): boolean => {
+                return this.outcome(pubkey, [yes], [no], args)      
+            }
+        },
+    }
+
     public numeric = {
         infinity: {
             bounded: (maxInfinity = 10000000, maxCount = 1000000000) => ({
@@ -866,6 +875,29 @@ export class Dsl {
                     .perpetual(init, step)
                 }
             })
+        },
+        safe: {
+            outcome: (pubkey: string, yes: number, no: number, args: {[id: string]: string} = {}): number => {
+                if (this.outcome(pubkey, [`${yes}`], [`${no}`], args)) {
+                    return yes
+                } else {
+                    return no
+                }
+            },
+            if: (pubkey: string, yes: number, no: number, args: {[id: string]: string} = {}) => {
+                const iff = this.if(pubkey, [`${yes}`], [`${no}`], args)
+                return {
+                    then: (handler: (v: number, p: PaymentHandler) => void) => {
+                        const thenn = iff.then(h => handler(yes, h))
+                        return {
+                            else: (handler: (v: number, p: PaymentHandler) => void) => {
+                                return thenn.else(h => handler(no, h))
+                            }
+                        }
+                    }
+                }
+            }
+
         },
         outcome: (pubkey: string, from: number, to: number, step: number = 1, args: {[id: string]: string} = {}, allowMisplacedPay = false, allowFork = false) => ({
             evaluate: (handler: (n: number) => void) => {
@@ -1064,6 +1096,49 @@ export class Dsl {
     }
 
     public set = {
+        safe: {
+            outcome: (pubkey: string, yes: string, no: string, args: {[id: string]: string} = {}, allowMisplacedPay = false): string => {
+                if (this.outcome(pubkey, [yes], [no], args)) {
+                    return yes
+                } else {
+                    return no
+                }
+            },
+            outcomeT: <T>(pubkey: string, yes: T, no: T, renderer: (x: T) => string = x => x.toString(), args: {[id: string]: string} = {}): T => {
+                if (this.outcome(pubkey, [renderer(yes)], [renderer(no)], args)) {
+                    return yes
+                } else {
+                    return no
+                }
+            },
+            if: (pubkey: string, yes: string, no: string, args: {[id: string]: string} = {}) => {
+                const iff = this.if(pubkey, [yes], [no], args)
+                return {
+                    then: (handler: (v: string, p: PaymentHandler) => void) => {
+                        const thenn = iff.then(h => handler(yes, h))
+                        return {
+                            else: (handler: (v: string, p: PaymentHandler) => void) => {
+                                return thenn.else(h => handler(no, h))
+                            }
+                        }
+                    }
+                }
+            },
+            ifT: <T>(pubkey: string, yes: T, no: T, renderer: (x: T) => string = x => x.toString(), args: {[id: string]: string} = {}) => {
+                const iff = this.if(pubkey, [renderer(yes)], [renderer(no)], args)
+                return {
+                    then: (handler: (v: T, p: PaymentHandler) => void) => {
+                        const thenn = iff.then(h => handler(yes, h))
+                        return {
+                            else: (handler: (v: T, p: PaymentHandler) => void) => {
+                                return thenn.else(h => handler(no, h))
+                            }
+                        }
+                    }
+                }
+            }
+
+        },
         outcome: (pubkey: string, set:string[], args: {[id: string]: string} = {}, allowMisplacedPay = false, allowFork = true) => ({
             evaluate: (handler: (n: string) => void) => {
                 const recurse = (l: string[], r: string[]) => {
@@ -1722,6 +1797,7 @@ export class Dsl {
     }
 
     private multiflag = false
+
     public async enumerateWithBoundMulti(collateralBounds: [number, number][]): Promise<[string, string, OfferModel][]> {
         this.multiflag = true
         const pairs: [string, string][] = 
