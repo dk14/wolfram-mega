@@ -5,7 +5,12 @@ import { PeerServer } from "peer";
 
 export const configure = true
 
-const peerServer = PeerServer({ port: 9009, path: "/" }); // this requires internet lol
+const peerServer = PeerServer({ port: 9000, path: "/hello" });
+peerServer.listen()
+
+peerServer.on('connection', (client) => { 
+    console.error("[peer-server]: connected:" + client.getId())
+});
 
 const initiatorId = "initiator-" + Math.floor(Math.random() * 1000000)
 const acceptorId = "acceptor-" + Math.floor(Math.random() * 1000000)

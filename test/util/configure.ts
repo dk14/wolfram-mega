@@ -52,12 +52,14 @@ require('./../../webapp');
 const promise = new Promise(async (resolve) => {
     await global.initWebapp
 
+    /** 
     global.cfg.webrtcPeerServer = {
         host: "localhost",
-        port: 9009,
-        path: "/",
-        pingInterval: 100
+        port: 9000,
+        path: "/hello",
+        pingInterval: 1000
     }
+    */
 
     await api.publishOffer(global.cfg, testOfferMsg)
     await window.storage.addOffer(testOfferMsg)

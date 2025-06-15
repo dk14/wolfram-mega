@@ -109,9 +109,12 @@ npm run webtest-it trace
 Composite contracts:
 ```bash
 npm run webtest-it-composite
+npm run webtest-it-composite trace
 ```
 
-> You suppose to see STALKER logs (from both initiator and acceptor) as well as `[receive][cmd offer]` in trace, unless initialisation fails. Current version uses peerjs discovery and communication (with jsdom to mock it) which is not always reliable.
+> You suppose to see STALKER logs (from both initiator and acceptor) as well as `[receive][cmd offer]` in trace, unless communication fails. Current version (serverless, for web) uses peerjs discovery and communication (with jsdom to mock it in a test) which is not always reliable. 
+
+> Internet is required (for discovery) since local peerjs `PeerServer` discovery does not work (it does not establish connection between local peers properly).
 
 ## Run on node.js
 
