@@ -287,6 +287,8 @@ export class Dsl {
 
     private megaModeStarted = false
     private superModeStarted = false
+    private fairModeStarted = false
+    private strictModeStarted = false
 
     public security = {
         startMegaMode: () => {
@@ -309,7 +311,29 @@ export class Dsl {
             }
             this.superModeStarted = true
             this.superMode = true
-        }
+        },
+        startFairMode: () => {
+            if (this.collateral1 > 0 && this.collateral2 > 0 && this.counter > 0) {
+                throw new Error('Fair mode has to be started before any payouts or observations happen!')
+            }
+            if (this.megaMode) {
+                throw new Error('Fair mode already enabled manually!')
+            }
+            this.fairModeStarted = true
+            this.strictlyFair = true
+
+        },
+        startStrictMode: () => {
+            if (this.collateral1 > 0 && this.collateral2 > 0 && this.counter > 0) {
+                throw new Error('Strict mode has to be started before any payouts or observations happen!')
+            }
+            if (this.megaMode) {
+                throw new Error('Strict mode already enabled manually!')
+            }
+            this.strictModeStarted = true
+            this.strictlyStrict = true
+
+        },
     }
 
     public insecurity = {
@@ -332,10 +356,28 @@ export class Dsl {
                 }
                 this.superMode = false
             },
+            disableFairMode: () => {
+                if (this.fairModeStarted) {
+                    throw new Error('Fair mode has to be started with `startSuperMode`!')
+                }
+                if (!this.strictlyFair) {
+                    throw new Error('Fair mode has to be enabled first!')
+                }
+                this.strictlyFair = false
+            },
+            disableStrictMode: () => {
+                if (this.superModeStarted) {
+                    throw new Error('Strict mode has to be started with `startSuperMode`!')
+                }
+                if (!this.strictlyStrict) {
+                    throw new Error('Strict mode has to be enabled first!')
+                }
+                this.strictlyStrict = false
+            },
         },
         close: {
             enableMegaMode: () => {
-                if (this.megaMode) {
+                if (this.megaModeStarted) {
                     throw new Error('Mega mode has to be started with `startMegaMode`!')
                 }
                 if (this.megaMode) {
@@ -344,13 +386,31 @@ export class Dsl {
                 this.megaMode = false
             },
             enableSuperMode: () => {
-                if (this.superMode) {
+                if (this.superModeStarted) {
                     throw new Error('Mega mode has to be started with `startMegaMode`!')
                 }
                 if (this.superMode) {
                     throw new Error('Mega mode has to be disabled first!')
                 }
                 this.superMode = false
+            },
+            enableFairMode: () => {
+                if (this.fairModeStarted) {
+                    throw new Error('Fair mode has to be started with `startMegaMode`!')
+                }
+                if (this.megaMode) {
+                    throw new Error('Fair mode has to be disabled first!')
+                }
+                this.strictlyFair = false
+            },
+            enableStrictMode: () => {
+                if (this.strictModeStarted) {
+                    throw new Error('Strict mode has to be started with `startMegaMode`!')
+                }
+                if (this.strictlyFair) {
+                    throw new Error('Strict mode has to be disabled first!')
+                }
+                this.strictlyFair = false
             }
 
         }
@@ -1718,6 +1778,18 @@ export class Dsl {
                 await this.body(this)
                 if (this.unfinalized !== 0) {
                     throw new Error("" + this.unfinalized + " resource locks are not released! Every `[v, payments] = valueWithPaymentCtxUnsafe` must have a corresponding `payments.release()`")
+                }
+                if (this.megaModeStarted && !this.megaMode) {
+                    throw new Error("All insecure mega mode escape sections must be closed! Forgot `insecure.close.enableMode`?")
+                }
+                if (this.strictModeStarted && !this.strictlyStrict) {
+                    throw new Error("All insecure strict mode escape sections must be closed! Forgot `insecure.close.enableMode`?")
+                }
+                if (this.superMode && !this.superMode) {
+                    throw new Error("All insecure super mode escape sections must be closed! Forgot `insecure.close.enableMode`?")
+                }
+                if (this.fairModeStarted && !this.strictlyFair) {
+                    throw new Error("All insecure fair mode escape sections must be closed! Forgot `insecure.close.enableMode`?")
                 }
             } catch (e) {
                 if (e === "uninitialized" || e === "skip") {
