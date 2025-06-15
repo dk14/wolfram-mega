@@ -59,6 +59,20 @@ var DslErrors;
         }
     }
     DslErrors.PartyAtAdvantage = PartyAtAdvantage;
+    class OnePayPerCondition extends Error {
+        amount;
+        partyIdx;
+        pair;
+        state;
+        constructor(msg, amount, partyIdx, pair, state) {
+            super(msg);
+            this.amount = amount;
+            this.partyIdx = partyIdx;
+            this.pair = pair;
+            this.state = state;
+        }
+    }
+    DslErrors.OnePayPerCondition = OnePayPerCondition;
     class ComplexConditions extends Error {
         amount;
         partyIdx;
@@ -95,6 +109,10 @@ class Dsl {
     prev = undefined;
     lastOutcome = undefined;
     flag = false;
+    alicePayCounter = 0;
+    bobPayCounter = 0;
+    aliceTrackers = {};
+    bobTrackers = {};
     pay(idx, amount) {
         //console.log("" + idx + "  " + amount + "  " + JSON.stringify(this.prev))
         //console.log(amount)
@@ -153,9 +171,11 @@ class Dsl {
             throw new Error("one pay per condition check! and pay before checking out next condition too, please!");
         }
         if (idx == 0) {
+            this.alicePayCounter++;
             this.prev.bet[1] = Math.round(amount);
         }
         else {
+            this.bobPayCounter++;
             this.prev.bet[0] = Math.round(amount);
         }
         this.flag = true;
@@ -213,6 +233,8 @@ class Dsl {
     checked = [];
     superStrict = false;
     megaStrict = false;
+    strictlyOneLeafPays = false;
+    strictlyOneLeafPairPays = false;
     outcome(pubkey, yes, no, args = {}, allowTruth = false, strict = true) {
         const pubkeyUnique = pubkey + "-###-" + JSON.stringify(yes) + JSON.stringify(no) + JSON.stringify(args);
         if (this.ignoreObserveChecks) {
@@ -643,7 +665,18 @@ class Dsl {
                         }
                     }
                 };
+                const saveAlicePayCounter = this.alicePayCounter;
+                const saveBobPayCounter = this.bobPayCounter;
                 recurse(numbers.slice(0, numbers.length / 2), numbers.slice(numbers.length / 2));
+                const id = this.megaStrict ? pubkey : pubkey + JSON.stringify(args);
+                this.aliceTrackers[id] += (this.alicePayCounter - saveAlicePayCounter) > 0 ? 1 : 0;
+                this.bobTrackers[id] += (this.bobPayCounter - saveBobPayCounter) > 0 ? 1 : 0;
+                if (this.strictlyOneLeafPays && (this.aliceTrackers[id] > 1 || this.bobPayCounter[id] > 1)) {
+                    throw new DslErrors.OnePayPerCondition("Only one leaf in a tree is alowed to pay", undefined, undefined, this.selected, this.state);
+                }
+                if (this.strictlyOneLeafPairPays && (this.aliceTrackers[id] > 1 || this.bobPayCounter[id] > 1)) {
+                    throw new DslErrors.PerfectHedgeError("Only one pair in a tree is alowed to pay", this.state, undefined, undefined, this.selected);
+                }
             },
             evaluateWithPaymentCtx: (payhandler) => {
                 let numbers = [];
@@ -809,7 +842,18 @@ class Dsl {
                         }
                     }
                 };
+                const saveAlicePayCounter = this.alicePayCounter;
+                const saveBobPayCounter = this.bobPayCounter;
                 recurse(set.slice(0, set.length / 2), set.slice(set.length / 2));
+                const id = this.megaStrict ? pubkey : pubkey + JSON.stringify(args);
+                this.aliceTrackers[id] += (this.alicePayCounter - saveAlicePayCounter) > 0 ? 1 : 0;
+                this.bobTrackers[id] += (this.bobPayCounter - saveBobPayCounter) > 0 ? 1 : 0;
+                if (this.strictlyOneLeafPays && (this.aliceTrackers[id] > 1 || this.bobPayCounter[id] > 1)) {
+                    throw new DslErrors.OnePayPerCondition("Only one leaf in a tree is alowed to pay", undefined, undefined, this.selected, this.state);
+                }
+                if (this.strictlyOneLeafPairPays && (this.aliceTrackers[id] > 1 || this.bobPayCounter[id] > 1)) {
+                    throw new DslErrors.PerfectHedgeError("Only one pair in a tree is alowed to pay", this.state, undefined, undefined, this.selected);
+                }
             },
             evaluateWithPaymentCtx: (payhandler) => {
                 const recurse = (l, r) => {
@@ -842,6 +886,9 @@ class Dsl {
                         }
                     });
                 };
+                if (this.strictlyOneLeafPays || this.strictlyOneLeafPairPays) {
+                    throw Error("Leaf strictness tracking is not available in this mode. Use `evaluate`");
+                }
                 recurse(set.slice(0, set.length / 2), set.slice(set.length / 2));
             },
             value: () => {
@@ -876,6 +923,9 @@ class Dsl {
                         }
                     }
                 };
+                if (this.strictlyOneLeafPays || this.strictlyOneLeafPairPays) {
+                    throw Error("Leaf strictness tracking is not available in this mode. Use `evaluate`");
+                }
                 return recurse(set.slice(0, set.length / 2), set.slice(set.length / 2));
             },
             valueWithPaymentCtxUnsafe: () => {
@@ -915,6 +965,9 @@ class Dsl {
                         }
                     });
                 };
+                if (this.strictlyOneLeafPays || this.strictlyOneLeafPairPays) {
+                    throw Error("Leaf strictness tracking is not available in this mode. Use `evaluate`");
+                }
                 recurse(set.slice(0, set.length / 2), set.slice(set.length / 2));
                 this.unfinalized++;
                 if (hh === undefined) {
@@ -957,7 +1010,18 @@ class Dsl {
                         }
                     }
                 };
+                const saveAlicePayCounter = this.alicePayCounter;
+                const saveBobPayCounter = this.bobPayCounter;
                 recurse(set.slice(0, set.length / 2), set.slice(set.length / 2));
+                const id = this.megaStrict ? pubkey : pubkey + JSON.stringify(args);
+                this.aliceTrackers[id] += (this.alicePayCounter - saveAlicePayCounter) > 0 ? 1 : 0;
+                this.bobTrackers[id] += (this.bobPayCounter - saveBobPayCounter) > 0 ? 1 : 0;
+                if (this.strictlyOneLeafPays && (this.aliceTrackers[id] > 1 || this.bobPayCounter[id] > 1)) {
+                    throw new DslErrors.OnePayPerCondition("Only one leaf in a tree is alowed to pay", undefined, undefined, this.selected, this.state);
+                }
+                if (this.strictlyOneLeafPairPays && (this.aliceTrackers[id] > 1 || this.bobPayCounter[id] > 1)) {
+                    throw new DslErrors.PerfectHedgeError("Only one pair in a tree is alowed to pay", this.state, undefined, undefined, this.selected);
+                }
             },
             evaluateWithPaymentCtx: (payhandler) => {
                 const recurse = (l, r) => {
@@ -990,6 +1054,9 @@ class Dsl {
                         }
                     });
                 };
+                if (this.strictlyOneLeafPays || this.strictlyOneLeafPairPays) {
+                    throw Error("Leaf strictness tracking is not available in this mode. Use `evaluate`");
+                }
                 recurse(set.slice(0, set.length / 2), set.slice(set.length / 2));
             },
             value: () => {
@@ -1024,6 +1091,9 @@ class Dsl {
                         }
                     }
                 };
+                if (this.strictlyOneLeafPays || this.strictlyOneLeafPairPays) {
+                    throw Error("Leaf strictness tracking is not available in this mode. Use `evaluate`");
+                }
                 return recurse(set.slice(0, set.length / 2), set.slice(set.length / 2));
             },
             valueWithPaymentCtxUnsafe: () => {
@@ -1063,6 +1133,9 @@ class Dsl {
                         }
                     });
                 };
+                if (this.strictlyOneLeafPays || this.strictlyOneLeafPairPays) {
+                    throw Error("Leaf strictness tracking is not available in this mode. Use `evaluate`");
+                }
                 recurse(set.slice(0, set.length / 2), set.slice(set.length / 2), null);
                 this.unfinalized++;
                 if (hh === undefined) {

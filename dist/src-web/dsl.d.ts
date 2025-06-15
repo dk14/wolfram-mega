@@ -44,6 +44,17 @@ export declare namespace DslErrors {
         pair: [string, string];
         constructor(msg: string, amount: number, partyIdx: 0 | 1, pair: [string, string]);
     }
+    class OnePayPerCondition extends Error {
+        amount: number;
+        partyIdx: 0 | 1;
+        pair: [string, string];
+        state: {
+            [pubkey: string]: [number, boolean, any];
+        };
+        constructor(msg: string, amount: number, partyIdx: 0 | 1, pair: [string, string], state: {
+            [pubkey: string]: [number, boolean, any];
+        });
+    }
     class ComplexConditions extends Error {
         amount: number;
         partyIdx: 0 | 1;
@@ -61,6 +72,10 @@ export declare class Dsl {
     private prev;
     private lastOutcome;
     private flag;
+    private alicePayCounter;
+    private bobPayCounter;
+    private aliceTrackers;
+    private bobTrackers;
     pay(idx: 0 | 1, amount: number): void;
     private enrichAndProgress;
     private counter;
@@ -68,6 +83,8 @@ export declare class Dsl {
     private checked;
     superStrict: boolean;
     megaStrict: boolean;
+    strictlyOneLeafPays: boolean;
+    strictlyOneLeafPairPays: boolean;
     outcome(pubkey: string, yes: string[], no: string[], args?: {
         [id: string]: string;
     }, allowTruth?: boolean, strict?: boolean): boolean;
