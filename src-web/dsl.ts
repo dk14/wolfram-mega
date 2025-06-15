@@ -884,8 +884,8 @@ export class Dsl {
                     return no
                 }
             },
-            if: (pubkey: string, yes: number, no: number, args: {[id: string]: string} = {}) => {
-                const iff = this.if(pubkey, [`${yes}`], [`${no}`], args)
+            if: (pubkey: string, yes: number, no: number, args: {[id: string]: string} = {}, allowSwaps = false, allowMisplacedPay = false, strict = true) => {
+                const iff = this.if(pubkey, [`${yes}`], [`${no}`], args, allowSwaps, allowMisplacedPay, strict)
                 return {
                     then: (handler: (v: number, p: PaymentHandler) => void) => {
                         const thenn = iff.then(h => handler(yes, h))

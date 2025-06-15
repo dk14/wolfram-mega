@@ -556,6 +556,17 @@ dsl.numeric.outcome("price?", lowerBound, upperBound).evaluate(n => {
 
 > `dsl.strictlyOneLeafPays` and `dsl.strictlyOneLeafPairPays` allow to ensure that payment only happens in a single leaf of a tree. `strictlyOneLeafPairPays` is weaker and allows one leaf per party (strictest perfect hedge check on numbers).
 
+
+For cats and niños:
+```ts
+const num = dsl.numeric.safe.outcome("3 or 5?", 3, 5)
+if (num === 3) {
+    ...
+} else { // 5
+    ...
+}
+```
+
 Multi-party:
 
 ```ts
