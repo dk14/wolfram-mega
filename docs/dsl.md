@@ -1006,7 +1006,7 @@ Alice is clearly at advantage though. `dsl.strictlyFair = true` would enforce ve
 ----
 #### Imperfect hedge
 
-`dsl.numeric` and `dsl.set`, even in their safe mode, rely on  being able to query same question twice, this leads to imperfection:
+`dsl.numeric` and `dsl.set`, rely on  being able to query same question twice for more specific outcome, this leads to imperfection:
 
 ```ts
 if(obs === 1) {
