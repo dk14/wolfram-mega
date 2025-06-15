@@ -66,6 +66,8 @@ export declare class Dsl {
     private counter;
     private memoize;
     private checked;
+    superStrict: boolean;
+    megaStrict: boolean;
     outcome(pubkey: string, yes: string[], no: string[], args?: {
         [id: string]: string;
     }, allowTruth?: boolean, strict?: boolean): boolean;
