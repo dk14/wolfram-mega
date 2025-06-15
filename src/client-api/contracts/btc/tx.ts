@@ -39,6 +39,7 @@ export interface Tx {
 }
 
 export interface TxApi {
+    genSimpleTx(aliceIn: UTxO[], alicePub: string, aliceAmounts: number[], changeAlice: number, txfee: number): Promise<Tx>
     genOpeningTx(aliceIn: UTxO[], bobIn: UTxO[], alicePub: string, bobPub: string, aliceAmounts: number[], bobAmounts: number[], changeAlice: number, changeBob: number, txfee: number, openingSession?: OpeningTxSession): Promise<Tx>
     genClosingTx(multiIn: UTxO, alicePub: string, bobPub: string, aliceAmount: number, bobAmount: number, txfee: number): Promise<Tx>
     genAliceCet(multiIn: UTxO, alicePub: string, bobPub: string, adaptorPub: string, aliceAmount: number, bobAmount: number, txfee: number, session?: PublicSession, stateAmount?: number): Promise<Tx>
@@ -89,6 +90,24 @@ function schnorrSignerSingle(pub: string, session: OpeningTxSession = {sigs: []}
             }
 
             //return schnorr.sign(convert.bufferToInt(secret), hash)
+        },
+        getPublicKey(): Buffer {
+            return Buffer.from(pub, "hex")
+        }
+    }
+}
+
+function schnorrSignerSingleWebSimple(pub: string): SignerAsync {
+    return {
+        publicKey: Buffer.from(pub, "hex"),
+        network: net,
+        async sign(hash: Buffer, lowR?: boolean): Promise<Buffer> {
+            return null
+        },
+        async signSchnorr(hash: Buffer): Promise<Buffer> {
+            const secret = await window.privateDB.get("secrets", pub)
+            const signature: Buffer = schnorr.sign(Buffer.from(bs58.decode(secret)).toString("hex").substring(2, 64 + 2), hash)
+            return signature
         },
         getPublicKey(): Buffer {
             return Buffer.from(pub, "hex")
@@ -377,6 +396,50 @@ function schnorrSignerInteractive(pub1: string, pub2: string, session: PublicSes
 
 export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
     return {
+        genSimpleTx: async(aliceIn: UTxO[], alicePub: string, aliceAmounts: number[], changeAlice: number, txfee: number): Promise<Tx> => {
+            const psbt = new bitcoin.Psbt({ network: net})
+            const aliceP2TR = p2pktr(alicePub)
+            console.log("alice_addr = " + aliceP2TR.address)
+
+            const aliceAmount = aliceAmounts.reduce((a, b) => a + b) - changeAlice
+
+            aliceIn.forEach((utxo, i) => {
+                psbt.addInput({
+                    hash: utxo.txid,
+                    index: utxo.vout,
+                    witnessUtxo: { value: aliceAmounts[i], script: aliceP2TR.output! },
+                    tapInternalKey: Buffer.from(alicePub, "hex")
+                })
+            })      
+
+            psbt.addOutput({
+                address: p2pktr(alicePub).address!,
+                value: aliceAmount - txfee
+            });
+
+            if (changeAlice !== 0) {
+                psbt.addOutput({
+                    address: aliceP2TR.address,
+                    value: changeAlice
+                });
+            }
+            
+
+            for (let i = 0; i <  aliceIn.length; i++) {
+                if (isBrowser() || global.isTest) {
+                    await psbt.signInputAsync(i, schnorrSignerSingleWebSimple(alicePub))
+                } else {
+                    await psbt.signInputAsync(i, schnorrSignerSingle(alicePub,))
+                }
+            }
+            
+            psbt.finalizeAllInputs()
+        
+            return {
+                txid: psbt.extractTransaction().getId(),
+                hex: psbt.extractTransaction().toHex()
+            }    
+        },
         genOpeningTx: async (aliceIn: UTxO[], bobIn: UTxO[], alicePub: string, bobPub: string, aliceAmounts: number[], bobAmounts: number[], changeAlice: number, changeBob: number, txfee: number, session: OpeningTxSession = null): Promise<Tx> => {
             const psbt = new bitcoin.Psbt({ network: net})
             const aliceP2TR = p2pktr(alicePub)

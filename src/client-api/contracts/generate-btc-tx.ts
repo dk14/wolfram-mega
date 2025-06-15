@@ -9,6 +9,15 @@ export type TxId = string
 const schnorr = schnorrApi()
 const tx = txApi(schnorr)
 
+export interface SimpleParams {
+    aliceIn: UTxO[],
+    alicePub: PubKey,
+    bobPub: PubKey,
+    aliceAmountIn: number[],
+    changeAlice: number,
+    txfee: number
+}
+
 export interface OpeningParams {
     aliceIn: UTxO[],
     bobIn: UTxO[],
@@ -71,6 +80,15 @@ export interface CetRedemptionParams {
     amount: number,
     txfee: number,
     session?: PublicSession
+}
+
+export const generateSimpleTransaction = async (params: SimpleParams): Promise<Hex> => {
+    return (await tx.genSimpleTx(
+        params.aliceIn, 
+        params.alicePub,
+        params.aliceAmountIn, 
+        params.changeAlice,
+        params.txfee))?.hex
 }
 
 export const generateOpeningTransaction = async (params: OpeningParams): Promise<Hex> => {
