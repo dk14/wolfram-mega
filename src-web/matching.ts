@@ -6,6 +6,8 @@ import { OracleDataProvider, dataProvider, webOracle } from "./oracle-data-provi
 import { clearDb, TraderQuery } from "./impl/storage";
 import { evaluateCounterPartyCollateral, evaluatePartyCollateral } from "./dsl";
 import { MatchingEngine, OfferModel, OfferStatus, PreferenceModel } from "./models";
+import { generateSimpleTransaction, SimpleParams } from "../src/client-api/contracts/generate-btc-tx";
+import { getSimpleUtXo } from "./transactions";
 
 export const randomInt = (n: number): number => {
     return Math.floor(Math.random() * n);
@@ -134,9 +136,8 @@ export const matchingEngine: MatchingEngine = {
     pickOffer: async function (cfg: PreferenceModel): Promise<OfferModel> {
         const top = new Set((await pickCps(cfg)).map(x => x.capabilityPubKey));
 
-        const candidates = (await window.storage.queryOffers({ 
-            where: async (x) => 
-                !x.content.accept 
+        const candidates = (await window.storage.queryOffers({
+            where: async (x) => !x.content.accept
                 && top.has(x.content.terms.question.capabilityPubKey)
         }, paging));
 
@@ -481,20 +482,32 @@ export const matchingEngine: MatchingEngine = {
         };
         const progressed = (await window.storage.queryIssuedOffers({
             where: async (x) => x.pow.hash === hash
-        }, pagedescriptor))[0]
+        }, pagedescriptor))[0];
 
         const cp = (await window.storage.queryCapabilities({
             where: async (x) => x.capabilityPubKey === progressed.content.terms.question.capabilityPubKey
-        }, pagedescriptor))[0]
+        }, pagedescriptor))[0];
 
-        const status = await detectStatus(progressed.content, cp, dataProvider)
+        const status = await detectStatus(progressed.content, cp, dataProvider);
         if (status === 'matching' || status === 'redeem tx available' || status === 'tx submitted') {
             const others = (await window.storage.queryIssuedOffers({
                 where: async (x) => x.content.orderId && x.content.orderId === progressed.content.orderId
             }, pagedescriptor));
 
-            window.storage.removeIssuedOffers(others.map(x => x.pow.hash))
-        }      
+            window.storage.removeIssuedOffers(others.map(x => x.pow.hash));
+        }
+    },
+    takeWinnings: async function (amount: number, destination: string, txfee: number): Promise<string> {
+        const utxos = await getSimpleUtXo(amount, window.address, txfee)
+        const params: SimpleParams = {
+            aliceIn: utxos,
+            alicePub: window.pubkey,
+            aliceAmountIn: utxos.map(x => x.value),
+            changeAlice: utxos.map(x => x.value).reduce((a,b) => a + b) - amount,
+            txfee: txfee,
+            destinationAddr: destination
+        }
+        return await generateSimpleTransaction(params)
     }
 }
 
