@@ -229,8 +229,8 @@ Proper contract:
 
 ```ts
 if (dsl.outcome("really?", ["YES"], ["NO"])) {
-    dsl.pay(Dsl.Alice, 10) 
 } else {
+    dsl.pay(Dsl.Alice, 10)
 } 
 ```
 ...yields same profit.
