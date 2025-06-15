@@ -84,6 +84,20 @@ export namespace DslErrors {
         }
     }
 
+    export class ComplexConditions extends Error {
+        public amount: number
+        public partyIdx: 0 | 1
+        public pair: [string, string]
+
+        constructor(msg: string, amount: number, partyIdx: 0 | 1, pair: [string, string]) {
+            super(msg)
+
+            this.amount = amount
+            this.partyIdx = partyIdx
+            this.pair = pair
+        }
+    }
+
     export class EmptyDslOutput extends Error {}
 
 }
@@ -373,7 +387,9 @@ export class Dsl {
 
     private leafsFiltered = false
 
-    private filterLeafs(model: OfferModel): OfferModel {
+    public strictlyStrict = false
+
+    private filterLeafs(model: OfferModel, assertNoZeros = false): OfferModel {
         if (model === undefined) {
             throw new DslErrors.EmptyDslOutput("Empty DSL model output!")
         }
@@ -389,6 +405,12 @@ export class Dsl {
 
             if (model.bet[0] && !model.bet[1]) {
                 throw new DslErrors.PartyAtAdvantage("Party at advantage - no premium/discount introduced", model.bet[0], 1, this.selected)
+            }
+        }
+
+        if (assertNoZeros) {
+            if (!model.bet[0] && !model.bet[1]) {
+                throw new DslErrors.ComplexConditions("Strict Semantics of observation: complex conditions are disallowed!", model.bet[0], 1, this.selected)
             }
         }
 
@@ -1465,6 +1487,10 @@ export class Dsl {
         while (this.leafsFiltered) {
             this.leafsFiltered = false
             result = this.filterLeafs(result)
+        }
+
+        if (this.strictlyStrict) {
+            this.filterLeafs(result, true)
         }
         return result
     }

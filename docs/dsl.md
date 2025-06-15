@@ -548,7 +548,9 @@ dsl.numeric.outcome("price?", lowerBound, upperBound).evaluate(n => {
 })
 ```
 
-> Example above is a perfect hedge on its own - you'll most likely (but not necesseraly) have to match values of `n` individually in order to keep deal balanced.
+> Example above is a perfect hedge on its own - you'll most likely (but not necesseraly) have to match values of `n` individually in order to keep deal balanced between parties. This can be avoided by using `dsl.unsafe.numeric`, which redefines semantics of numbers to align with human flawed intuition.
+
+> More strict semantics of observation - can be achieved by using `dsl.strictlyFair = true` (see technical notes). The strictest option is `dsl.strictlyFair = true && dsl.StrictlyStrict = true` which disallows any complex condition.
 
 Multi-party:
 
