@@ -219,7 +219,7 @@
 
         <pre class="wallet">
 <div>Balance: <font color="cyan" id="wallet-balance">10,000 sat</font>
-Address: <font color="blue" id="wallet-address">n3W8YyK59F6vQe34uQ8n835L627k2J</font> <img src="./assets/copy.svg" class="copy-button" onclick="alert('copy!')"></div></pre>
+Address: <font color="blue" id="wallet-address">n3W8YyK59F6vQe34uQ8n835L627k2J</font> <img src="./assets/copy.svg" class="copy-button" onclick="window.copyAddressToBuffer()"></div></pre>
 
         <div id="matching"class="scrollable" ><p id="loading" style="color: #00FF00; font-size: 24px; font-family: monospace">Loading...</p></div>
         <div id="contracts" class="scrollable" style="display:none"></div>
@@ -521,9 +521,21 @@ Address: <font color="blue" id="wallet-address">n3W8YyK59F6vQe34uQ8n835L627k2J</
 
             }, 500)
 
+            window.copyAddressToBuffer = () => {
+                navigator.clipboard.writeText(window.address)
+                alert('Copied to Clipboard')
+            }
+
             setInterval(async () => {
-                const address = "n3W8YyK59F6vQe34uQ8n835L627k2J"
-                const balance = "10,000 sat"
+
+                const address =  window.address.length > 20 ? 
+                    window.address.slice(0, 40) + "..."//"n3W8YyK59F6vQe34uQ8n835L627k2J"
+                    : window.address
+
+                const stats = await (await fetch("https://mempool.space/testnet/api/address/" + window.address)).json()
+                const bal = stats.chain_stats.funded_txo_sum - stats.chain_stats.spent_txo_sum
+                const balance = bal.toLocaleString() + " sat"
+            
                 document.getElementById("wallet-address").innerText = address
                 document.getElementById("wallet-balance").innerText = balance
             }, 1000)
