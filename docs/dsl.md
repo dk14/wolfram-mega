@@ -1106,15 +1106,6 @@ if (obs === 1) {
     //payAlice(0)
 }
 ```
-becomes:
-```ts
-if (obs === 1) { 
-    payAlice(10)
-} else if (obs === 2) {
-    //payAlice(0)
-} else if (obs === 3) {
-    //payAlice(0)
-}
 ```
 
 Interest rate driver takes the form above, `pay(10 * obs)` is:
@@ -1129,9 +1120,21 @@ if (obs === 1) {
 } else ...
 ```
 
+becomes:
+
+```ts
+if (obs === 1) {
+    pay(0)
+} else if (obs === 2) {
+    pay(10)
+} else if (obs === 3) {
+    pay(20)
+} else ...
+```
+
 > Set of expected outcomes can safely depend on previous observation (given that observations themselves are independent) - thus it is safe to let's say adjust matching ranges depending on previous unique outcomes.
 
-> TLDR: the only true observation of a set that is safe from overcollaterization - is the one that can be observed and classified only once, the one that is independent (or rather independently judged as true or false) from any other observation (otherwise uniqueness would be unsound). `numeric` and `set` are meant for special "cool" people in a world of quantitative finance. Be cool!
+> TLDR: the only true observation of a set that is safe from overcollaterization - is the one that can be observed and classified only once, the one that is independent from any other observation (otherwise uniqueness would be unsound).
 
 ----
 
