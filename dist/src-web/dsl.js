@@ -806,7 +806,7 @@ class Dsl {
                 recurse(numbers.slice(0, numbers.length / 2), numbers.slice(numbers.length / 2));
                 const id = this.megaMode ? pubkey : pubkey + JSON.stringify(args);
                 if (!allowUnsafe) {
-                    if (this.aliceTrackers[id] > 0) {
+                    if (this.aliceTrackers[id] > numbers.length - 1) {
                         throw new DslErrors.PerfectHedgeError("Party cannot benefit regardless of outcome", this.state, undefined, 0, this.selected);
                     }
                     if (this.bobTrackers[id] > numbers.length - 1) {
@@ -1809,7 +1809,7 @@ if (typeof window === 'undefined' && require.main === module) {
             const capitalisationDates = new Set(["next week"]);
             const notional = 10000;
             const floatingLegIndex = "interest rate index?";
-            const fixedRate = 0.8;
+            const fixedRate = 0.990382835;
             const quantisationStep = 1;
             dates.reduce(([capitalisation1, capitalisation2], date) => {
                 const [floatingRate, accounts] = dsl.unsafe.numeric
@@ -1820,6 +1820,7 @@ if (typeof window === 'undefined' && require.main === module) {
                     const fixedPayout = (notional + capitalisation2) * (fixedRate / 100);
                     accounts.party("alice").pays("bob").amount(floatingPayout);
                     accounts.party("bob").pays("alice").amount(fixedPayout);
+                    console.log("!!!!!" + (floatingPayout - fixedPayout) + " ==> " + JSON.stringify(dsl["aliceTrackers"]));
                     accounts.release();
                     return [0, 0];
                 }
