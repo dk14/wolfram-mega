@@ -76,6 +76,10 @@
   
   </script>
 
+  <script type="text/javascript" src="https://unpkg.com/blockly/blockly_compressed.js"></script>
+<script type="text/javascript" src="https://unpkg.com/blockly/javascript_compressed"></script>
+
+
 <script type="text/javascript" src="https://unpkg.com/lodash"></script>
   <script type="text/javascript" src="https://unpkg.com/butterchurn"></script>
   <script type="text/javascript" src="https://unpkg.com/butterchurn-presets"></script>
@@ -119,8 +123,13 @@ animate()
 
 window.addEventListener("load", async () => {
     const cancel = setInterval(() => {
-      visuals()
-      clearInterval(cancel)  
+      try {
+        visuals()
+        clearInterval(cancel)  
+      } catch {
+
+      }
+      
     }, 1000)
 
 })
@@ -263,27 +272,30 @@ window.addEventListener("load", async () => {
 
    window.addEventListener("load", async () => {
       const cancel = setInterval(async () => {
-        await editing
-        editor.getModel()
-        clearInterval(cancel)  
+        try {
+          await editing
+          editor.getModel()
+          clearInterval(cancel)  
+        } catch {
+
+        }
+        
       }, 1000)
 
    })
 </script>
 
-<script src="https://unpkg.com/blockly/blockly_compressed.js"></script>
-<script src="https://unpkg.com/blockly/javascript_compressed"></script>
 
-<script type="module">
+<script>
 
    const blocklyStart = new Promise(async (resolve, reject) => {    
     
       try {
-        const workspace = Blockly.inject('blocklyDiv', { /* config */ });
+        const workspace = window.Blockly.inject('blocklyDiv', { /* config */ });
 
         const code = javascriptGenerator.workspaceToCode(workspace);
 
-          const definitions = Blockly.createBlockDefinitionsFromJsonArray([{
+          const definitions = window.Blockly.createBlockDefinitionsFromJsonArray([{
             type: 'binary_if',
             message0: 'if %1 observes yes ($2) then go %3\n else observes no ($4) go %5;\n I bet %6 on: %7 yes; You bet %8 against',
             args0: [
@@ -373,10 +385,17 @@ window.addEventListener("load", async () => {
         
 
    window.addEventListener("load", async () => {
+   
       const cancel = setInterval(async () => {
-        await blocklyStart
-        clearInterval(cancel)  
-      }, 1000)
+          try {
+            await blocklyStart
+          } catch {
+
+          }
+          clearInterval(cancel)  
+        }, 1000)
+    
+     
 
    })
 </script>
