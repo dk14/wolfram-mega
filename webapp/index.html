@@ -312,35 +312,48 @@ Address: <font color="blue" id="wallet-address">n3W8YyK59F6vQe34uQ8n835L627k2J</
 
             setInterval(() => {
                 try {
-                    document.getElementById("peers").innerText = "" + window.peers.length
+                    document.getElementById("peers").innerText = "" + window.peerlist.length
                 } catch {
 
                 }    
             }, 1000)
             const defaultClr = "gray"
             window.highlightOrders = "green"
-            window.addEventListener("load", async () => {
-                try {
-                     const conf = {
-                        brightness: 80,
-                        contrast: 200,
-                        sepia: 1
-                    }
-                    DarkReader.setFetchMethod(window.fetch)
 
-                    document.getElementById("contracts_obj").getSVGDocument().getElementById("contracts_svg").setAttribute("fill", defaultClr)
-                    document.getElementById("matching_obj").getSVGDocument().getElementById("matching_svg").setAttribute("fill", "brown")
+
+            const color = window.setInterval(() => {
+                try {
+
+                    if (document.getElementById("contracts_obj") && 
+                    document.getElementById("matching_obj") &&
+                    document.getElementById("profile_obj") &&
+                    document.getElementById("contracts_obj").getSVGDocument() &&
+                    document.getElementById("matching_obj").getSVGDocument().getElementById("matching_svg") &&
+                    document.getElementById("profile_obj").getSVGDocument().getElementById("profile_svg") &&
+                    document.getElementById("contracts_obj").getSVGDocument().getElementById("contracts_svg")) {
+
+                        const conf = {
+                            brightness: 80,
+                            contrast: 200,
+                            sepia: 1
+                        }
+                        DarkReader.setFetchMethod(window.fetch)
+
+                        document.getElementById("contracts_obj").getSVGDocument().getElementById("contracts_svg").setAttribute("fill", defaultClr)
+                        document.getElementById("matching_obj").getSVGDocument().getElementById("matching_svg").setAttribute("fill", "brown")
+                            
+                        document.getElementById("profile_obj").getSVGDocument().getElementById("profile_svg").setAttribute("fill", defaultClr)
+                            
                         
-                    document.getElementById("profile_obj").getSVGDocument().getElementById("profile_svg").setAttribute("fill", defaultClr)
-                        
-                    
-                    DarkReader.enable(conf);
+                        DarkReader.enable(conf);
+                        clearInterval(color)
+                    }
 
                 } catch {
 
                 }
                
-            })
+            }, 500)
 
 
             document.getElementById("matching_obj").addEventListener("load", () => {
