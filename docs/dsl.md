@@ -1106,7 +1106,6 @@ if (obs === 1) {
     //payAlice(0)
 }
 ```
-```
 
 Interest rate driver takes the form above, `pay(10 * obs)` is:
 
