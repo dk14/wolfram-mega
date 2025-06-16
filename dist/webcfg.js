@@ -5,6 +5,7 @@ const tx_1 = require("./src/client-api/contracts/btc/tx");
 const api_1 = require("./src/api");
 const seedpool = 5;
 const prefix = "dk14-peerjs-10101010-";
+const me = Math.round(Math.random() * seedpool);
 exports.cfg = {
     "maxOracles": 100,
     "maxCapabilities": 100,
@@ -15,7 +16,7 @@ exports.cfg = {
     "httpPort": 8081,
     "p2pPort": 0,
     "p2pKeepAlive": 1000,
-    "hostname": prefix + Math.round(Math.random() * seedpool),
+    "hostname": prefix + me,
     "isTest": true,
     "webrtcPeerServer": {
         host: "0.peerjs.com",
@@ -25,7 +26,7 @@ exports.cfg = {
     "p2pseed": [
         { "server": "dk14-peerjs-10101010-1" },
         { "server": "dk14-peerjs-1586786454-acceptor-test" }
-    ].concat(Array(seedpool).map((_, i) => ({ "server": prefix + i }))),
+    ].concat(Array(seedpool).fill(0).map((_, i) => i === me ? undefined : ({ "server": prefix + i })).filter(x => x !== undefined)),
     "oracle": {
         "id": {
             "pubkey": "AAA",
