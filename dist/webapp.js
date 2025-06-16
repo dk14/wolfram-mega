@@ -69,7 +69,7 @@ global.initWebapp = new Promise(async (resolve) => {
         });
     }
     const store = (0, storage_1.indexDBstorage)(await (0, storage_1.database)());
-    window.traderApi = (0, trader_api_1.traderApi)(webcfg_1.cfg.trader, webcfg_1.cfg, api_1.api, store, global.isTest ? p2p_1.p2pNode : webcfg_1.nodeMock);
+    window.traderApi = (0, trader_api_1.traderApi)(webcfg_1.cfg.trader, webcfg_1.cfg, api_1.api, store, p2p_1.p2pNode);
     window.storage = store;
     window.hashLockProvider = matching_1.hashLockProvider;
     window.btc = {
