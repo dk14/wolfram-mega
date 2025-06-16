@@ -170,11 +170,14 @@ class Dsl {
         if (this.flag) {
             throw new Error("one pay per condition check! and pay before checking out next condition too, please!" + `\nat amount = ${amount}; idx = ${idx}; pair = ${this.selected}`);
         }
+        const id = this.megaMode ? this.currentPub : this.currentPub + JSON.stringify(this.currentArgs);
         if (idx == 0) {
             this.alicePayCounter++;
+            this.aliceTrackers[id] += 1;
             this.prev.bet[1] = Math.round(amount);
         }
         else {
+            this.bobTrackers[id] += 1;
             this.bobPayCounter++;
             this.prev.bet[0] = Math.round(amount);
         }
@@ -194,8 +197,12 @@ class Dsl {
             }
         }
     }
+    currentPub = undefined;
+    currentArgs = undefined;
     enrichAndProgress(aliceOutcome, pubkey, yes, no, args = {}) {
         this.lastOutcome = aliceOutcome;
+        this.currentPub = pubkey;
+        this.currentArgs = args;
         this.flag = false;
         if (aliceOutcome === false) {
             if (this.cursor.ifCounterPartyWins === undefined) {
@@ -330,6 +337,10 @@ class Dsl {
                 throw new Error("Did not find state while editing the tree: " + pubkeyUnique + "\n" + this.state);
             }
             return this.state[pubkeyUnique][1];
+        }
+        if (strict) {
+            this.alicePayCounter = 0;
+            this.bobPayCounter = 0;
         }
         yes.sort();
         no.sort();
@@ -562,8 +573,8 @@ class Dsl {
             return this.if(pubkey, yes, no, args, allowSwaps, allowMisplacedPay, strict);
         },
         numeric: {
-            outcome: (pubkey, from, to, step = 1, args = {}, allowMisplacedPay = true, allowFork = true) => {
-                return this.numeric.outcome(pubkey, from, to, step, args, allowMisplacedPay, allowFork);
+            outcome: (pubkey, from, to, step = 1, args = {}, allowMisplacedPay = true, allowUnsafe = true) => {
+                return this.numeric.outcome(pubkey, from, to, step, args, allowMisplacedPay, allowUnsafe);
             },
             infinity: {
                 bounded: (maxInfinity = 10000000, maxCount = 1000000000) => ({
@@ -587,11 +598,11 @@ class Dsl {
             },
         },
         set: {
-            outcome: (pubkey, set, args = {}, allowMisplacedPay = true, allowFork = true) => {
-                return this.set.outcome(pubkey, set, args, allowMisplacedPay, allowFork);
+            outcome: (pubkey, set, args = {}, allowMisplacedPay = true, allowUnsafe = true) => {
+                return this.set.outcome(pubkey, set, args, allowMisplacedPay, allowUnsafe);
             },
-            outcomeT: (pubkey, set, renderer, args = {}, allowMisplacedPay = true, allowFork = true) => {
-                return this.set.outcomeT(pubkey, set, renderer, args, allowMisplacedPay, allowFork);
+            outcomeT: (pubkey, set, renderer, args = {}, allowMisplacedPay = true, allowUnsafe = true) => {
+                return this.set.outcomeT(pubkey, set, renderer, args, allowMisplacedPay, allowUnsafe);
             }
         },
         ifAtomicSwapLeg1: (lock = "TRUTH", unlockOutcome = "true", allowMisplacedPay = true) => {
@@ -747,9 +758,9 @@ class Dsl {
                 };
             }
         },
-        outcome: (pubkey, from, to, step = 1, args = {}, allowMisplacedPay = false, allowFork = false) => ({
+        outcome: (pubkey, from, to, step = 1, args = {}, allowMisplacedPay = false, allowUnsafe = false) => ({
             evaluate: (handler) => {
-                if (allowFork) {
+                if (allowUnsafe) {
                     this.ignoreObserveChecks = true;
                 }
                 let numbers = [];
@@ -765,12 +776,7 @@ class Dsl {
                     }
                     if (this.outcome(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args, false, false)) {
                         if (l.length === 1) {
-                            if (allowFork) {
-                                if (this.outcome(pubkey, l.map(x => x.toString()), ["$$$$false"])) {
-                                    handler(l[0]);
-                                }
-                            }
-                            else {
+                            if (this.outcome(pubkey, l.map(x => x.toString()), ["$$$$false"], args, false, false)) {
                                 handler(l[0]);
                             }
                         }
@@ -780,21 +786,23 @@ class Dsl {
                     }
                     else {
                         if (r.length === 1) {
-                            if (this.unsafe.outcome(pubkey, r.map(x => x.toString()), [])) {
-                                handler(r[0]);
-                            }
+                            handler(r[0]);
                         }
                         else {
                             recurse(r.slice(0, r.length / 2), r.slice(r.length / 2));
                         }
                     }
                 };
-                const saveAlicePayCounter = this.alicePayCounter;
-                const saveBobPayCounter = this.bobPayCounter;
                 recurse(numbers.slice(0, numbers.length / 2), numbers.slice(numbers.length / 2));
                 const id = this.megaMode ? pubkey : pubkey + JSON.stringify(args);
-                this.aliceTrackers[id] += (this.alicePayCounter - saveAlicePayCounter) > 0 ? 1 : 0;
-                this.bobTrackers[id] += (this.bobPayCounter - saveBobPayCounter) > 0 ? 1 : 0;
+                if (!allowUnsafe) {
+                    if (this.aliceTrackers[id] > numbers.length - 1) {
+                        throw new DslErrors.PerfectHedgeError("Party cannot benefit regardless of outcome", this.state, undefined, 0, this.selected);
+                    }
+                    if (this.bobTrackers[id] > numbers.length - 1) {
+                        throw new DslErrors.PerfectHedgeError("Party cannot benefit regardless of outcome", this.state, undefined, 1, this.selected);
+                    }
+                }
                 if (this.strictlyOneLeafPays && (this.aliceTrackers[id] > 1 || this.bobPayCounter[id] > 1)) {
                     throw new DslErrors.OnePayPerCondition("Only one leaf in a tree is alowed to pay", undefined, undefined, this.selected, this.state);
                 }
@@ -807,7 +815,7 @@ class Dsl {
                 for (let i = from; i <= to; i += step) {
                     numbers.push(i);
                 }
-                const recurse = (l, r, payhandlerOut) => {
+                const recurse = (l, r) => {
                     if (l.length === 0) {
                         return;
                     }
@@ -816,28 +824,32 @@ class Dsl {
                     }
                     this.unsafe.if(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args, false, allowMisplacedPay).then(h => {
                         if (l.length === 1) {
-                            if (allowFork) {
-                                this.unsafe.if(pubkey, l.map(x => x.toString()), ["$$$$false"], args, false, allowMisplacedPay).then(h => {
-                                    payhandler(h, l[0]);
-                                });
-                            }
-                            else {
+                            this.unsafe.if(pubkey, l.map(x => x.toString()), ["$$$$false"], args, false, allowMisplacedPay).then(h => {
                                 payhandler(h, l[0]);
-                            }
+                            });
                         }
                         else {
-                            recurse(l.slice(0, l.length / 2), l.slice(l.length / 2), h);
+                            recurse(l.slice(0, l.length / 2), l.slice(l.length / 2));
                         }
                     }).else(h => {
                         if (r.length === 1) {
                             payhandler(h, l[0]);
                         }
                         else {
-                            recurse(r.slice(0, r.length / 2), r.slice(r.length / 2), h);
+                            recurse(r.slice(0, r.length / 2), r.slice(r.length / 2));
                         }
                     });
                 };
-                recurse(numbers.slice(0, numbers.length / 2), numbers.slice(numbers.length / 2), null);
+                recurse(numbers.slice(0, numbers.length / 2), numbers.slice(numbers.length / 2));
+                const id = this.megaMode ? pubkey : pubkey + JSON.stringify(args);
+                if (!allowUnsafe) {
+                    if (this.aliceTrackers[id] > numbers.length - 1) {
+                        throw new DslErrors.PerfectHedgeError("Party cannot benefit regardless of outcome", this.state, undefined, 0, this.selected);
+                    }
+                    if (this.bobTrackers[id] > numbers.length - 1) {
+                        throw new DslErrors.PerfectHedgeError("Party cannot benefit regardless of outcome", this.state, undefined, 1, this.selected);
+                    }
+                }
             },
             value: () => {
                 let numbers = [];
@@ -853,16 +865,11 @@ class Dsl {
                     }
                     if (this.unsafe.outcome(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args)) {
                         if (l.length === 1) {
-                            if (allowFork) {
-                                if (this.unsafe.outcome(pubkey, l.map(x => x.toString()), ["$$$$false"], args)) {
-                                    return l[0];
-                                }
-                                else {
-                                    throw "skip";
-                                }
+                            if (this.unsafe.outcome(pubkey, l.map(x => x.toString()), ["$$$$false"], args)) {
+                                return l[0];
                             }
                             else {
-                                return l[0];
+                                throw "skip";
                             }
                         }
                         else {
@@ -878,6 +885,9 @@ class Dsl {
                         }
                     }
                 };
+                if (!allowUnsafe) {
+                    throw new Error('Only available in unsafe mode');
+                }
                 return recurse(numbers.slice(0, numbers.length / 2), numbers.slice(numbers.length / 2));
             },
             valueWithPaymentCtxUnsafe: () => {
@@ -901,14 +911,11 @@ class Dsl {
                     }
                     this.unsafe.if(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), argument, false, allowMisplacedPay).then(h => {
                         if (l.length === 1) {
-                            if (allowFork) {
-                                this.unsafe.if(pubkey, l.map(x => x.toString()), [], args, false, allowMisplacedPay).then(h => {
-                                    payhandler(h, l[0]);
-                                });
-                            }
-                            else {
+                            this.unsafe.if(pubkey, l.map(x => x.toString()), [], args, false, allowMisplacedPay).then(h => {
                                 payhandler(h, l[0]);
-                            }
+                            }).else(_ => {
+                                throw "skip";
+                            });
                         }
                         else {
                             recurse(l.slice(0, l.length / 2), l.slice(l.length / 2), h);
@@ -924,6 +931,10 @@ class Dsl {
                 };
                 recurse(numbers.slice(0, numbers.length / 2), numbers.slice(numbers.length / 2), null);
                 this.unfinalized++;
+                const saveRelease = hh.release;
+                hh.release = () => {
+                    saveRelease();
+                };
                 if (hh === undefined) {
                     this.unfinalized--;
                     throw "skip";
@@ -977,7 +988,7 @@ class Dsl {
                 };
             }
         },
-        outcome: (pubkey, set, args = {}, allowMisplacedPay = false, allowFork = true) => ({
+        outcome: (pubkey, set, args = {}, allowMisplacedPay = false, allowUnsafe = true) => ({
             evaluate: (handler) => {
                 const recurse = (l, r) => {
                     if (l.length === 0) {
@@ -988,12 +999,7 @@ class Dsl {
                     }
                     if (this.unsafe.outcome(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args)) {
                         if (l.length === 1) {
-                            if (allowFork) {
-                                if (this.unsafe.outcome(pubkey, l, ["$$$$false"])) {
-                                    handler(l[0]);
-                                }
-                            }
-                            else {
+                            if (this.unsafe.outcome(pubkey, l, ["$$$$false"])) {
                                 handler(l[0]);
                             }
                         }
@@ -1010,12 +1016,16 @@ class Dsl {
                         }
                     }
                 };
-                const saveAlicePayCounter = this.alicePayCounter;
-                const saveBobPayCounter = this.bobPayCounter;
                 recurse(set.slice(0, set.length / 2), set.slice(set.length / 2));
                 const id = this.megaMode ? pubkey : pubkey + JSON.stringify(args);
-                this.aliceTrackers[id] += (this.alicePayCounter - saveAlicePayCounter) > 0 ? 1 : 0;
-                this.bobTrackers[id] += (this.bobPayCounter - saveBobPayCounter) > 0 ? 1 : 0;
+                if (!allowUnsafe) {
+                    if (this.aliceTrackers[id] > set.length - 1) {
+                        throw new DslErrors.PerfectHedgeError("Party cannot benefit regardless of outcome", this.state, undefined, 0, this.selected);
+                    }
+                    if (this.bobTrackers[id] > set.length - 1) {
+                        throw new DslErrors.PerfectHedgeError("Party cannot benefit regardless of outcome", this.state, undefined, 1, this.selected);
+                    }
+                }
                 if (this.strictlyOneLeafPays && (this.aliceTrackers[id] > 1 || this.bobPayCounter[id] > 1)) {
                     throw new DslErrors.OnePayPerCondition("Only one leaf in a tree is alowed to pay", undefined, undefined, this.selected, this.state);
                 }
@@ -1033,14 +1043,9 @@ class Dsl {
                     }
                     this.if(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args, false, allowMisplacedPay).then(h => {
                         if (l.length === 1) {
-                            if (allowFork) {
-                                this.if(pubkey, l.map(x => x.toString()), ["$$$$false"], args, false, allowMisplacedPay).then(h => {
-                                    payhandler(h, l[0]);
-                                });
-                            }
-                            else {
+                            this.if(pubkey, l.map(x => x.toString()), ["$$$$false"], args, false, allowMisplacedPay).then(h => {
                                 payhandler(h, l[0]);
-                            }
+                            });
                         }
                         else {
                             recurse(l.slice(0, l.length / 2), l.slice(l.length / 2));
@@ -1058,6 +1063,15 @@ class Dsl {
                     throw Error("Leaf strictness tracking is not available in this mode. Use `evaluate`");
                 }
                 recurse(set.slice(0, set.length / 2), set.slice(set.length / 2));
+                const id = this.megaMode ? pubkey : pubkey + JSON.stringify(args);
+                if (!allowUnsafe) {
+                    if (this.aliceTrackers[id] > set.length - 1) {
+                        throw new DslErrors.PerfectHedgeError("Party cannot benefit regardless of outcome", this.state, undefined, 0, this.selected);
+                    }
+                    if (this.bobTrackers[id] > set.length - 1) {
+                        throw new DslErrors.PerfectHedgeError("Party cannot benefit regardless of outcome", this.state, undefined, 1, this.selected);
+                    }
+                }
             },
             value: () => {
                 const recurse = (l, r) => {
@@ -1069,13 +1083,11 @@ class Dsl {
                     }
                     if (this.outcome(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args)) {
                         if (l.length === 1) {
-                            if (allowFork) {
-                                if (this.outcome(pubkey, l.map(x => x.toString()), ["$$$$false"], args)) {
-                                    return l[0];
-                                }
+                            if (this.outcome(pubkey, l.map(x => x.toString()), ["$$$$false"], args)) {
+                                return l[0];
                             }
                             else {
-                                return l[0];
+                                throw "skip";
                             }
                         }
                         else {
@@ -1112,14 +1124,9 @@ class Dsl {
                     }
                     this.if(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args, false, allowMisplacedPay).then(h => {
                         if (l.length === 1) {
-                            if (allowFork) {
-                                this.if(pubkey, l.map(x => x.toString()), ["$$$$false"], args, false, allowMisplacedPay).then(h => {
-                                    payhandler(h, l[0]);
-                                });
-                            }
-                            else {
+                            this.if(pubkey, l.map(x => x.toString()), ["$$$$false"], args, false, allowMisplacedPay).then(h => {
                                 payhandler(h, l[0]);
-                            }
+                            });
                         }
                         else {
                             recurse(l.slice(0, l.length / 2), l.slice(l.length / 2));
@@ -1145,7 +1152,7 @@ class Dsl {
                 return [nn, hh];
             }
         }),
-        outcomeT: (pubkey, set, renderer, args = {}, allowMisplacedPay = false, allowFork = false) => ({
+        outcomeT: (pubkey, set, renderer, args = {}, allowMisplacedPay = false, allowUnsafe = false) => ({
             evaluate: (handler) => {
                 const recurse = (l, r) => {
                     if (l.length === 0) {
@@ -1156,12 +1163,7 @@ class Dsl {
                     }
                     if (this.unsafe.outcome(pubkey, l.map(x => renderer(x)), r.map(x => renderer(x)), args)) {
                         if (l.length === 1) {
-                            if (allowFork) {
-                                if (this.unsafe.outcome(pubkey, l.map(x => renderer(x)), ["$$$$false"])) {
-                                    handler(l[0]);
-                                }
-                            }
-                            else {
+                            if (this.unsafe.outcome(pubkey, l.map(x => renderer(x)), ["$$$$false"])) {
                                 handler(l[0]);
                             }
                         }
@@ -1178,12 +1180,16 @@ class Dsl {
                         }
                     }
                 };
-                const saveAlicePayCounter = this.alicePayCounter;
-                const saveBobPayCounter = this.bobPayCounter;
                 recurse(set.slice(0, set.length / 2), set.slice(set.length / 2));
                 const id = this.megaMode ? pubkey : pubkey + JSON.stringify(args);
-                this.aliceTrackers[id] += (this.alicePayCounter - saveAlicePayCounter) > 0 ? 1 : 0;
-                this.bobTrackers[id] += (this.bobPayCounter - saveBobPayCounter) > 0 ? 1 : 0;
+                if (!allowUnsafe) {
+                    if (this.aliceTrackers[id] > set.length - 1) {
+                        throw new DslErrors.PerfectHedgeError("Party cannot benefit regardless of outcome", this.state, undefined, 0, this.selected);
+                    }
+                    if (this.bobTrackers[id] > set.length - 1) {
+                        throw new DslErrors.PerfectHedgeError("Party cannot benefit regardless of outcome", this.state, undefined, 1, this.selected);
+                    }
+                }
                 if (this.strictlyOneLeafPays && (this.aliceTrackers[id] > 1 || this.bobPayCounter[id] > 1)) {
                     throw new DslErrors.OnePayPerCondition("Only one leaf in a tree is alowed to pay", undefined, undefined, this.selected, this.state);
                 }
@@ -1201,14 +1207,9 @@ class Dsl {
                     }
                     this.if(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args, false, allowMisplacedPay).then(h => {
                         if (l.length === 1) {
-                            if (allowFork) {
-                                this.if(pubkey, l.map(x => x.toString()), ["$$$$false"], args, false, allowMisplacedPay).then(h => {
-                                    payhandler(h, l[0]);
-                                });
-                            }
-                            else {
+                            this.if(pubkey, l.map(x => x.toString()), ["$$$$false"], args, false, allowMisplacedPay).then(h => {
                                 payhandler(h, l[0]);
-                            }
+                            });
                         }
                         else {
                             recurse(l.slice(0, l.length / 2), l.slice(l.length / 2));
@@ -1237,12 +1238,7 @@ class Dsl {
                     }
                     if (this.outcome(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args)) {
                         if (l.length === 1) {
-                            if (allowFork) {
-                                if (this.outcome(pubkey, l.map(x => x.toString()), ["$$$$false"], args)) {
-                                    return l[0];
-                                }
-                            }
-                            else {
+                            if (this.outcome(pubkey, l.map(x => x.toString()), ["$$$$false"], args)) {
                                 return l[0];
                             }
                         }
@@ -1271,7 +1267,7 @@ class Dsl {
                     nn = n;
                     hh = h;
                 };
-                const recurse = (l, r, payhandlerOut) => {
+                const recurse = (l, r) => {
                     if (l.length === 0) {
                         return;
                     }
@@ -1280,31 +1276,26 @@ class Dsl {
                     }
                     const rt = this.if(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args, false, allowMisplacedPay).then(h => {
                         if (l.length === 1) {
-                            if (allowFork) {
-                                this.if(pubkey, l.map(x => x.toString()), ["$$$$false"], args, false, allowMisplacedPay).then(h => {
-                                    payhandler(h, l[0]);
-                                });
-                            }
-                            else {
+                            this.if(pubkey, l.map(x => x.toString()), ["$$$$false"], args, false, allowMisplacedPay).then(h => {
                                 payhandler(h, l[0]);
-                            }
+                            });
                         }
                         else {
-                            recurse(l.slice(0, l.length / 2), l.slice(l.length / 2), h);
+                            recurse(l.slice(0, l.length / 2), l.slice(l.length / 2));
                         }
                     }).else(h => {
                         if (r.length === 1) {
                             payhandler(h, r[0]);
                         }
                         else {
-                            recurse(r.slice(0, r.length / 2), r.slice(r.length / 2), h);
+                            recurse(r.slice(0, r.length / 2), r.slice(r.length / 2));
                         }
                     });
                 };
                 if (this.strictlyOneLeafPays || this.strictlyOneLeafPairPays) {
                     throw Error("Leaf strictness tracking is not available in this mode. Use `evaluate`");
                 }
-                recurse(set.slice(0, set.length / 2), set.slice(set.length / 2), null);
+                recurse(set.slice(0, set.length / 2), set.slice(set.length / 2));
                 this.unfinalized++;
                 if (hh === undefined) {
                     this.unfinalized--;
@@ -1667,6 +1658,8 @@ class Dsl {
         this.protect = true;
         let next = true;
         const mutex = new async_mutex_1.Mutex();
+        this.aliceTrackers = {};
+        this.bobTrackers = {};
         while (next) {
             try {
                 this.collateral1 = 0;

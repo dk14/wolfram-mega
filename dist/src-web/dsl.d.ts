@@ -77,6 +77,10 @@ export declare class Dsl {
     private aliceTrackers;
     private bobTrackers;
     pay(idx: 0 | 1, amount: number): void;
+    currentPub: string;
+    currentArgs: {
+        [id: string]: string;
+    };
     private enrichAndProgress;
     private counter;
     private memoize;
@@ -158,7 +162,7 @@ export declare class Dsl {
         numeric: {
             outcome: (pubkey: string, from: number, to: number, step?: number, args?: {
                 [id: string]: string;
-            }, allowMisplacedPay?: boolean, allowFork?: boolean) => {
+            }, allowMisplacedPay?: boolean, allowUnsafe?: boolean) => {
                 evaluate: (handler: (n: number) => void) => void;
                 evaluateWithPaymentCtx: (payhandler: (h: PaymentHandler, n: number) => void) => void;
                 value: () => number;
@@ -176,7 +180,7 @@ export declare class Dsl {
         set: {
             outcome: (pubkey: string, set: string[], args?: {
                 [id: string]: string;
-            }, allowMisplacedPay?: boolean, allowFork?: boolean) => {
+            }, allowMisplacedPay?: boolean, allowUnsafe?: boolean) => {
                 evaluate: (handler: (n: string) => void) => void;
                 evaluateWithPaymentCtx: (payhandler: (h: PaymentHandler, n: string) => void) => void;
                 value: () => string;
@@ -184,7 +188,7 @@ export declare class Dsl {
             };
             outcomeT: <T>(pubkey: string, set: T[], renderer: (x: T) => string, args?: {
                 [id: string]: string;
-            }, allowMisplacedPay?: boolean, allowFork?: boolean) => {
+            }, allowMisplacedPay?: boolean, allowUnsafe?: boolean) => {
                 evaluate: (handler: (n: T) => void) => void;
                 evaluateWithPaymentCtx: (payhandler: (h: PaymentHandler, n: T) => void) => void;
                 value: () => T;
@@ -253,7 +257,7 @@ export declare class Dsl {
         };
         outcome: (pubkey: string, from: number, to: number, step?: number, args?: {
             [id: string]: string;
-        }, allowMisplacedPay?: boolean, allowFork?: boolean) => {
+        }, allowMisplacedPay?: boolean, allowUnsafe?: boolean) => {
             evaluate: (handler: (n: number) => void) => void;
             evaluateWithPaymentCtx: (payhandler: (h: PaymentHandler, n: number) => void) => void;
             value: () => number;
@@ -285,7 +289,7 @@ export declare class Dsl {
         };
         outcome: (pubkey: string, set: string[], args?: {
             [id: string]: string;
-        }, allowMisplacedPay?: boolean, allowFork?: boolean) => {
+        }, allowMisplacedPay?: boolean, allowUnsafe?: boolean) => {
             evaluate: (handler: (n: string) => void) => void;
             evaluateWithPaymentCtx: (payhandler: (h: PaymentHandler, n: string) => void) => void;
             value: () => string;
@@ -293,7 +297,7 @@ export declare class Dsl {
         };
         outcomeT: <T>(pubkey: string, set: T[], renderer: (x: T) => string, args?: {
             [id: string]: string;
-        }, allowMisplacedPay?: boolean, allowFork?: boolean) => {
+        }, allowMisplacedPay?: boolean, allowUnsafe?: boolean) => {
             evaluate: (handler: (n: T) => void) => void;
             evaluateWithPaymentCtx: (payhandler: (h: PaymentHandler, n: T) => void) => void;
             value: () => T;
