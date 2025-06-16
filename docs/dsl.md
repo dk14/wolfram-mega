@@ -1083,7 +1083,7 @@ dsl.insecurity.close.enableMegaMode()
 
 > Just to re-iterate: any computation of payout on the outcome itself (except splitting it into two categories ONCE) is unsafe. Re-using same observation with a different split is unsafe (iid requirement). Both Interest rate drivers in finance are unsafe - they overcollaterize, only matching on a single split of interest driver can work. The only derivative that is secure is hedge-purified binary option.
 
-Many complex derivative instruments are unsafe. Proof by induction:
+Many complex derivative instruments are unsafe. Proof:
 
 ```ts
 if(obs === 1) { //observation
