@@ -959,7 +959,7 @@ Memoization between parallel execution pathes is possible in theory. Decreasing 
 
 > Turning off binary `PerfectHedge` check would allow to remove extra step. This however would reduce "edge-case" safety. It is more wise to defer such optimization to contract interpreter, since it already would be turning binary trees into n-trees anyways.
 
-> `numeric` and `set` are tricky to use, it is result of computational nature of sets in finance, rather than language design. We recommend to rely on `numeric.safe` and `set.safe` versions in practice, so to avoid the temptation to swith from e.g. `numeric` (safe but tricky) to `unsafe.numeric` and create yet another pathological derivative.
+> `numeric` and `set` are tricky to use, it is result of computational nature of sets in finance, rather than language design. We recommend to rely on `numeric.safe` and `set.safe` versions in practice, so to avoid the temptation to switch from e.g. `numeric` (safe but tricky) to `unsafe.numeric` and create yet another pathological derivative.
 
 #### Parallelization
 
