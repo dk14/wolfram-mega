@@ -85,6 +85,9 @@ var DslErrors;
         }
     }
     DslErrors.ComplexConditions = ComplexConditions;
+    class SafeModeError extends Error {
+    }
+    DslErrors.SafeModeError = SafeModeError;
     class EmptyDslOutput extends Error {
     }
     DslErrors.EmptyDslOutput = EmptyDslOutput;
@@ -244,12 +247,24 @@ class Dsl {
     memoize = [];
     checked = [];
     superMode = false;
+    safeMode = false;
     megaMode = false;
+    safeModeStarted = false;
     megaModeStarted = false;
     superModeStarted = false;
     fairModeStarted = false;
     strictModeStarted = false;
     security = {
+        startSafeMode: () => {
+            if (this.collateral1 > 0 && this.collateral2 > 0 && this.counter > 0) {
+                throw new Error('Safe mode has to be started before any payouts or observations happen!');
+            }
+            if (this.safeMode) {
+                throw new Error('Safe mode already enabled manually!');
+            }
+            this.safeModeStarted = true;
+            this.safeMode = true;
+        },
         startMegaMode: () => {
             if (this.collateral1 > 0 && this.collateral2 > 0 && this.counter > 0) {
                 throw new Error('Mega mode has to be started before any payouts or observations happen!');
@@ -293,6 +308,15 @@ class Dsl {
     };
     insecurity = {
         open: {
+            disableSafeMode: () => {
+                if (this.safeModeStarted) {
+                    throw new Error('Safe mode has to be started with `startSafeMode`!');
+                }
+                if (!this.safeMode) {
+                    throw new Error('Safe mode has to be enabled first!');
+                }
+                this.safeMode = false;
+            },
             disableMegaMode: () => {
                 if (this.megaModeStarted) {
                     throw new Error('Mega mode has to be started with `startMegaMode`!');
@@ -313,7 +337,16 @@ class Dsl {
             }
         },
         close: {
-            enableMegaMode: () => {
+            reEnableSafeMode: () => {
+                if (this.safeModeStarted) {
+                    throw new Error('Safe mode has to be started with `startSafeMode`!');
+                }
+                if (this.safeMode) {
+                    throw new Error('Safe mode has to be disabled first!');
+                }
+                this.safeMode = false;
+            },
+            reEnableMegaMode: () => {
                 if (this.megaModeStarted) {
                     throw new Error('Mega mode has to be started with `startMegaMode`!');
                 }
@@ -322,9 +355,9 @@ class Dsl {
                 }
                 this.megaMode = false;
             },
-            enableSuperMode: () => {
+            reEnableSuperMode: () => {
                 if (this.superModeStarted) {
-                    throw new Error('Mega mode has to be started with `startMegaMode`!');
+                    throw new Error('Mega mode has to be started with `startSuperMode`!');
                 }
                 if (this.superMode) {
                     throw new Error('Mega mode has to be disabled first!');
@@ -584,16 +617,25 @@ class Dsl {
     unssafeInifnityCtx = false;
     unsafe = {
         if: (pubkey, yes, no, args = {}, allowSwaps = false, allowMisplacedPay = true, strict = false, ignoreObserveChecksSuperUnsafe = false) => {
+            if (this.safeMode) {
+                throw new DslErrors.SafeModeError("safe mode is activated! unsafe is disallowed!");
+            }
             return this.if(pubkey, yes, no, args, allowSwaps, allowMisplacedPay, strict, ignoreObserveChecksSuperUnsafe);
         },
         numeric: {
             outcome: (pubkey, from, to, step = 1, args = {}, allowMisplacedPay = true, allowUnsafe = true, ignoreObserveChecksSuperUnsafe = false) => {
+                if (this.safeMode) {
+                    throw new DslErrors.SafeModeError("safe mode is activated! unsafe is disallowed!");
+                }
                 return this.numeric.outcome(pubkey, from, to, step, args, allowMisplacedPay, allowUnsafe, ignoreObserveChecksSuperUnsafe);
             },
             infinity: {
                 bounded: (maxInfinity = 10000000, maxCount = 1000000000) => ({
                     progress: (start, forward = x => x + 1) => ({
                         perpetual: (init, step) => {
+                            if (this.safeMode) {
+                                throw new DslErrors.SafeModeError("safe mode is activated! unsafe is disallowed!");
+                            }
                             this.unsafe.infinity
                                 .bounded(maxInfinity, maxCount)
                                 .compare((a, b) => a - b)
@@ -602,6 +644,9 @@ class Dsl {
                         }
                     }),
                     perpetual: (init, step) => {
+                        if (this.safeMode) {
+                            throw new DslErrors.SafeModeError("safe mode is activated! unsafe is disallowed!");
+                        }
                         this.unsafe.infinity
                             .bounded(maxInfinity, maxCount)
                             .compare((a, b) => b - a)
@@ -613,16 +658,28 @@ class Dsl {
         },
         set: {
             outcome: (pubkey, set, args = {}, allowMisplacedPay = true, allowUnsafe = true) => {
+                if (this.safeMode) {
+                    throw new DslErrors.SafeModeError("safe mode is activated! unsafe is disallowed!");
+                }
                 return this.set.outcome(pubkey, set, args, allowMisplacedPay, allowUnsafe);
             },
             outcomeT: (pubkey, set, renderer, args = {}, allowMisplacedPay = true, allowUnsafe = true) => {
+                if (this.safeMode) {
+                    throw new DslErrors.SafeModeError("safe mode is activated! unsafe is disallowed!");
+                }
                 return this.set.outcomeT(pubkey, set, renderer, args, allowMisplacedPay, allowUnsafe);
             }
         },
         ifAtomicSwapLeg1: (lock = "TRUTH", unlockOutcome = "true", allowMisplacedPay = true) => {
+            if (this.safeMode) {
+                throw new DslErrors.SafeModeError("safe mode is activated! unsafe is disallowed!");
+            }
             return this.if(lock, [unlockOutcome], [unlockOutcome], {}, true, allowMisplacedPay, false);
         },
         outcome: (pubkey, yes, no, args = {}, allowTruth = false, strict = false, ignoreObserveChecksSuperUnsafe = false) => {
+            if (this.safeMode) {
+                throw new DslErrors.SafeModeError("safe mode is activated! unsafe is disallowed!");
+            }
             return this.outcome(pubkey, yes, no, args, allowTruth, strict, ignoreObserveChecksSuperUnsafe);
         },
         infinity: {
@@ -637,6 +694,9 @@ class Dsl {
                 compare: (cmp) => ({
                     progress: (start, forward) => ({
                         perpetual: (init, step) => {
+                            if (this.safeMode) {
+                                throw new DslErrors.SafeModeError("safe mode is activated! unsafe is disallowed!");
+                            }
                             let cursor = start;
                             let counter = 0;
                             let state = init;
@@ -1721,17 +1781,20 @@ class Dsl {
                 if (this.unfinalized !== 0) {
                     throw new Error("" + this.unfinalized + " resource locks are not released! Every `[v, payments] = valueWithPaymentCtxUnsafe` must have a corresponding `payments.release()`");
                 }
+                if (this.safeModeStarted && !this.safeMode) {
+                    throw new Error("All insecure safe mode escape sections must be closed! Forgot `insecure.close.reEnableMode`?");
+                }
                 if (this.megaModeStarted && !this.megaMode) {
-                    throw new Error("All insecure mega mode escape sections must be closed! Forgot `insecure.close.enableMode`?");
+                    throw new Error("All insecure mega mode escape sections must be closed! Forgot `insecure.close.reEnableMode`?");
                 }
                 if (this.strictModeStarted && !this.strictlyStrict) {
-                    throw new Error("All insecure strict mode escape sections must be closed! Forgot `insecure.close.enableMode`?");
+                    throw new Error("All insecure strict mode escape sections must be closed! Forgot `insecure.close.reEnableMode`?");
                 }
                 if (this.superModeStarted && !this.superMode) {
-                    throw new Error("All insecure super mode escape sections must be closed! Forgot `insecure.close.enableMode`?");
+                    throw new Error("All insecure super mode escape sections must be closed! Forgot `insecure.close.reEnableMode`?");
                 }
                 if (this.fairModeStarted && !this.strictlyFair) {
-                    throw new Error("All insecure fair mode escape sections must be closed! Forgot `insecure.close.enableMode`?");
+                    throw new Error("All insecure fair mode escape sections must be closed! Forgot `insecure.close.reEnableMode`?");
                 }
             }
             catch (e) {

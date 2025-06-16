@@ -61,6 +61,8 @@ export declare namespace DslErrors {
         pair: [string, string];
         constructor(msg: string, amount: number, partyIdx: 0 | 1, pair: [string, string]);
     }
+    class SafeModeError extends Error {
+    }
     class EmptyDslOutput extends Error {
     }
 }
@@ -86,12 +88,15 @@ export declare class Dsl {
     private memoize;
     private checked;
     superMode: boolean;
+    safeMode: boolean;
     megaMode: boolean;
+    private safeModeStarted;
     private megaModeStarted;
     private superModeStarted;
     private fairModeStarted;
     private strictModeStarted;
     security: {
+        startSafeMode: () => void;
         startMegaMode: () => void;
         startSuperMode: () => void;
         startFairMode: () => void;
@@ -99,12 +104,14 @@ export declare class Dsl {
     };
     insecurity: {
         open: {
+            disableSafeMode: () => void;
             disableMegaMode: () => void;
             disableSuperMode: () => void;
         };
         close: {
-            enableMegaMode: () => void;
-            enableSuperMode: () => void;
+            reEnableSafeMode: () => void;
+            reEnableMegaMode: () => void;
+            reEnableSuperMode: () => void;
         };
     };
     strictlyOneLeafPays: boolean;
