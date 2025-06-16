@@ -111,7 +111,7 @@ export declare class Dsl {
     strictlyOneLeafPairPays: boolean;
     outcome(pubkey: string, yes: string[], no: string[], args?: {
         [id: string]: string;
-    }, allowTruth?: boolean, strict?: boolean): boolean;
+    }, allowTruth?: boolean, strict?: boolean, ignoreObserveChecksSuperUnsafe?: boolean): boolean;
     private next;
     private body;
     constructor(body: (dsl: Dsl) => Promise<void>);
@@ -154,7 +154,7 @@ export declare class Dsl {
     unsafe: {
         if: (pubkey: string, yes: string[], no: string[], args?: {
             [id: string]: string;
-        }, allowSwaps?: boolean, allowMisplacedPay?: boolean, strict?: boolean) => {
+        }, allowSwaps?: boolean, allowMisplacedPay?: boolean, strict?: boolean, ignoreObserveChecksSuperUnsafe?: boolean) => {
             then: (handler: (handle: PaymentHandler) => void) => {
                 else: (handler: (handle: PaymentHandler) => void) => void;
             };
@@ -162,7 +162,7 @@ export declare class Dsl {
         numeric: {
             outcome: (pubkey: string, from: number, to: number, step?: number, args?: {
                 [id: string]: string;
-            }, allowMisplacedPay?: boolean, allowUnsafe?: boolean) => {
+            }, allowMisplacedPay?: boolean, allowUnsafe?: boolean, ignoreObserveChecksSuperUnsafe?: boolean) => {
                 evaluate: (handler: (n: number) => void) => void;
                 evaluateWithPaymentCtx: (payhandler: (h: PaymentHandler, n: number) => void) => void;
                 value: () => number;
@@ -202,7 +202,7 @@ export declare class Dsl {
         };
         outcome: (pubkey: string, yes: string[], no: string[], args?: {
             [id: string]: string;
-        }, allowTruth?: boolean, strict?: boolean) => boolean;
+        }, allowTruth?: boolean, strict?: boolean, ignoreObserveChecksSuperUnsafe?: boolean) => boolean;
         infinity: {
             move: <T>(x: T) => T;
             stop: <T>(cashflows: T) => [any, T];
@@ -226,7 +226,6 @@ export declare class Dsl {
             };
         };
     };
-    private ignoreObserveChecks;
     bool: {
         safe: {
             outcome: (pubkey: string, yes: string, no: string, args?: {
@@ -257,7 +256,7 @@ export declare class Dsl {
         };
         outcome: (pubkey: string, from: number, to: number, step?: number, args?: {
             [id: string]: string;
-        }, allowMisplacedPay?: boolean, allowUnsafe?: boolean) => {
+        }, allowMisplacedPay?: boolean, allowUnsafe?: boolean, ignoreObserveChecksSuperUnsafe?: boolean) => {
             evaluate: (handler: (n: number) => void) => void;
             evaluateWithPaymentCtx: (payhandler: (h: PaymentHandler, n: number) => void) => void;
             value: () => number;
@@ -319,7 +318,7 @@ export declare class Dsl {
     disablePartyRoleReversal: boolean;
     if: (pubkey: string, yes: string[], no: string[], args?: {
         [id: string]: string;
-    }, allowSwaps?: boolean, allowMisplacedPay?: boolean, strict?: boolean) => {
+    }, allowSwaps?: boolean, allowMisplacedPay?: boolean, strict?: boolean, ignoreObserveChecksSuperUnsafe?: boolean) => {
         then: (handler: (handle: PaymentHandler) => void) => {
             else: (handler: (handle: PaymentHandler) => void) => void;
         };

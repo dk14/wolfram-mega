@@ -330,12 +330,19 @@ class Dsl {
     };
     strictlyOneLeafPays = false;
     strictlyOneLeafPairPays = false;
-    outcome(pubkey, yes, no, args = {}, allowTruth = false, strict = true) {
+    outcome(pubkey, yes, no, args = {}, allowTruth = false, strict = true, ignoreObserveChecksSuperUnsafe = false) {
         const pubkeyUnique = pubkey + "-###-" + JSON.stringify(yes) + JSON.stringify(no) + JSON.stringify(args);
-        if (this.ignoreObserveChecks) {
-            if (!this.state[pubkeyUnique]) {
-                throw new Error("Did not find state while editing the tree: " + pubkeyUnique + "\n" + this.state);
+        if (ignoreObserveChecksSuperUnsafe) {
+            if (this.state[pubkeyUnique] === undefined) {
+                const memoized = this.memoize.find(x => x.id === pubkey && JSON.stringify(x.yes.sort()) === JSON.stringify(yes.sort()) && JSON.stringify(x.args) === JSON.stringify(args));
+                const pubkeyUnique = pubkey + "-###-" + JSON.stringify(yes) + JSON.stringify(memoized.no) + JSON.stringify(args);
+                if (!this.state[pubkeyUnique]) {
+                    throw new Error("Did not find memoized state " + pubkeyUnique + "\n" + this.state);
+                }
+                this.enrichAndProgress(this.state[pubkeyUnique][1], pubkeyUnique, yes, no, args);
+                return this.state[pubkeyUnique][1];
             }
+            this.enrichAndProgress(this.state[pubkeyUnique][1], pubkeyUnique, yes, no, args);
             return this.state[pubkeyUnique][1];
         }
         if (strict) {
@@ -569,12 +576,12 @@ class Dsl {
     strictlyFair = false;
     unssafeInifnityCtx = false;
     unsafe = {
-        if: (pubkey, yes, no, args = {}, allowSwaps = false, allowMisplacedPay = true, strict = false) => {
-            return this.if(pubkey, yes, no, args, allowSwaps, allowMisplacedPay, strict);
+        if: (pubkey, yes, no, args = {}, allowSwaps = false, allowMisplacedPay = true, strict = false, ignoreObserveChecksSuperUnsafe = false) => {
+            return this.if(pubkey, yes, no, args, allowSwaps, allowMisplacedPay, strict, ignoreObserveChecksSuperUnsafe);
         },
         numeric: {
-            outcome: (pubkey, from, to, step = 1, args = {}, allowMisplacedPay = true, allowUnsafe = true) => {
-                return this.numeric.outcome(pubkey, from, to, step, args, allowMisplacedPay, allowUnsafe);
+            outcome: (pubkey, from, to, step = 1, args = {}, allowMisplacedPay = true, allowUnsafe = true, ignoreObserveChecksSuperUnsafe = false) => {
+                return this.numeric.outcome(pubkey, from, to, step, args, allowMisplacedPay, allowUnsafe, ignoreObserveChecksSuperUnsafe);
             },
             infinity: {
                 bounded: (maxInfinity = 10000000, maxCount = 1000000000) => ({
@@ -608,8 +615,8 @@ class Dsl {
         ifAtomicSwapLeg1: (lock = "TRUTH", unlockOutcome = "true", allowMisplacedPay = true) => {
             return this.if(lock, [unlockOutcome], [unlockOutcome], {}, true, allowMisplacedPay, false);
         },
-        outcome: (pubkey, yes, no, args = {}, allowTruth = false, strict = false) => {
-            return this.outcome(pubkey, yes, no, args, allowTruth, strict);
+        outcome: (pubkey, yes, no, args = {}, allowTruth = false, strict = false, ignoreObserveChecksSuperUnsafe = false) => {
+            return this.outcome(pubkey, yes, no, args, allowTruth, strict, ignoreObserveChecksSuperUnsafe);
         },
         infinity: {
             move: (x) => {
@@ -706,7 +713,6 @@ class Dsl {
             })
         })
     };
-    ignoreObserveChecks = false;
     bool = {
         safe: {
             outcome: (pubkey, yes, no, args = {}) => {
@@ -758,11 +764,8 @@ class Dsl {
                 };
             }
         },
-        outcome: (pubkey, from, to, step = 1, args = {}, allowMisplacedPay = false, allowUnsafe = false) => ({
+        outcome: (pubkey, from, to, step = 1, args = {}, allowMisplacedPay = false, allowUnsafe = false, ignoreObserveChecksSuperUnsafe = false) => ({
             evaluate: (handler) => {
-                if (allowUnsafe) {
-                    this.ignoreObserveChecks = true;
-                }
                 let numbers = [];
                 for (let i = from; i <= to; i += step) {
                     numbers.push(i);
@@ -776,7 +779,7 @@ class Dsl {
                     }
                     if (this.outcome(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args, false, false)) {
                         if (l.length === 1) {
-                            if (this.outcome(pubkey, l.map(x => x.toString()), ["$$$$false"], args, false, false)) {
+                            if (this.outcome(pubkey, l.map(x => x.toString()), [], args, false, false, true)) {
                                 handler(l[0]);
                             }
                         }
@@ -824,7 +827,7 @@ class Dsl {
                     }
                     this.unsafe.if(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args, false, allowMisplacedPay).then(h => {
                         if (l.length === 1) {
-                            this.unsafe.if(pubkey, l.map(x => x.toString()), ["$$$$false"], args, false, allowMisplacedPay).then(h => {
+                            this.unsafe.if(pubkey, l.map(x => x.toString()), [], args, false, allowMisplacedPay, false, true).then(h => {
                                 payhandler(h, l[0]);
                             });
                         }
@@ -865,7 +868,7 @@ class Dsl {
                     }
                     if (this.unsafe.outcome(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args)) {
                         if (l.length === 1) {
-                            if (this.unsafe.outcome(pubkey, l.map(x => x.toString()), ["$$$$false"], args)) {
+                            if (this.unsafe.outcome(pubkey, l.map(x => x.toString()), [], args, false, false, true)) {
                                 return l[0];
                             }
                             else {
@@ -911,7 +914,7 @@ class Dsl {
                     }
                     this.unsafe.if(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), argument, false, allowMisplacedPay).then(h => {
                         if (l.length === 1) {
-                            this.unsafe.if(pubkey, l.map(x => x.toString()), [], args, false, allowMisplacedPay).then(h => {
+                            this.unsafe.if(pubkey, l.map(x => x.toString()), [], args, false, allowMisplacedPay, false, true).then(h => {
                                 payhandler(h, l[0]);
                             }).else(_ => {
                                 throw "skip";
@@ -1008,7 +1011,7 @@ class Dsl {
                     }
                     if (this.unsafe.outcome(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args)) {
                         if (l.length === 1) {
-                            if (this.unsafe.outcome(pubkey, l, ["$$$$false"])) {
+                            if (this.unsafe.outcome(pubkey, l, [], args, false, true, true)) {
                                 handler(l[0]);
                             }
                         }
@@ -1052,7 +1055,7 @@ class Dsl {
                     }
                     this.if(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args, false, allowMisplacedPay).then(h => {
                         if (l.length === 1) {
-                            this.if(pubkey, l.map(x => x.toString()), ["$$$$false"], args, false, allowMisplacedPay).then(h => {
+                            this.if(pubkey, l.map(x => x.toString()), [], args, false, allowMisplacedPay, false, true).then(h => {
                                 payhandler(h, l[0]);
                             });
                         }
@@ -1092,7 +1095,7 @@ class Dsl {
                     }
                     if (this.outcome(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args)) {
                         if (l.length === 1) {
-                            if (this.outcome(pubkey, l.map(x => x.toString()), ["$$$$false"], args)) {
+                            if (this.outcome(pubkey, l.map(x => x.toString()), [], args, false, false, true)) {
                                 return l[0];
                             }
                             else {
@@ -1133,7 +1136,7 @@ class Dsl {
                     }
                     this.if(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args, false, allowMisplacedPay).then(h => {
                         if (l.length === 1) {
-                            this.if(pubkey, l.map(x => x.toString()), ["$$$$false"], args, false, allowMisplacedPay).then(h => {
+                            this.if(pubkey, l.map(x => x.toString()), [], args, false, allowMisplacedPay, true).then(h => {
                                 payhandler(h, l[0]);
                             });
                         }
@@ -1185,7 +1188,7 @@ class Dsl {
                     }
                     if (this.unsafe.outcome(pubkey, l.map(x => renderer(x)), r.map(x => renderer(x)), args)) {
                         if (l.length === 1) {
-                            if (this.unsafe.outcome(pubkey, l.map(x => renderer(x)), ["$$$$false"])) {
+                            if (this.unsafe.outcome(pubkey, l.map(x => renderer(x)), [], args, false, false, true)) {
                                 handler(l[0]);
                             }
                         }
@@ -1229,7 +1232,7 @@ class Dsl {
                     }
                     this.if(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args, false, allowMisplacedPay).then(h => {
                         if (l.length === 1) {
-                            this.if(pubkey, l.map(x => x.toString()), ["$$$$false"], args, false, allowMisplacedPay).then(h => {
+                            this.if(pubkey, l.map(x => x.toString()), [], args, false, allowMisplacedPay, false, true).then(h => {
                                 payhandler(h, l[0]);
                             });
                         }
@@ -1260,7 +1263,7 @@ class Dsl {
                     }
                     if (this.outcome(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args)) {
                         if (l.length === 1) {
-                            if (this.outcome(pubkey, l.map(x => x.toString()), ["$$$$false"], args)) {
+                            if (this.outcome(pubkey, l.map(x => x.toString()), [], args, false, false, true)) {
                                 return l[0];
                             }
                         }
@@ -1298,7 +1301,7 @@ class Dsl {
                     }
                     const rt = this.if(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args, false, allowMisplacedPay).then(h => {
                         if (l.length === 1) {
-                            this.if(pubkey, l.map(x => x.toString()), ["$$$$false"], args, false, allowMisplacedPay).then(h => {
+                            this.if(pubkey, l.map(x => x.toString()), [], args, false, allowMisplacedPay, false, true).then(h => {
                                 payhandler(h, l[0]);
                             });
                         }
@@ -1404,14 +1407,14 @@ class Dsl {
         })
     };
     disablePartyRoleReversal = false;
-    if = (pubkey, yes, no, args = {}, allowSwaps = false, allowMisplacedPay = false, strict = true) => {
+    if = (pubkey, yes, no, args = {}, allowSwaps = false, allowMisplacedPay = false, strict = true, ignoreObserveChecksSuperUnsafe = false) => {
         let contradiction = false;
         const yesSet = new Set(yes);
         const noSet = new Set(no);
         if (yes.find(x => noSet.has(x)) || no.find(x => yesSet.has(x))) {
             contradiction = true;
         }
-        const observation = this.outcome(pubkey, yes, no, args, allowSwaps, strict);
+        const observation = this.outcome(pubkey, yes, no, args, allowSwaps, strict, ignoreObserveChecksSuperUnsafe);
         const currentNode = this.cursor;
         const currentPrevNode = this.prev;
         const currentLastOutcome = this.lastOutcome;
@@ -1841,7 +1844,7 @@ if (typeof window === 'undefined' && require.main === module) {
             }).else(pay => {
                 pay.party("bob", "btc").pays("alice", "usd").amount(10, "btc");
             });
-            dsl.numeric.outcome("???", 0, 3).evaluate(x => {
+            dsl.unsafe.numeric.outcome("???", 0, 3).evaluate(x => {
                 dsl.pay(Dsl.Alice, 10);
             });
             dsl.numeric.infinity.bounded(100).perpetual(0, (x, st) => {
