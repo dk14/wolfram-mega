@@ -299,6 +299,7 @@ Address: <font color="blue" id="wallet-address">n3W8YyK59F6vQe34uQ8n835L627k2J</
 
 
             const defaultClr = "gray"
+            window.highlightOrders = "green"
             window.addEventListener("load", async () => {
                 try {
                      const conf = {
@@ -317,7 +318,7 @@ Address: <font color="blue" id="wallet-address">n3W8YyK59F6vQe34uQ8n835L627k2J</
                     DarkReader.enable(conf);
 
                 } catch {
-                    
+
                 }
                
             })
@@ -634,7 +635,7 @@ Address: <font color="blue" id="wallet-address">n3W8YyK59F6vQe34uQ8n835L627k2J</
                 })
                 if (model.contracts.length > 0) {
                     try {
-                        document.getElementById("contracts_obj").getSVGDocument().getElementById("contracts_svg").setAttribute("fill", "blue")
+                        document.getElementById("contracts_obj").getSVGDocument().getElementById("contracts_svg").setAttribute("fill", highlightOrders)
                     } catch {
 
                     }
