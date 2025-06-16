@@ -567,7 +567,7 @@ If numbers are still preferred:
 ```ts
 const lowerBound = 0
 const upperBound = 5
-dsl.numeric.outcome("price?", lowerBound, upperBound).evaluate(n => {
+dsl.unsafe.numeric.outcome("price?", lowerBound, upperBound).evaluate(n => {
     dsl.pay(Dsl.Alice, n + 1)
 })
 ```
@@ -577,6 +577,20 @@ dsl.numeric.outcome("price?", lowerBound, upperBound).evaluate(n => {
 > More strict semantics of observation - can be achieved by using `dsl.strictlyFair = true` (see technical notes). The strictest option is `dsl.strictlyFair = true && dsl.StrictlyStrict = true` which disallows any complex condition.
 
 > `dsl.strictlyOneLeafPays` and `dsl.strictlyOneLeafPairPays` allow to ensure that payment only happens in a single leaf of a tree. `strictlyOneLeafPairPays` is weaker and allows one leaf per party (strictest perfect hedge check on numbers).
+
+> `dsl.safeMode = true` would disable all calls to `numeric.unsafe`
+
+Safe version:
+
+```ts
+const lowerBound = 0
+const upperBound = 5
+dsl.numeric.outcome("price?", lowerBound, upperBound).evaluate(n => {
+    if (n > 2) {
+        dsl.pay(Dsl.Alice, n + 1)
+    }
+})
+```
 
 
 For cats and niños:
@@ -1067,21 +1081,21 @@ if(obs1 === 2) {
 }
 ```
 
-Turning on `dsl.superMode` `dsl.megaMode` would disable all semantical bypasses. It makes interest rate swaps and such... purely binary, disallowing unsafe computation on interest rate. Perpetual swap becomes perpetual binary swap. 
+Turning on `dsl.superMode` `dsl.megaMode` would disable all semantical bypasses. It makes interest rate swaps and such... purely binary, disallowing unsafe computation on interest rate. Perpetual swap becomes perpetual binary swap. Turning on weaker `dsl.safeMode` would only disable calls to `unsafe`.
 
 > modes are disabled by default in order to not limit freedom of self-expression!
 
 There are convinience wrappers, for contract refactoring purposes:
 
 ```ts
-dsl.security.startMegaMode()
+dsl.security.startSafeMode()
 
 //...
-dsl.insecurity.open.disableMegaMode()
+dsl.insecurity.open.disableSafeMode()
 
 //... use numerics and such
 
-dsl.insecurity.close.enableMegaMode()
+dsl.insecurity.close.reEnableSafeMode()
 ```
 
 > Just to re-iterate: any computation of payout on the outcome itself (except splitting it into two categories ONCE) is unsafe. Re-using same observation with a different split is unsafe (iid requirement). Both Interest rate drivers in finance are unsafe - they overcollaterize, only matching on a single split of interest driver can work. The only derivative that is secure is hedge-purified binary option.
