@@ -221,7 +221,7 @@ window.addEventListener("load", async () => {
                   startColumn: 0,
                   endLineNumber: 100,
                   endColumn: 0,
-                  message: "Discreet🌿:" + e.message
+                  message: "Discreet🌿:" + e.message + (e.amount ? `\n at pay amount: ${e.amount}; for party: ${e.pair && e.partyIdx ? e.pair[e.partyIdx] : "unknown"}; trading pair: ${e.pair}` : "")
               }];
               editor2.getModel().setValue("")
               const linter = monaco.editor.getModelMarkers()
