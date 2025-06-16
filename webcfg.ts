@@ -6,6 +6,7 @@ import { Neighbor } from "./src/p2p";
 
 const seedpool = 5
 const prefix = "dk14-peerjs-10101010-"
+const me =  Math.round(Math.random() * seedpool)
 
 export const cfg: MempoolConfig<any> = {
     "maxOracles": 100,
@@ -17,7 +18,7 @@ export const cfg: MempoolConfig<any> = {
     "httpPort": 8081,
     "p2pPort": 0,
     "p2pKeepAlive": 1000,
-    "hostname": prefix + Math.round(Math.random() * seedpool),
+    "hostname": prefix + me,
     "isTest": true,
     "webrtcPeerServer": {
         host: "0.peerjs.com",
@@ -27,7 +28,7 @@ export const cfg: MempoolConfig<any> = {
     "p2pseed": [
         {"server": "dk14-peerjs-10101010-1"},
         {"server": "dk14-peerjs-1586786454-acceptor-test"}
-    ].concat(Array(seedpool).map((_, i) => ({"server": prefix + i}))),
+    ].concat(Array(seedpool).fill(0).map((_, i) => i === me ? undefined : ({"server": prefix + i})).filter(x => x !== undefined)),
     "oracle": {
         "id": {
             "pubkey": "AAA",

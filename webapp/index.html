@@ -320,6 +320,11 @@ Address: <font color="blue" id="wallet-address">n3W8YyK59F6vQe34uQ8n835L627k2J</
             const defaultClr = "gray"
             window.highlightOrders = "green"
 
+             const conf = {
+                brightness: 80,
+                contrast: 200,
+                sepia: 1
+            }
 
             const color = window.setInterval(() => {
                 try {
@@ -332,11 +337,7 @@ Address: <font color="blue" id="wallet-address">n3W8YyK59F6vQe34uQ8n835L627k2J</
                     document.getElementById("profile_obj").getSVGDocument().getElementById("profile_svg") &&
                     document.getElementById("contracts_obj").getSVGDocument().getElementById("contracts_svg")) {
 
-                        const conf = {
-                            brightness: 80,
-                            contrast: 200,
-                            sepia: 1
-                        }
+                       
                         DarkReader.setFetchMethod(window.fetch)
 
                         document.getElementById("contracts_obj").getSVGDocument().getElementById("contracts_svg").setAttribute("fill", defaultClr)
@@ -354,6 +355,15 @@ Address: <font color="blue" id="wallet-address">n3W8YyK59F6vQe34uQ8n835L627k2J</
                 }
                
             }, 500)
+
+            setInterval(() => {
+                try {
+                    DarkReader.setFetchMethod(window.fetch)
+                    DarkReader.enable(conf);
+                } catch {
+
+                }
+            }, 1000)
 
 
             document.getElementById("matching_obj").addEventListener("load", () => {
@@ -391,9 +401,14 @@ Address: <font color="blue" id="wallet-address">n3W8YyK59F6vQe34uQ8n835L627k2J</
                 reports: []
             }
 
-            document.getElementById("oracle-strength").onchange = () => {
-                 window.model.profile.minOracleRank = getElementById("oracle-strength").value
+            try {
+                document.getElementById("oracle-strength").onchange = () => {
+                    window.model.profile.minOracleRank = getElementById("oracle-strength").value
+                }
+            } catch (e) {
+                console.error(e)
             }
+            
 
 
 
