@@ -64,9 +64,7 @@ setInterval(() => window.stalking.trackIssuedOffers(
 const myOffer = await window.matching.generateOffer(preferences)
 await window.matching.broadcastOffer(myOffer)
 ```
-<!-- ### Submit composite offer: -->
 
-<!-- <div id="blocklyDiv" style="height: 480px; width: 600px;"></div> -->
 
 ## List orders
 
@@ -435,3 +433,5 @@ npm run mock-oracle cfg/endpoint-test.json
 npm run auto-sign cfg/signer-test.json
 npm run btc-signer cfg/btc-signer-test.json
 ```
+
+<!--<iframe src="./blockly.html" style="height: 820px; width: 820p; border:nonex"></iframe> -->

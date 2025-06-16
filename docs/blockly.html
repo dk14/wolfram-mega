@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+</head>
+<body>
+    <div id="blocklyDiv" style="height:800px; width:800px;"></div>
+    
+    <script type="text/javascript" src="https://unpkg.com/blockly/blockly_compressed.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/blockly/javascript_compressed.js"></script>
+  <script src="https://unpkg.com/darkreader@4.9.105/darkreader.js"></script>
+    <script>
+
+          const conf = {
+    brightness: 100,
+    contrast: 90,
+    sepia: 10
+  }
+  DarkReader.setFetchMethod(window.fetch)
+  
+  DarkReader.enable(conf);
+
+const toolbox = {
+    kind: 'categoryToolbox',
+    contents: [
+    {
+        kind: 'category',
+        name: 'Contract',
+        categorystyle: 'logic_category',
+        contents: [
+        {
+            kind: 'block',
+            type: 'binary_if',
+        }
+        ]
+        
+    }
+    ]
+}
+
+document.getElementById("blocklyDiv")?.addEventListener("click",function(e) {
+    e.preventDefault();
+}, { passive: false })
+
+
+        
+const definitions = window.Blockly.common.createBlockDefinitionsFromJsonArray([{
+            type: 'binary_if',
+            message0: 'if %1 observes yes (%2) then go %3 \n else observes no (%4) go %5 \n I bet %6 on: %7 yes; You bet %8 against',
+            args0: [
+              {
+                type: 'field_input', 
+                name: 'ORACLE_PUB',
+                check: 'String',
+                text: "ORACLE_PUB",
+              },
+              {
+                type: 'field_input',
+                name: 'YES_OUTCOMES',
+                text: "YES",
+              },
+              {
+                type: 'input_statement',
+                name: 'PARTY_WINS',
+                check: ['binary_if']
+              },
+              {
+                type: 'field_input',
+                name: 'NO_OUTCOMES',
+                text: "NO",
+              },
+              {
+                type: 'input_statement',
+                name: 'COUNTERPARTY_WINS',
+                check: ['binary_if']
+              },
+              {
+                type: 'field_number',
+                name: 'PARTY_BET',
+                
+              },
+              {
+                type: 'field_checkbox',
+                name: 'PARTY_BETS_ON',
+              },
+              {
+                type: 'field_number',
+                name: 'COUNTERPARTY_BET',
+              },
+
+            ],
+            colour: 'gray',
+            previousStatement: null
+          }
+        ]);
+
+        Blockly.common.defineBlocks(definitions)
+
+         const workspace = window.Blockly.inject('blocklyDiv', { toolbox });
+
+        Blockly.JavaScript.forBlock['binary_if'] = function(block, generator) {
+          const oraclePub = block.getFieldValue('ORACLE_PUB');
+          const yes = block.getFieldValue('YES_OUTCOMES');
+          const no = block.getFieldValue('NO_OUTCOMES');
+          const aliceWins = block.getFieldValue('PARTY_WINS');
+          const bobWins = block.getFieldValue('COUNTERPARTY_WINS');
+          const aliceBets = block.getFieldValue('PARTY_BET');
+          const aliceBetsOn = block.getFieldValue('PARTY_BETS_ON');
+          const bobBets = block.getFieldValue('COUNTERPARTY_BET');
+
+          return `{
+  "id": "",
+  "bet": [
+        ${aliceBets},
+        ${bobBets}
+  ],
+  "betOn": ${aliceBetsOn},
+  "oracles": [
+    {
+      "capabilityPub": "${oraclePub}",
+      "params": {}
+    }
+  ],
+  "question": "",
+  "status": "matching",
+  "blockchain": "",
+  "role": "initiator",
+  "yesOutcomes": [
+        ${yes.split(",").map(x => '"' + x + '"').join(",")}
+  ],
+  "noOutcomes": [
+     ${no.split(",").map(x => '"' + x + '"').join(",")}
+  ],
+  "ifPartyWins": ${aliceWins}
+  "ifPartyWins": ${bobWins}
+
+}`;
+}
+
+const code = () => window.Blockly.JavaScript.workspaceToCode(workspace);
+
+       
+
+    </script>
+</body>
