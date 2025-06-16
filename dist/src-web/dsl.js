@@ -933,6 +933,15 @@ class Dsl {
                 this.unfinalized++;
                 const saveRelease = hh.release;
                 hh.release = () => {
+                    const id = this.megaMode ? pubkey : pubkey + JSON.stringify(args);
+                    if (!allowUnsafe) {
+                        if (this.aliceTrackers[id] > numbers.length - 1) {
+                            throw new DslErrors.PerfectHedgeError("Party cannot benefit regardless of outcome", this.state, undefined, 0, this.selected);
+                        }
+                        if (this.bobTrackers[id] > numbers.length - 1) {
+                            throw new DslErrors.PerfectHedgeError("Party cannot benefit regardless of outcome", this.state, undefined, 1, this.selected);
+                        }
+                    }
                     saveRelease();
                 };
                 if (hh === undefined) {
@@ -1145,6 +1154,19 @@ class Dsl {
                 }
                 recurse(set.slice(0, set.length / 2), set.slice(set.length / 2));
                 this.unfinalized++;
+                const saveRelease = hh.release;
+                hh.release = () => {
+                    const id = this.megaMode ? pubkey : pubkey + JSON.stringify(args);
+                    if (!allowUnsafe) {
+                        if (this.aliceTrackers[id] > set.length - 1) {
+                            throw new DslErrors.PerfectHedgeError("Party cannot benefit regardless of outcome", this.state, undefined, 0, this.selected);
+                        }
+                        if (this.bobTrackers[id] > set.length - 1) {
+                            throw new DslErrors.PerfectHedgeError("Party cannot benefit regardless of outcome", this.state, undefined, 1, this.selected);
+                        }
+                    }
+                    saveRelease();
+                };
                 if (hh === undefined) {
                     this.unfinalized--;
                     throw "skip";
@@ -1297,6 +1319,19 @@ class Dsl {
                 }
                 recurse(set.slice(0, set.length / 2), set.slice(set.length / 2));
                 this.unfinalized++;
+                const saveRelease = hh.release;
+                hh.release = () => {
+                    const id = this.megaMode ? pubkey : pubkey + JSON.stringify(args);
+                    if (!allowUnsafe) {
+                        if (this.aliceTrackers[id] > set.length - 1) {
+                            throw new DslErrors.PerfectHedgeError("Party cannot benefit regardless of outcome", this.state, undefined, 0, this.selected);
+                        }
+                        if (this.bobTrackers[id] > set.length - 1) {
+                            throw new DslErrors.PerfectHedgeError("Party cannot benefit regardless of outcome", this.state, undefined, 1, this.selected);
+                        }
+                    }
+                    saveRelease();
+                };
                 if (hh === undefined) {
                     this.unfinalized--;
                     throw "skip";
