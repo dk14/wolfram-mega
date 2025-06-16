@@ -566,7 +566,7 @@ Address: <font color="blue" id="wallet-address">n3W8YyK59F6vQe34uQ8n835L627k2J</
             setInterval(async () => {
                 try {
                     const address =  window.address.length > 20 ? 
-                    window.address.slice(0, 40) + "..."//"n3W8YyK59F6vQe34uQ8n835L627k2J"
+                    window.address.slice(0, 30) + "..."//"n3W8YyK59F6vQe34uQ8n835L627k2J"
                     : window.address
 
                     const stats = await (await fetch("https://mempool.space/testnet/api/address/" + window.address)).json()
