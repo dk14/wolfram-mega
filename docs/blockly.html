@@ -4,14 +4,21 @@
 
 </head>
 <body>
-    <div id="blocklyDiv" style="height:800px; width:800px;"></div>
+    <div id="blocklyDiv" style="height:800px; width:800px;position:absolute;"></div>
+    <div id="out" style="height:280px; width:380px; position:absolute;top: 500px;left: 400px"></div>
     
     <script type="text/javascript" src="https://unpkg.com/blockly/blockly_compressed.js"></script>
     <script type="text/javascript" src="https://unpkg.com/blockly/javascript_compressed.js"></script>
-  <script src="https://unpkg.com/darkreader@4.9.105/darkreader.js"></script>
+    <script src="https://unpkg.com/darkreader@4.9.105/darkreader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.27.0/min/vs/loader.js"></script>
+
     <script>
 
-          const conf = {
+        require.config({
+            paths: { vs: "https://cdn.jsdelivr.net/npm/monaco-editor@0.27.0/min/vs" }
+        })
+
+  const conf = {
     brightness: 100,
     contrast: 90,
     sepia: 10
@@ -37,10 +44,6 @@ const toolbox = {
     }
     ]
 }
-
-document.getElementById("blocklyDiv")?.addEventListener("click",function(e) {
-    e.preventDefault();
-}, { passive: false })
 
 
         
@@ -98,12 +101,20 @@ const definitions = window.Blockly.common.createBlockDefinitionsFromJsonArray([{
 
          const workspace = window.Blockly.inject('blocklyDiv', { toolbox });
 
+
+         const space = localStorage.getItem("workspace");
+
+         if (space) {
+            Blockly.serialization.workspaces.load(JSON.parse(space), workspace);
+         }
+        
+
         Blockly.JavaScript.forBlock['binary_if'] = function(block, generator) {
           const oraclePub = block.getFieldValue('ORACLE_PUB');
           const yes = block.getFieldValue('YES_OUTCOMES');
           const no = block.getFieldValue('NO_OUTCOMES');
-          const aliceWins = block.getFieldValue('PARTY_WINS');
-          const bobWins = block.getFieldValue('COUNTERPARTY_WINS');
+          const aliceWins = generator.statementToCode(block, 'PARTY_WINS')
+          const bobWins = generator.statementToCode(block, 'COUNTERPARTY_WINS');
           const aliceBets = block.getFieldValue('PARTY_BET');
           const aliceBetsOn = block.getFieldValue('PARTY_BETS_ON');
           const bobBets = block.getFieldValue('COUNTERPARTY_BET');
@@ -114,7 +125,7 @@ const definitions = window.Blockly.common.createBlockDefinitionsFromJsonArray([{
         ${aliceBets},
         ${bobBets}
   ],
-  "betOn": ${aliceBetsOn},
+  "betOn": ${aliceBetsOn == "TRUE" ? true : false},
   "oracles": [
     {
       "capabilityPub": "${oraclePub}",
@@ -131,14 +142,31 @@ const definitions = window.Blockly.common.createBlockDefinitionsFromJsonArray([{
   "noOutcomes": [
      ${no.split(",").map(x => '"' + x + '"').join(",")}
   ],
-  "ifPartyWins": ${aliceWins}
-  "ifPartyWins": ${bobWins}
+  "ifPartyWins": ${aliceWins.toString().length < 1 ? "null" : aliceWins},
+  "ifCounterPartyWins":${bobWins.toString().length < 1 ? "null" : bobWins},
 
 }`;
 }
 
 const code = () => window.Blockly.JavaScript.workspaceToCode(workspace);
 
+require(["vs/editor/editor.main"], async function () {
+    const editor2 = monaco.editor.create(document.getElementById("out"), {
+        value: '',
+        language: "json",
+        automaticLayout: true,
+        readOnly: true
+    })
+    editor2._themeService.setTheme('vs-dark')
+    setInterval(() => {
+        editor2.getModel().setValue(code());
+        const state = Blockly.serialization.workspaces.save(workspace);
+        localStorage.setItem("workspace", JSON.stringify(state));
+    }, 1000)
+})
+
+   
+    
        
 
     </script>

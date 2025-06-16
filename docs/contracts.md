@@ -65,6 +65,8 @@ const myOffer = await window.matching.generateOffer(preferences)
 await window.matching.broadcastOffer(myOffer)
 ```
 
+Composite offers can be created in : [Blockly Editor](#blockly-editor)
+
 
 ## List orders
 
@@ -434,4 +436,6 @@ npm run auto-sign cfg/signer-test.json
 npm run btc-signer cfg/btc-signer-test.json
 ```
 
-<!--<iframe src="./blockly.html" style="height: 820px; width: 820p; border:nonex"></iframe> -->
+# Blockly Editor
+`OfferModel` editor:
+<iframe src="./blockly.html" style="height: 900px; width: 820px; border:none"></iframe>
