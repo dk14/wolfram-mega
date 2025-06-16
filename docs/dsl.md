@@ -1101,6 +1101,8 @@ dsl.insecurity.close.reEnableSafeMode()
 > Just to re-iterate: Re-using same binary observation to payout is unsafe (iid requirement). Interest rate drivers in finance are effectively unsafe - they overcollaterize. The only derivative that is practically secure is hedge-purified binary option.
 >> In theory, derivatives, that rely on numeric speculation about outcome, can be priced. Most practiacl ones would not converge though: ranges of possible payouts (per leg) would intersect, leading to a `PerfectHedge`. Except under strict ranges (types) of numeric outcomes and small quantization steps. 
 
+>> In most cases, long-term future planning is not just computationally unfeasable, but logically impossible.
+
 Many complex derivative instruments are unsafe. Proof:
 
 ```ts
