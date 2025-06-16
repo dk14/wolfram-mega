@@ -95,13 +95,18 @@ const startP2P = async (cfg, peerApi = exports.serverPeerAPI) => {
             peers.splice(index, 1);
         }
     };
+    cfg.p2pseed.forEach(x => {
+        if (!peers.find(y => y.addr.server === x.server && y.addr.port === x.port)) {
+            discovered(x);
+        }
+    });
     setInterval(() => {
         cfg.p2pseed.forEach(x => {
             if (!peers.find(y => y.addr.server === x.server && y.addr.port === x.port)) {
                 discovered(x);
             }
         });
-    }, cfg.p2pKeepAlive ?? 5000);
+    }, cfg.p2pKeepAlive ? cfg.p2pKeepAlive * 10 : 5000);
     function isPeerDuplicate(addr) {
         const found = peers.findIndex(x => addr.server === x.addr.server && addr.port === x.addr.port);
         if (found > -1) {
