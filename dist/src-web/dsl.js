@@ -1809,7 +1809,7 @@ if (typeof window === 'undefined' && require.main === module) {
             const capitalisationDates = new Set(["next week"]);
             const notional = 10000;
             const floatingLegIndex = "interest rate index?";
-            const fixedRate = 0.990382835;
+            const fixedRate = 0.990382835; //I don't think it converges under this quantisation step
             const quantisationStep = 1;
             dates.reduce(([capitalisation1, capitalisation2], date) => {
                 const [floatingRate, accounts] = dsl.unsafe.numeric
