@@ -210,10 +210,14 @@ export class Dsl {
             throw new Error("one pay per condition check! and pay before checking out next condition too, please!" + `\nat amount = ${amount}; idx = ${idx}; pair = ${this.selected}`)
         }
 
+        const id = this.megaMode ? this.currentPub : this.currentPub + JSON.stringify(this.currentArgs)
         if (idx == 0) {
             this.alicePayCounter++
+            this.aliceTrackers[id] += 1
+                
             this.prev.bet[1] = Math.round(amount)
         } else {
+            this.bobTrackers[id] += 1
             this.bobPayCounter++
             this.prev.bet[0] = Math.round(amount)
         }
@@ -234,13 +238,17 @@ export class Dsl {
                 throw new Error(`exceeded budget ${this.budgetBound2} for ${party}, for outcomes:` + JSON.stringify(this.state))
             }
         }
-       
-        
-        
+    
     }
+
+    public currentPub: string = undefined
+    public currentArgs: {[id: string]: string} = undefined
 
     private enrichAndProgress(aliceOutcome: boolean, pubkey: string, yes: string[], no: string[], args: {[id: string]: string} = {}) {
         this.lastOutcome = aliceOutcome
+        this.currentPub = pubkey
+        this.currentArgs = args
+
         this.flag = false
         if (aliceOutcome === false) {
             if (this.cursor.ifCounterPartyWins === undefined) {
@@ -391,6 +399,12 @@ export class Dsl {
             }
             return this.state[pubkeyUnique][1]
         }
+
+        if (strict) {
+            this.alicePayCounter = 0
+            this.bobPayCounter = 0
+        }
+        
         yes.sort()
         no.sort()
         this.counter++
@@ -670,8 +684,8 @@ export class Dsl {
             return this.if(pubkey, yes, no, args, allowSwaps, allowMisplacedPay, strict)
         },
         numeric: {
-            outcome: (pubkey: string, from: number, to: number, step: number = 1, args: {[id: string]: string} = {}, allowMisplacedPay = true, allowFork = true) => {
-                return this.numeric.outcome(pubkey, from, to, step, args, allowMisplacedPay, allowFork)
+            outcome: (pubkey: string, from: number, to: number, step: number = 1, args: {[id: string]: string} = {}, allowMisplacedPay = true, allowUnsafe = true) => {
+                return this.numeric.outcome(pubkey, from, to, step, args, allowMisplacedPay, allowUnsafe)
             },
             infinity: {
                 bounded: (maxInfinity = 10000000, maxCount = 1000000000) => ({
@@ -695,11 +709,11 @@ export class Dsl {
             },
         },
         set: {
-            outcome: (pubkey: string, set:string[], args: {[id: string]: string} = {}, allowMisplacedPay = true, allowFork = true) => {
-                return this.set.outcome(pubkey, set, args, allowMisplacedPay, allowFork)
+            outcome: (pubkey: string, set:string[], args: {[id: string]: string} = {}, allowMisplacedPay = true, allowUnsafe = true) => {
+                return this.set.outcome(pubkey, set, args, allowMisplacedPay, allowUnsafe)
             },
-            outcomeT: <T>(pubkey: string, set:T[], renderer: (x: T) => string, args: {[id: string]: string} = {},  allowMisplacedPay = true, allowFork = true) => {
-                return this.set.outcomeT(pubkey, set, renderer, args, allowMisplacedPay, allowFork)
+            outcomeT: <T>(pubkey: string, set:T[], renderer: (x: T) => string, args: {[id: string]: string} = {},  allowMisplacedPay = true, allowUnsafe = true) => {
+                return this.set.outcomeT(pubkey, set, renderer, args, allowMisplacedPay, allowUnsafe)
             }
         },
         ifAtomicSwapLeg1: (lock: string = "TRUTH", unlockOutcome: string = "true", allowMisplacedPay = true) => {
@@ -870,9 +884,9 @@ export class Dsl {
             }
 
         },
-        outcome: (pubkey: string, from: number, to: number, step: number = 1, args: {[id: string]: string} = {}, allowMisplacedPay = false, allowFork = false) => ({
+        outcome: (pubkey: string, from: number, to: number, step: number = 1, args: {[id: string]: string} = {}, allowMisplacedPay = false, allowUnsafe = false) => ({
             evaluate: (handler: (n: number) => void) => {
-                if (allowFork) {
+                if (allowUnsafe) {
                     this.ignoreObserveChecks = true
                 }
                 let numbers = []
@@ -889,37 +903,33 @@ export class Dsl {
                     }
                     if (this.outcome(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args, false, false)) {
                         if (l.length === 1) {
-                            if (allowFork) {
-                                if (this.outcome(pubkey, l.map(x => x.toString()), ["$$$$false"])) {
-                                    handler(l[0])
-                                }
-                            } else {
+                            if (this.outcome(pubkey, l.map(x => x.toString()), ["$$$$false"], args, false, false)) {
                                 handler(l[0])
                             }
-                            
                         } else {
                             recurse(l.slice(0, l.length / 2), l.slice(l.length / 2))
                         }
                     } else {
                         if (r.length === 1) {
-                            if (this.unsafe.outcome(pubkey, r.map(x => x.toString()), [])) {
-                                handler(r[0])
-                            }
+                            handler(r[0])
                         } else {
                             recurse(r.slice(0, r.length / 2), r.slice(r.length / 2))
                         }
                     }
                 }
 
-                const saveAlicePayCounter = this.alicePayCounter
-                const saveBobPayCounter = this.bobPayCounter
-
                 recurse(numbers.slice(0, numbers.length / 2), numbers.slice(numbers.length / 2))
 
                 const id = this.megaMode ? pubkey : pubkey + JSON.stringify(args)
 
-                this.aliceTrackers[id] += (this.alicePayCounter - saveAlicePayCounter) > 0 ? 1 : 0
-                this.bobTrackers[id] += (this.bobPayCounter - saveBobPayCounter) > 0 ? 1 : 0
+                if (!allowUnsafe) {
+                    if (this.aliceTrackers[id] > numbers.length - 1) {
+                        throw new DslErrors.PerfectHedgeError("Party cannot benefit regardless of outcome", this.state, undefined, 0, this.selected)
+                    }
+                    if (this.bobTrackers[id] > numbers.length - 1) {
+                        throw new DslErrors.PerfectHedgeError("Party cannot benefit regardless of outcome", this.state, undefined, 1, this.selected)
+                    }
+                }
 
                 if (this.strictlyOneLeafPays && (this.aliceTrackers[id] > 1 || this.bobPayCounter[id] > 1)) {
                     throw new DslErrors.OnePayPerCondition("Only one leaf in a tree is alowed to pay", undefined, undefined, this.selected, this.state)
@@ -935,7 +945,7 @@ export class Dsl {
                 for (let i = from; i <= to; i += step) {
                     numbers.push(i)
                 }
-                 const recurse = (l: number[], r: number[], payhandlerOut: PaymentHandler) => {
+                 const recurse = (l: number[], r: number[]) => {
                     if (l.length === 0) {
                         return
                     }
@@ -944,16 +954,13 @@ export class Dsl {
                     }
                     this.unsafe.if (pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args, false, allowMisplacedPay).then(h => {
                         if (l.length === 1) {
-                            if (allowFork) {
-                                this.unsafe.if (pubkey, l.map(x => x.toString()), ["$$$$false"], args, false, allowMisplacedPay).then(h => {
-                                    payhandler(h, l[0])
-                                })
-                            } else {
+
+                            this.unsafe.if (pubkey, l.map(x => x.toString()), ["$$$$false"], args, false, allowMisplacedPay).then(h => {
                                 payhandler(h, l[0])
-                            }
+                            })
                             
                         } else {
-                            recurse(l.slice(0, l.length / 2), l.slice(l.length / 2), h)
+                            recurse(l.slice(0, l.length / 2), l.slice(l.length / 2))
                         }
                     }).else(h => {
                         if (r.length === 1) {
@@ -962,14 +969,25 @@ export class Dsl {
                             
                         } else {
                             
-                            recurse(r.slice(0, r.length / 2), r.slice(r.length / 2), h)
+                            recurse(r.slice(0, r.length / 2), r.slice(r.length / 2))
                             
                         }
                     })
                 }
 
-                recurse(numbers.slice(0, numbers.length / 2), numbers.slice(numbers.length / 2), null)
-                
+                recurse(numbers.slice(0, numbers.length / 2), numbers.slice(numbers.length / 2))
+
+                const id = this.megaMode ? pubkey : pubkey + JSON.stringify(args)
+
+                if (!allowUnsafe) {
+                    if (this.aliceTrackers[id] > numbers.length - 1) {
+                        throw new DslErrors.PerfectHedgeError("Party cannot benefit regardless of outcome", this.state, undefined, 0, this.selected)
+                    }
+                    if (this.bobTrackers[id] > numbers.length - 1) {
+                        throw new DslErrors.PerfectHedgeError("Party cannot benefit regardless of outcome", this.state, undefined, 1, this.selected)
+                    }
+                }
+   
             },
             value: (): number => {
                 let numbers: number[] = []
@@ -985,16 +1003,11 @@ export class Dsl {
                     }
                     if (this.unsafe.outcome(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args)) {
                         if (l.length === 1) {
-                            if (allowFork) {
-                                if (this.unsafe.outcome(pubkey, l.map(x => x.toString()), ["$$$$false"], args)){
-                                    return l[0]
-                                } else {
-                                    throw "skip"
-                                }
-                            } else {
+                            if (this.unsafe.outcome(pubkey, l.map(x => x.toString()), ["$$$$false"], args)){
                                 return l[0]
-                            }
-                            
+                            } else {
+                                throw "skip"
+                            }    
                         } else {
                             return recurse(l.slice(0, l.length / 2), l.slice(l.length / 2))
                         }
@@ -1005,6 +1018,10 @@ export class Dsl {
                             return recurse(r.slice(0, r.length / 2), r.slice(r.length / 2))
                         }
                     }
+                }
+
+                if (!allowUnsafe) {
+                    throw new Error('Only available in unsafe mode')
                 }
 
                 return recurse(numbers.slice(0, numbers.length / 2), numbers.slice(numbers.length / 2))
@@ -1033,14 +1050,11 @@ export class Dsl {
                     }
                     this.unsafe.if(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), argument, false, allowMisplacedPay).then(h => {
                         if (l.length === 1) {
-                            if (allowFork) {
-                                this.unsafe.if (pubkey, l.map(x => x.toString()), [], args, false, allowMisplacedPay).then(h => {
-                                    payhandler(h, l[0])
-                                })
-                            } else {
+                            this.unsafe.if (pubkey, l.map(x => x.toString()), [], args, false, allowMisplacedPay).then(h => {
                                 payhandler(h, l[0])
-                            }
-                            
+                            }).else(_ => {
+                                throw "skip"
+                            })                           
                         } else {
                             recurse(l.slice(0, l.length / 2), l.slice(l.length / 2), h)
                         }
@@ -1055,6 +1069,11 @@ export class Dsl {
 
                 recurse(numbers.slice(0, numbers.length / 2), numbers.slice(numbers.length / 2), null)
                 this.unfinalized++
+
+                const saveRelease = hh.release
+                hh.release = () => {
+                    saveRelease()
+                }
 
                 if (hh === undefined) {
                     this.unfinalized--
@@ -1110,7 +1129,7 @@ export class Dsl {
             }
 
         },
-        outcome: (pubkey: string, set:string[], args: {[id: string]: string} = {}, allowMisplacedPay = false, allowFork = true) => ({
+        outcome: (pubkey: string, set:string[], args: {[id: string]: string} = {}, allowMisplacedPay = false, allowUnsafe = true) => ({
             evaluate: (handler: (n: string) => void) => {
                 const recurse = (l: string[], r: string[]) => {
                     if (l.length === 0) {
@@ -1121,13 +1140,9 @@ export class Dsl {
                     }
                     if (this.unsafe.outcome(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args)) {
                         if (l.length === 1) {
-                            if (allowFork) {
-                                if (this.unsafe.outcome(pubkey, l, ["$$$$false"])) {
-                                    handler(l[0])
-                                }
-                            } else {
+                            if (this.unsafe.outcome(pubkey, l, ["$$$$false"])) {
                                 handler(l[0])
-                            }   
+                            }
                         } else {
                             recurse(l.slice(0, l.length / 2), l.slice(l.length / 2))
                         }
@@ -1140,15 +1155,18 @@ export class Dsl {
                     }
                 }
 
-                const saveAlicePayCounter = this.alicePayCounter
-                const saveBobPayCounter = this.bobPayCounter
-
                 recurse(set.slice(0, set.length / 2), set.slice(set.length / 2))
 
                 const id = this.megaMode ? pubkey : pubkey + JSON.stringify(args)
 
-                this.aliceTrackers[id] += (this.alicePayCounter - saveAlicePayCounter) > 0 ? 1 : 0
-                this.bobTrackers[id] += (this.bobPayCounter - saveBobPayCounter) > 0 ? 1 : 0
+                if (!allowUnsafe) {
+                    if (this.aliceTrackers[id] > set.length - 1) {
+                        throw new DslErrors.PerfectHedgeError("Party cannot benefit regardless of outcome", this.state, undefined, 0, this.selected)
+                    }
+                    if (this.bobTrackers[id] > set.length - 1) {
+                        throw new DslErrors.PerfectHedgeError("Party cannot benefit regardless of outcome", this.state, undefined, 1, this.selected)
+                    }
+                }
 
                 if (this.strictlyOneLeafPays && (this.aliceTrackers[id] > 1 || this.bobPayCounter[id] > 1)) {
                     throw new DslErrors.OnePayPerCondition("Only one leaf in a tree is alowed to pay", undefined, undefined, this.selected, this.state)
@@ -1171,13 +1189,9 @@ export class Dsl {
                     }
                     this.if (pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args, false, allowMisplacedPay).then(h => {
                         if (l.length === 1) {
-                            if (allowFork) {
-                                this.if(pubkey, l.map(x => x.toString()), ["$$$$false"], args, false, allowMisplacedPay).then(h => {
-                                    payhandler(h, l[0])
-                                })
-                            } else {
+                            this.if(pubkey, l.map(x => x.toString()), ["$$$$false"], args, false, allowMisplacedPay).then(h => {
                                 payhandler(h, l[0])
-                            }                           
+                            })                        
                         } else {
                             recurse(l.slice(0, l.length / 2), l.slice(l.length / 2))
                         }
@@ -1196,6 +1210,17 @@ export class Dsl {
 
                 recurse(set.slice(0, set.length / 2), set.slice(set.length / 2))
 
+                const id = this.megaMode ? pubkey : pubkey + JSON.stringify(args)
+
+                if (!allowUnsafe) {
+                    if (this.aliceTrackers[id] > set.length - 1) {
+                        throw new DslErrors.PerfectHedgeError("Party cannot benefit regardless of outcome", this.state, undefined, 0, this.selected)
+                    }
+                    if (this.bobTrackers[id] > set.length - 1) {
+                        throw new DslErrors.PerfectHedgeError("Party cannot benefit regardless of outcome", this.state, undefined, 1, this.selected)
+                    }
+                }
+
             },
             value: (): string => {
                 const recurse = (l: string[], r: string[]) => {
@@ -1207,12 +1232,10 @@ export class Dsl {
                     }
                     if (this.outcome(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args)) {
                         if (l.length === 1) {
-                            if (allowFork) {
-                                if (this.outcome(pubkey, l.map(x => x.toString()), ["$$$$false"], args)) {
-                                    return l[0]
-                                }
-                            } else {
+                            if (this.outcome(pubkey, l.map(x => x.toString()), ["$$$$false"], args)) {
                                 return l[0]
+                            } else {
+                                throw "skip"
                             }
                         } else {
                             return recurse(l.slice(0, l.length / 2), l.slice(l.length / 2))
@@ -1250,13 +1273,9 @@ export class Dsl {
                     }
                     this.if(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args, false, allowMisplacedPay).then(h => {
                         if (l.length === 1) {
-                            if (allowFork) {
-                                this.if(pubkey, l.map(x => x.toString()), ["$$$$false"], args, false, allowMisplacedPay).then(h => {
-                                    payhandler(h, l[0])
-                                })
-                            } else {
+                            this.if(pubkey, l.map(x => x.toString()), ["$$$$false"], args, false, allowMisplacedPay).then(h => {
                                 payhandler(h, l[0])
-                            }
+                            })
                         } else {
                             recurse(l.slice(0, l.length / 2), l.slice(l.length / 2))
                         }
@@ -1284,7 +1303,7 @@ export class Dsl {
                 return [nn, hh]
             }
         }),
-        outcomeT: <T>(pubkey: string, set:T[], renderer: (x: T) => string, args: {[id: string]: string} = {},  allowMisplacedPay = false, allowFork = false) => ({
+        outcomeT: <T>(pubkey: string, set:T[], renderer: (x: T) => string, args: {[id: string]: string} = {},  allowMisplacedPay = false, allowUnsafe = false) => ({
             evaluate: (handler: (n: T) => void) => {
                  const recurse = (l: T[], r: T[]) => {
                     if (l.length === 0) {
@@ -1295,13 +1314,9 @@ export class Dsl {
                     }
                     if (this.unsafe.outcome(pubkey, l.map(x => renderer(x)), r.map(x => renderer(x)), args)) {
                         if (l.length === 1) {
-                           if (allowFork) {
-                                if (this.unsafe.outcome(pubkey, l.map(x => renderer(x)), ["$$$$false"])) {
-                                    handler(l[0])
-                                }
-                            } else {
+                            if (this.unsafe.outcome(pubkey, l.map(x => renderer(x)), ["$$$$false"])) {
                                 handler(l[0])
-                            }  
+                            }
                         } else {
                             recurse(l.slice(0, l.length / 2), l.slice(l.length / 2))
                         }
@@ -1314,15 +1329,19 @@ export class Dsl {
                     }
                 }
 
-                const saveAlicePayCounter = this.alicePayCounter
-                const saveBobPayCounter = this.bobPayCounter
 
                 recurse(set.slice(0, set.length / 2), set.slice(set.length / 2))
 
                 const id = this.megaMode ? pubkey : pubkey + JSON.stringify(args)
 
-                this.aliceTrackers[id] += (this.alicePayCounter - saveAlicePayCounter) > 0 ? 1 : 0
-                this.bobTrackers[id] += (this.bobPayCounter - saveBobPayCounter) > 0 ? 1 : 0
+                if (!allowUnsafe) {
+                    if (this.aliceTrackers[id] > set.length - 1) {
+                        throw new DslErrors.PerfectHedgeError("Party cannot benefit regardless of outcome", this.state, undefined, 0, this.selected)
+                    }
+                    if (this.bobTrackers[id] > set.length - 1) {
+                        throw new DslErrors.PerfectHedgeError("Party cannot benefit regardless of outcome", this.state, undefined, 1, this.selected)
+                    }
+                }
 
                 if (this.strictlyOneLeafPays && (this.aliceTrackers[id] > 1 || this.bobPayCounter[id] > 1)) {
                     throw new DslErrors.OnePayPerCondition("Only one leaf in a tree is alowed to pay", undefined, undefined, this.selected, this.state)
@@ -1343,16 +1362,11 @@ export class Dsl {
                     }
                     this.if (pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args, false, allowMisplacedPay).then(h => {
                         if (l.length === 1) {
-                            if (allowFork) {
-                                this.if(pubkey, l.map(x => x.toString()), ["$$$$false"], args, false, allowMisplacedPay).then(h => {
-                                    payhandler(h, l[0])
-                                })
-                            } else {
+                            this.if(pubkey, l.map(x => x.toString()), ["$$$$false"], args, false, allowMisplacedPay).then(h => {
                                 payhandler(h, l[0])
-                            }            
+                            })        
                         } else {
                             recurse(l.slice(0, l.length / 2), l.slice(l.length / 2))
-
                         }
                     }).else(h => {
                         if (r.length === 1) {
@@ -1380,11 +1394,7 @@ export class Dsl {
                     }
                     if (this.outcome(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args)) {
                         if (l.length === 1) {
-                            if (allowFork) {
-                                if (this.outcome(pubkey, l.map(x => x.toString()), ["$$$$false"], args)) {
-                                    return l[0]
-                                }
-                            } else {
+                            if (this.outcome(pubkey, l.map(x => x.toString()), ["$$$$false"], args)) {
                                 return l[0]
                             }
                         } else {
@@ -1413,7 +1423,7 @@ export class Dsl {
                     hh = h
                 }
                 
-                const recurse = (l: T[], r: T[], payhandlerOut: PaymentHandler) => {
+                const recurse = (l: T[], r: T[]) => {
                     if (l.length === 0) {
                         return
                     }
@@ -1422,21 +1432,17 @@ export class Dsl {
                     }
                     const rt = this.if(pubkey, l.map(x => x.toString()), r.map(x => x.toString()), args, false, allowMisplacedPay).then(h => {
                         if (l.length === 1) {
-                            if (allowFork) {
-                                this.if(pubkey, l.map(x => x.toString()), ["$$$$false"], args, false, allowMisplacedPay).then(h => {
-                                    payhandler(h, l[0])
-                                })
-                            } else {
+                            this.if(pubkey, l.map(x => x.toString()), ["$$$$false"], args, false, allowMisplacedPay).then(h => {
                                 payhandler(h, l[0])
-                            }
+                            })
                         } else {
-                            recurse(l.slice(0, l.length / 2), l.slice(l.length / 2), h)
+                            recurse(l.slice(0, l.length / 2), l.slice(l.length / 2))
                         }
                     }).else(h => {
                         if (r.length === 1) {
                             payhandler(h, r[0])
                         } else {
-                            recurse(r.slice(0, r.length / 2), r.slice(r.length / 2), h) 
+                            recurse(r.slice(0, r.length / 2), r.slice(r.length / 2)) 
                         }
                     })
                 }
@@ -1445,7 +1451,7 @@ export class Dsl {
                     throw Error("Leaf strictness tracking is not available in this mode. Use `evaluate`")
                 }
 
-                recurse(set.slice(0, set.length / 2), set.slice(set.length / 2), null)
+                recurse(set.slice(0, set.length / 2), set.slice(set.length / 2))
                 this.unfinalized++
 
                 if (hh === undefined) {
@@ -1811,6 +1817,8 @@ export class Dsl {
         this.protect = true
         let next = true
         const mutex = new Mutex()
+        this.aliceTrackers = {}
+        this.bobTrackers = {}
         while (next) {
             try {
                 this.collateral1 = 0

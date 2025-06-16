@@ -899,9 +899,7 @@ Every call to Discreet script's body (`dsl => ...`) is protected by a mutex (`as
 
 This approach allows for synchronization-safe use of external services in script body.
 
-> `async-mutex` is third-party library, so no guarantees. In `nodejs` environment using `await mutex.runExclusive` instead of `await` makes differnece as well as in browser. Some custom js execution envornments (VMs) might require `await` on `dsl.if` and derived constructs, which we skipped in this doc.
-
-> awaits on `dsl.if` while not required, still might benefit you in terms of tractability of errors: otherwise, you might see `PerfectHedge` where you'd logically expect `OnePayPerObservation` or even vice-versa. `allowReplacedPay` from `unsafe`, while compatible with fire and forget, would still make errors even less tractable.
+> `async-mutex` is third-party library, so no guarantees. In `nodejs` environment using `await mutex.runExclusive` instead of `await` makes differnece as well as in browser. 
 
 ### Applicability of SMT solvers
 > TLDR: not applicable
