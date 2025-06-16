@@ -168,7 +168,7 @@ class Dsl {
             }
         }
         if (this.flag) {
-            throw new Error("one pay per condition check! and pay before checking out next condition too, please!");
+            throw new Error("one pay per condition check! and pay before checking out next condition too, please!" + `\nat amount = ${amount}; idx = ${idx}; pair = ${this.selected}`);
         }
         if (idx == 0) {
             this.alicePayCounter++;
@@ -335,29 +335,29 @@ class Dsl {
         no.sort();
         this.counter++;
         if ((new Set(yes)).size !== yes.length) {
-            throw Error("Duplicate outcomes:" + JSON.stringify(yes));
+            throw Error("Duplicate outcomes:" + JSON.stringify(yes) + "; pubkey: " + pubkey);
         }
         if ((new Set(no)).size !== no.length) {
-            throw Error("Duplicate outcomes: " + JSON.stringify(no));
+            throw Error("Duplicate outcomes: " + JSON.stringify(no)) + "; pubkey: " + pubkey;
         }
         if (strict && (yes.length === 0 || no.length === 0)) {
-            throw Error("One of the outcome sets is empty. Trader would possibly benefit regardless of outcome. Use `dsl.unsafe` to allow!");
+            throw Error("One of the outcome sets is empty. Trader would possibly benefit regardless of outcome. Use `dsl.unsafe` to allow!" + "; pubkey: " + pubkey);
         }
         if (yes.length === 0 && no.length === 0) {
-            throw Error("Transaction race! Outcomes are empty. Trader cannot benefit regardless of outcome. Use `dsl.unsafe` with synthetic outcome (convention: btc script generated outcomes should start with $, e.g. $(thisTx.utxo[0])) to allow!");
+            throw Error("Transaction race! Outcomes are empty. Trader cannot benefit regardless of outcome. Use `dsl.unsafe` with synthetic outcome (convention: btc script generated outcomes should start with $, e.g. $(thisTx.utxo[0])) to allow!" + "; pubkey: " + pubkey);
         }
         if (JSON.stringify(yes) === JSON.stringify(no) && !allowTruth) {
-            throw Error("Contradiction! Outcomes are not mutually exclusive!");
+            throw Error("Contradiction! Outcomes are not mutually exclusive!" + "; pubkey: " + pubkey);
         }
         const yesSet = new Set(yes);
         const noSet = new Set(no);
         if (yes.find(x => noSet.has(x)) || no.find(x => yesSet.has(x))) {
             if (strict) {
-                throw Error("Partial contradiction! Some outcomes are not mutually exclusive!");
+                throw Error("Partial contradiction! Some outcomes are not mutually exclusive!" + "; pubkey: " + pubkey);
             }
         }
         if (!this.protect) {
-            throw "should not call outside of body; use `new Dsl((dsl) => handler).enumerate()`";
+            throw "should not call outside of body; use `new Dsl((dsl) => handler).enumerate()`" + "; pubkey: " + pubkey;
         }
         if (this.state[pubkeyUnique] === undefined) {
             const max = Object.values(this.state).length === 0 ? -1 : Math.max(...Object.values(this.state).map(x => x[0]));
@@ -371,21 +371,21 @@ class Dsl {
         else {
             this.checked.push(this.state[pubkeyUnique][0]);
             if (this.memoize.find(x => x.id === pubkey && JSON.stringify(x.yes.sort()) === JSON.stringify(yes.sort()) && JSON.stringify(x.no.sort()) === JSON.stringify(no.sort()) && JSON.stringify(x.args) === JSON.stringify(args)) !== undefined) {
-                throw new Error("Cannot query same observation twice. Save it into const instead: const obs1 = outcome(...); args=" + JSON.stringify(args));
+                throw new Error("Cannot query same observation twice. Save it into const instead: const obs1 = outcome(...); args=" + JSON.stringify(args) + "; pubkey: " + pubkey);
             }
             const sameQuery = this.memoize.find(x => x.id === pubkey);
             if (strict && sameQuery && JSON.stringify(sameQuery.yes.concat(sameQuery.no).sort()) !== JSON.stringify(yes.concat(no).sort())) {
-                throw new Error("Set of overall outcomes must be same, regardless of parameters! " + sameQuery.yes.concat(sameQuery.no).sort() + " != " + yes.concat(no).sort());
+                throw new Error("Set of overall outcomes must be same, regardless of parameters! " + sameQuery.yes.concat(sameQuery.no).sort() + " != " + yes.concat(no).sort() + "; pubkey: " + pubkey);
             }
             if (this.superMode && sameQuery && JSON.stringify(sameQuery.args) === JSON.stringify(sameQuery.args)) {
-                throw new Error("Cannot query same observation twice! Super strictly! Arguments are allowed to vary");
+                throw new Error("Cannot query same observation twice! Super strictly! Arguments are allowed to vary" + "; pubkey: " + pubkey);
             }
             if (this.megaMode && sameQuery) {
                 throw new Error("Cannot query same observation twice! MEGA strictly!");
             }
             const contradiction = this.memoize.find(x => x.id === pubkey && JSON.stringify(x.yes.sort()) === JSON.stringify(no.sort()) && JSON.stringify(x.no.sort()) === JSON.stringify(yes.sort()) && JSON.stringify(x.args) === JSON.stringify(args));
             if (contradiction !== undefined) {
-                throw new Error("Cannot query the opposite of checked observation. Save it into const and inverse instead: const obs1 = outcome(...); const obs2 = !obs1");
+                throw new Error("Cannot query the opposite of checked observation. Save it into const and inverse instead: const obs1 = outcome(...); const obs2 = !obs1" + "; pubkey: " + pubkey);
             }
             this.enrichAndProgress(this.state[pubkeyUnique][1], pubkeyUnique, yes, no, args);
             this.memoize.push({
