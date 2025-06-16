@@ -167,6 +167,14 @@ window.addEventListener("load", async () => {
     
       try {
 
+        if (document.getElementById("container2") === null) {
+          throw "not ready"
+        }
+
+        if (document.getElementById("container") === null) {
+          throw "not ready"
+        }
+
       
         const editor2 = monaco.editor.create(document.getElementById("container2"), {
           value: '',
