@@ -28,7 +28,7 @@ declare global {
         privateDB: IDBPDatabase<unknown>;
         webOracleFacts: IDBPDatabase<unknown>;
         hashLockProvider: HashLockProvider;
-        safeEval: (expression: string, parties: string[], bounds: [number, number][]) => Promise<any>;
+        evalDiscreet: (expression: string, parties: string[], bounds: [number, number][]) => Promise<any>;
         test: boolean;
     }
 }

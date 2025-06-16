@@ -23,4 +23,12 @@ const canBeBlank = ['module', 'node-fetch', 'path', 'http', 'util', 'net', 'url'
         })
     ],
 });
+(0, esbuild_1.build)({
+    entryPoints: ["src-web/util/dsl-runtime.ts"],
+    bundle: true,
+    outfile: "dist/discreet-eval.min.js",
+    format: "esm",
+    sourcemap: true,
+    plugins: [],
+});
 //# sourceMappingURL=esbuild.js.map

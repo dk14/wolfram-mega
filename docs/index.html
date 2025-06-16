@@ -130,15 +130,12 @@ window.addEventListener("load", async () => {
 
 </script>
 
-
 <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.27.0/min/vs/loader.js"></script>
 
- <script src="../mega-peers.min.js" type="module"></script>
-
+<script type="module" src="../dist/discreet-eval.min.js"></script>
 
 <script type="module">
-
-
+  
   const code = `if (dsl.outcome("really?", ["YES"], ["NO"])) {
     dsl.pay(Dsl.Bob, 100) 
     if (dsl.outcome("is it?", ["YES"], ["NO"])) {
@@ -190,7 +187,7 @@ window.addEventListener("load", async () => {
             try {
                 const parties = document.getElementById("parties").value.split(",")
                 const budgets = document.getElementById("budgets").value.split(",").map(x => x.split(":").map(x => parseInt(x)))
-                const res = await window.safeEval(execute, parties, budgets);
+                const res = await window.evalDiscreet(execute, parties, budgets);
                 monaco.editor.setModelMarkers(editor.getModel(), 'typescript', [])
                 editor2.getModel().setValue(JSON.stringify(res, null, 2));
         

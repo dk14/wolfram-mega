@@ -23,3 +23,13 @@ build({
 		})
 	],
 });
+
+build({
+	entryPoints: ["src-web/util/dsl-runtime.ts"],
+	bundle: true,
+	outfile: "dist/discreet-eval.min.js",
+	format: "esm",
+	sourcemap: true,
+	plugins: [
+	],
+});

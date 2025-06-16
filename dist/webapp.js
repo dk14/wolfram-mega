@@ -32,9 +32,6 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 const trader_api_1 = require("./src/client-api/trader-api");
 const p2p_1 = require("./src/p2p");
@@ -48,20 +45,6 @@ const storage_1 = require("./src-web/impl/storage");
 const webcfg_1 = require("./webcfg");
 const oracle_data_provider_1 = require("./src-web/oracle-data-provider");
 const transactions_1 = require("./src-web/transactions");
-const sandboxjs_1 = __importDefault(require("@nyariv/sandboxjs"));
-const dsl_1 = require("./src-web/dsl");
-const safeEval = async (expression, parties, bounds) => {
-    const model = await (new dsl_1.Dsl(async (dsl) => {
-        const prototypeWhitelist = sandboxjs_1.default.SAFE_PROTOTYPES;
-        const globals = { ...sandboxjs_1.default.SAFE_GLOBALS, alert };
-        prototypeWhitelist.set(dsl_1.Dsl, new Set());
-        const sandbox = new sandboxjs_1.default({ globals, prototypeWhitelist });
-        const exec = sandbox.compile(expression);
-        exec({ dsl, Dsl: dsl_1.Dsl }).run();
-    }).multiple(...parties).enumerateWithBoundMulti(bounds));
-    return model;
-};
-window.safeEval = safeEval;
 window.txfee = 2000;
 global.initWebapp = new Promise(async (resolve) => {
     window.spec = await (await fetch("./../wolfram-mega-spec.yaml")).text();

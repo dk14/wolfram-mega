@@ -44,29 +44,11 @@ declare global {
 
         hashLockProvider: HashLockProvider
 
-        safeEval: (expression: string, parties: string[], bounds: [number, number][]) => Promise<any>
+        evalDiscreet: (expression: string, parties: string[], bounds: [number, number][]) => Promise<any>
 
         test: boolean
     }
 }
-
-const safeEval = async (expression: string, parties: string[], bounds: [number, number][]): Promise<any> => {
-    
-    const model = await (new Dsl(async dsl => {
-
-        const prototypeWhitelist = Sandbox.SAFE_PROTOTYPES;
-        const globals = {...Sandbox.SAFE_GLOBALS, alert};
-        prototypeWhitelist.set(Dsl, new Set());
-
-        const sandbox = new Sandbox({globals, prototypeWhitelist})
-        const exec = sandbox.compile(expression)
-    
-        exec({dsl, Dsl}).run()
-    }).multiple(...parties).enumerateWithBoundMulti(bounds))
-    return model
-}
-
-window.safeEval = safeEval
 
 
 window.txfee = 2000
