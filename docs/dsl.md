@@ -898,7 +898,7 @@ Typesefaty of Discreet🌿 is meant to ensure this does not happen as long as lo
 
 > In terms of currency, overcollaterization naturally leads to deflation, undercollaterization to inflation. Regulatory frameworks screw things up even more - since regulators try to balance their own mistakes: when assets are overcollaterized (due to FEDs miscalculations) - FED artificially inflates medium of exchange (prints more money) to "stimulate" economy, in order to prevent deflation. Then regulator overshoots (predictably, but unavoidably) - so FED starts controlling your spending habbits (bring down YOUR mood with war and such and much propaganda, with YOUR full consent btw) in order to prevent inflation, reduce amount of mediumm available for exchange.
 
-> Althoug, NOT regulator, but YOU are the one who wants to benefit regardless of outcome. Paradoxical theory of change suggests that economy won't balance, unless YOU realize YOUR miscalculations and YOU start taking risks. Not FED, lol.
+> Althoug, NOT regulator, but YOU are the one who wants to benefit regardless of outcome. Paradoxical theory of change suggests that economy won't balance, unless YOU realize YOUR miscalculations and YOU start taking risks. Not just FED, lol.
 
 ### Non-determinsstic state
 Every call to Discreet script's body (`dsl => ...`) is protected by a mutex (`async-mutex` library) during enumeration. This should allow safe `pay` in fire and forget with no `await` (since mutexes have access to that information from js Scheduler API).
