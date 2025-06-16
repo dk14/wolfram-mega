@@ -246,7 +246,13 @@ Address: <font color="blue" id="wallet-address">n3W8YyK59F6vQe34uQ8n835L627k2J</
             <div class="profile-group">
                 <pre><h3>Withdraw funds:</h3> amount: <input class="send-funds-amount" type="number" value="0"><br><br> address: <input class="send-funds-address" value="n3W8YyK59F6vQe34uQ8n835L627k2J"> <button class="send-funds-button">Send</button></pre>
 
-                <button class="send-funds-button" onclick="window.matching.reset();">Reset</button>
+                
+            </div>
+            <hr>
+            <div class="profile-group">
+                <button class="send-funds-button" onclick="window.matching.reset();">Reset Profile</button>
+                <pre>peers: <span id="peers">[]</span></pre>
+
             </div>
         </div>
 
@@ -298,6 +304,19 @@ Address: <font color="blue" id="wallet-address">n3W8YyK59F6vQe34uQ8n835L627k2J</
         <script>
 
 
+            try {
+                screen.orientation.lock("portrait");
+            } catch {
+
+            }
+
+            setInterval(() => {
+                try {
+                    document.getElementById("peers").innerText = "" + window.peers.length
+                } catch {
+
+                }    
+            }, 1000)
             const defaultClr = "gray"
             window.highlightOrders = "green"
             window.addEventListener("load", async () => {

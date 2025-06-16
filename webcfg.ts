@@ -4,6 +4,9 @@ import { FactRequest, HashCashPow, Offer, OfferMsg, OfferTerms, OracleCapability
 import { Api, FacilitatorNode, api as ndapi} from './src/api';
 import { Neighbor } from "./src/p2p";
 
+const seedpool = 5
+const prefix = "dk14-peerjs-10101010-"
+
 export const cfg: MempoolConfig<any> = {
     "maxOracles": 100,
     "maxCapabilities": 100,
@@ -14,7 +17,7 @@ export const cfg: MempoolConfig<any> = {
     "httpPort": 8081,
     "p2pPort": 0,
     "p2pKeepAlive": 1000,
-    "hostname": "dk14-peerjs-10101010" + Math.round(Math.random() * 1000),
+    "hostname": prefix + Math.round(Math.random() * seedpool),
     "isTest": true,
     "webrtcPeerServer": {
         host: "0.peerjs.com",
@@ -22,9 +25,9 @@ export const cfg: MempoolConfig<any> = {
         path: "/",
     },
     "p2pseed": [
-        {"server": "dk14-peerjs-1586786454"},
+        {"server": "dk14-peerjs-10101010-1"},
         {"server": "dk14-peerjs-1586786454-acceptor-test"}
-    ],
+    ].concat(Array(seedpool).map((_, i) => ({"server": prefix + i}))),
     "oracle": {
         "id": {
             "pubkey": "AAA",

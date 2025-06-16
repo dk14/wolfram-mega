@@ -47,9 +47,10 @@ declare global {
         evalDiscreet: (expression: string, parties: string[], bounds: [number, number][]) => Promise<any>
 
         test: boolean
+
+        peerlist: string[]
     }
 }
-
 
 window.txfee = 2000
 
@@ -77,7 +78,10 @@ window.webOracleFacts = await openDB('web-oracle', 1, {
 window.pool = ndapi
 
 if (!global.isTest) {
-    startP2P(global.cfg, await browserPeerAPI())
+    const api = await startP2P(global.cfg, await browserPeerAPI())
+    setInterval(() => {
+        window.peerlist = api.peers.map(x => x.addr.server)
+    })
 }
 
 const store = indexDBstorage(await database())
