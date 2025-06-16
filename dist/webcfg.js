@@ -3,6 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.nodeMock = exports.configureWebMocks = exports.testOfferMsg = exports.cfg = void 0;
 const tx_1 = require("./src/client-api/contracts/btc/tx");
 const api_1 = require("./src/api");
+const seedpool = 5;
+const prefix = "dk14-peerjs-10101010-";
 exports.cfg = {
     "maxOracles": 100,
     "maxCapabilities": 100,
@@ -13,7 +15,7 @@ exports.cfg = {
     "httpPort": 8081,
     "p2pPort": 0,
     "p2pKeepAlive": 1000,
-    "hostname": "dk14-peerjs-10101010" + Math.round(Math.random() * 1000),
+    "hostname": prefix + Math.round(Math.random() * seedpool),
     "isTest": true,
     "webrtcPeerServer": {
         host: "0.peerjs.com",
@@ -21,9 +23,9 @@ exports.cfg = {
         path: "/",
     },
     "p2pseed": [
-        { "server": "dk14-peerjs-1586786454" },
+        { "server": "dk14-peerjs-10101010-1" },
         { "server": "dk14-peerjs-1586786454-acceptor-test" }
-    ],
+    ].concat(Array(seedpool).map((_, i) => ({ "server": prefix + i }))),
     "oracle": {
         "id": {
             "pubkey": "AAA",

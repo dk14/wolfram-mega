@@ -63,7 +63,10 @@ global.initWebapp = new Promise(async (resolve) => {
     });
     window.pool = api_1.api;
     if (!global.isTest) {
-        (0, p2p_1.startP2P)(global.cfg, await (0, p2p_webrtc_1.browserPeerAPI)());
+        const api = await (0, p2p_1.startP2P)(global.cfg, await (0, p2p_webrtc_1.browserPeerAPI)());
+        setInterval(() => {
+            window.peerlist = api.peers.map(x => x.addr.server);
+        });
     }
     const store = (0, storage_1.indexDBstorage)(await (0, storage_1.database)());
     window.traderApi = (0, trader_api_1.traderApi)(webcfg_1.cfg.trader, webcfg_1.cfg, api_1.api, store, global.isTest ? p2p_1.p2pNode : webcfg_1.nodeMock);

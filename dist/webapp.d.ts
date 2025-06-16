@@ -30,5 +30,6 @@ declare global {
         hashLockProvider: HashLockProvider;
         evalDiscreet: (expression: string, parties: string[], bounds: [number, number][]) => Promise<any>;
         test: boolean;
+        peerlist: string[];
     }
 }

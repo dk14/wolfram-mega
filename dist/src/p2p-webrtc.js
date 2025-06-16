@@ -105,6 +105,7 @@ const browserPeerAPI = async () => {
     await new Promise(resolve => {
         jspeer.on('open', function (id) {
             console.log('My peer ID is: ' + id);
+            cfg.hostname = id;
             resolve(id);
         });
     });
