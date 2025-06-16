@@ -407,7 +407,7 @@ Sample of TestNet BTC transactions created with trader console:
 
 [BTC DLC](https://adiabat.github.io/dlc.pdf) (MAD-version) Workflow: 
 
-<img src="https://github.com/user-attachments/assets/247c97e7-a945-4b37-9783-48fd85ccc847" alt="drawing" width="400"/>
+<img src="https://github.com/user-attachments/assets/247c97e7-a945-4b37-9783-48fd85ccc847" style="filter: sepia() opacity(0.8)" alt="drawing" width="500"/>
 
 Security note on DLC atomicity during interactive signing. Do not sign opening (funding) DLC transaction until all CET transactions are co-signed.
 
@@ -415,8 +415,7 @@ Security note on interactive sign: if no precommitments implemented, rogue keys 
 
 ## Architecture
 
-Client:
-![client-api](https://github.com/user-attachments/assets/bc7daa77-21cf-4a5c-9c88-ae2191ee95dd)
+<img src="https://github.com/user-attachments/assets/bc7daa77-21cf-4a5c-9c88-ae2191ee95dd" style="filter: invert() sepia() opacity(0.5) saturate(1.2)" alt="drawing" width="500"/>
 
 [link](https://drive.google.com/file/d/1vABqqvhWD02wjaIzPP_rvGsvGJ-zSSy6/view?usp=sharing)
 
