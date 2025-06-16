@@ -213,10 +213,17 @@ export class Dsl {
         const id = this.megaMode ? this.currentPub : this.currentPub + JSON.stringify(this.currentArgs)
         if (idx == 0) {
             this.alicePayCounter++
+            if (!this.aliceTrackers[id]) {
+                this.aliceTrackers[id] = 0
+            }
             this.aliceTrackers[id] += 1
+            //console.log(this.aliceTrackers)
                 
             this.prev.bet[1] = Math.round(amount)
         } else {
+            if (!this.bobTrackers[id]) {
+                this.bobTrackers[id] = 0
+            }
             this.bobTrackers[id] += 1
             this.bobPayCounter++
             this.prev.bet[0] = Math.round(amount)
@@ -246,8 +253,7 @@ export class Dsl {
 
     private enrichAndProgress(aliceOutcome: boolean, pubkey: string, yes: string[], no: string[], args: {[id: string]: string} = {}) {
         this.lastOutcome = aliceOutcome
-        this.currentPub = pubkey
-        this.currentArgs = args
+
 
         this.flag = false
         if (aliceOutcome === false) {
@@ -392,6 +398,9 @@ export class Dsl {
     public strictlyOneLeafPairPays = false
 
     public outcome(pubkey: string, yes: string[], no: string[], args: {[id: string]: string} = {}, allowTruth = false, strict = true, ignoreObserveChecksSuperUnsafe = false): boolean {
+        this.currentPub = pubkey
+        this.currentArgs = args
+        
         const pubkeyUnique = pubkey + "-###-"  + JSON.stringify(yes) + JSON.stringify(no) + JSON.stringify(args);
         if(ignoreObserveChecksSuperUnsafe) {
             if (this.state[pubkeyUnique] === undefined) {
@@ -925,7 +934,8 @@ export class Dsl {
                 const id = this.megaMode ? pubkey : pubkey + JSON.stringify(args)
 
                 if (!allowUnsafe) {
-                    if (this.aliceTrackers[id] > numbers.length - 1) {
+                    
+                    if (this.aliceTrackers[id] > 0) {
                         throw new DslErrors.PerfectHedgeError("Party cannot benefit regardless of outcome", this.state, undefined, 0, this.selected)
                     }
                     if (this.bobTrackers[id] > numbers.length - 1) {
@@ -1970,7 +1980,7 @@ if (typeof window === 'undefined' && require.main === module) {
             const quantisationStep = 1
 
             dates.reduce(([capitalisation1, capitalisation2], date) => {
-                const [floatingRate, accounts] = dsl.numeric
+                const [floatingRate, accounts] = dsl.unsafe.numeric
                     .outcome(floatingLegIndex, 0, 1, quantisationStep, {date})
                     .valueWithPaymentCtxUnsafe()
 
