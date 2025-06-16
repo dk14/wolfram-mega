@@ -1020,13 +1020,8 @@ if (outcome1) {
 ```
 But, since `pay1` does not depend on `outcome2` - it would throw a "perfect hedge" error instead.
 
-Binary trees in sets and numerics make things even more interesting.
-
-They introduce ambigous semantics of observation: Alice can benefit regardless of **specific** outcome, but cannot benefit from every outcome possible.
-
-> `allowFork` option (enabled in `dsl.unsafe`) allows such semi-ambigous semantics (e.g. for InterestRateSwap), but doubles (1.5X) the enumerated space for such outcome.
-
-> None of `unsafe` operations directly disable `PerfectHedge` check. They only speculate on semantics of observation.
+> Binary trees in sets and numerics make things even more interesting. They introduce ambigous semantics of observation: Alice can benefit regardless of **specific** outcome, but cannot benefit from every outcome possible.
+>> None of `unsafe` operations directly disable `PerfectHedge` check. They only speculate on semantics of observation.
 
 For instance, this form is allowed, even without `unsafe`:
 
