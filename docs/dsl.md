@@ -1098,7 +1098,8 @@ dsl.insecurity.open.disableSafeMode()
 dsl.insecurity.close.reEnableSafeMode()
 ```
 
-> Just to re-iterate: any computation of payout on the outcome itself (except splitting it into two categories ONCE) is unsafe. Re-using same observation with a different split is unsafe (iid requirement). Both Interest rate drivers in finance are unsafe - they overcollaterize, only matching on a single split of interest driver can work. The only derivative that is secure is hedge-purified binary option.
+> Just to re-iterate: Re-using same binary observation is unsafe (iid requirement). Interest rate drivers in finance are effectively unsafe - they overcollaterize. The only derivative that is practically secure is hedge-purified binary option.
+>> In theory, derivatives, that rely on numeric speculation about outcome, can be priced. Most practiacl ones would not converge though: ranges of possible payouts (per leg) would intersect, leading to a `PerfectHedge`. Except under strict ranges (types) of numeric outcomes and small quantization steps. 
 
 Many complex derivative instruments are unsafe. Proof:
 
