@@ -86,7 +86,7 @@ if (!global.isTest) {
 
 const store = indexDBstorage(await database())
 
-window.traderApi = traderApi(cfg.trader, cfg, ndapi, store, global.isTest ? p2pNode : nodeMock)
+window.traderApi = traderApi(cfg.trader, cfg, ndapi, store, p2pNode)
 window.storage = store
 window.hashLockProvider = hashLockProvider
 

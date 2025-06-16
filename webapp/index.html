@@ -303,6 +303,12 @@ Address: <font color="blue" id="wallet-address">n3W8YyK59F6vQe34uQ8n835L627k2J</
  
         <script>
 
+            try {
+                window.traderApi.startBroadcastingIssuedOffers()
+            } catch (e) {
+                console.error(e)
+            }
+
             setInterval(() => {
                 try {
                     document.getElementById("peers").innerText = "" + window.peerlist.length
@@ -349,14 +355,6 @@ Address: <font color="blue" id="wallet-address">n3W8YyK59F6vQe34uQ8n835L627k2J</
                
             }, 500)
 
-            setInterval(() => {
-                try {
-                    DarkReader.setFetchMethod(window.fetch)
-                    DarkReader.enable(conf);
-                } catch {
-
-                }
-            }, 1000)
 
 
             document.getElementById("matching_obj").addEventListener("load", () => {
