@@ -475,11 +475,9 @@ export const matchingEngine: MatchingEngine = {
     },
     reset: async function (): Promise<void> {
         await clearDb();
-        const candidates = [pub1, pub2, pubRandom]
-        const random = Math.round(Math.random() * 3) - 1
-        const pub = candidates[random]
-        window.address = p2pktr(pub).address
-        window.pubkey = pub
+        location.reload()
+        
+        
     },
     removeOrder: async function (hash: string): Promise<void> {
         const pagedescriptor = {

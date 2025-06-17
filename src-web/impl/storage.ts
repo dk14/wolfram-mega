@@ -10,7 +10,7 @@ export type Storage = TraderStorage<TraderQuery<OracleId>, TraderQuery<OracleCap
 
 
 export const database = async (): Promise<IDBPDatabase<unknown>> => {
-    return await openDB('store', 1, {
+    return await openDB(window.pubkey + 'store', 1, {
         upgrade(db) {
         db.createObjectStore('oracles');
         db.createObjectStore('cps');
@@ -23,7 +23,7 @@ export const database = async (): Promise<IDBPDatabase<unknown>> => {
 }
 
 export const clearDb = async (): Promise<void> => {
-    const db = await openDB('store', 1, {
+    const db = await openDB(window.pubkey + 'store', 1, {
         upgrade(db) {
         db.createObjectStore('oracles');
         db.createObjectStore('cps');
@@ -39,6 +39,8 @@ export const clearDb = async (): Promise<void> => {
     db.clear('offers')
     db.clear('issued-reports')
     db.clear('issued-offers')
+    window.profiledb.clear('xpub')
+    window.profiledb.clear('preferences')
 
 }
 

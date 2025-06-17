@@ -218,7 +218,7 @@
 
         <pre class="wallet">
 <div>Balance: <font color="cyan" id="wallet-balance">0,000 sat</font>
-Address: <font color="blue" id="wallet-address">n3W8YyK59F6vQe34uQ8n835L627k2J</font> <img src="./assets/copy.svg" class="copy-button" onclick="window.copyAddressToBuffer()"></div></pre>
+Address: <font color="blue" id="wallet-address">.................................</font> <img src="./assets/copy.svg" class="copy-button" onclick="window.copyAddressToBuffer()"></div></pre>
 
         <div id="matching"class="scrollable" ><p id="loading" style="color: #00FF00; font-size: 24px; font-family: monospace">Loading...</p></div>
         <div id="contracts" class="scrollable" style="display:none"></div>
@@ -675,7 +675,7 @@ Address: <font color="blue" id="wallet-address">n3W8YyK59F6vQe34uQ8n835L627k2J</
                     try {
                         const stats = await (await fetch("https://mempool.space/testnet/api/address/" + window.address)).json()
                         const bal = stats.chain_stats.funded_txo_sum - stats.chain_stats.spent_txo_sum
-                        const balance = bal.toLocaleString() + " sat"
+                        const balance = bal === 0 ? "0,000 sat" : bal.toLocaleString() + " sat"
                         document.getElementById("wallet-balance").innerText = balance
 
                     } catch {
@@ -754,10 +754,13 @@ Address: <font color="blue" id="wallet-address">n3W8YyK59F6vQe34uQ8n835L627k2J</
                         try {
                             let i = 0
                             const before = document.getElementById("contracts_svg").getAttribute("fill")
+                            const beforeFilter = document.getElementById("contracts_svg").style.filter = document.getElementById("contracts_svg").style.filter
                             const blink = setInterval(() => {
                                 i++
                                 document.getElementById("contracts_svg").setAttribute("fill", i % 2 == 0? before : highlightOrders)
-                                if (i > 3) {
+                                document.getElementById("contracts_svg").style.filter = i % 2 == 0?  "brightness(1.5)" : "brightness(1.5)"
+                                if (i > 5) {
+                                    document.getElementById("contracts_svg").style.filter = beforeFilter
                                     document.getElementById("contracts_svg").setAttribute("fill", before)
                                     clearInterval(blink)
                                 }

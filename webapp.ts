@@ -9,7 +9,7 @@ import { p2pktr } from './src/client-api/contracts/btc/tx';
 import { stalkingEngine, StalkingEngine } from './src-web/stalking';
 import { browserPeerAPI } from './src/p2p-webrtc';
 import { TraderQuery, database, Storage, indexDBstorage } from './src-web/impl/storage';
-import { cfg, configureWebMocks, nodeMock } from './webcfg';
+import { cfg, configurePub, configureWebMocks, nodeMock } from './webcfg';
 import { dataProvider } from './src-web/oracle-data-provider';
 import { btcDlcContractInterpreter } from './src-web/transactions';
 import Sandbox from '@nyariv/sandboxjs';
@@ -51,6 +51,8 @@ declare global {
         peerlist: string[]
         initWebapp: Promise<void>
         progressOffers: () => Promise<void>
+
+        profiledb: IDBPDatabase<unknown>
     }
 }
 
@@ -61,6 +63,25 @@ global.initWebapp = new Promise(async (resolve) => {
 window.spec = await (await fetch("./../wolfram-mega-spec.yaml")).text()
 
 global.cfg = cfg
+
+
+//PROFILE
+window.profiledb = await openDB('profile', 1, {
+    upgrade(db) {
+      db.createObjectStore('xpub');
+      db.createObjectStore('preferences');
+    },
+});
+
+let xpub: string = await window.profiledb.get("xpub", "default")
+
+if (!xpub) {
+    xpub = configurePub()
+    await window.profiledb.put("xpub", xpub, "default")
+}
+
+window.address = p2pktr(xpub).address
+window.pubkey = xpub
 
 //WALLETT
 window.privateDB = await openDB('private', 1, {

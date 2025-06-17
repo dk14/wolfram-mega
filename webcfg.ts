@@ -11,6 +11,8 @@ const seedpool = 20
 const prefix = "dk14-peerjs-10101010-"
 const me =  Math.round(Math.random() * seedpool)
 
+
+
 export const cfg: MempoolConfig<any> = {
     "maxOracles": 100,
     "maxCapabilities": 100,
@@ -71,8 +73,14 @@ const pubOracleCp = "07508128697f7a1aca5c3e86292daa4b08f76e68b405e4b4ffe50d066ad
 const pubOracleCp2 = "7fe828395f6143c295ae162d235c3c4b58c27fa1fd2019e88da55979bba5396e"
 
 const keyPair = ECPair.makeRandom()
-export const pubRandom = keyPair.publicKey.toString("hex")
+export const pubRandom = keyPair.publicKey.toString("hex").slice(2)
 export const privRandom = keyPair.toWIF()
+
+export const configurePub = () => {
+    const candidates = [pub1, pub2, pubRandom]
+    const random = Math.round(Math.random() * 3) - 1
+    return candidates[random]
+}
 
 //HD wallets: https://github.com/paulmillr/scure-bip32
 
@@ -131,9 +139,6 @@ export const configureWebMocks = async () => {
     } catch (e) {
         console.error(e)
     }
-
-    window.address = p2pktr(pub1).address
-    window.pubkey = pub1
  
     const mockPow: HashCashPow = {
         difficulty: 0,
