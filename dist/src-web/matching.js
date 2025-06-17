@@ -7,8 +7,6 @@ const storage_1 = require("./impl/storage");
 const dsl_1 = require("./dsl");
 const generate_btc_tx_1 = require("../src/client-api/contracts/generate-btc-tx");
 const transactions_1 = require("./transactions");
-const tx_1 = require("../src/client-api/contracts/btc/tx");
-const webcfg_1 = require("../webcfg");
 const randomInt = (n) => {
     return Math.floor(Math.random() * n);
 };
@@ -414,11 +412,7 @@ exports.matchingEngine = {
     },
     reset: async function () {
         await (0, storage_1.clearDb)();
-        const candidates = [webcfg_1.pub1, webcfg_1.pub2, webcfg_1.pubRandom];
-        const random = Math.round(Math.random() * 3) - 1;
-        const pub = candidates[random];
-        window.address = (0, tx_1.p2pktr)(pub).address;
-        window.pubkey = pub;
+        location.reload();
     },
     removeOrder: async function (hash) {
         const pagedescriptor = {

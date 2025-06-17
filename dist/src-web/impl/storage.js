@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.indexDBstorage = exports.clearDb = exports.database = void 0;
 const idb_1 = require("idb");
 const database = async () => {
-    return await (0, idb_1.openDB)('store', 1, {
+    return await (0, idb_1.openDB)(window.pubkey + 'store', 1, {
         upgrade(db) {
             db.createObjectStore('oracles');
             db.createObjectStore('cps');
@@ -16,7 +16,7 @@ const database = async () => {
 };
 exports.database = database;
 const clearDb = async () => {
-    const db = await (0, idb_1.openDB)('store', 1, {
+    const db = await (0, idb_1.openDB)(window.pubkey + 'store', 1, {
         upgrade(db) {
             db.createObjectStore('oracles');
             db.createObjectStore('cps');
@@ -32,6 +32,8 @@ const clearDb = async () => {
     db.clear('offers');
     db.clear('issued-reports');
     db.clear('issued-offers');
+    window.profiledb.clear('xpub');
+    window.profiledb.clear('preferences');
 };
 exports.clearDb = clearDb;
 const indexDBstorage = (db) => {

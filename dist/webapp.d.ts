@@ -33,5 +33,6 @@ declare global {
         peerlist: string[];
         initWebapp: Promise<void>;
         progressOffers: () => Promise<void>;
+        profiledb: IDBPDatabase<unknown>;
     }
 }

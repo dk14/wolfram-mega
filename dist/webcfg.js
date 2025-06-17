@@ -36,8 +36,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.nodeMock = exports.configureWebMocks = exports.testOfferMsg = exports.privRandom = exports.pubRandom = exports.pub2 = exports.pub1 = exports.cfg = void 0;
-const tx_1 = require("./src/client-api/contracts/btc/tx");
+exports.nodeMock = exports.configureWebMocks = exports.testOfferMsg = exports.configurePub = exports.privRandom = exports.pubRandom = exports.pub2 = exports.pub1 = exports.cfg = void 0;
 const api_1 = require("./src/api");
 const ecpair_1 = __importDefault(require("ecpair"));
 const ecc = __importStar(require("tiny-secp256k1"));
@@ -102,8 +101,14 @@ exports.pub2 = "7fe828395f6143c295ae162d235c3c4b58c27fa1fd2019e88da55979bba5396e
 const pubOracleCp = "07508128697f7a1aca5c3e86292daa4b08f76e68b405e4b4ffe50d066ade55c3";
 const pubOracleCp2 = "7fe828395f6143c295ae162d235c3c4b58c27fa1fd2019e88da55979bba5396e";
 const keyPair = ECPair.makeRandom();
-exports.pubRandom = keyPair.publicKey.toString("hex");
+exports.pubRandom = keyPair.publicKey.toString("hex").slice(2);
 exports.privRandom = keyPair.toWIF();
+const configurePub = () => {
+    const candidates = [exports.pub1, exports.pub2, exports.pubRandom];
+    const random = Math.round(Math.random() * 3) - 1;
+    return candidates[random];
+};
+exports.configurePub = configurePub;
 //HD wallets: https://github.com/paulmillr/scure-bip32
 const testPow = {
     difficulty: 0,
@@ -148,8 +153,6 @@ const configureWebMocks = async () => {
     catch (e) {
         console.error(e);
     }
-    window.address = (0, tx_1.p2pktr)(exports.pub1).address;
-    window.pubkey = exports.pub1;
     const mockPow = {
         difficulty: 0,
         algorithm: 'SHA256',

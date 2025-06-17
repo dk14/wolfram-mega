@@ -39,6 +39,7 @@ const api_1 = require("./src/api");
 const btc = __importStar(require("./src/client-api/contracts/generate-btc-tx"));
 const idb_1 = require("idb");
 const matching_1 = require("./src-web/matching");
+const tx_1 = require("./src/client-api/contracts/btc/tx");
 const stalking_1 = require("./src-web/stalking");
 const p2p_webrtc_1 = require("./src/p2p-webrtc");
 const storage_1 = require("./src-web/impl/storage");
@@ -49,6 +50,20 @@ window.txfee = 2000;
 global.initWebapp = new Promise(async (resolve) => {
     window.spec = await (await fetch("./../wolfram-mega-spec.yaml")).text();
     global.cfg = webcfg_1.cfg;
+    //PROFILE
+    window.profiledb = await (0, idb_1.openDB)('profile', 1, {
+        upgrade(db) {
+            db.createObjectStore('xpub');
+            db.createObjectStore('preferences');
+        },
+    });
+    let xpub = await window.profiledb.get("xpub", "default");
+    if (!xpub) {
+        xpub = (0, webcfg_1.configurePub)();
+        await window.profiledb.put("xpub", xpub, "default");
+    }
+    window.address = (0, tx_1.p2pktr)(xpub).address;
+    window.pubkey = xpub;
     //WALLETT
     window.privateDB = await (0, idb_1.openDB)('private', 1, {
         upgrade(db) {

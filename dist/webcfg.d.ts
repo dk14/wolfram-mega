@@ -7,6 +7,7 @@ export declare const pub1 = "e37e4cced6f555a1b2063d645f01ad4d57cc1ffa8c382d28d90
 export declare const pub2 = "7fe828395f6143c295ae162d235c3c4b58c27fa1fd2019e88da55979bba5396e";
 export declare const pubRandom: string;
 export declare const privRandom: string;
+export declare const configurePub: () => string;
 export declare const testOfferMsg: OfferMsg;
 export declare const configureWebMocks: () => Promise<void>;
 export declare const nodeMock: FacilitatorNode<Neighbor>;
