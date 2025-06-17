@@ -3,7 +3,8 @@ import fs from "fs"
 global.isTest = true
 
 import { JSDOM } from 'jsdom';
-const webpage = fs.readFileSync("webapp/index.html").toString("utf-8")
+
+const webpage = process.argv[2] === "unit" ? fs.readFileSync("webapp/index.html").toString("utf-8") : "<html></html>"
 const jsdom = new JSDOM(webpage, { runScripts: "dangerously" });
 const fetchPkg = 'node_modules/whatwg-fetch/dist/fetch.umd.js';
 jsdom.window.eval(fs.readFileSync(fetchPkg, 'utf-8'));

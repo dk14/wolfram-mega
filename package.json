@@ -17,7 +17,7 @@
     "btc-signer": "npx tsx src/client-api/utils/btc-signer.ts",
     "gen-keypair": "npx tsx src/client-api/utils/gen-keypair.ts",
     "demo": "npx tsx test/demo.ts",
-    "webtest": "npx tsx test/webtest.ts",
+    "webtest": "npx tsx test/webtest.ts unit",
     "webtest-it": "npx tsx test/webtest-integration.ts",
     "webtest-it-composite": "npx tsx test/webtest-integration.ts notrace composite",
     "webrtc-bridge": "npx tsx test/util/webrtc-bridge.ts",
