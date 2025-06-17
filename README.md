@@ -42,5 +42,5 @@ Protocol and specifications are in `src/protocol.ts` and `wolfram-mega-spec.yaml
 
 ## Use cases
  Non-essential APIs and apps are under `src/client-api/`, `webapp/`, `src-web/`. See [docs](https://dk14.github.io/wolfram-mega/docs/).
-> Security. Non-essential APIs need stricter typescript flavor, testnet integration tests and security audits for crypto-mainnet uses. p2p-network needs real-life performance tests for scaling.
+> Security. Non-essential APIs need stricter typescript flavor, testnet integration tests and security audits for crypto-mainnet uses (as well as HD-wallet support). p2p-network needs real-life performance tests for scaling.
 
