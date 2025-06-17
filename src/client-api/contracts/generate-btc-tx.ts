@@ -230,8 +230,8 @@ export interface DlcParams {
     rValue: Hex,
     rValue2?: Hex,
     rValue3?: Hex,
-    alicePub: PubKey,
-    bobPub: PubKey,
+    alicePub: (o: string) => PubKey,
+    bobPub: (o: string) => PubKey,
 
     changeAlice: number,
     changeBob: number,
@@ -252,8 +252,8 @@ export interface ChildDlcParams {
     rValue: Hex,
     rValue2?: Hex,
     rValue3?: Hex,
-    alicePub: PubKey,
-    bobPub: PubKey,
+    alicePub: (o: string) => PubKey,
+    bobPub: (o: string) => PubKey,
     txfee: number,
     session: { [id: Msg]: PublicSession; },
     openingSession: OpeningTxSession,
@@ -279,7 +279,8 @@ export async function doubleSHA256reversed(input: string) {
 }
 
 export const generateDlcContract = async (params: DlcParams): Promise<DlcContract> => {
-    const openingTx = await generateOpeningTransaction(params)
+    const [yes, no] = Object.keys(params.outcomes)
+    const openingTx = await generateOpeningTransaction({...params, alicePub: params.alicePub(yes), bobPub: params.bobPub(yes)})
     if (!openingTx) {
         return undefined //opening tx co-sgned first; MAD-flavor of DLC;
     }
@@ -287,6 +288,7 @@ export const generateDlcContract = async (params: DlcParams): Promise<DlcContrac
     const lockedTxId = await doubleSHA256reversed(openingTx)
     const cet = await Promise.all(Object.keys(params.outcomes).map(async (answer, i)=> {
         const cet = await generateCetTransaction(Object.assign({}, params, {
+            alicePub: params.alicePub(answer), bobPub: params.bobPub(answer),
             answer, lockedTxId, 
             aliceAmount: params.outcomes[answer].aliceAmount,
             bobAmount: params.outcomes[answer].bobAmount,
@@ -301,6 +303,7 @@ export const generateDlcContract = async (params: DlcParams): Promise<DlcContrac
 export const generateChildDlcContract = async (params: ChildDlcParams): Promise<DlcContract> => {
     const cet = await Promise.all(Object.keys(params.outcomes).map(async (answer, i) => {
         const cet = await generateCetTransaction(Object.assign({}, params, {
+            alicePub: params.alicePub(answer), bobPub: params.bobPub(answer),
             answer, lockedTxId: params.lockedTxId, 
             aliceAmount: params.outcomes[answer].aliceAmount,
             bobAmount: params.outcomes[answer].bobAmount,

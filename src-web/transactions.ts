@@ -167,8 +167,8 @@ const genContractTx = async (inputs: Inputs, c: Commitment[], offer: OfferMsg, s
                     rValue: c[0].rValueSchnorrHex,
                     rValue2: c[1]?.rValueSchnorrHex,
                     rValue3: c[2]?.rValueSchnorrHex,
-                    alicePub: o.content.pubkeys[0],
-                    bobPub: o.content.pubkeys[0],
+                    alicePub: outcome => outcome === yesOutcome ? o.content.pubkeys[0]: o.content.pubkeys[1],
+                    bobPub: outcome => outcome === noOutcome ? o.content.pubkeys[1]: o.content.pubkeys[0],
                     changeAlice: inputs.utxoAlice.map(x => x.value).reduce((a, b) => a + b) - terms.partyBetAmount,
                     changeBob: inputs.utxoBob.map(x => x.value).reduce((a, b) => a + b) - terms.counterpartyBetAmount,
                     txfee: terms.txfee,
@@ -275,6 +275,9 @@ export const btcDlcContractInterpreter: ContractInterpreter = {
         const terms = offer.content.terms
         const autoRefundWinner = ((offer.content.dependantOrdersIds && offer.content.dependantOrdersIds[0]) ? 0 : ((terms.partyCompositeCollateralAmount ?? terms.partyBetAmount) + (terms.counterpartyCompositeCollateralAmount ?? terms.counterpartyBetAmount) - terms.partyBetAmount - terms.counterpartyBetAmount))
 
+        const yesOutcome = terms.partyBetsOn[0]
+        const noOutcome = terms.counterPartyBetsOn[0]
+
         const p: CetRedemptionParams = {
             cetTxId: lockingTxId.txid,
             oraclePub: c[0].req.capabilityPubKey,
@@ -284,8 +287,8 @@ export const btcDlcContractInterpreter: ContractInterpreter = {
             rValue: c[0].rValueSchnorrHex,
             rValue2: c[1]?.rValueSchnorrHex,
             rValue3: c[2]?.rValueSchnorrHex,
-            alicePub: offer.content.pubkeys[0],
-            bobPub: offer.content.pubkeys[0],
+            alicePub: fact.factWithQuestion === yesOutcome ? offer.content.pubkeys[0]: offer.content.pubkeys[1],
+            bobPub: fact.factWithQuestion === noOutcome ? offer.content.pubkeys[0]: offer.content.pubkeys[1],
             oracleSignature: fact.signature,
             amount: (terms.partyBetAmount + terms.counterpartyBetAmount) - terms.txfee + autoRefundWinner,
             txfee: offer.content.terms.txfee,
