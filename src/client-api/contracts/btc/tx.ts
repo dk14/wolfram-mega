@@ -578,26 +578,12 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
 
             const adaptorPkCombined = muSig.pubKeyCombine([Buffer.from(alicePub, "hex"), Buffer.from(adaptorPub, "hex")]);
             const adaptorPubKeyCombined = convert.intToBuffer(adaptorPkCombined.affineX);
-
-            if (txFeeAlice) {
-                txFeeAlice.forEach(utxo => {
-                    psbt.addInput({
-                        hash: utxo.txid,
-                        index: utxo.vout,
-                        witnessUtxo: { value: txfee, script: alicePubTR.output! },
-                        tapInternalKey: Buffer.from(alicePub, "hex")
-                    });
-
-                })
-            }
-
             psbt.addInput({
                 hash: multiIn.txid,
                 index: multiIn.vout,
                 witnessUtxo: { value: aliceAmount + bobAmount, script: multiP2TR.output! },
                 tapInternalKey: Buffer.from(pubKeyCombined, "hex")
             });
-
 
             if (session && session.hashLock1 && session.hashLock2) {
                 const script_HTLC = `${adaptorPubKeyCombined.toString("hex")} OP_CHECKSIGVERIFY OP_HASH256 ${session.hashLock1} OP_EQUALVERIFY OP_HASH256 ${session.hashLock2} OP_EQUALVERIFY`;
@@ -662,6 +648,19 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
                 });
             }
 
+
+            if (false) {
+                txFeeAlice.forEach(utxo => {
+                    psbt.addInput({
+                        hash: utxo.txid,
+                        index: utxo.vout,
+                        witnessUtxo: { value: txfee, script: alicePubTR.output! },
+                        tapInternalKey: Buffer.from(alicePub, "hex")
+                    });
+
+                })
+            }
+
             if (session === null || session === undefined) {
                 await psbt.signInputAsync(0, schnorrSignerMulti(alicePub, bobPub))
             } else {
@@ -675,6 +674,10 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
                     }
                 }
 
+            }
+
+            if (false) {
+                await psbt.signInputAsync(1, schnorrSignerSingleWebSimple(alicePub))
             }
             
             psbt.finalizeAllInputs()
@@ -696,18 +699,6 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
                 address: p2pktr(alicePub).address!, // TODO: generate alice address from oracleMsgHex and oracleR
                 value: amount - (txFeeAlice ? 0 : txfee)
             });
-
-            if (txFeeAlice) {
-                txFeeAlice.forEach(utxo => {
-                    psbt.addInput({
-                        hash: utxo.txid,
-                        index: utxo.vout,
-                        witnessUtxo: { value: txfee, script: aliceP2TR.output! },
-                        tapInternalKey: Buffer.from(alicePub, "hex")
-                    });
-
-                })
-            }
 
             if (session && session.hashLock1 && session.hashLock2) {
                 const pkCombined = muSig.pubKeyCombine([Buffer.from(alicePub, "hex"), Buffer.from(bobPub, "hex")]);
@@ -745,6 +736,18 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
                     ]
                 });
 
+                if (txFeeAlice) {
+                    txFeeAlice.forEach(utxo => {
+                        psbt.addInput({
+                            hash: utxo.txid,
+                            index: utxo.vout,
+                            witnessUtxo: { value: txfee, script: aliceP2TR.output! },
+                            tapInternalKey: Buffer.from(alicePub, "hex")
+                        });
+
+                    })
+                }
+
                 await psbt.signInputAsync(0, schnorrSignerMultiWeb(alicePub, adaptorPub, ["", oracleS]))
 
                 const customFinalizer = (_inputIndex: number, input: any) => {
@@ -760,6 +763,10 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
                     return {
                         finalScriptWitness: witnessStackToScriptWitness(witness)
                     }
+                }
+
+                if (txFeeAlice) {
+                    await psbt.signInputAsync(1, schnorrSignerSingleWebSimple(alicePub))
                 }
 
                 psbt.finalizeInput(0, customFinalizer);   
@@ -806,18 +813,6 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
             const script_asm1 = `${adaptorPubKeyCombined1.toString("hex")} OP_CHECKSIGVERIFY ${adaptorPubKeyCombined2.toString("hex")} OP_CHECKSIGVERIFY` + script_HTLCOpt;
             const script_asm2 = `${adaptorPubKeyCombined1.toString("hex")} OP_CHECKSIGVERIFY ${adaptorPubKeyCombined3.toString("hex")} OP_CHECKSIGVERIFY` + script_HTLCOpt;
             const script_asm3 = `${adaptorPubKeyCombined2.toString("hex")} OP_CHECKSIGVERIFY ${adaptorPubKeyCombined3.toString("hex")} OP_CHECKSIGVERIFY` + script_HTLCOpt;
-
-            if (txFeeAlice) {
-                txFeeAlice.forEach(utxo => {
-                    psbt.addInput({
-                        hash: utxo.txid,
-                        index: utxo.vout,
-                        witnessUtxo: { value: txfee, script: aliceP2TR.output! },
-                        tapInternalKey: Buffer.from(alicePub, "hex")
-                    });
-
-                })
-            }
 
             psbt.addInput({
                 hash: multiIn.txid,
@@ -900,10 +895,26 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
                 });
             }
 
+            if (txFeeAlice) {
+                txFeeAlice.forEach(utxo => {
+                    psbt.addInput({
+                        hash: utxo.txid,
+                        index: utxo.vout,
+                        witnessUtxo: { value: txfee, script: aliceP2TR.output! },
+                        tapInternalKey: Buffer.from(alicePub, "hex")
+                    });
+
+                })
+            }
+
             if (session === null || session === undefined) {
                 await psbt.signInputAsync(0, schnorrSignerMulti(alicePub, bobPub))
             } else {
                 await psbt.signInputAsync(0, schnorrSignerInteractive(alicePub, bobPub, session))
+            }  
+
+            if (txFeeAlice) {
+                await psbt.signInputAsync(1, schnorrSignerSingleWebSimple(alicePub))
             }
 
             psbt.finalizeAllInputs()
@@ -935,18 +946,6 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
             const script_asm1 = `${adaptorPubKeyCombined1.toString("hex")} OP_CHECKSIGVERIFY ${adaptorPubKeyCombined2.toString("hex")} OP_CHECKSIGVERIFY` + script_HTLCOpt;
             const script_asm2 = `${adaptorPubKeyCombined1.toString("hex")} OP_CHECKSIGVERIFY ${adaptorPubKeyCombined3.toString("hex")} OP_CHECKSIGVERIFY` + script_HTLCOpt;
             const script_asm3 = `${adaptorPubKeyCombined2.toString("hex")} OP_CHECKSIGVERIFY ${adaptorPubKeyCombined3.toString("hex")} OP_CHECKSIGVERIFY` + script_HTLCOpt;
-
-            if (txFeeAlice) {
-                txFeeAlice.forEach(utxo => {
-                    psbt.addInput({
-                        hash: utxo.txid,
-                        index: utxo.vout,
-                        witnessUtxo: { value: txfee, script: aliceP2TR.output! },
-                        tapInternalKey: Buffer.from(alicePub, "hex")
-                    });
-
-                })
-            }
 
             const redeem1 = {
                 output: bitcoin.script.fromASM(script_asm1),
@@ -1050,6 +1049,19 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
                 value: amount - (txFeeAlice ? 0 : txfee)
             });
 
+
+            if (txFeeAlice) {
+                txFeeAlice.forEach(utxo => {
+                    psbt.addInput({
+                        hash: utxo.txid,
+                        index: utxo.vout,
+                        witnessUtxo: { value: txfee, script: aliceP2TR.output! },
+                        tapInternalKey: Buffer.from(alicePub, "hex")
+                    });
+
+                })
+            }
+
             if (quorumno == 1) {
                 if (session) {
                     await psbt.signInputAsync(0, schnorrSignerMultiWeb(alicePub, adaptorPub, ["", oracleS]))
@@ -1097,6 +1109,11 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
                     }
                 }
             }
+
+            if (txFeeAlice) {
+                await psbt.signInputAsync(1, schnorrSignerSingleWebSimple(alicePub))
+            }
+
 
             if (session && session.hashLock1 && session.hashLock2) {
                 const customFinalizer = (_inputIndex: number, input: any) => {

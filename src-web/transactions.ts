@@ -26,6 +26,7 @@ export interface Inputs {
 
 //meAlice: Alice is party, Bob is counterparty
 export interface ContractInterpreter {
+    getSimpleUtXo: (amount: number, addressIn: string, txfee: number) => Promise<UTxO[]>
     getUtXo: (terms: OfferMsg) => Promise<Inputs>
     genContractTx: (inputs: Inputs, c: Commitment[], offer: OfferMsg, stateTxId?: string) => Promise<[Contract, OfferMsg?]>
     submitTx: (tx: string) => Promise<TxId>
@@ -42,6 +43,7 @@ const scan = (arr, reducer, seed) => {
     }, [seed, []])[1];
 }
 
+let spentUtxos = [] //TODO: persistence, sort by value
 
 export const getSimpleUtXo = async (amount: number, addressIn: string, txfee: number): Promise<UTxO[]> => {
 
@@ -64,7 +66,9 @@ export const getSimpleUtXo = async (amount: number, addressIn: string, txfee: nu
         }
     }
 
-    return getMultipleUtxo(await utxoExplore(addressIn), amount)
+    const res = getMultipleUtxo((await utxoExplore(addressIn)).filter(x => !spentUtxos.find(y => JSON.stringify(x) === JSON.stringify(y))), amount)
+    spentUtxos = spentUtxos.concat(res)
+    return res
 
 }
 
@@ -202,7 +206,10 @@ const genContractTx = async (inputs: Inputs, c: Commitment[], offer: OfferMsg, s
                             hashLock2: openingSession.hashLocks[1]
                         }
                         return session
-                    })()
+                    })(),
+                    //feeutxo1: await getSimpleUtXo(terms.txfee, window.address, 0),
+                    //feeutxo2: await getSimpleUtXo(terms.txfee, window.address, 0)
+
                 }
                 if (!offer.content.terms.dependsOn) {
                     //console.error(terms)
@@ -288,9 +295,11 @@ export const btcDlcContractInterpreter: ContractInterpreter = {
                 session.hashUnLock1 = offer.content.accept.openingTx.hashUnlocks[0]
                 session.hashUnLock2 = offer.content.accept.openingTx.hashUnlocks[1]
                 return session
-            })()
+            })(),
+            txFeeAlice: await getSimpleUtXo(terms.txfee, window.address, 0)
         }
         return window.btc.generateCetRedemptionTransaction(p)
-    }
+    },
+    getSimpleUtXo: getSimpleUtXo
 }
 

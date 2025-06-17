@@ -80,7 +80,8 @@ export interface CetRedemptionParams {
     quorumno?: 1 | 2 | 3,
     amount: number,
     txfee: number,
-    session?: PublicSession
+    session?: PublicSession,
+    txFeeAlice?: UTxO[]
 }
 
 export const generateSimpleTransaction = async (params: SimpleParams): Promise<Hex> => {
@@ -145,7 +146,7 @@ export const generateCetTransaction = async (params: CetParams, vout: number = 0
             params.txfee,
             params.session,
             params.stateAmount,
-            params.txFeeAlice))?.hex
+            /** params.txFeeAlice */))?.hex
     } else {
         const twistedPk1 = schnorr.adaptorPublic(params.oraclePub, params.answer, params.rValue).padStart(64, "0")
         const twistedPk2 = schnorr.adaptorPublic(params.oraclePub2, params.answer2 ?? params.answer, params.rValue2).padStart(64, "0")
@@ -161,7 +162,8 @@ export const generateCetTransaction = async (params: CetParams, vout: number = 0
             params.bobAmount,
             params.txfee,
             params.session,
-            params.stateAmount))?.hex
+            params.stateAmount,
+       /** params.txFeeAlice */))?.hex
     }
     
 }
@@ -183,7 +185,8 @@ export const generateCetRedemptionTransaction = async (params: CetRedemptionPara
             params.amount,
             params.txfee,
             params.session,
-            params.bobPub)).hex
+            params.bobPub,
+           /** params.txFeeAlice*/)).hex
     } else {
         const twistedPk1 = schnorr.adaptorPublic(params.oraclePub, params.answer, params.rValue).padStart(64, "0")
         const twistedPk2 = schnorr.adaptorPublic(params.oraclePub2, params.answer2 ?? params.answer, params.rValue2).padStart(64, "0")
@@ -202,7 +205,8 @@ export const generateCetRedemptionTransaction = async (params: CetRedemptionPara
             params.oracleSignature3,
             params.amount,
             params.txfee,
-            params.session))?.hex
+            params.session,
+            params.txFeeAlice))?.hex
         
     }
 }
@@ -235,6 +239,8 @@ export interface DlcParams {
     session: { [id: Msg]: PublicSession; },
     openingSession: OpeningTxSession,
     stateAmount?: number //goes back to multisig, for composite contracts
+    feeutxo1?: UTxO[],
+    feeutxo2?: UTxO[]
 }
 
 export interface ChildDlcParams {
@@ -252,6 +258,8 @@ export interface ChildDlcParams {
     session: { [id: Msg]: PublicSession; },
     openingSession: OpeningTxSession,
     stateAmount: number
+    feeutxo1?: UTxO[]
+    feeutxo2?: UTxO[]
 }
 
 export interface DlcContract {
@@ -277,12 +285,13 @@ export const generateDlcContract = async (params: DlcParams): Promise<DlcContrac
     }
     
     const lockedTxId = await doubleSHA256reversed(openingTx)
-    const cet = await Promise.all(Object.keys(params.outcomes).map(async answer => {
+    const cet = await Promise.all(Object.keys(params.outcomes).map(async (answer, i)=> {
         const cet = await generateCetTransaction(Object.assign({}, params, {
             answer, lockedTxId, 
             aliceAmount: params.outcomes[answer].aliceAmount,
             bobAmount: params.outcomes[answer].bobAmount,
-            session: params.session[answer]
+            session: params.session[answer],
+            txFeeAlice: i === 0 ? params.feeutxo1 : params.feeutxo2
         }))
         return cet
     }))
@@ -290,12 +299,13 @@ export const generateDlcContract = async (params: DlcParams): Promise<DlcContrac
 }
 
 export const generateChildDlcContract = async (params: ChildDlcParams): Promise<DlcContract> => {
-    const cet = await Promise.all(Object.keys(params.outcomes).map(async answer => {
+    const cet = await Promise.all(Object.keys(params.outcomes).map(async (answer, i) => {
         const cet = await generateCetTransaction(Object.assign({}, params, {
             answer, lockedTxId: params.lockedTxId, 
             aliceAmount: params.outcomes[answer].aliceAmount,
             bobAmount: params.outcomes[answer].bobAmount,
-            session: params.session[answer]
+            session: params.session[answer],
+            txFeeAlice: i === 0 ? params.feeutxo1 : params.feeutxo2
         }), 1)
         return cet
     }))
