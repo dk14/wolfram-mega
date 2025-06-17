@@ -337,6 +337,12 @@ Address: <font color="blue" id="wallet-address">n3W8YyK59F6vQe34uQ8n835L627k2J</
  
         <script>
 
+            setTimeout(() => {
+                if(!offersFound){
+                    location.reload()
+                }
+            }, 4000)
+
             setInterval(() => {
                 try {
                     document.getElementById("peers").innerText = "" + window.peerlist.length
@@ -632,7 +638,7 @@ Address: <font color="blue" id="wallet-address">n3W8YyK59F6vQe34uQ8n835L627k2J</
             }
 
             const maxMatching = 3
-            let offersFound = 0
+            window.offersFound = 0
 
             const camcel = setInterval(async () => {
                 if (offersFound >= maxMatching - 1) {
