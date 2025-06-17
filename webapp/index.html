@@ -527,14 +527,14 @@ Address: <font color="blue" id="wallet-address">................................
 
                 if (offer.status && !isTentative) {
                     const rename = (status) => {
-                        if (status === "oracle comitted") {
-                            return "accepted, oracle comitted"
+                        if (status === "oracle committed") {
+                            return "accepted, oracle committed"
                         } else {
                             return status
                         }
                     }
                     const offerStatus = document.createElement("pre")
-                    offerStatus.innerHTML = `<font color="white">${offer.status}</font>`
+                    offerStatus.innerHTML = `<font color="white">${rename(offer.status)}</font>`
                     offerInfo.appendChild(offerStatus)
                 }
                 return offerInfo
