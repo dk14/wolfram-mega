@@ -770,6 +770,7 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
                 }
 
                 psbt.finalizeInput(0, customFinalizer);   
+                psbt.finalizeInput(1);
                 
             } else {
                 psbt.addInput({

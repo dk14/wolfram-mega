@@ -146,7 +146,7 @@ export const generateCetTransaction = async (params: CetParams, vout: number = 0
             params.txfee,
             params.session,
             params.stateAmount,
-            /** params.txFeeAlice */))?.hex
+            params.txFeeAlice))?.hex
     } else {
         const twistedPk1 = schnorr.adaptorPublic(params.oraclePub, params.answer, params.rValue).padStart(64, "0")
         const twistedPk2 = schnorr.adaptorPublic(params.oraclePub2, params.answer2 ?? params.answer, params.rValue2).padStart(64, "0")
@@ -163,7 +163,7 @@ export const generateCetTransaction = async (params: CetParams, vout: number = 0
             params.txfee,
             params.session,
             params.stateAmount,
-       /** params.txFeeAlice */))?.hex
+           params.txFeeAlice))?.hex
     }
     
 }
@@ -186,7 +186,7 @@ export const generateCetRedemptionTransaction = async (params: CetRedemptionPara
             params.txfee,
             params.session,
             params.bobPub,
-           /** params.txFeeAlice*/)).hex
+            params.txFeeAlice)).hex
     } else {
         const twistedPk1 = schnorr.adaptorPublic(params.oraclePub, params.answer, params.rValue).padStart(64, "0")
         const twistedPk2 = schnorr.adaptorPublic(params.oraclePub2, params.answer2 ?? params.answer, params.rValue2).padStart(64, "0")
