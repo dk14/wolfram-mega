@@ -34,7 +34,7 @@ const generateCetTransaction = async (params, vout = 0) => {
     };
     if (params.oraclePub2 === undefined) {
         const twistedPk = schnorr.adaptorPublic(params.oraclePub, params.answer, params.rValue).padStart(64, "0");
-        return (await tx.genAliceCet(multiIn, params.alicePub, params.bobPub, twistedPk, params.aliceAmount, params.bobAmount, params.txfee, params.session, params.stateAmount, params.txFeeAlice))?.hex;
+        return (await tx.genAliceCet(multiIn, params.alicePub, params.bobPub, twistedPk, params.aliceAmount, params.bobAmount, params.txfee, params.session, params.stateAmount))?.hex;
     }
     else {
         const twistedPk1 = schnorr.adaptorPublic(params.oraclePub, params.answer, params.rValue).padStart(64, "0");
@@ -57,7 +57,7 @@ const generateCetRedemptionTransaction = async (params, quorumno = 1) => {
         const twistedPk1 = schnorr.adaptorPublic(params.oraclePub, params.answer, params.rValue).padStart(64, "0");
         const twistedPk2 = schnorr.adaptorPublic(params.oraclePub2, params.answer2 ?? params.answer, params.rValue2).padStart(64, "0");
         const twistedPk3 = schnorr.adaptorPublic(params.oraclePub3, params.answer3 ?? params.answer, params.rValue3).padStart(64, "0");
-        return (await tx.genAliceCetRedemptionQuorum(quorumno, cetOut, twistedPk1, twistedPk2, twistedPk3, params.alicePub, params.bobPub, params.oracleSignature, params.oracleSignature2, params.oracleSignature3, params.amount, params.txfee, params.session))?.hex;
+        return (await tx.genAliceCetRedemptionQuorum(quorumno, cetOut, twistedPk1, twistedPk2, twistedPk3, params.alicePub, params.bobPub, params.oracleSignature, params.oracleSignature2, params.oracleSignature3, params.amount, params.txfee, params.session, params.txFeeAlice))?.hex;
     }
 };
 exports.generateCetRedemptionTransaction = generateCetRedemptionTransaction;
@@ -77,12 +77,13 @@ const generateDlcContract = async (params) => {
         return undefined; //opening tx co-sgned first; MAD-flavor of DLC;
     }
     const lockedTxId = await doubleSHA256reversed(openingTx);
-    const cet = await Promise.all(Object.keys(params.outcomes).map(async (answer) => {
+    const cet = await Promise.all(Object.keys(params.outcomes).map(async (answer, i) => {
         const cet = await (0, exports.generateCetTransaction)(Object.assign({}, params, {
             answer, lockedTxId,
             aliceAmount: params.outcomes[answer].aliceAmount,
             bobAmount: params.outcomes[answer].bobAmount,
-            session: params.session[answer]
+            session: params.session[answer],
+            txFeeAlice: i === 0 ? params.feeutxo1 : params.feeutxo2
         }));
         return cet;
     }));
@@ -90,12 +91,13 @@ const generateDlcContract = async (params) => {
 };
 exports.generateDlcContract = generateDlcContract;
 const generateChildDlcContract = async (params) => {
-    const cet = await Promise.all(Object.keys(params.outcomes).map(async (answer) => {
+    const cet = await Promise.all(Object.keys(params.outcomes).map(async (answer, i) => {
         const cet = await (0, exports.generateCetTransaction)(Object.assign({}, params, {
             answer, lockedTxId: params.lockedTxId,
             aliceAmount: params.outcomes[answer].aliceAmount,
             bobAmount: params.outcomes[answer].bobAmount,
-            session: params.session[answer]
+            session: params.session[answer],
+            txFeeAlice: i === 0 ? params.feeutxo1 : params.feeutxo2
         }), 1);
         return cet;
     }));

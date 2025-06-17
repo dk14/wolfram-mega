@@ -71,6 +71,7 @@ export interface CetRedemptionParams {
     amount: number;
     txfee: number;
     session?: PublicSession;
+    txFeeAlice?: UTxO[];
 }
 export declare const generateSimpleTransaction: (params: SimpleParams) => Promise<Hex>;
 export declare const generateOpeningTransaction: (params: OpeningParams) => Promise<Hex>;
@@ -105,6 +106,8 @@ export interface DlcParams {
     };
     openingSession: OpeningTxSession;
     stateAmount?: number;
+    feeutxo1?: UTxO[];
+    feeutxo2?: UTxO[];
 }
 export interface ChildDlcParams {
     lockedTxId: TxId;
@@ -125,6 +128,8 @@ export interface ChildDlcParams {
     };
     openingSession: OpeningTxSession;
     stateAmount: number;
+    feeutxo1?: UTxO[];
+    feeutxo2?: UTxO[];
 }
 export interface DlcContract {
     openingTx?: Hex;

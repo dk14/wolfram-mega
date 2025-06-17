@@ -9,6 +9,7 @@ const scan = (arr, reducer, seed) => {
         return [acc, result];
     }, [seed, []])[1];
 };
+let spentUtxos = []; //TODO: persistence, sort by value
 const getSimpleUtXo = async (amount, addressIn, txfee) => {
     const utxoExplore = async (address) => {
         return (await (await fetch(`https://mempool.space/testnet/api/address/${address}/utxo`)).json());
@@ -28,7 +29,9 @@ const getSimpleUtXo = async (amount, addressIn, txfee) => {
             }
         }
     };
-    return getMultipleUtxo(await utxoExplore(addressIn), amount);
+    const res = getMultipleUtxo((await utxoExplore(addressIn)).filter(x => !spentUtxos.find(y => JSON.stringify(x) === JSON.stringify(y))), amount);
+    spentUtxos = spentUtxos.concat(res);
+    return res;
 };
 exports.getSimpleUtXo = getSimpleUtXo;
 const getUtXo = async (offer) => {
@@ -149,7 +152,9 @@ const genContractTx = async (inputs, c, offer, stateTxId) => {
                             hashLock2: openingSession.hashLocks[1]
                         };
                         return session;
-                    })()
+                    })(),
+                    //feeutxo1: await getSimpleUtXo(terms.txfee, window.address, 0),
+                    //feeutxo2: await getSimpleUtXo(terms.txfee, window.address, 0)
                 };
                 if (!offer.content.terms.dependsOn) {
                     //console.error(terms)
@@ -232,9 +237,11 @@ exports.btcDlcContractInterpreter = {
                 session.hashUnLock1 = offer.content.accept.openingTx.hashUnlocks[0];
                 session.hashUnLock2 = offer.content.accept.openingTx.hashUnlocks[1];
                 return session;
-            })()
+            })(),
+            txFeeAlice: await (0, exports.getSimpleUtXo)(terms.txfee, window.address, 0)
         };
         return window.btc.generateCetRedemptionTransaction(p);
-    }
+    },
+    getSimpleUtXo: exports.getSimpleUtXo
 };
 //# sourceMappingURL=transactions.js.map

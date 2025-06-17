@@ -16,6 +16,7 @@ export interface Inputs {
     utxoBob: UTxO[];
 }
 export interface ContractInterpreter {
+    getSimpleUtXo: (amount: number, addressIn: string, txfee: number) => Promise<UTxO[]>;
     getUtXo: (terms: OfferMsg) => Promise<Inputs>;
     genContractTx: (inputs: Inputs, c: Commitment[], offer: OfferMsg, stateTxId?: string) => Promise<[Contract, OfferMsg?]>;
     submitTx: (tx: string) => Promise<TxId>;
