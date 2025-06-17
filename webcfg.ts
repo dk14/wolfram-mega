@@ -74,7 +74,7 @@ const keyPair = ECPair.makeRandom()
 export const pubRandom = keyPair.publicKey.toString("hex")
 export const privRandom = keyPair.toWIF()
 
-//HD wallets: https://gist.github.com/aulneau/2f5aad7030e046fb6b557a3871231d72
+//HD wallets: https://github.com/paulmillr/scure-bip32
 
 const testPow: HashCashPow = {
     difficulty: 0,
