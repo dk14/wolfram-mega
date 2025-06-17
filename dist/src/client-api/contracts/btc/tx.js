@@ -633,6 +633,7 @@ const txApi = () => {
                     await psbt.signInputAsync(1, schnorrSignerSingleWebSimple(alicePub));
                 }
                 psbt.finalizeInput(0, customFinalizer);
+                psbt.finalizeInput(1);
             }
             else {
                 psbt.addInput({

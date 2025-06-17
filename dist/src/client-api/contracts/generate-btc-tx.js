@@ -34,13 +34,13 @@ const generateCetTransaction = async (params, vout = 0) => {
     };
     if (params.oraclePub2 === undefined) {
         const twistedPk = schnorr.adaptorPublic(params.oraclePub, params.answer, params.rValue).padStart(64, "0");
-        return (await tx.genAliceCet(multiIn, params.alicePub, params.bobPub, twistedPk, params.aliceAmount, params.bobAmount, params.txfee, params.session, params.stateAmount))?.hex;
+        return (await tx.genAliceCet(multiIn, params.alicePub, params.bobPub, twistedPk, params.aliceAmount, params.bobAmount, params.txfee, params.session, params.stateAmount, params.txFeeAlice))?.hex;
     }
     else {
         const twistedPk1 = schnorr.adaptorPublic(params.oraclePub, params.answer, params.rValue).padStart(64, "0");
         const twistedPk2 = schnorr.adaptorPublic(params.oraclePub2, params.answer2 ?? params.answer, params.rValue2).padStart(64, "0");
         const twistedPk3 = schnorr.adaptorPublic(params.oraclePub3, params.answer3 ?? params.answer, params.rValue3).padStart(64, "0");
-        return (await tx.genAliceCetQuorum(multiIn, params.alicePub, params.bobPub, twistedPk1, twistedPk2, twistedPk3, params.aliceAmount, params.bobAmount, params.txfee, params.session, params.stateAmount))?.hex;
+        return (await tx.genAliceCetQuorum(multiIn, params.alicePub, params.bobPub, twistedPk1, twistedPk2, twistedPk3, params.aliceAmount, params.bobAmount, params.txfee, params.session, params.stateAmount, params.txFeeAlice))?.hex;
     }
 };
 exports.generateCetTransaction = generateCetTransaction;
@@ -51,7 +51,7 @@ const generateCetRedemptionTransaction = async (params, quorumno = 1) => {
     };
     if (params.oraclePub2 === undefined) {
         const twistedPk = schnorr.adaptorPublic(params.oraclePub, params.answer, params.rValue).padStart(64, "0");
-        return (await tx.genAliceCetRedemption(cetOut, twistedPk, params.alicePub, params.oracleSignature, params.amount, params.txfee, params.session, params.bobPub)).hex;
+        return (await tx.genAliceCetRedemption(cetOut, twistedPk, params.alicePub, params.oracleSignature, params.amount, params.txfee, params.session, params.bobPub, params.txFeeAlice)).hex;
     }
     else {
         const twistedPk1 = schnorr.adaptorPublic(params.oraclePub, params.answer, params.rValue).padStart(64, "0");
