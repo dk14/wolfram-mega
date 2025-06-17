@@ -219,7 +219,7 @@ export const indexDBstorage = (db: IDBPDatabase<unknown>): Storage => {
             })
         },
         allIssuedReports: async function (handler: (r: Report) => Promise<void>): Promise<void> {
-            (await db.getAll("issued-offers")).forEach(o => {
+            (await db.getAll("issued-reports")).forEach(o => {
                 handler(o)
             })
         }

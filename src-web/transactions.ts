@@ -125,6 +125,7 @@ const getUtXo = async (offer: OfferMsg): Promise<Inputs> => {
     
 }
 
+
 const genContractTx = async (inputs: Inputs, c: Commitment[], offer: OfferMsg, stateTxId?: string): Promise<[DlcContract, OfferMsg?]> => {
     const o = structuredClone(offer)
     const terms = o.content.terms

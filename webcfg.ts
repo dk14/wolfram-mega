@@ -79,7 +79,7 @@ export const privRandom = keyPair.toWIF()
 export const configurePub = () => {
     const candidates = [pub1, pub2, pubRandom]
     const random = Math.round(Math.random() * 3) - 1
-    return candidates[random]
+    return candidates[random] ?? pub1
 }
 
 //HD wallets: https://github.com/paulmillr/scure-bip32

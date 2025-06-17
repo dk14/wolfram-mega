@@ -28,7 +28,7 @@ import { api } from "../../src/api";
 
     setInterval(() => window.stalking.trackIssuedOffers({
         "bitcoin-testnet": btcDlcContractInterpreter
-    }, dataProvider), 1000)
+    }, dataProvider), 2000)
         
     const preferences: PreferenceModel = {
         minOracleRank: 0,

@@ -9,7 +9,17 @@ export interface StalkingEngine {
     trackIssuedOffers: (interpreters: {[id: string]: ContractInterpreter}, dataProvider: OracleDataProvider) => Promise<void>
 }
 
+let ignore = {}
+
+let cycle = 0
+
 const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterpreter}, dataProvider: OracleDataProvider) => {
+
+    cycle++
+    if (cycle > 100000) {
+        ignore = 0
+        cycle = 0
+    }
     
     const pagedescriptor = {
         page: 0,
@@ -17,7 +27,7 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
     }
 
     const allOffers = (await window.storage.queryIssuedOffers({
-        where: async x => true}, pagedescriptor))
+        where: async x => !ignore[x.pow.hash]}, pagedescriptor))
 
     const allOffersGrouped: {[key: string]: OfferMsg[]} = Object.groupBy(allOffers, x => x.content.orderId)
 
@@ -88,7 +98,7 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
                     x.content.finalize && x.content.finalize?.previousFinalRef === orderPreviousState.pow.hash
             }, pagedescriptor)
 
-            console.log((await window.storage.queryOffers({where: async x => true}, pagedescriptor)).map(o => o.pow.hash))
+            console.log((await window.storage.queryIssuedOffers({where: async x => true}, pagedescriptor)).map(o => o.pow.hash))
             
             if (candidates.length === 0) {
                 return
@@ -218,7 +228,9 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
                     partial.pow.hash = partial.pow.hash + "-signing" + randomInt(1000)
 
 
+                    console.log("############# ISSUE:" + partial.pow.hash)
                     window.traderApi.issueOffer(partial)
+                    
                     window.storage.removeIssuedOffers([orderPreviousState.pow.hash])
                 } else {
                     //CO-SIGNED
@@ -270,12 +282,17 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
                         txid: txId, acceptRef: order.pow.hash, backup: contract.cet[0] + ",,,," + contract.cet[1]
                     }
                     order.pow.hash = order.pow.hash + "-final" + randomInt(100)
-                    window.traderApi.issueOffer(order)
-                    window.storage.removeIssuedOffers([orderPreviousState.pow.hash])
+                    await window.traderApi.issueOffer(order)
+                    await window.storage.removeIssuedOffers([orderPreviousState.pow.hash])
 
                 }   
             }
+
+            console.log("############# REMOVE:" + orderPreviousState.pow.hash)
+            ignore[orderPreviousState.pow.hash] = true
+            window.storage.removeIssuedOffers([orderPreviousState.pow.hash])  
         } catch (err) {
+            window.storage.removeIssuedOffers([orderPreviousState.pow.hash])  
             console.error(err)
         }   
     })
