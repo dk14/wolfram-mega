@@ -141,7 +141,7 @@
                 height: 5rem;
             }
 
-            .add-interest, .send-funds-amount, .send-funds-address {
+            .add-interest, .send-funds-amount, .txfee, .send-funds-address {
                 font-weight:300;
                 font-size: 16px;
                 border:0px;
@@ -169,6 +169,10 @@
 
             .send-funds-amount {
                 width: 80px 
+            }
+
+            .txfee {
+                width: 15ch;
             }
 
 
@@ -225,10 +229,11 @@ Address: <font color="blue" id="wallet-address">................................
         <div id="profile" class="scrollable profile" style="display:none" class="profile">
             <div class="profile-group">
                 <pre><h3>Oracle Filter</h3></pre>
-                <pre>Rank: </pre>
+                <pre>Minimum PoW-distance (oracle - reports): </pre>
                 <div class="slidecontainer">
-                    <input type="range" min="1" max="100" value="50" class="slider-color" id="oracle-strength">
+                    <input type="range" min="-5" max="20" value="0" class="slider-color" id="oracle-strength">
                 </div>
+                <pre id="ranktext">0</pre>
             </div>
             <hr>
             <div class="profile-group">
@@ -243,7 +248,8 @@ Address: <font color="blue" id="wallet-address">................................
             </div>
             <hr>
             <div class="profile-group">
-                <pre><h3>Withdraw funds:</h3> amount: <input class="send-funds-amount" type="number" value="0"><br><br> address: <input class="send-funds-address" value="n3W8YyK59F6vQe34uQ8n835L627k2J"> <button class="send-funds-button">Send</button></pre>
+                <pre>txfee: <input id="txfee" class="txfee" type="number" value="1000"> sats </pre>
+                <pre><h3>Withdraw funds:</h3> amount: <input id="send-funds-amount" class="send-funds-amount" type="number" value="0"><br><br> address: <input id="send-funds-address" class="send-funds-address" value="n3W8YyK59F6vQe34uQ8n835L627k2J"> <button id="send-funds-button" class="send-funds-button">Send</button></pre>
 
                 
             </div>
@@ -304,7 +310,7 @@ Address: <font color="blue" id="wallet-address">................................
                 <svg class="button" width="800px" height="800px" viewBox="-3 0 32 32" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns">
     
                     <title>fire-2</title>
-                    <desc>Created with Sketch Beta.</desc>
+                    
                     <defs>
 
                     </defs>
@@ -432,14 +438,34 @@ Address: <font color="blue" id="wallet-address">................................
 
             try {
                 document.getElementById("oracle-strength").onchange = () => {
-                    window.model.profile.minOracleRank = getElementById("oracle-strength").value
+                    window.model.profile.minOracleRank = document.getElementById("oracle-strength").value
+                    document.getElementById("ranktext").innerText = "" + window.model.profile.minOracleRank
                 }
             } catch (e) {
                 console.error(e)
             }
-            
 
+            try {
+                 document.getElementById("txfee").onchange = () => {
+                    window.model.profile.txfee = document.getElementById("txfee").value   
+                }
+            } catch (e) {
+                console.error(e)
+            }
 
+            try {
+                 document.getElementById("send-funds-button").onclick = () => {
+                    const amount = document.getElementById("send-funds-amount").value
+                    const address = document.getElementById("send-funds-address").value
+                    const tx = matching.takeWinnings(amount, address, window.model.profile.txfee)
+                    navigator.clipboard.writeText(tx)
+                    alert("Copied TxBody To Clipboard!")
+                    
+                }
+            } catch (e) {
+                console.error(e)
+            }
+        
 
             window.model = {
                 profile: {
