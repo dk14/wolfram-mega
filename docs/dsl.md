@@ -428,7 +428,7 @@ const swap = await (new Dsl (async dsl => {
 Shortcut:
 
 ```ts
- dsl.ifAtomicSwapLeg1("lock1", "allowed").then(pay => {
+dsl.atomicSwap.ifTruth("lock1", "allowed").then(pay => {
     pay.party("alice", "usd").pays("bob", "btc").amount(10000000, "usd")
 }).else(pay => {
     pay.party("bob", "btc").pays("alice", "usd").amount(10, "btc")
@@ -440,8 +440,10 @@ Shortcut:
 > Interpreter must understand your swap-lock conditions: it could be oracle allowing swap ("PTLC-lock" in BTC), or as in case with crypto-loans, it could be hash-lock conditon for signing atomicity, or just "true" if `OfferTerms` interpreter can optimize it (see Contracts doc).
 
 > Party role reversal (negative amounts) is disabled for cross-currency. There is a semantical check: "minus 5 dollar does not imply plus 5 btc".
+> > Swapping same asset is disabled. It is disabled only if one of the parties pays. Using `dsl.atomicSwap.ifTruth` for multi-party swap is allowed even some parties in a contract are same-asset, given that they don't participate in a particular swap.
 
 > "Perfect hedge" check is NOT bypassed here. Discreet still prevents you from swapping funds with yourself. Only semantics of observation are bypassed, since both branches have to be executed simulteniously when condition is unlocked. 
+
 
 > Not to be confused with a lock-check - locks can be checked with regular `dsl.if("lock", ["true"], ["false"])` rather than `dsl.if("lock", ["true"], ["true"])` (this specifically means atomic swap).
 
@@ -450,7 +452,7 @@ Shortcut:
 ```ts
 // Borrowing contract
 
-dsl.ifAtomicSwapLeg1("hashlock", "verified").then(ctx => {
+dsl.atomicSwap.ifTruth("hashlock", "verified").then(ctx => {
     ctx.party("alice", "usd").pays("bob", "btc").amount(10000000, "usd") //alice lends bob money
 }).else(ctx => {
     dsl.if("liquidation?", ["yes"], ["no"]).then(ctx => { //price oracle
@@ -766,7 +768,7 @@ for (let party of participants) {
 
 const [winner, bid] = Object.entries(round).maxBy([party, bid] => bid)
 
-dsl.ifAtomicSwapLeg1().then(ctx => {
+dsl.atomicSwap.ifTruth().then(ctx => {
    ctx.party(winner).pays("auction", "asset").amount(bid)
 }).else(pay => {
    ctx.party("auction", "asset").pays(winner).amount(1, "asset")

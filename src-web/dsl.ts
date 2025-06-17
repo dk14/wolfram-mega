@@ -1,5 +1,6 @@
 import { Mutex } from "async-mutex"
 import { OfferModel } from "./models"
+import { parseArgs } from "util"
 
 type CacheEntry  = {
     id: string
@@ -153,6 +154,11 @@ export class Dsl {
     public pay(idx: 0 | 1, amount: number) {
         //console.log("" + idx + "  " + amount + "  " + JSON.stringify(this.prev))
         //console.log(amount)
+
+        if (this.flagSameAssetSwap) {
+            throw Error(`Cannot swap same type of asset between ${this.selected[0]} and ${this.selected[1]}`)
+        }
+       
 
         if (this.unssafeInifnityCtx) {
             throw new Error("Payouts are disabled in unsafe infinity context. Specify cashflows in return instead")
@@ -431,6 +437,8 @@ export class Dsl {
 
     public strictlyOneLeafPairPays = false
 
+    public flagSameAssetSwap = false
+
     public outcome(pubkey: string, yes: string[], no: string[], args: {[id: string]: string} = {}, allowTruth = false, strict = true, ignoreObserveChecksSuperUnsafe = false): boolean {
         this.currentPub = pubkey
         this.currentArgs = args
@@ -453,6 +461,16 @@ export class Dsl {
         if (strict) {
             this.alicePayCounter = 0
             this.bobPayCounter = 0
+        }
+
+        if (allowTruth && this.selected !== undefined) {
+            const tokens1 = this.selected[0].split("_")
+            const asset1 = tokens1.length === 1 ? "btc" : tokens1[tokens1.length - 1]
+            const tokens2 = this.selected[1].split("_")
+            const asset2 = tokens2.length === 1 ? "btc" :tokens2[tokens2.length - 1]
+            if (asset1 === asset2) {
+                this.flagSameAssetSwap = true
+            }
         }
         
         yes.sort()
@@ -729,6 +747,15 @@ export class Dsl {
 
     private unssafeInifnityCtx = false
 
+    public atomicSwap = {
+        ifTruth: (lock: string = "TRUTH", unlockOutcome: string = "true", args: {[id: string]: string} = {}, allowMisplacedPay = true) => {
+            return this.if(lock, [unlockOutcome], [unlockOutcome], args, true, allowMisplacedPay, false)
+        },
+        truth: (lock: string = "TRUTH", unlockOutcome: string = "true", args: {[id: string]: string} = {}) => {
+            return this.outcome(lock, [unlockOutcome], [unlockOutcome], args, true)
+        },
+    }
+
     public unsafe = {
         if: (pubkey: string, yes: string[], no: string[], args: {[id: string]: string} = {}, allowSwaps: boolean = false, allowMisplacedPay = true, strict = false, ignoreObserveChecksSuperUnsafe = false) => {
             if (this.safeMode) {
@@ -783,12 +810,6 @@ export class Dsl {
                 }
                 return this.set.outcomeT(pubkey, set, renderer, args, allowMisplacedPay, allowUnsafe)
             }
-        },
-        ifAtomicSwapLeg1: (lock: string = "TRUTH", unlockOutcome: string = "true", allowMisplacedPay = true) => {
-            if (this.safeMode) {
-                throw new DslErrors.SafeModeError("safe mode is activated! unsafe is disallowed!")
-            }
-            return this.if(lock, [unlockOutcome], [unlockOutcome], {}, true, allowMisplacedPay, false)
         },
         outcome: (pubkey: string, yes: string[], no: string[], args: {[id: string]: string} = {}, allowTruth = false, strict = false, ignoreObserveChecksSuperUnsafe = false) => {
             if (this.safeMode) {
@@ -1934,6 +1955,7 @@ export class Dsl {
         this.bobTrackers = {}
         while (next) {
             try {
+                this.flagSameAssetSwap = false
                 this.collateral1 = 0
                 this.collateral2 = 0
                 this.budgetBound1 = collateralBound1
@@ -2077,8 +2099,8 @@ if (typeof window === 'undefined' && require.main === module) {
         console.log(assets)
 
         const swap = await (new Dsl (async dsl => {
-            dsl.unsafe.ifAtomicSwapLeg1("lock1", "allowed").then(pay => {
-                dsl.unsafe.ifAtomicSwapLeg1("lock12", "allowed").then(pay => {
+            dsl.atomicSwap.ifTruth("lock1", "allowed").then(pay => {
+                dsl.atomicSwap.ifTruth("lock12", "allowed").then(pay => {
                     pay.party("bob", "btc").pays("alice", "usd").amount(10, "btc")
                 }).else(() => {})
                 pay.party("alice", "usd").pays("bob", "btc").amount(10000000, "usd")
