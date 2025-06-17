@@ -476,7 +476,8 @@ export const matchingEngine: MatchingEngine = {
     },
     reset: async function (): Promise<void> {
         await clearDb();
-        const pub = Math.random() > 0.3 ? (Math.random() > 0.6 ? pub1: pubRandom) : pub2
+        const random = Math.random()
+        const pub = random > 0.3 ? (random > 0.6 ? pub1: pubRandom) : pub2
         window.address = p2pktr(pub).address
         window.pubkey = pub
     },
