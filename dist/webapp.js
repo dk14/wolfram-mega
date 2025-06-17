@@ -57,10 +57,20 @@ global.initWebapp = new Promise(async (resolve) => {
             db.createObjectStore('preferences');
         },
     });
-    let xpub = await window.profiledb.get("xpub", "default");
+    let user = "default";
+    try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const param = urlParams.get('user');
+        if (param) {
+            user = param;
+        }
+    }
+    catch {
+    }
+    let xpub = await window.profiledb.get("xpub", user);
     if (!xpub) {
         xpub = (0, webcfg_1.configurePub)();
-        await window.profiledb.put("xpub", xpub, "default");
+        await window.profiledb.put("xpub", xpub, user);
     }
     window.address = (0, tx_1.p2pktr)(xpub).address;
     window.pubkey = xpub;
