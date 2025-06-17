@@ -6,6 +6,7 @@ import { IDBPDatabase } from 'idb';
 import { HashLockProvider } from './src-web/matching';
 import { StalkingEngine } from './src-web/stalking';
 import { TraderQuery, Storage } from './src-web/impl/storage';
+import { UTxO } from './src-web/transactions';
 import { MatchingEngine } from './src-web/models';
 export interface BtcApi {
     generateDlcContract: (params: btc.DlcParams) => Promise<btc.DlcContract>;
@@ -34,5 +35,9 @@ declare global {
         initWebapp: Promise<void>;
         progressOffers: () => Promise<void>;
         profiledb: IDBPDatabase<unknown>;
+        spentUtxos: UTxO[];
+        spentUtxosMemoize: {
+            [id: string]: UTxO[];
+        };
     }
 }

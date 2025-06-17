@@ -10,7 +10,11 @@ const scan = (arr, reducer, seed) => {
     }, [seed, []])[1];
 };
 let spentUtxos = []; //TODO: persistence, sort by value
-const getSimpleUtXo = async (amount, addressIn, txfee) => {
+let spentUtxosMemoize = {};
+const getSimpleUtXo = async (amount, addressIn, txfee, lockname) => {
+    if (spentUtxosMemoize[lockname]) {
+        return spentUtxosMemoize[lockname];
+    }
     const utxoExplore = async (address) => {
         return (await (await fetch(`https://mempool.space/testnet/api/address/${address}/utxo`)).json());
     };
@@ -31,6 +35,7 @@ const getSimpleUtXo = async (amount, addressIn, txfee) => {
     };
     const res = getMultipleUtxo((await utxoExplore(addressIn)).filter(x => !spentUtxos.find(y => JSON.stringify(x) === JSON.stringify(y))), amount);
     spentUtxos = spentUtxos.concat(res);
+    spentUtxosMemoize[lockname] = res;
     return res;
 };
 exports.getSimpleUtXo = getSimpleUtXo;
@@ -153,8 +158,8 @@ const genContractTx = async (inputs, c, offer, stateTxId) => {
                         };
                         return session;
                     })(),
-                    //feeutxo1: await getSimpleUtXo(terms.txfee, window.address, 0),
-                    //feeutxo2: await getSimpleUtXo(terms.txfee, window.address, 0)
+                    feeutxo1: await (0, exports.getSimpleUtXo)(terms.txfee, o.content.addresses[0], 0, o.content.orderId),
+                    feeutxo2: await (0, exports.getSimpleUtXo)(terms.txfee, o.content.addresses[0], 0, o.content.orderId) //is it insecure?
                 };
                 if (!offer.content.terms.dependsOn) {
                     //console.error(terms)
