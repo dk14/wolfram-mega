@@ -31,5 +31,6 @@ declare global {
         evalDiscreet: (expression: string, parties: string[], bounds: [number, number][]) => Promise<any>;
         test: boolean;
         peerlist: string[];
+        initWebapp: Promise<void>;
     }
 }

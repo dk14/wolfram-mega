@@ -91,4 +91,5 @@ global.initWebapp = new Promise(async (resolve) => {
     console.log("WebAPI is ready!");
     resolve(window);
 });
+window.initWebapp = global.initWebapp;
 //# sourceMappingURL=webapp.js.map
