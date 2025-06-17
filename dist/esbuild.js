@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const esbuild_1 = require("esbuild");
 const esbuild_plugins_node_modules_polyfill_1 = require("esbuild-plugins-node-modules-polyfill");
 const esbuild_plugin_wasm_1 = require("esbuild-plugin-wasm");
-const canBeBlank = ['module', 'node-fetch', 'path', 'http', 'util', 'net', 'url', 'fs', 'stream', 'zlib', 'https'];
+const canBeBlank = ['module', 'node-fetch', 'path', 'http', 'util', 'net', 'url', 'fs', 'stream', 'zlib', 'https', 'events'];
 (0, esbuild_1.build)({
     entryPoints: ["webapp.ts"],
     bundle: true,

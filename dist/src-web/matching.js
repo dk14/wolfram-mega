@@ -135,14 +135,13 @@ exports.matchingEngine = {
         if (!capability) {
             throw "capability is not synced; try another offer";
         }
-        //TODO check that capability is compatible with binary option
         const model = {
             id: offer.pow.hash,
             bet: [offer.content.terms.partyBetAmount, offer.content.terms.counterpartyBetAmount],
             oracles: [{
-                    capabilityPub: "",
-                    oracle: "Wolfram",
-                    endpoint: "http://localhost:8080" //can use fact-missing claim as an endpoint too
+                    capabilityPub: capability.capabilityPubKey,
+                    oracle: capability.endpoint,
+                    endpoint: capability.endpoint
                 }],
             question: capability.question,
             blockchain: "bitcoin-testnet",
@@ -415,7 +414,8 @@ exports.matchingEngine = {
     },
     reset: async function () {
         await (0, storage_1.clearDb)();
-        const pub = Math.random() > 0.5 ? webcfg_1.pub1 : webcfg_1.pub2;
+        const random = Math.random();
+        const pub = random > 0.3 ? (random > 0.6 ? webcfg_1.pub1 : webcfg_1.pubRandom) : webcfg_1.pub2;
         window.address = (0, tx_1.p2pktr)(pub).address;
         window.pubkey = pub;
     },
