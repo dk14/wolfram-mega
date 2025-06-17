@@ -169,8 +169,8 @@ const genContractTx = async (inputs: Inputs, c: Commitment[], offer: OfferMsg, s
                     rValue3: c[2]?.rValueSchnorrHex,
                     alicePub: outcome => outcome === yesOutcome ? o.content.pubkeys[0]: o.content.pubkeys[1],
                     bobPub: outcome => outcome === noOutcome ? o.content.pubkeys[1]: o.content.pubkeys[0],
-                    changeAlice: inputs.utxoAlice.map(x => x.value).reduce((a, b) => a + b) - terms.partyBetAmount,
-                    changeBob: inputs.utxoBob.map(x => x.value).reduce((a, b) => a + b) - terms.counterpartyBetAmount,
+                    changeAlice: inputs.utxoAlice.map(x => x.value).reduce((a, b) => a + b) - terms.partyBetAmount - terms.txfee / 2,
+                    changeBob: inputs.utxoBob.map(x => x.value).reduce((a, b) => a + b) - terms.counterpartyBetAmount - terms.txfee / 2,
                     txfee: terms.txfee,
                     openingSession: { sigs: openingSession.partialSigs },
                     stateAmount: o.content.terms.dependsOn ? 
