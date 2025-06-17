@@ -80,6 +80,11 @@ global.initWebapp = new Promise(async (resolve) => {
     };
     window.matching = matching_1.matchingEngine;
     window.stalking = stalking_1.stalkingEngine;
+    window.progressOffers = async () => {
+        await window.stalking.trackIssuedOffers({
+            "bitcoin-testnet": transactions_1.btcDlcContractInterpreter
+        }, oracle_data_provider_1.dataProvider);
+    };
     await (0, webcfg_1.configureWebMocks)();
     window.pool = api_1.api;
     if (!global.isTest && !window.test) {

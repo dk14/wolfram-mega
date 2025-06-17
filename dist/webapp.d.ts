@@ -32,5 +32,6 @@ declare global {
         test: boolean;
         peerlist: string[];
         initWebapp: Promise<void>;
+        progressOffers: () => Promise<void>;
     }
 }

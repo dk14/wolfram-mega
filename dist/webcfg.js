@@ -26,7 +26,7 @@ exports.cfg = {
     "p2pseed": [
         { "server": "dk14-peerjs-10101010-1" },
         { "server": "dk14-peerjs-1586786454-acceptor-test" }
-    ].concat(Array(seedpool).fill(0).map((_, i) => i === me ? undefined : ({ "server": prefix + i })).filter(x => x !== undefined)),
+    ].concat(Array(seedpool + 1).fill(0).map((_, i) => i === me ? undefined : ({ "server": prefix + i })).filter(x => x !== undefined)),
     "oracle": {
         "id": {
             "pubkey": "AAA",
