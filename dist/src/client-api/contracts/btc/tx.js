@@ -464,18 +464,29 @@ const txApi = () => {
                 hex: psbt.extractTransaction().toHex()
             };
         },
-        genAliceCet: async (multiIn, alicePub, bobPub, adaptorPub, aliceAmount, bobAmount, txfee, session = null, stateAmount) => {
+        genAliceCet: async (multiIn, alicePub, bobPub, adaptorPub, aliceAmount, bobAmount, txfee, session = null, stateAmount, txFeeAlice) => {
             const psbt = new bitcoin.Psbt({ network: net });
             const pkCombined = muSig.pubKeyCombine([Buffer.from(alicePub, "hex"), Buffer.from(bobPub, "hex")]);
             const pubKeyCombined = convert.intToBuffer(pkCombined.affineX);
             const multiP2TR = (0, exports.p2pktr)(pubKeyCombined);
+            const alicePubTR = (0, exports.p2pktr)(alicePub);
             const adaptorPkCombined = muSig.pubKeyCombine([Buffer.from(alicePub, "hex"), Buffer.from(adaptorPub, "hex")]);
             const adaptorPubKeyCombined = convert.intToBuffer(adaptorPkCombined.affineX);
+            if (txFeeAlice) {
+                txFeeAlice.forEach(utxo => {
+                    psbt.addInput({
+                        hash: utxo.txid,
+                        index: utxo.vout,
+                        witnessUtxo: { value: txfee, script: alicePubTR.output },
+                        tapInternalKey: Buffer.from(alicePub, "hex")
+                    });
+                });
+            }
             psbt.addInput({
                 hash: multiIn.txid,
                 index: multiIn.vout,
                 witnessUtxo: { value: aliceAmount + bobAmount, script: multiP2TR.output },
-                tapInternalKey: Buffer.from(alicePub, "hex")
+                tapInternalKey: Buffer.from(pubKeyCombined, "hex")
             });
             if (session && session.hashLock1 && session.hashLock2) {
                 const script_HTLC = `${adaptorPubKeyCombined.toString("hex")} OP_CHECKSIGVERIFY OP_HASH256 ${session.hashLock1} OP_EQUALVERIFY OP_HASH256 ${session.hashLock2} OP_EQUALVERIFY`;
@@ -489,7 +500,7 @@ const txApi = () => {
                 });
                 psbt.addOutput({
                     address: script_p2tr.address,
-                    value: aliceAmount + bobAmount - txfee - 200
+                    value: aliceAmount + bobAmount - (txFeeAlice ? 0 : txfee) - 200
                 });
                 const script_HTLC_deposit = `${alicePub} OP_CHECKSIGVERIFY OP_HASH256 ${session.hashLock1} OP_EQUALVERIFY OP_HASH256 ${session.hashLock2} OP_EQUALVERIFY`;
                 const scriptTreeDeposit = {
@@ -521,7 +532,7 @@ const txApi = () => {
             else {
                 psbt.addOutput({
                     address: (0, exports.p2pktr)(adaptorPubKeyCombined).address,
-                    value: aliceAmount + bobAmount - txfee
+                    value: aliceAmount + bobAmount - (txFeeAlice ? 0 : txfee)
                 });
             }
             if (stateAmount !== undefined && stateAmount !== 0) {
@@ -552,15 +563,26 @@ const txApi = () => {
                 hex: psbt.extractTransaction().toHex()
             };
         },
-        genAliceCetRedemption: async (aliceOracleIn, adaptorPub, alicePub, oracleS, amount, txfee, session, bobPub) => {
+        genAliceCetRedemption: async (aliceOracleIn, adaptorPub, alicePub, oracleS, amount, txfee, session, bobPub, txFeeAlice) => {
             const psbt = new bitcoin.Psbt({ network: net });
             const adaptorPkCombined = muSig.pubKeyCombine([Buffer.from(alicePub, "hex"), Buffer.from(adaptorPub, "hex")]);
             const adaptorPubKeyCombined = convert.intToBuffer(adaptorPkCombined.affineX);
+            const aliceP2TR = (0, exports.p2pktr)(alicePub);
             const aliceOracleP2TR = (0, exports.p2pktr)(adaptorPubKeyCombined);
             psbt.addOutput({
                 address: (0, exports.p2pktr)(alicePub).address, // TODO: generate alice address from oracleMsgHex and oracleR
-                value: amount - txfee
+                value: amount - (txFeeAlice ? 0 : txfee)
             });
+            if (txFeeAlice) {
+                txFeeAlice.forEach(utxo => {
+                    psbt.addInput({
+                        hash: utxo.txid,
+                        index: utxo.vout,
+                        witnessUtxo: { value: txfee, script: aliceP2TR.output },
+                        tapInternalKey: Buffer.from(alicePub, "hex")
+                    });
+                });
+            }
             if (session && session.hashLock1 && session.hashLock2) {
                 const pkCombined = muSig.pubKeyCombine([Buffer.from(alicePub, "hex"), Buffer.from(bobPub, "hex")]);
                 const pubKeyCombined = convert.intToBuffer(pkCombined.affineX);
@@ -621,11 +643,12 @@ const txApi = () => {
                 hex: psbt.extractTransaction().toHex()
             };
         },
-        genAliceCetQuorum: async (multiIn, alicePub, bobPub, adaptorPub, adaptorPub2, adaptorPub3, aliceAmount, bobAmount, txfee, session, stateAmount) => {
+        genAliceCetQuorum: async (multiIn, alicePub, bobPub, adaptorPub, adaptorPub2, adaptorPub3, aliceAmount, bobAmount, txfee, session, stateAmount, txFeeAlice) => {
             const psbt = new bitcoin.Psbt({ network: net });
             const pkCombined = muSig.pubKeyCombine([Buffer.from(alicePub, "hex"), Buffer.from(bobPub, "hex")]);
             const pubKeyCombined = convert.intToBuffer(pkCombined.affineX);
             const multiP2TR = (0, exports.p2pktr)(pubKeyCombined);
+            const aliceP2TR = (0, exports.p2pktr)(alicePub);
             const adaptorPkCombined1 = muSig.pubKeyCombine([Buffer.from(alicePub, "hex"), Buffer.from(adaptorPub, "hex")]);
             const adaptorPubKeyCombined1 = convert.intToBuffer(adaptorPkCombined1.affineX);
             const adaptorPkCombined2 = muSig.pubKeyCombine([Buffer.from(alicePub, "hex"), Buffer.from(adaptorPub2, "hex")]);
@@ -636,11 +659,21 @@ const txApi = () => {
             const script_asm1 = `${adaptorPubKeyCombined1.toString("hex")} OP_CHECKSIGVERIFY ${adaptorPubKeyCombined2.toString("hex")} OP_CHECKSIGVERIFY` + script_HTLCOpt;
             const script_asm2 = `${adaptorPubKeyCombined1.toString("hex")} OP_CHECKSIGVERIFY ${adaptorPubKeyCombined3.toString("hex")} OP_CHECKSIGVERIFY` + script_HTLCOpt;
             const script_asm3 = `${adaptorPubKeyCombined2.toString("hex")} OP_CHECKSIGVERIFY ${adaptorPubKeyCombined3.toString("hex")} OP_CHECKSIGVERIFY` + script_HTLCOpt;
+            if (txFeeAlice) {
+                txFeeAlice.forEach(utxo => {
+                    psbt.addInput({
+                        hash: utxo.txid,
+                        index: utxo.vout,
+                        witnessUtxo: { value: txfee, script: aliceP2TR.output },
+                        tapInternalKey: Buffer.from(alicePub, "hex")
+                    });
+                });
+            }
             psbt.addInput({
                 hash: multiIn.txid,
                 index: multiIn.vout,
                 witnessUtxo: { value: aliceAmount + bobAmount, script: multiP2TR.output },
-                tapInternalKey: Buffer.from(alicePub, "hex")
+                tapInternalKey: Buffer.from(pubKeyCombined, "hex")
             });
             const scriptTree = [
                 {
@@ -662,7 +695,7 @@ const txApi = () => {
             if (session) {
                 psbt.addOutput({
                     address: script_addr,
-                    value: aliceAmount + bobAmount - txfee - 200
+                    value: aliceAmount + bobAmount - (txFeeAlice ? 0 : txfee) - 200
                 });
                 const scriptTree1 = {
                     output: bitcoin.script.fromASM(`${alicePub} OP_CHECKSIGVERIFY` + script_HTLCOpt)
@@ -692,7 +725,7 @@ const txApi = () => {
             else {
                 psbt.addOutput({
                     address: script_addr,
-                    value: aliceAmount + bobAmount - txfee
+                    value: aliceAmount + bobAmount - (txFeeAlice ? 0 : txfee)
                 });
             }
             if (stateAmount !== undefined) {
@@ -713,10 +746,11 @@ const txApi = () => {
                 hex: psbt.extractTransaction().toHex()
             };
         },
-        genAliceCetRedemptionQuorum: async (quorumno, aliceOracleIn, adaptorPub, adaptorPub2, adaptorPub3, alicePub, bobPub, oracleS, oracleS2, oracleS3, amount, txfee, session) => {
+        genAliceCetRedemptionQuorum: async (quorumno, aliceOracleIn, adaptorPub, adaptorPub2, adaptorPub3, alicePub, bobPub, oracleS, oracleS2, oracleS3, amount, txfee, session, txFeeAlice) => {
             const psbt = new bitcoin.Psbt({ network: net });
             const pkCombined = muSig.pubKeyCombine([Buffer.from(alicePub, "hex"), Buffer.from(bobPub, "hex")]);
             const pubKeyCombined = convert.intToBuffer(pkCombined.affineX);
+            const aliceP2TR = (0, exports.p2pktr)(alicePub);
             const adaptorPkCombined1 = muSig.pubKeyCombine([Buffer.from(alicePub, "hex"), Buffer.from(adaptorPub, "hex")]);
             const adaptorPubKeyCombined1 = convert.intToBuffer(adaptorPkCombined1.affineX);
             const adaptorPkCombined2 = muSig.pubKeyCombine([Buffer.from(alicePub, "hex"), Buffer.from(adaptorPub2, "hex")]);
@@ -727,6 +761,16 @@ const txApi = () => {
             const script_asm1 = `${adaptorPubKeyCombined1.toString("hex")} OP_CHECKSIGVERIFY ${adaptorPubKeyCombined2.toString("hex")} OP_CHECKSIGVERIFY` + script_HTLCOpt;
             const script_asm2 = `${adaptorPubKeyCombined1.toString("hex")} OP_CHECKSIGVERIFY ${adaptorPubKeyCombined3.toString("hex")} OP_CHECKSIGVERIFY` + script_HTLCOpt;
             const script_asm3 = `${adaptorPubKeyCombined2.toString("hex")} OP_CHECKSIGVERIFY ${adaptorPubKeyCombined3.toString("hex")} OP_CHECKSIGVERIFY` + script_HTLCOpt;
+            if (txFeeAlice) {
+                txFeeAlice.forEach(utxo => {
+                    psbt.addInput({
+                        hash: utxo.txid,
+                        index: utxo.vout,
+                        witnessUtxo: { value: txfee, script: aliceP2TR.output },
+                        tapInternalKey: Buffer.from(alicePub, "hex")
+                    });
+                });
+            }
             const redeem1 = {
                 output: bitcoin.script.fromASM(script_asm1),
                 redeemVersion: 192,
@@ -811,7 +855,7 @@ const txApi = () => {
             }
             psbt.addOutput({
                 address: (0, exports.p2pktr)(alicePub).address, // TODO: generate alice address from oracleMsgHex and oracleR
-                value: amount - txfee
+                value: amount - (txFeeAlice ? 0 : txfee)
             });
             if (quorumno == 1) {
                 if (session) {

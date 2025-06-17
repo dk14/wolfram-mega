@@ -34,7 +34,7 @@ const generateCetTransaction = async (params, vout = 0) => {
     };
     if (params.oraclePub2 === undefined) {
         const twistedPk = schnorr.adaptorPublic(params.oraclePub, params.answer, params.rValue).padStart(64, "0");
-        return (await tx.genAliceCet(multiIn, params.alicePub, params.bobPub, twistedPk, params.aliceAmount, params.bobAmount, params.txfee, params.session, params.stateAmount))?.hex;
+        return (await tx.genAliceCet(multiIn, params.alicePub, params.bobPub, twistedPk, params.aliceAmount, params.bobAmount, params.txfee, params.session, params.stateAmount, params.txFeeAlice))?.hex;
     }
     else {
         const twistedPk1 = schnorr.adaptorPublic(params.oraclePub, params.answer, params.rValue).padStart(64, "0");

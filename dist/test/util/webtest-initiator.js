@@ -24,7 +24,7 @@ const dsl_1 = require("../../src-web/dsl");
     window.traderApi = (0, trader_api_1.traderApi)(webcfg_1.cfg.trader, webcfg_1.cfg, api_1.api, window.storage, p2p_1.p2pNode);
     setInterval(() => window.stalking.trackIssuedOffers({
         "bitcoin-testnet": transactions_1.btcDlcContractInterpreter
-    }, oracle_data_provider_1.dataProvider), 1000);
+    }, oracle_data_provider_1.dataProvider), 2000);
     const preferences = {
         minOracleRank: 0,
         tags: ["world"],

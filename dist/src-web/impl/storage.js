@@ -210,7 +210,7 @@ const indexDBstorage = (db) => {
             });
         },
         allIssuedReports: async function (handler) {
-            (await db.getAll("issued-offers")).forEach(o => {
+            (await db.getAll("issued-reports")).forEach(o => {
                 handler(o);
             });
         }

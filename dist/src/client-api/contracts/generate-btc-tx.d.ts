@@ -49,6 +49,7 @@ export interface CetParams {
     txfee: number;
     session?: PublicSession;
     stateAmount?: number;
+    txFeeAlice?: UTxO[];
 }
 export interface CetRedemptionParams {
     cetTxId: TxId;

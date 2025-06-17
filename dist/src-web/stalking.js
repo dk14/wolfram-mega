@@ -3,13 +3,20 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.stalkingEngine = void 0;
 const generate_btc_tx_1 = require("../src/client-api/contracts/generate-btc-tx");
 const matching_1 = require("./matching");
+let ignore = {};
+let cycle = 0;
 const trackIssuedOffers = async (interpreters, dataProvider) => {
+    cycle++;
+    if (cycle > 100000) {
+        ignore = 0;
+        cycle = 0;
+    }
     const pagedescriptor = {
         page: 0,
         chunkSize: 9000
     };
     const allOffers = (await window.storage.queryIssuedOffers({
-        where: async (x) => true
+        where: async (x) => !ignore[x.pow.hash]
     }, pagedescriptor));
     const allOffersGrouped = Object.groupBy(allOffers, x => x.content.orderId);
     const reattemptMuSig = 30;
@@ -65,7 +72,7 @@ const trackIssuedOffers = async (interpreters, dataProvider) => {
                     x.content.finalize && x.content.finalize?.acceptRef === orderPreviousState.pow.hash ||
                     x.content.finalize && x.content.finalize?.previousFinalRef === orderPreviousState.pow.hash
             }, pagedescriptor);
-            console.log((await window.storage.queryOffers({ where: async (x) => true }, pagedescriptor)).map(o => o.pow.hash));
+            console.log((await window.storage.queryIssuedOffers({ where: async (x) => true }, pagedescriptor)).map(o => o.pow.hash));
             if (candidates.length === 0) {
                 return;
             }
@@ -165,6 +172,7 @@ const trackIssuedOffers = async (interpreters, dataProvider) => {
                 if (partial !== undefined) {
                     partial.content.accept.offerRef = partial.pow.hash;
                     partial.pow.hash = partial.pow.hash + "-signing" + (0, matching_1.randomInt)(1000);
+                    console.log("############# ISSUE:" + partial.pow.hash);
                     window.traderApi.issueOffer(partial);
                     window.storage.removeIssuedOffers([orderPreviousState.pow.hash]);
                 }
@@ -210,12 +218,16 @@ const trackIssuedOffers = async (interpreters, dataProvider) => {
                         txid: txId, acceptRef: order.pow.hash, backup: contract.cet[0] + ",,,," + contract.cet[1]
                     };
                     order.pow.hash = order.pow.hash + "-final" + (0, matching_1.randomInt)(100);
-                    window.traderApi.issueOffer(order);
-                    window.storage.removeIssuedOffers([orderPreviousState.pow.hash]);
+                    await window.traderApi.issueOffer(order);
+                    await window.storage.removeIssuedOffers([orderPreviousState.pow.hash]);
                 }
             }
+            console.log("############# REMOVE:" + orderPreviousState.pow.hash);
+            ignore[orderPreviousState.pow.hash] = true;
+            window.storage.removeIssuedOffers([orderPreviousState.pow.hash]);
         }
         catch (err) {
+            window.storage.removeIssuedOffers([orderPreviousState.pow.hash]);
             console.error(err);
         }
     });
