@@ -138,12 +138,12 @@ exports.testOfferMsg = {
 };
 const configureWebMocks = async () => {
     try {
+        await window.privateDB.add("secrets", exports.privRandom, exports.pubRandom);
         await window.privateDB.add("secrets", "cRFAdefAzpxzKduj3F9wf3qSTgA5johBBqPZZT72hh46dgCRr997", exports.pub1);
         await window.privateDB.add("secrets", "cPCMiHyZQt7UWF9y49CaW7ckT9FaFQj5ChnEbXnF51WwEcp6Agkq", exports.pub2);
         await window.privateDB.add("secrets", "cW3z2LN7rwnomrds4cF2PJhbrCmFPkX1Q8KY5Fe6F6myRotHFXrv", pubOracleCp);
         await window.webOracleFacts.add("answers", "YES", pubOracleCp);
         await window.webOracleFacts.add("answers", "YES", pubOracleCp2);
-        await window.privateDB.add("secrets", exports.privRandom, exports.pubRandom);
     }
     catch (e) {
         console.error(e);
