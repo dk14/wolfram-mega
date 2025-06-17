@@ -6,7 +6,6 @@
         <meta name="apple-mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
         <meta name="mobile-web-app-status-bar-style" content="black-translucent">
-        
         <style>
             .panel, .profile, .offer-view, .box {
                 border: 2px solid rgb(96 139 168);
@@ -492,18 +491,29 @@ Address: <font color="blue" id="wallet-address">n3W8YyK59F6vQe34uQ8n835L627k2J</
 
             window.createOfferInfo = (offer, isTentative = false) => {
                 const offerInfo = document.createElement("div")
-                const offerQuestion = document.createElement("pre")
-                offerQuestion.innerHTML = `<font color="purple">${offer.question}</font>`
-
+                function chunkString(sStr, iLen) {
+                    return [...sStr].reduce((aChunks, sChar, iIdx) => ( 
+                    aChunks.push(iIdx % iLen === 0 ? sChar : aChunks.pop() + sChar), aChunks), [])
+                }
+                const offerQuestion = document.createElement("span")
+                offerQuestion.style = ""
+                offerQuestion.innerHTML = `<pre><span color="purple" style = "display:inline-block; max-width: 15ch; overflow: hidden; text-overflow: ellipsis;">${offer.question}? are you sure????</span></pre>`
+                
+                //textFit(offerQuestion.getElementById("question")) 
                 const offerBet = document.createElement("pre")
                 offerBet.innerHTML = `<font color = "grene">${offer.bet[0]}:${offer.bet[1]} sat</font>`
 
+
                 const oracle = document.createElement("pre")
-                oracle.innerHTML = `<font color="brown">${offer.oracles[0].name + (offer.oracles.length > 1 ? "+" : "")}</font>`
+                oracle.innerHTML = `<font color="brown">${offer.oracles[0].oracle.slice(0, 15) + "..." + (offer.oracles.length > 1 ? " +" : "")}</font>`
+                const oracleEndpoint = document.createElement("pre")
+                oracleEndpoint.innerHTML = `<font color="brown">${offer.oracles[0].endpoint.replace("http://", "").replace("https://", "").slice(0, 15) + "..." + (offer.oracles.length > 1 ? "+" : "")}</font>`
+
 
                 offerInfo.appendChild(offerQuestion)
                 offerInfo.appendChild(offerBet)
                 offerInfo.appendChild(oracle)
+                offerInfo.appendChild(oracleEndpoint)
 
                 if (offer.status && !isTentative) {
                     const rename = (status) => {
@@ -652,12 +662,20 @@ Address: <font color="blue" id="wallet-address">n3W8YyK59F6vQe34uQ8n835L627k2J</
                     window.address.slice(0, 30) + "..."//"n3W8YyK59F6vQe34uQ8n835L627k2J"
                     : window.address
 
-                    const stats = await (await fetch("https://mempool.space/testnet/api/address/" + window.address)).json()
-                    const bal = stats.chain_stats.funded_txo_sum - stats.chain_stats.spent_txo_sum
-                    const balance = bal.toLocaleString() + " sat"
+                    try {
+                        const stats = await (await fetch("https://mempool.space/testnet/api/address/" + window.address)).json()
+                        const bal = stats.chain_stats.funded_txo_sum - stats.chain_stats.spent_txo_sum
+                        const balance = bal.toLocaleString() + " sat"
+                        document.getElementById("wallet-balance").innerText = balance
+
+                    } catch {
+                        const balance = "0,000 sat"
+
+                    }
+                    
                 
                     document.getElementById("wallet-address").innerText = address
-                    document.getElementById("wallet-balance").innerText = balance
+                    
 
                 } catch {
 

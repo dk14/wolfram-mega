@@ -162,7 +162,7 @@ export const matchingEngine: MatchingEngine = {
             bet: [offer.content.terms.partyBetAmount, offer.content.terms.counterpartyBetAmount],
             oracles: [{
                 capabilityPub: capability.capabilityPubKey,
-                oracle: capability.endpoint,
+                oracle: capability.capabilityPubKey,
                 endpoint: capability.endpoint
             }],
             question: capability.question,
@@ -193,7 +193,7 @@ export const matchingEngine: MatchingEngine = {
             oracles: [{
                 capabilityPub: cp.capabilityPubKey,
                 oracle: cp.oraclePubKey,
-                endpoint: "http://localhost:8080"
+                endpoint: cp.endpoint
             }],
             question: cp.question,
             blockchain: "bitcoin-testnet",
@@ -475,8 +475,9 @@ export const matchingEngine: MatchingEngine = {
     },
     reset: async function (): Promise<void> {
         await clearDb();
-        const random = Math.random()
-        const pub = random > 0.3 ? (random > 0.6 ? pub1: pubRandom) : pub2
+        const candidates = [pub1, pub2, pubRandom]
+        const random = Math.round(Math.random() * 3) - 1
+        const pub = candidates[random]
         window.address = p2pktr(pub).address
         window.pubkey = pub
     },
