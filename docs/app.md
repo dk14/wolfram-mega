@@ -7,10 +7,10 @@ Mobile trading web-app for BTC test-net.
 ## Live preview
 
 <div style="position: relative;display:inline-block; height: 800px; width: 550px">
-<iframe src="../webapp" style="position: relative;display:inline-block; height: 100%; width: 100%; border:none"></iframe>
+<iframe src="../webapp?user=alice" style="position: relative;display:inline-block; height: 100%; width: 100%; border:none"></iframe>
 </div>
 <div id="cpdiv" style="position: relative;display:none; height: 800px; width: 550px">
-<iframe src="../webapp?user=alice" style="position: relative;display:inline-block; height: 100%; width: 100%; border:none"></iframe>
+<iframe src="../webapp?user=bob" style="position: relative;display:inline-block; height: 100%; width: 100%; border:none"></iframe>
 </div>
 <div>
     <input type="checkbox" id="counterparty" name="counterparty" onclick="this.checked ? (document.getElementById('cpdiv').style.display='inline-block'): (document.getElementById('cpdiv').style.display='none'); document.body.classList.add('close')" />

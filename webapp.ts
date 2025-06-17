@@ -9,7 +9,7 @@ import { p2pktr } from './src/client-api/contracts/btc/tx';
 import { stalkingEngine, StalkingEngine } from './src-web/stalking';
 import { browserPeerAPI } from './src/p2p-webrtc';
 import { TraderQuery, database, Storage, indexDBstorage } from './src-web/impl/storage';
-import { cfg, configurePub, configureWebMocks, nodeMock } from './webcfg';
+import { cfg, configurePub, configureWebMocks, nodeMock, pub1, pub2 } from './webcfg';
 import { dataProvider } from './src-web/oracle-data-provider';
 import { btcDlcContractInterpreter, UTxO } from './src-web/transactions';
 import Sandbox from '@nyariv/sandboxjs';
@@ -91,7 +91,14 @@ try {
 let xpub: string = await window.profiledb.get("xpub", user)
 
 if (!xpub) {
-    xpub = configurePub()
+    if (user === 'alice') {
+        xpub = pub1
+    } else if (user === 'bob') {
+        xpub = pub2
+    } else {
+        xpub = configurePub()
+    }
+   
     await window.profiledb.put("xpub", xpub, user)
 }
 
