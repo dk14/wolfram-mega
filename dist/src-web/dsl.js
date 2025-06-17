@@ -119,6 +119,9 @@ class Dsl {
     pay(idx, amount) {
         //console.log("" + idx + "  " + amount + "  " + JSON.stringify(this.prev))
         //console.log(amount)
+        if (this.flagSameAssetSwap) {
+            throw Error(`Cannot swap same type of asset between ${this.selected[0]} and ${this.selected[1]}`);
+        }
         if (this.unssafeInifnityCtx) {
             throw new Error("Payouts are disabled in unsafe infinity context. Specify cashflows in return instead");
         }
@@ -368,6 +371,7 @@ class Dsl {
     };
     strictlyOneLeafPays = false;
     strictlyOneLeafPairPays = false;
+    flagSameAssetSwap = false;
     outcome(pubkey, yes, no, args = {}, allowTruth = false, strict = true, ignoreObserveChecksSuperUnsafe = false) {
         this.currentPub = pubkey;
         this.currentArgs = args;
@@ -388,6 +392,15 @@ class Dsl {
         if (strict) {
             this.alicePayCounter = 0;
             this.bobPayCounter = 0;
+        }
+        if (allowTruth && this.selected !== undefined) {
+            const tokens1 = this.selected[0].split("_");
+            const asset1 = tokens1.length === 1 ? "btc" : tokens1[tokens1.length - 1];
+            const tokens2 = this.selected[1].split("_");
+            const asset2 = tokens2.length === 1 ? "btc" : tokens2[tokens2.length - 1];
+            if (asset1 === asset2) {
+                this.flagSameAssetSwap = true;
+            }
         }
         yes.sort();
         no.sort();
@@ -615,6 +628,14 @@ class Dsl {
     };
     strictlyFair = false;
     unssafeInifnityCtx = false;
+    atomicSwap = {
+        ifTruth: (lock = "TRUTH", unlockOutcome = "true", args = {}, allowMisplacedPay = true) => {
+            return this.if(lock, [unlockOutcome], [unlockOutcome], args, true, allowMisplacedPay, false);
+        },
+        truth: (lock = "TRUTH", unlockOutcome = "true", args = {}) => {
+            return this.outcome(lock, [unlockOutcome], [unlockOutcome], args, true);
+        },
+    };
     unsafe = {
         if: (pubkey, yes, no, args = {}, allowSwaps = false, allowMisplacedPay = true, strict = false, ignoreObserveChecksSuperUnsafe = false) => {
             if (this.safeMode) {
@@ -669,12 +690,6 @@ class Dsl {
                 }
                 return this.set.outcomeT(pubkey, set, renderer, args, allowMisplacedPay, allowUnsafe);
             }
-        },
-        ifAtomicSwapLeg1: (lock = "TRUTH", unlockOutcome = "true", allowMisplacedPay = true) => {
-            if (this.safeMode) {
-                throw new DslErrors.SafeModeError("safe mode is activated! unsafe is disallowed!");
-            }
-            return this.if(lock, [unlockOutcome], [unlockOutcome], {}, true, allowMisplacedPay, false);
         },
         outcome: (pubkey, yes, no, args = {}, allowTruth = false, strict = false, ignoreObserveChecksSuperUnsafe = false) => {
             if (this.safeMode) {
@@ -1767,6 +1782,7 @@ class Dsl {
         this.bobTrackers = {};
         while (next) {
             try {
+                this.flagSameAssetSwap = false;
                 this.collateral1 = 0;
                 this.collateral2 = 0;
                 this.budgetBound1 = collateralBound1;
@@ -1907,8 +1923,8 @@ if (typeof window === 'undefined' && require.main === module) {
         })).multiple(Dsl.account("alice", "usd"), Dsl.account("bob", "btc")).enumerateWithBoundMulti([[1000000000, 20000]]);
         console.log(assets);
         const swap = await (new Dsl(async (dsl) => {
-            dsl.unsafe.ifAtomicSwapLeg1("lock1", "allowed").then(pay => {
-                dsl.unsafe.ifAtomicSwapLeg1("lock12", "allowed").then(pay => {
+            dsl.atomicSwap.ifTruth("lock1", "allowed").then(pay => {
+                dsl.atomicSwap.ifTruth("lock12", "allowed").then(pay => {
                     pay.party("bob", "btc").pays("alice", "usd").amount(10, "btc");
                 }).else(() => { });
                 pay.party("alice", "usd").pays("bob", "btc").amount(10000000, "usd");

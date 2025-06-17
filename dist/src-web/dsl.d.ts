@@ -116,6 +116,7 @@ export declare class Dsl {
     };
     strictlyOneLeafPays: boolean;
     strictlyOneLeafPairPays: boolean;
+    flagSameAssetSwap: boolean;
     outcome(pubkey: string, yes: string[], no: string[], args?: {
         [id: string]: string;
     }, allowTruth?: boolean, strict?: boolean, ignoreObserveChecksSuperUnsafe?: boolean): boolean;
@@ -158,6 +159,18 @@ export declare class Dsl {
     };
     strictlyFair: boolean;
     private unssafeInifnityCtx;
+    atomicSwap: {
+        ifTruth: (lock?: string, unlockOutcome?: string, args?: {
+            [id: string]: string;
+        }, allowMisplacedPay?: boolean) => {
+            then: (handler: (handle: PaymentHandler) => void) => {
+                else: (handler: (handle: PaymentHandler) => void) => void;
+            };
+        };
+        truth: (lock?: string, unlockOutcome?: string, args?: {
+            [id: string]: string;
+        }) => boolean;
+    };
     unsafe: {
         if: (pubkey: string, yes: string[], no: string[], args?: {
             [id: string]: string;
@@ -200,11 +213,6 @@ export declare class Dsl {
                 evaluateWithPaymentCtx: (payhandler: (h: PaymentHandler, n: T) => void) => void;
                 value: () => T;
                 valueWithPaymentCtxUnsafe: () => [T, PaymentHandler];
-            };
-        };
-        ifAtomicSwapLeg1: (lock?: string, unlockOutcome?: string, allowMisplacedPay?: boolean) => {
-            then: (handler: (handle: PaymentHandler) => void) => {
-                else: (handler: (handle: PaymentHandler) => void) => void;
             };
         };
         outcome: (pubkey: string, yes: string[], no: string[], args?: {
