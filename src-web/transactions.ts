@@ -213,7 +213,7 @@ const genContractTx = async (inputs: Inputs, c: Commitment[], offer: OfferMsg, s
                         return session
                     })(),
                     feeutxo1: await getSimpleUtXo(terms.txfee, o.content.addresses[0], 0, o.content.orderId),
-                    feeutxo2: await getSimpleUtXo(terms.txfee, o.content.addresses[0], 0, o.content.orderId) //is it insecure?
+                    feeutxo2: await getSimpleUtXo(terms.txfee, o.content.addresses[1], 0, o.content.orderId)
 
                 }
                 if (!offer.content.terms.dependsOn) {
