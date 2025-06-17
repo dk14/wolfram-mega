@@ -614,6 +614,18 @@ dsl.numeric.outcome("price?", 0, 5, step).evaluateWithPaymentCtx((account, price
 })
 ```
 
+#### 📞 European Call
+
+"cash"-settlement:
+```ts
+dsl.numeric.outcome("price?", 0, 5, step).evaluateWithPaymentCtx((ctx, price) => {
+    const envelope = Math.max(-100, Math.min(100, price - base))
+    ctx.party("alice").pays("bob").amount(envelope * leverage)
+})
+```
+> While European Call as such is not over-collaterazied, portfolios of european calls betting on the same observation - can easily form pathological instrument. Especially where assets are pooled together - one decision maker (e.g. treasurer, monarch, dictator, therapist/rabbi, guru, messiah, or even as in case with DeFi: self-contradictory fantasy algorithm) effectively becomes a single party "benefiting regardless of outcome", together with his people (unless, let's say military dictator with a sense of humour is using our eDSL).
+>>binary option is the only instrument practically prone to mistakes
+
 #### ⇌ Quantized Vanilla Interest Rate Swap
 
 ```ts
