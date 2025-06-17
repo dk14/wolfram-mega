@@ -2,7 +2,7 @@ import { build } from "esbuild";
 import { nodeModulesPolyfillPlugin } from 'esbuild-plugins-node-modules-polyfill';
 import { wasmLoader } from 'esbuild-plugin-wasm'
 
-const canBeBlank = ['module', 'node-fetch', 'path', 'http', 'util', 'net', 'url', 'fs', 'stream', 'zlib', 'https']
+const canBeBlank = ['module', 'node-fetch', 'path', 'http', 'util', 'net', 'url', 'fs', 'stream', 'zlib', 'https', 'events']
 build({
 	entryPoints: ["webapp.ts"],
 	bundle: true,
