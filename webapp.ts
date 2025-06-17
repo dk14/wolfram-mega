@@ -73,11 +73,23 @@ window.profiledb = await openDB('profile', 1, {
     },
 });
 
-let xpub: string = await window.profiledb.get("xpub", "default")
+let user = "default"
+
+try {
+    const urlParams = new URLSearchParams(window.location.search);
+    const param = urlParams.get('user');
+    if (param) {
+        user = param
+    }
+} catch {
+
+}
+
+let xpub: string = await window.profiledb.get("xpub", user)
 
 if (!xpub) {
     xpub = configurePub()
-    await window.profiledb.put("xpub", xpub, "default")
+    await window.profiledb.put("xpub", xpub, user)
 }
 
 window.address = p2pktr(xpub).address
