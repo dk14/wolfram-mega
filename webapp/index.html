@@ -444,9 +444,16 @@ Address: <font color="blue" id="wallet-address">n3W8YyK59F6vQe34uQ8n835L627k2J</
                 ]
             }
 
-            window.fetchContracts = () => {
-                console.log("Fetching contracts...")
-            }
+            setTimeout(() => {
+                //todo await webapp init
+                try {
+                    window.matching.collectOffers(model.preferences)
+                } catch {
+
+                }
+                 
+            }, 4000)
+
 
             window.pickOrGenerateOffer = async (pick) => {
                 if (pick) {
@@ -693,36 +700,39 @@ Address: <font color="blue" id="wallet-address">n3W8YyK59F6vQe34uQ8n835L627k2J</
             })
 
             setInterval(async () => {
+                try { //todo await webapp
                 
-                
-                const orders = await window.matching.listOrders(20)
-                if (JSON.stringify(orders) === JSON.stringify(model.contracts)) {
-                    return
-                }
-
-                document.getElementById("contracts").innerHTML = "";
-                model.contracts = orders
-                orders.forEach(contract => {
-                    renderContractPreview(document.getElementById("contracts"), contract)
-                })
-
-                if (model.contracts.length > 0) {
-                    try {
-                        let i = 0
-                        const before = document.getElementById("contracts_svg").getAttribute("fill")
-                        const blink = setInterval(() => {
-                            i++
-                            document.getElementById("contracts_svg").setAttribute("fill", i % 2 == 0? before : highlightOrders)
-                            if (i > 3) {
-                                document.getElementById("contracts_svg").setAttribute("fill", before)
-                                clearInterval(blink)
-                            }
-                        }, 300)
-                        
-                    } catch {
-
+                    const orders = await window.matching.listOrders(20)
+                    if (JSON.stringify(orders) === JSON.stringify(model.contracts)) {
+                        return
                     }
-                    
+
+                    document.getElementById("contracts").innerHTML = "";
+                    model.contracts = orders
+                    orders.forEach(contract => {
+                        renderContractPreview(document.getElementById("contracts"), contract)
+                    })
+
+                    if (model.contracts.length > 0) {
+                        try {
+                            let i = 0
+                            const before = document.getElementById("contracts_svg").getAttribute("fill")
+                            const blink = setInterval(() => {
+                                i++
+                                document.getElementById("contracts_svg").setAttribute("fill", i % 2 == 0? before : highlightOrders)
+                                if (i > 3) {
+                                    document.getElementById("contracts_svg").setAttribute("fill", before)
+                                    clearInterval(blink)
+                                }
+                            }, 300)
+                            
+                        } catch {
+
+                        }
+                        
+                    }
+                } catch {
+
                 }
                 
             }, 100)

@@ -49,6 +49,7 @@ declare global {
         test: boolean
 
         peerlist: string[]
+        initWebapp: Promise<void>
     }
 }
 
@@ -116,3 +117,5 @@ console.log("WebAPI is ready!")
 resolve(window)
 
 })
+
+window.initWebapp = global.initWebapp
