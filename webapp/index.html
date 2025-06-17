@@ -693,23 +693,39 @@ Address: <font color="blue" id="wallet-address">n3W8YyK59F6vQe34uQ8n835L627k2J</
             })
 
             setInterval(async () => {
-                document.getElementById("contracts").innerHTML = "";
-                model.contracts = []
+                
+                
                 const orders = await window.matching.listOrders(20)
+                if (JSON.stringify(orders) === JSON.stringify(model.contracts)) {
+                    return
+                }
+
+                document.getElementById("contracts").innerHTML = "";
+                model.contracts = orders
                 orders.forEach(contract => {
                     renderContractPreview(document.getElementById("contracts"), contract)
-                    model.contracts.push(contract)
                 })
+
                 if (model.contracts.length > 0) {
                     try {
-                        document.getElementById("contracts_svg").setAttribute("fill", highlightOrders)
+                        let i = 0
+                        const before = document.getElementById("contracts_svg").getAttribute("fill")
+                        const blink = setInterval(() => {
+                            i++
+                            document.getElementById("contracts_svg").setAttribute("fill", i % 2 == 0? before : highlightOrders)
+                            if (i > 3) {
+                                document.getElementById("contracts_svg").setAttribute("fill", before)
+                                clearInterval(blink)
+                            }
+                        }, 300)
+                        
                     } catch {
 
                     }
                     
                 }
                 
-            }, 1000)
+            }, 100)
             
             
 
