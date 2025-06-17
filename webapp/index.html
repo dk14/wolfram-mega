@@ -543,7 +543,7 @@ Address: <font color="blue" id="wallet-address">................................
                 const oracle = document.createElement("pre")
                 oracle.innerHTML = `<font color="brown">${offer.oracles[0].oracle.slice(0, 15) + "..." + (offer.oracles.length > 1 ? " +" : "")}</font>`
                 const oracleEndpoint = document.createElement("pre")
-                oracleEndpoint.innerHTML = `<font color="brown">${offer.oracles[0].endpoint.replace("http://", "").replace("https://", "").slice(0, 15) + "..." + (offer.oracles.length > 1 ? "+" : "")}</font>`
+                oracleEndpoint.innerHTML = `<font color="brown">${offer.oracles[0].endpoint.replace("http://", "").replace("https://", "").slice(0, 15) + (offer.oracles.length > 1 ? "+" : "")}</font>`
 
 
                 offerInfo.appendChild(offerQuestion)
@@ -562,6 +562,15 @@ Address: <font color="blue" id="wallet-address">................................
                     const offerStatus = document.createElement("pre")
                     offerStatus.innerHTML = `<font color="white">${rename(offer.status)}</font>`
                     offerInfo.appendChild(offerStatus)
+                    if (offer.role === "acceptor" && !offer.patyBetsOn || offer.role === "originator" && offer.patyBetsOn) {
+                        offerBet.innerHTML = `<font color = "grene">[u bet ${offer.bet[0]} sat on YES]:${offer.bet[1]}</font>`
+                    } else {
+                        offerBet.innerHTML = `<font color = "grene">${offer.bet[0]}:[u bet ${offer.bet[1]} sat on NO]</font>`
+                    }
+                    oracle.innerHTML = `<font color="brown">${offer.oracles[0].oracle.slice(0, 30) + "..." + (offer.oracles.length > 1 ? " +" : "")}</font>`
+                    oracleEndpoint.innerHTML = `<font color="brown">${offer.oracles[0].endpoint.replace("http://", "").replace("https://", "").slice(0, 30) + (offer.oracles.length > 1 ? "+" : "")}</font>`
+                     
+
                 }
                 return offerInfo
             }
