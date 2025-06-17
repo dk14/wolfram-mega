@@ -9,7 +9,7 @@ import { MatchingEngine, OfferModel, OfferStatus, PreferenceModel } from "./mode
 import { generateSimpleTransaction, SimpleParams } from "../src/client-api/contracts/generate-btc-tx";
 import { getSimpleUtXo } from "./transactions";
 import { p2pktr } from "../src/client-api/contracts/btc/tx";
-import { pub1, pub2 } from "../webcfg";
+import { pub1, pub2, pubRandom } from "../webcfg";
 
 export const randomInt = (n: number): number => {
     return Math.floor(Math.random() * n);
@@ -476,7 +476,7 @@ export const matchingEngine: MatchingEngine = {
     },
     reset: async function (): Promise<void> {
         await clearDb();
-        const pub = Math.random() > 0.5 ? pub1 : pub2
+        const pub = Math.random() > 0.3 ? (Math.random() > 0.6 ? pub1: pubRandom) : pub2
         window.address = p2pktr(pub).address
         window.pubkey = pub
     },

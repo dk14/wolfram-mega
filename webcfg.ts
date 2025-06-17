@@ -3,6 +3,9 @@ import { MempoolConfig } from "./src/config";
 import { FactRequest, HashCashPow, Offer, OfferMsg, OfferTerms, OracleCapability, OracleId } from "./src/protocol";
 import { Api, FacilitatorNode, api as ndapi} from './src/api';
 import { Neighbor } from "./src/p2p";
+import ECPairFactory from 'ecpair';
+import * as ecc from 'tiny-secp256k1';
+const ECPair = ECPairFactory(ecc);
 
 const seedpool = 5
 const prefix = "dk14-peerjs-10101010-"
@@ -67,6 +70,9 @@ export const pub2 = "7fe828395f6143c295ae162d235c3c4b58c27fa1fd2019e88da55979bba
 const pubOracleCp = "07508128697f7a1aca5c3e86292daa4b08f76e68b405e4b4ffe50d066ade55c3"
 const pubOracleCp2 = "7fe828395f6143c295ae162d235c3c4b58c27fa1fd2019e88da55979bba5396e"
 
+const keyPair = ECPair.makeRandom()
+export const pubRandom = keyPair.publicKey.toString("hex")
+export const privRandom = keyPair.toWIF()
 
 const testPow: HashCashPow = {
     difficulty: 0,
@@ -116,6 +122,8 @@ export const configureWebMocks = async () => {
         await window.privateDB.add("secrets", "cW3z2LN7rwnomrds4cF2PJhbrCmFPkX1Q8KY5Fe6F6myRotHFXrv", pubOracleCp) 
         await window.webOracleFacts.add("answers", "YES", pubOracleCp)
         await window.webOracleFacts.add("answers", "YES", pubOracleCp2)
+        await window.privateDB.add("secrets", privRandom, pubRandom)
+
     } catch (e) {
         console.error(e)
     }
