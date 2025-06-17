@@ -26,7 +26,7 @@ export interface Inputs {
 
 //meAlice: Alice is party, Bob is counterparty
 export interface ContractInterpreter {
-    getSimpleUtXo: (amount: number, addressIn: string, txfee: number) => Promise<UTxO[]>
+    getSimpleUtXo: (amount: number, addressIn: string, txfee: number, lockname?: string) => Promise<UTxO[]>
     getUtXo: (terms: OfferMsg) => Promise<Inputs>
     genContractTx: (inputs: Inputs, c: Commitment[], offer: OfferMsg, stateTxId?: string) => Promise<[Contract, OfferMsg?]>
     submitTx: (tx: string) => Promise<TxId>
@@ -44,8 +44,12 @@ const scan = (arr, reducer, seed) => {
 }
 
 let spentUtxos = [] //TODO: persistence, sort by value
+let spentUtxosMemoize = {}
 
-export const getSimpleUtXo = async (amount: number, addressIn: string, txfee: number): Promise<UTxO[]> => {
+export const getSimpleUtXo = async (amount: number, addressIn: string, txfee: number, lockname?: string): Promise<UTxO[]> => {
+    if (spentUtxosMemoize[lockname]) {
+        return spentUtxosMemoize[lockname]
+    }
 
     const utxoExplore = async (address: string): Promise<UTxO[]> => {
        return (await (await fetch (`https://mempool.space/testnet/api/address/${address}/utxo`)).json())
@@ -68,6 +72,7 @@ export const getSimpleUtXo = async (amount: number, addressIn: string, txfee: nu
 
     const res = getMultipleUtxo((await utxoExplore(addressIn)).filter(x => !spentUtxos.find(y => JSON.stringify(x) === JSON.stringify(y))), amount)
     spentUtxos = spentUtxos.concat(res)
+    spentUtxosMemoize[lockname] = res
     return res
 
 }
@@ -207,8 +212,8 @@ const genContractTx = async (inputs: Inputs, c: Commitment[], offer: OfferMsg, s
                         }
                         return session
                     })(),
-                    //feeutxo1: await getSimpleUtXo(terms.txfee, window.address, 0),
-                    //feeutxo2: await getSimpleUtXo(terms.txfee, window.address, 0)
+                    feeutxo1: await getSimpleUtXo(terms.txfee, o.content.addresses[0], 0, o.content.orderId),
+                    feeutxo2: await getSimpleUtXo(terms.txfee, o.content.addresses[0], 0, o.content.orderId) //is it insecure?
 
                 }
                 if (!offer.content.terms.dependsOn) {

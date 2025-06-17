@@ -585,6 +585,19 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
                 tapInternalKey: Buffer.from(pubKeyCombined, "hex")
             });
 
+            
+            if (txFeeAlice) {
+                txFeeAlice.forEach(utxo => {
+                    psbt.addInput({
+                        hash: utxo.txid,
+                        index: utxo.vout,
+                        witnessUtxo: { value: txfee, script: alicePubTR.output! },
+                        tapInternalKey: Buffer.from(alicePub, "hex")
+                    });
+
+                })   
+            }
+
             if (session && session.hashLock1 && session.hashLock2) {
                 const script_HTLC = `${adaptorPubKeyCombined.toString("hex")} OP_CHECKSIGVERIFY OP_HASH256 ${session.hashLock1} OP_EQUALVERIFY OP_HASH256 ${session.hashLock2} OP_EQUALVERIFY`;
                 const scriptTree: Taptree = {
@@ -646,19 +659,6 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
                     address: p2pktr(pubKeyCombined).address!, 
                     value: stateAmount
                 });
-            }
-
-
-            if (txFeeAlice) {
-                txFeeAlice.forEach(utxo => {
-                    psbt.addInput({
-                        hash: utxo.txid,
-                        index: utxo.vout,
-                        witnessUtxo: { value: txfee, script: alicePubTR.output! },
-                        tapInternalKey: Buffer.from(alicePub, "hex")
-                    });
-
-                })
             }
 
             if (session === null || session === undefined) {

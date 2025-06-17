@@ -11,7 +11,7 @@ import { browserPeerAPI } from './src/p2p-webrtc';
 import { TraderQuery, database, Storage, indexDBstorage } from './src-web/impl/storage';
 import { cfg, configurePub, configureWebMocks, nodeMock } from './webcfg';
 import { dataProvider } from './src-web/oracle-data-provider';
-import { btcDlcContractInterpreter } from './src-web/transactions';
+import { btcDlcContractInterpreter, UTxO } from './src-web/transactions';
 import Sandbox from '@nyariv/sandboxjs';
 import { Dsl } from './src-web/dsl';
 import { MatchingEngine } from './src-web/models';
@@ -53,6 +53,9 @@ declare global {
         progressOffers: () => Promise<void>
 
         profiledb: IDBPDatabase<unknown>
+
+        spentUtxos: UTxO[]
+        spentUtxosMemoize: {[id: string]: UTxO[]}
     }
 }
 
