@@ -72,13 +72,15 @@ async function doubleSHA256reversed(input) {
     return secondHashHex;
 }
 const generateDlcContract = async (params) => {
-    const openingTx = await (0, exports.generateOpeningTransaction)(params);
+    const [yes, no] = Object.keys(params.outcomes);
+    const openingTx = await (0, exports.generateOpeningTransaction)({ ...params, alicePub: params.alicePub(yes), bobPub: params.bobPub(yes) });
     if (!openingTx) {
         return undefined; //opening tx co-sgned first; MAD-flavor of DLC;
     }
     const lockedTxId = await doubleSHA256reversed(openingTx);
     const cet = await Promise.all(Object.keys(params.outcomes).map(async (answer, i) => {
         const cet = await (0, exports.generateCetTransaction)(Object.assign({}, params, {
+            alicePub: params.alicePub(answer), bobPub: params.bobPub(answer),
             answer, lockedTxId,
             aliceAmount: params.outcomes[answer].aliceAmount,
             bobAmount: params.outcomes[answer].bobAmount,
@@ -93,6 +95,7 @@ exports.generateDlcContract = generateDlcContract;
 const generateChildDlcContract = async (params) => {
     const cet = await Promise.all(Object.keys(params.outcomes).map(async (answer, i) => {
         const cet = await (0, exports.generateCetTransaction)(Object.assign({}, params, {
+            alicePub: params.alicePub(answer), bobPub: params.bobPub(answer),
             answer, lockedTxId: params.lockedTxId,
             aliceAmount: params.outcomes[answer].aliceAmount,
             bobAmount: params.outcomes[answer].bobAmount,
