@@ -8,6 +8,8 @@ import { evaluateCounterPartyCollateral, evaluatePartyCollateral } from "./dsl";
 import { MatchingEngine, OfferModel, OfferStatus, PreferenceModel } from "./models";
 import { generateSimpleTransaction, SimpleParams } from "../src/client-api/contracts/generate-btc-tx";
 import { getSimpleUtXo } from "./transactions";
+import { p2pktr } from "../src/client-api/contracts/btc/tx";
+import { pub1, pub2 } from "../webcfg";
 
 export const randomInt = (n: number): number => {
     return Math.floor(Math.random() * n);
@@ -474,6 +476,9 @@ export const matchingEngine: MatchingEngine = {
     },
     reset: async function (): Promise<void> {
         await clearDb();
+        const pub = Math.random() > 0.5 ? pub1 : pub2
+        window.address = p2pktr(pub).address
+        window.pubkey = pub
     },
     removeOrder: async function (hash: string): Promise<void> {
         const pagedescriptor = {
