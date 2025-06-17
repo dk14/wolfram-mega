@@ -9,6 +9,14 @@ Mobile trading web-app for BTC test-net.
 <div style="position: relative;display:inline-block; height: 800px; width: 550px">
 <iframe src="../webapp" style="position: relative;display:inline-block; height: 100%; width: 100%; border:none"></iframe>
 </div>
+<div id="cpdiv" style="position: relative;display:none; height: 800px; width: 550px">
+<iframe src="../webapp" style="position: relative;display:inline-block; height: 100%; width: 100%; border:none"></iframe>
+</div>
+<div>
+    <input type="checkbox" id="counterparty" name="counterparty" onclick="this.checked ? document.getElementById('cpdiv').style.display='inline-block' : (document.getElementById('cpdiv').style.display='none'); (document.getElementsByClassName('sidebar-toggle-button')[0].click());" />
+    <label for="counterparty">Counterparty</label>
+</div>
+
 
 > Serverless app. P2P-network relies on WebRTC here.
 

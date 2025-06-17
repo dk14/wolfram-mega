@@ -7,7 +7,7 @@ import ECPairFactory from 'ecpair';
 import * as ecc from 'tiny-secp256k1';
 const ECPair = ECPairFactory(ecc);
 
-const seedpool = 5
+const seedpool = 20
 const prefix = "dk14-peerjs-10101010-"
 const me =  Math.round(Math.random() * seedpool)
 
