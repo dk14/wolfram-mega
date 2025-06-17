@@ -3,9 +3,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+global.isUnitTestTest = true;
 const configure_1 = require("./util/configure");
 configure_1.configure;
-global.isUnitTestTest = true;
 const transactions_1 = require("../src-web/transactions");
 const oracle_data_provider_1 = require("../src-web/oracle-data-provider");
 const assert_1 = __importDefault(require("assert"));
