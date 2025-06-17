@@ -624,7 +624,7 @@ dsl.numeric.outcome("price?", 0, 5, step).evaluateWithPaymentCtx((ctx, price) =>
 })
 ```
 > While European Call as such is not over-collaterazied, portfolios of european calls betting on the same observation - can easily form pathological instrument. Especially where assets are pooled together - one decision maker (e.g. treasurer, monarch, dictator, therapist/rabbi, guru, messiah, or even as in case with DeFi: self-contradictory fantasy algorithm) effectively becomes a single party "benefiting regardless of outcome", together with his people (unless, let's say military dictator with a sense of humour is using our eDSL).
->>binary option is the only instrument practically free of over-collaterization.
+>>binary option is the only instrument practically free of misuse.
 
 #### ⇌ Quantized Vanilla Interest Rate Swap
 
