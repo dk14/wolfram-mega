@@ -157,14 +157,13 @@ export const matchingEngine: MatchingEngine = {
             throw "capability is not synced; try another offer";
         }
 
-        //TODO check that capability is compatible with binary option
         const model: OfferModel = {
             id: offer.pow.hash,
             bet: [offer.content.terms.partyBetAmount, offer.content.terms.counterpartyBetAmount],
             oracles: [{
-                capabilityPub: "",
-                oracle: "Wolfram",
-                endpoint: "http://localhost:8080" //can use fact-missing claim as an endpoint too
+                capabilityPub: capability.capabilityPubKey,
+                oracle: capability.endpoint,
+                endpoint: capability.endpoint
             }],
             question: capability.question,
             blockchain: "bitcoin-testnet",
