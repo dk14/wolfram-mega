@@ -531,7 +531,7 @@ const txApi = () => {
                     value: stateAmount
                 });
             }
-            if (false) {
+            if (txFeeAlice) {
                 txFeeAlice.forEach(utxo => {
                     psbt.addInput({
                         hash: utxo.txid,
@@ -557,7 +557,7 @@ const txApi = () => {
                     }
                 }
             }
-            if (false) {
+            if (txFeeAlice) {
                 await psbt.signInputAsync(1, schnorrSignerSingleWebSimple(alicePub));
             }
             psbt.finalizeAllInputs();
