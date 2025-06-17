@@ -50,6 +50,7 @@ declare global {
 
         peerlist: string[]
         initWebapp: Promise<void>
+        progressOffers: () => Promise<void>
     }
 }
 
@@ -101,6 +102,12 @@ window.btc = {
 
 window.matching = matchingEngine
 window.stalking = stalkingEngine
+
+window.progressOffers = async () => {
+    await window.stalking.trackIssuedOffers({
+        "bitcoin-testnet": btcDlcContractInterpreter
+    }, dataProvider)
+}
 
 await configureWebMocks()
 

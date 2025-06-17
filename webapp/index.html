@@ -435,7 +435,7 @@ Address: <font color="blue" id="wallet-address">n3W8YyK59F6vQe34uQ8n835L627k2J</
             window.model = {
                 profile: {
                     minOracleRank: 0,
-                    tags: ["sports", "politics"],
+                    tags: ["sports", "world"],
                     txfee: 1000
                 },
                 offers: [],
@@ -447,7 +447,9 @@ Address: <font color="blue" id="wallet-address">n3W8YyK59F6vQe34uQ8n835L627k2J</
             setTimeout(() => {
                 //todo await webapp init
                 try {
-                    window.matching.collectOffers(model.preferences)
+                    window.matching.collectOffers(model.profile)                  
+                    setInterval(() => window.progressOffers(), 1000)
+                    window.matching.collectQuestions(model.profile)
                 } catch {
 
                 }
@@ -504,6 +506,13 @@ Address: <font color="blue" id="wallet-address">n3W8YyK59F6vQe34uQ8n835L627k2J</
                 offerInfo.appendChild(oracle)
 
                 if (offer.status && !isTentative) {
+                    const rename = (status) => {
+                        if (status === "oracle comitted") {
+                            return "accepted, oracle comitted"
+                        } else {
+                            return status
+                        }
+                    }
                     const offerStatus = document.createElement("pre")
                     offerStatus.innerHTML = `<font color="white">${offer.status}</font>`
                     offerInfo.appendChild(offerStatus)
@@ -589,7 +598,7 @@ Address: <font color="blue" id="wallet-address">n3W8YyK59F6vQe34uQ8n835L627k2J</
                 panel.appendChild(yesSvg)
 
                 if (offer.role !== 'initiator' && !offer.betOn) {
-                    //noSvg.style = "filter: grayscale(3)"
+                    noSvg.style = "filter: grayscale(1)"
                 } 
                 panel.appendChild(noSvg)
         
