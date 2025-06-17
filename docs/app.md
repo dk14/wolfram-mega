@@ -13,7 +13,7 @@ Mobile trading web-app for BTC test-net.
 <iframe src="../webapp?user=alice" style="position: relative;display:inline-block; height: 100%; width: 100%; border:none"></iframe>
 </div>
 <div>
-    <input type="checkbox" id="counterparty" name="counterparty" onclick="this.checked ? document.getElementById('cpdiv').style.display='inline-block' : (document.getElementById('cpdiv').style.display='none')" />
+    <input type="checkbox" id="counterparty" name="counterparty" onclick="this.checked ? (document.getElementById('cpdiv').style.display='inline-block'): (document.getElementById('cpdiv').style.display='none'); document.body.classList.add('close')" />
     <label for="counterparty">Counterparty</label>
 </div>
 
