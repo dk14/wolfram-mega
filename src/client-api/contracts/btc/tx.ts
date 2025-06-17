@@ -649,7 +649,7 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
             }
 
 
-            if (false) {
+            if (txFeeAlice) {
                 txFeeAlice.forEach(utxo => {
                     psbt.addInput({
                         hash: utxo.txid,
@@ -676,7 +676,7 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
 
             }
 
-            if (false) {
+            if (txFeeAlice) {
                 await psbt.signInputAsync(1, schnorrSignerSingleWebSimple(alicePub))
             }
             
