@@ -374,12 +374,16 @@ Address: <font color="blue" id="wallet-address">n3W8YyK59F6vQe34uQ8n835L627k2J</
 
                         document.getElementById("contracts_svg").setAttribute("fill", defaultClr)
                         document.getElementById("matching_svg").setAttribute("fill", accentColor)
-                            
+                         
+                        document.getElementById("matching_svg").style.filter = "brightness(2.0)"
+                        document.getElementById("contracts_svg").style.filter = "brightness(3.7)"
+                        document.getElementById("profile_svg").style.filter = "brightness(3.7)"
+
                         document.getElementById("profile_svg").setAttribute("fill", defaultClr)
                             
                         
                         DarkReader.enable(conf);
-                        clearInterval(color)
+                        //clearInterval(color)
                     }
 
                 } catch {
@@ -388,7 +392,7 @@ Address: <font color="blue" id="wallet-address">n3W8YyK59F6vQe34uQ8n835L627k2J</
                
             }
 
-            const color = window.setInterval(recolor, 100)
+            //const color = window.setInterval(recolor, 100)
             recolor()
 
             document.getElementById("matching_svg").addEventListener("load", () => {
