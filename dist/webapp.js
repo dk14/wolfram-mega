@@ -69,7 +69,15 @@ global.initWebapp = new Promise(async (resolve) => {
     }
     let xpub = await window.profiledb.get("xpub", user);
     if (!xpub) {
-        xpub = (0, webcfg_1.configurePub)();
+        if (user === 'alice') {
+            xpub = webcfg_1.pub1;
+        }
+        else if (user === 'bob') {
+            xpub = webcfg_1.pub2;
+        }
+        else {
+            xpub = (0, webcfg_1.configurePub)();
+        }
         await window.profiledb.put("xpub", xpub, user);
     }
     window.address = (0, tx_1.p2pktr)(xpub).address;
