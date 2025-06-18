@@ -1,0 +1,239 @@
+
+            .panel, .profile, .offer-view, .box {
+                border: 2px solid rgb(96 139 168);
+                background: rgb(96 139 168);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .wallet {
+                border: 2px solid rgb(96 139 168);
+                background: rgb(96 139 168);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .menu {
+                position: fixed; 
+                width: 97%;
+                left: 1%;
+                bottom:3%;
+                height: 130px;
+            }
+
+            .profile, .offer-view {
+                border: none;
+            }
+
+            .profile-group, .offer-info-group {
+                border: none;
+                padding: 10px
+            }
+
+            .scrollable {
+                overflow-y: scroll;
+                height: 65%;
+                 
+                -ms-overflow-style: none;  /* Internet Explorer 10+ */
+                scrollbar-width: none;  /* Firefox */
+            }
+
+            .scrollable::-webkit-scrollbar { 
+                display: none;  /* Safari and Chrome */
+            }
+
+            object {
+                width: 100%;
+                pointer-events: none;
+            }
+
+            .wide-panel {
+                border: 2px solid black;
+                width: 99%;
+                justify-content:space-between
+            }
+
+            .offer-info {
+                width: 99%;
+            }
+
+            .offer-preview {
+                width: 99%;
+                overflow-x: hidden;
+                position: relative;
+            }
+
+            .contract-info {
+                margin-left: 10px;
+                width: 99%;
+                justify-content:left
+            }
+
+            .button, .offer-button {
+                background: none;
+                padding: 2;
+                display: flex;
+
+            }
+
+            .button {
+                width: 10rem;
+                height: 10rem;
+            }
+
+            hr {
+                border: 6px solid black;
+            }
+
+            html, body {
+                overflow-x: hidden;
+                overflow-y: hidden;
+            }
+
+            body {
+                position: relative;
+                overflow-y: hidden;
+                max-height: 98%;
+            }
+
+            pre {
+                font-weight:700;
+                font-size: large;
+            }
+
+            .copy-button {
+                margin: -5;
+                width: 2rem;
+                height: 1.5rem;
+            }
+
+            .tag-button, .add-interest-button, .action-button, .send-funds-button {
+                border-radius: 12px;
+                background-color: #04AA6D;
+                border: none;
+                color: white;
+                padding: 10px;
+                text-align: center;
+                text-decoration: none;
+                display: inline-block;
+                font-size: 16px;
+                margin: 4px 2px;
+            }
+
+            .add-interest-button, .send-funds-button {
+                border-radius: 1px;
+                margin: 0px 0px;
+                padding: 5px 10px;
+            }
+
+            .offer-button {
+                width: 5rem;
+                height: 5rem;
+            }
+
+            .add-interest, .send-funds-amount, .txfee, .send-funds-address {
+                font-weight:300;
+                font-size: 16px;
+                border:0px;
+                outline: none;
+                width: 50%;
+                -webkit-box-sizing: border-box;
+                -moz-box-sizing: border-box;
+                box-sizing: border-box;
+                color: #4b545f;
+                background: #fff;
+                font-family: Open Sans,Verdana;
+                padding: 5px 15px;
+                margin: 0px 0px;
+                -webkit-transition: all 0.1s ease-in-out;
+                -moz-transition: all 0.1s ease-in-out;
+                -ms-transition: all 0.1s ease-in-out;
+                -o-transition: all 0.1s ease-in-out;
+                transition: all 0.1s ease-in-out;
+                background-color: grey
+            }
+
+            .add-interest {
+                width: 20%;
+            }
+
+            .send-funds-amount {
+                width: 80px 
+            }
+
+            .txfee {
+                width: 15ch;
+            }
+
+
+            .slidecontainer {
+                width: 100%; /* Width of the outside container */
+            }
+
+
+            .slider-color {
+                width: 100%;
+                height: 15px;
+                border-radius: 5px;
+                background: #d3d3d3;
+                outline: none;
+                opacity:0.7;
+                -webkit-transition: opacity .15s ease-in-out;
+                transition: opacity .15s ease-in-out;
+            }
+            
+            .slider-color:hover {
+                opacity:1;
+            }
+            
+            .slider-color::-webkit-slider-thumb {
+                -webkit-appearance: none;
+                appearance: none;
+                width: 25px;
+                height: 25px;
+                border-radius: 50%;
+                background: #04AA6D;
+                cursor: pointer;
+            }
+                
+            .slider-color::-moz-range-thumb {
+                width: 25px;
+                height: 25px;
+                border: 0;
+                border-radius: 50%;
+                background: #04AA6D;
+                cursor: pointer;
+            }
+
+            .json-viewer {
+                --background-color: #8091b7;
+                --color: #f8f8f2;
+                --font-family: Nimbus Mono PS, Courier New, monospace;
+                --font-size: 1rem;
+                --line-height: 1.2rem;
+                --indent-size: 0.5em;
+                --indentguide-size: 1px;
+                --indentguide-style: solid;
+                --indentguide-color: #333;
+                --indentguide-color-active: #666;
+                --indentguide: var(--indentguide-size) var(--indentguide-style) var(--indentguide-color);
+                --indentguide-active: var(--indentguide-size) var(--indentguide-style) var(--indentguide-color-active);
+                --outline-color: #e0e4e5;
+                --outline-width: 1px;
+                --outline-style: dotted;
+
+                /* Types colors */
+                --string-color: #a3eea0;
+                --number-color: #d19a66;
+                --boolean-color: #4ba7ef;
+                --null-color: #df9cf3;
+                --property-color: #6fb3d2;
+
+                /* Collapsed node preview */
+                --preview-color: #deae8f;
+
+                /* Search highlight color */
+                --highlight-color:  #c92a2a;
+            }
