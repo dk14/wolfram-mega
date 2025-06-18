@@ -135,4 +135,10 @@ const initWebapp = new Promise(async (resolve) => {
 });
 global.initWebapp = initWebapp;
 window.initWebapp = initWebapp;
+const ev = new CustomEvent('init-webapp', { bubbles: true, cancelable: false });
+try {
+    window.document.body.dispatchEvent(ev);
+}
+catch {
+}
 //# sourceMappingURL=webapp.js.map
