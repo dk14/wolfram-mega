@@ -9,9 +9,17 @@ configure_1.configure;
 const transactions_1 = require("../src-web/transactions");
 const oracle_data_provider_1 = require("../src-web/oracle-data-provider");
 const assert_1 = __importDefault(require("assert"));
+const webcfg_1 = require("../webcfg");
 require("../webapp");
 (async () => {
     await global.initWebapp;
+    console.log("\n");
+    console.log("SETUP TEST");
+    console.log("- user pubkey is selected");
+    const urlParams = new URLSearchParams(window.location.search);
+    const param = urlParams.get('user'); //see configure.ts
+    assert_1.default.equal(param, "alice");
+    assert_1.default.equal(webcfg_1.pub1, window.pubkey);
     console.log("\n");
     console.log("MATCHING TEST");
     //startP2P(global.cfg, await browserPeerAPI())

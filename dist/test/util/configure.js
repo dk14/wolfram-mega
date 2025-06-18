@@ -8,8 +8,17 @@ require("fake-indexeddb/auto");
 const fs_1 = __importDefault(require("fs"));
 global.isTest = true;
 const jsdom_1 = require("jsdom");
+const baseUrl = 'https://example.com/webapp';
+const queryParams = {
+    user: 'alice'
+};
+// Construct the URL with query parameters
+const urlWithParams = new URL(baseUrl);
+for (const key in queryParams) {
+    urlWithParams.searchParams.append(key, queryParams[key]);
+}
 const webpage = process.argv[2] === "unit" ? fs_1.default.readFileSync("webapp/index.html").toString("utf-8") : "<html></html>";
-const jsdom = new jsdom_1.JSDOM(webpage, { runScripts: "dangerously" });
+const jsdom = new jsdom_1.JSDOM(webpage, { url: urlWithParams.toString(), runScripts: "dangerously" });
 const fetchPkg = 'node_modules/whatwg-fetch/dist/fetch.umd.js';
 jsdom.window.eval(fs_1.default.readFileSync(fetchPkg, 'utf-8'));
 global.window = jsdom.window;
