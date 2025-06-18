@@ -422,21 +422,19 @@ const switchTab = (tabname) => {
     
 }
 
+const initWebapp = new Promise(resolve => {
+    cancel = setInterval(() => {
+        if (window.pool && window.matching) {
+            clearInterval(cancel)
+            resolve()
+        }
+    }, 100)
+})
+
+
 const tryinit = (async () => { //jsdom doesn't support modules..we simulate one
 
-    if (window.initWebapp === undefined) {
-        console.log("RETRY INIT")
-        throw "no init"
-    }
-
-    window.initWebapp.then(x => {
-        //console.log("HELLO")
-    })
-
-    document.body.addEventListener("init-webapp", () => {
-        console.log("HELLO1111")
-    })
-
+    await initWebapp
 
     setTimeout(() => {
         window.matching.collectOffers(model.profile)                  
@@ -814,36 +812,13 @@ const tryinit = (async () => { //jsdom doesn't support modules..we simulate one
     }, 100)
 
     
-});
+})();
 
 
 (async () => {
-    try {
-        await tryinit()
-    } catch (e) {
-        if (e === "no init") {
-            console.log("RETRY INIT")
 
-            const retry = () => setTimeout(async () => {
-                try {
-                    console.log("RETRY")
-                    await tryinit()
-                    console.log("RETRY SUCESS")
-                } catch (e) {
-                    if (e === "no init") {
-                        console.log("RETRY INIT")
-                        retry()
-                    } else {
-                        console.log("ERROR")
-                        throw e
-                    }
-                }         
-            }, 2000)
-            retry()
-        } else {
-            throw e
-        }         
-    }
+    await tryinit()
+
 })()
 
 
