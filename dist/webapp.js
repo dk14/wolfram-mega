@@ -77,8 +77,12 @@ global.initWebapp = new Promise(async (resolve) => {
         }
         else {
             xpub = (0, webcfg_1.configurePub)();
+            try {
+                await window.profiledb.put("xpub", xpub, user);
+            }
+            catch {
+            }
         }
-        await window.profiledb.put("xpub", xpub, user);
     }
     window.address = (0, tx_1.p2pktr)(xpub).address;
     window.pubkey = xpub;

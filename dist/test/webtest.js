@@ -10,6 +10,7 @@ const transactions_1 = require("../src-web/transactions");
 const oracle_data_provider_1 = require("../src-web/oracle-data-provider");
 const assert_1 = __importDefault(require("assert"));
 const webcfg_1 = require("../webcfg");
+const tx_1 = require("../src/client-api/contracts/btc/tx");
 require("../webapp");
 (async () => {
     await global.initWebapp;
@@ -20,6 +21,7 @@ require("../webapp");
     const param = urlParams.get('user'); //see configure.ts
     assert_1.default.equal(param, "alice");
     assert_1.default.equal(webcfg_1.pub1, window.pubkey);
+    assert_1.default.equal((0, tx_1.p2pktr)(webcfg_1.pub1).address, window.address);
     console.log("\n");
     console.log("MATCHING TEST");
     //startP2P(global.cfg, await browserPeerAPI())
