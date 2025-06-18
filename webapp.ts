@@ -97,9 +97,12 @@ if (!xpub) {
         xpub = pub2
     } else {
         xpub = configurePub()
-    }
-   
-    await window.profiledb.put("xpub", xpub, user)
+        try {
+            await window.profiledb.put("xpub", xpub, user)
+        } catch {
+
+        }    
+    }  
 }
 
 window.address = p2pktr(xpub).address

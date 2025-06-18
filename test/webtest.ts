@@ -10,6 +10,7 @@ import assert from "assert";
 import { startP2P } from "../src/p2p";
 import { browserPeerAPI } from "../src/p2p-webrtc";
 import { pub1 } from "../webcfg";
+import { p2pktr } from "../src/client-api/contracts/btc/tx";
 
 require("../webapp");
 
@@ -24,6 +25,9 @@ require("../webapp");
     const param = urlParams.get('user'); //see configure.ts
     assert.equal(param, "alice") 
     assert.equal(pub1, window.pubkey)
+    assert.equal(p2pktr(pub1).address, window.address)
+
+    
     console.log("\n")
     console.log("MATCHING TEST")
 
