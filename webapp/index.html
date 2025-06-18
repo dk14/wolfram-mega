@@ -430,8 +430,13 @@ const tryinit = (async () => { //jsdom doesn't support modules..we simulate one
     }
 
     window.initWebapp.then(x => {
-        console.log("HELLO")
+        //console.log("HELLO")
     })
+
+    document.body.addEventListener("init-webapp", () => {
+        console.log("HELLO1111")
+    })
+
 
     setTimeout(() => {
         window.matching.collectOffers(model.profile)                  
