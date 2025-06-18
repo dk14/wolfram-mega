@@ -11,8 +11,6 @@ const seedpool = 20
 const prefix = "dk14-peerjs-10101010-"
 const me =  Math.round(Math.random() * seedpool)
 
-
-
 export const cfg: MempoolConfig<any> = {
     "maxOracles": 100,
     "maxCapabilities": 100,
@@ -117,22 +115,14 @@ export const testOfferMsg: OfferMsg = {
 
 export const configureWebMocks = async () => {
 
-    
+    await window.privateDB.put("secrets", privRandom, pubRandom)
 
-
-    try {
-        await window.privateDB.add("secrets", privRandom, pubRandom)
-
-        await window.privateDB.add("secrets", "cRFAdefAzpxzKduj3F9wf3qSTgA5johBBqPZZT72hh46dgCRr997", pub1)
-        await window.privateDB.add("secrets", "cPCMiHyZQt7UWF9y49CaW7ckT9FaFQj5ChnEbXnF51WwEcp6Agkq", pub2)
-        await window.privateDB.add("secrets", "cW3z2LN7rwnomrds4cF2PJhbrCmFPkX1Q8KY5Fe6F6myRotHFXrv", pubOracleCp) 
-        await window.webOracleFacts.add("answers", "YES", pubOracleCp)
-        await window.webOracleFacts.add("answers", "YES", pubOracleCp2)
+    await window.privateDB.put("secrets", "cRFAdefAzpxzKduj3F9wf3qSTgA5johBBqPZZT72hh46dgCRr997", pub1)
+    await window.privateDB.put("secrets", "cPCMiHyZQt7UWF9y49CaW7ckT9FaFQj5ChnEbXnF51WwEcp6Agkq", pub2)
+    await window.privateDB.put("secrets", "cW3z2LN7rwnomrds4cF2PJhbrCmFPkX1Q8KY5Fe6F6myRotHFXrv", pubOracleCp) 
+    await window.webOracleFacts.put("answers", "YES", pubOracleCp)
+    await window.webOracleFacts.put("answers", "YES", pubOracleCp2)
        
-
-    } catch (e) {
-        console.error(e)
-    }
  
     const mockPow: HashCashPow = {
         difficulty: 0,
@@ -151,13 +141,7 @@ export const configureWebMocks = async () => {
         oracleSignatureType: 'SHA256'
     }
 
-    try{
-        await window.storage.addOracle(testOracle)
-    } catch {
-
-    }
-
-   
+    await window.storage.addOracle(testOracle)
 
     const testCp: OracleCapability = {
         oraclePubKey: pubOracleCp,
@@ -187,25 +171,14 @@ export const configureWebMocks = async () => {
         answers: ["YES", "NO"]
     }
 
+    await ndapi.announceOracle(cfg, testOracle)
+    await ndapi.announceCapability(cfg, testCp)
+    await window.storage.addCp(testCp)
 
-    try{
-        await ndapi.announceOracle(cfg, testOracle)
-        await ndapi.announceCapability(cfg, testCp)
-        await window.storage.addCp(testCp)
-    } catch {
-        
-    }
 
-    try {
-
-        await ndapi.announceCapability(cfg, testCp2)
-         await window.storage.addCp(testCp2)
-
-    } catch {
-        
-    }
+    await ndapi.announceCapability(cfg, testCp2)
+    await window.storage.addCp(testCp2)
     
-
 }
 
 export const nodeMock: FacilitatorNode<Neighbor> = {
