@@ -424,15 +424,15 @@ const switchTab = (tabname) => {
 
 const initWebapp = new Promise(resolve => {
     cancel = setInterval(() => {
-        if (window.pool && window.matching) {
+        if (window.pool && window.matching && window.matching.loadProfile) {
             clearInterval(cancel)
             resolve()
         }
     }, 100)
-})
+});
 
 
-const tryinit = (async () => { //jsdom doesn't support modules..we simulate one
+(async () => { //jsdom doesn't support modules..we simulate one
 
     await initWebapp
 
@@ -814,12 +814,6 @@ const tryinit = (async () => { //jsdom doesn't support modules..we simulate one
     
 })();
 
-
-(async () => {
-
-    await tryinit()
-
-})()
 
 
 
