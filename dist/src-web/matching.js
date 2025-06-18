@@ -146,6 +146,7 @@ exports.matchingEngine = {
             status: "matching",
             role: 'acceptor'
         };
+        model["msg"] = offer;
         return model;
     },
     generateOffer: async function (cfg) {
@@ -387,6 +388,7 @@ exports.matchingEngine = {
                 role: "initiator",
                 orderId: o.content.orderId
             };
+            model["msg"] = o;
             return model;
         }));
         const theirModels = await Promise.all(theirOffers.map(async (o) => {
@@ -405,6 +407,7 @@ exports.matchingEngine = {
                 role: "acceptor",
                 orderId: o.content.orderId
             };
+            model["msg"] = o;
             return model;
         }));
         const together = myModels.concat(theirModels);
