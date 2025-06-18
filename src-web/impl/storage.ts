@@ -41,6 +41,10 @@ export const clearDb = async (): Promise<void> => {
     db.clear('issued-offers')
     window.profiledb.delete('xpub', window.user)
     window.profiledb.delete('preferences', window.user)
+    window.profiledb.put('xpub', null, window.user)
+    window.profiledb.put('preferences', null, window.user)
+    window.profiledb.delete('xpub', window.user)
+    window.profiledb.delete('preferences', window.user)
 
 }
 
