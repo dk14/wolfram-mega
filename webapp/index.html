@@ -339,8 +339,8 @@ Address: <font color="blue" id="wallet-address">................................
         
 
         <script src="../mega-peers.min.js" type="module"></script>
-        <script src="https://unpkg.com/darkreader@4.9.105/darkreader.js"></script>
- 
+        <script src="https://unpkg.com/darkreader@4.9.105/darkreader.js"></script> 
+        
         <script>
 
 setTimeout(() => {
@@ -429,7 +429,9 @@ const tryinit = (async () => { //jsdom doesn't support modules..we simulate one
         throw "no init"
     }
 
-    //await window.initWebapp
+    window.initWebapp.then(x => {
+        console.log("HELLO")
+    })
 
     setTimeout(() => {
         window.matching.collectOffers(model.profile)                  
@@ -458,9 +460,6 @@ const tryinit = (async () => { //jsdom doesn't support modules..we simulate one
 
     }, 300)
     
-
-    
-
     try {
         document.getElementById("oracle-strength").onchange = () => {
             window.model.profile.minOracleRank = document.getElementById("oracle-strength").value

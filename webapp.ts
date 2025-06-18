@@ -176,5 +176,7 @@ const initWebapp = new Promise<void>(async (resolve) => {
 global.initWebapp = initWebapp
 window.initWebapp = initWebapp
 
+window.document.dispatchEvent(new Event('init-webapp'));
+
 
 
