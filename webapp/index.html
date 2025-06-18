@@ -431,9 +431,6 @@ const tryinit = (async () => { //jsdom doesn't support modules..we simulate one
 
     //await window.initWebapp
 
-        
-
-
     setTimeout(() => {
         window.matching.collectOffers(model.profile)                  
         setInterval(() => window.progressOffers(), 3000)
@@ -450,13 +447,19 @@ const tryinit = (async () => { //jsdom doesn't support modules..we simulate one
     }, 1000)
 
     window.model = {
-        profile: await window.matching.loadProfile(),
+        profile: undefined,
         offers: [],
         contracts: []
     }
+
+    setInterval(async () => {
+        window.model.profile = await window.matching.loadProfile()
+        window.document.dispatchEvent(new Event('init-model'));
+
+    }, 300)
     
 
-    window.document.dispatchEvent(new Event('init-model'));
+    
 
     try {
         document.getElementById("oracle-strength").onchange = () => {
@@ -817,20 +820,22 @@ const tryinit = (async () => { //jsdom doesn't support modules..we simulate one
         if (e === "no init") {
             console.log("RETRY INIT")
 
-            const cncel = setInterval(async () => {
+            const retry = () => setTimeout(async () => {
                 try {
+                    console.log("RETRY")
                     await tryinit()
-                    clearInterval(cncel)
+                    console.log("RETRY SUCESS")
                 } catch (e) {
                     if (e === "no init") {
                         console.log("RETRY INIT")
+                        retry()
                     } else {
                         console.log("ERROR")
-                        clearInterval(cncel)
                         throw e
                     }
                 }         
             }, 2000)
+            retry()
         } else {
             throw e
         }         
