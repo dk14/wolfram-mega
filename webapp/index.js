@@ -92,7 +92,6 @@ const switchTab = (tabname) => {
         console.log(e)
     }
         
-
     document.getElementById(tabname).style.display = "block"
     
 }
@@ -256,8 +255,8 @@ const initWebapp = new Promise(resolve => {
         downArrowSvg.className = "offer-button"
         downArrowSvg.onclick = () => {
             renderOfferDetails(offer)
-            const tree = document.getElementById("offer-tree")
-            tree.data = offer
+
+
 
         }
 
@@ -397,11 +396,7 @@ const initWebapp = new Promise(resolve => {
                 document.getElementById("wallet-balance").innerText = balance + user
 
             }
-            
-        
             document.getElementById("wallet-address").innerText = address
-            
-
         } catch {
 
         }
@@ -414,6 +409,14 @@ const initWebapp = new Promise(resolve => {
         const terms = document.getElementById("terms")
         terms.innerHTML = ""
         terms.appendChild(offerInfo)
+        const tree = document.getElementById("offer-tree")
+        tree.data = offer
+        document.getElementById("delete-offer").onclick = () => {
+            window.storage.removeOffers([offer.id])
+        }
+        document.getElementById("delete-cp").onclick = () => {
+            window.storage.removeCps([offer.oracles[0].capabilityPub])
+        }
     }
 
     window.renderContractPreview = (where, contract) => {
