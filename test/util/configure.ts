@@ -16,7 +16,7 @@ for (const key in queryParams) {
 }
 
 const webpage = process.argv[2] === "unit" ? fs.readFileSync("webapp/index.html").toString("utf-8") : "<html></html>"
-const jsdom = new JSDOM(webpage, { url: urlWithParams.toString(), runScripts: "dangerously" });
+const jsdom = new JSDOM(webpage, { url: urlWithParams.toString(), resources: "usable", runScripts: "dangerously" });
 const fetchPkg = 'node_modules/whatwg-fetch/dist/fetch.umd.js';
 jsdom.window.eval(fs.readFileSync(fetchPkg, 'utf-8'));
 

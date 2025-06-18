@@ -26,6 +26,9 @@ export interface BtcApi {
 
 declare global {
     interface Window {
+
+        user: string
+
         traderApi: TraderApi<TraderQuery<OracleId>, TraderQuery<OracleCapability>, boolean>
         storage: Storage
         btc: BtcApi
@@ -76,33 +79,33 @@ window.profiledb = await openDB('profile', 1, {
     },
 });
 
-let user = "default"
+window.user = "default"
 
 try {
     const urlParams = new URLSearchParams(window.location.search);
     const param = urlParams.get('user');
     if (param) {
-        user = param
+        window.user = param
     }
 } catch {
 
 }
 
-let xpub: string = await window.profiledb.get("xpub", user)
+let xpub: string = await window.profiledb.get("xpub", window.user)
 
 if (!xpub) {
-    if (user === 'alice') {
+    if (window.user === 'alice') {
         xpub = pub1
-    } else if (user === 'bob') {
+    } else if (window.user === 'bob') {
         xpub = pub2
     } else {
-        xpub = configurePub()
-        try {
-            await window.profiledb.put("xpub", xpub, user)
-        } catch {
-
-        }    
+        xpub = configurePub()   
     }  
+    try {
+        await window.profiledb.put("xpub", xpub, window.user)
+    } catch {
+
+    } 
 }
 
 window.address = p2pktr(xpub).address

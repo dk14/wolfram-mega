@@ -475,9 +475,9 @@ export const matchingEngine: MatchingEngine = {
     },
     reset: async function (): Promise<void> {
         await clearDb();
-        location.reload()
-        
-        
+        location.reload();
+
+
     },
     removeOrder: async function (hash: string): Promise<void> {
         const pagedescriptor = {
@@ -502,16 +502,33 @@ export const matchingEngine: MatchingEngine = {
         }
     },
     takeWinnings: async function (amount: number, destination: string, txfee: number): Promise<string> {
-        const utxos = await getSimpleUtXo(amount, window.address, txfee)
+        const utxos = await getSimpleUtXo(amount, window.address, txfee);
         const params: SimpleParams = {
             aliceIn: utxos,
             alicePub: window.pubkey,
             aliceAmountIn: utxos.map(x => x.value),
-            changeAlice: utxos.map(x => x.value).reduce((a,b) => a + b) - amount,
+            changeAlice: utxos.map(x => x.value).reduce((a, b) => a + b) - amount,
             txfee: txfee,
             destinationAddr: destination
+        };
+        return await generateSimpleTransaction(params);
+    },
+    saveProfile: async function (cfg: PreferenceModel): Promise<void> {
+       await window.profiledb.put("profile", cfg, window.user)
+    },
+    loadProfile: async function (): Promise<PreferenceModel> {
+        const profile = await window.profiledb.get("preferences", window.user)
+        if (profile) {
+            return profile
+        } else {
+            const profile: PreferenceModel = {
+                minOracleRank: 0,
+                tags: ["world", "sports"],
+                txfee: 2000
+            }
+            await window.profiledb.put("preferences", profile, window.user)
+            return profile
         }
-        return await generateSimpleTransaction(params)
     }
 }
 

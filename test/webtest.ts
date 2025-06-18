@@ -16,6 +16,20 @@ require("../webapp");
 
 
 (async () => {
+    const initView = new Promise(resolve => {
+        document.addEventListener('load', resolve);
+    });
+
+    // have to be registered before `initWebapp` mutex, otherwise events would be fired ahead
+
+    const initController = new Promise(resolve => {
+        document.addEventListener('init-offer-controller', resolve);
+    });
+
+    const initModel = new Promise(resolve => {
+        document.addEventListener('init-model', resolve);
+    });
+
     await global.initWebapp
 
     console.log("\n")
@@ -24,10 +38,14 @@ require("../webapp");
     const urlParams = new URLSearchParams(window.location.search);
     const param = urlParams.get('user'); //see configure.ts
     assert.equal(param, "alice") 
+    assert.equal("alice", window.user) 
     assert.equal(pub1, window.pubkey)
     assert.equal(p2pktr(pub1).address, window.address)
 
+    console.log("- profile created")
     
+
+
     console.log("\n")
     console.log("MATCHING TEST")
 
@@ -86,16 +104,26 @@ require("../webapp");
 
     console.log("\n")
     console.log("WEBPAGE TEST")
+    
 
-    console.log("- model: data is present")
-    assert.ok(window["model"])
-    assert.ok(window["model"].contracts)
 
     console.log("- view: UI elements are present")
+
+    await initView
+
     assert.strictEqual(document.getElementById("matching").className, "scrollable")
     assert.strictEqual(document.getElementById("profile").className, "scrollable profile")
 
+    console.log("- model: data is present")
+
+    await initModel
+
+    assert.ok(window["model"])
+    assert.ok(window["model"].contracts)
+
+ 
     console.log("- controller: fetch or generate offers")
+    await initController
 
     const pickedOffer = await window["pickOrGenerateOffer"](true)
     assert.ok(pickedOffer)

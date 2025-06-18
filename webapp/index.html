@@ -342,6 +342,8 @@ Address: <font color="blue" id="wallet-address">................................
         <script src="https://unpkg.com/darkreader@4.9.105/darkreader.js"></script>
  
         <script>
+(async () => { //jsdom doesn't support modules..we simulate one
+
 
             setTimeout(() => {
                 if(!offersFound){
@@ -399,7 +401,12 @@ Address: <font color="blue" id="wallet-address">................................
             }
 
             //const color = window.setInterval(recolor, 100)
-            recolor()
+            try {
+                recolor()
+            } catch {
+
+            }
+
 
             document.getElementById("matching_svg").addEventListener("load", () => {
                 document.getElementById("matching_svg").setAttribute("fill", "brown")
@@ -427,6 +434,8 @@ Address: <font color="blue" id="wallet-address">................................
                 document.getElementById(tabname).style.display = "block"
                 
             }
+
+            await window.initWebapp
 
             const wolfram = {
                 capabilityPub: "",
@@ -468,16 +477,14 @@ Address: <font color="blue" id="wallet-address">................................
         
 
             window.model = {
-                profile: {
-                    minOracleRank: 0,
-                    tags: ["sports", "world"],
-                    txfee: 1000
-                },
+                profile: await window.matching.loadProfile(),
                 offers: [],
                 contracts: [
             
                 ]
             }
+
+            window.document.dispatchEvent(new Event('init-model'));
 
             setTimeout(() => {
                 //todo await webapp init
@@ -505,6 +512,8 @@ Address: <font color="blue" id="wallet-address">................................
                     return await window.matching.generateOffer(model.profile)
                 }
             }
+
+            window.document.dispatchEvent(new Event('init-offer-controller'));
 
             window.removeInterest = (tag) => {
                 window.model.profile.tags = window.model.profile.tags.filter(x => x != tag)
@@ -811,21 +820,7 @@ Address: <font color="blue" id="wallet-address">................................
                 }
                 
             }, 100)
-            
-            
-
-            const renderProfile = () => {
-                
-            }
-
-            const saveProfile = () => {
-
-            }
-
-            const loadProfile = () => {
-
-            }
-
+})()
         </script>
     </body>
 </html>
