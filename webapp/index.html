@@ -422,7 +422,7 @@ const switchTab = (tabname) => {
     
 }
 
-//await on orgiginal init does not work; browser bug
+//await on original init does not work; browser bug
 const initWebapp = new Promise(resolve => { 
     cancel = setInterval(() => {
         if (window.pool && window.matching && window.matching.loadProfile) {
