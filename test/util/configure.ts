@@ -4,7 +4,7 @@ global.isTest = true
 
 import { JSDOM } from 'jsdom';
 
-const baseUrl = 'https://example.com/webapp';
+const baseUrl = 'https://dk14.github.io/wolfram-mega/webapp/';
 const queryParams = {
   user: 'alice'
 };
