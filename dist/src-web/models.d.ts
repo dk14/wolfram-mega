@@ -52,5 +52,7 @@ export interface MatchingEngine {
     removeOrder: (orderId: string) => Promise<void>;
     reset: () => Promise<void>;
     takeWinnings: (amount: number, destination: string, txfee: number) => Promise<TxRaw>;
+    saveProfile: (cfg: PreferenceModel) => Promise<void>;
+    loadProfile: () => Promise<PreferenceModel>;
 }
 export {};

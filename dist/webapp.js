@@ -57,31 +57,31 @@ global.initWebapp = new Promise(async (resolve) => {
             db.createObjectStore('preferences');
         },
     });
-    let user = "default";
+    window.user = "default";
     try {
         const urlParams = new URLSearchParams(window.location.search);
         const param = urlParams.get('user');
         if (param) {
-            user = param;
+            window.user = param;
         }
     }
     catch {
     }
-    let xpub = await window.profiledb.get("xpub", user);
+    let xpub = await window.profiledb.get("xpub", window.user);
     if (!xpub) {
-        if (user === 'alice') {
+        if (window.user === 'alice') {
             xpub = webcfg_1.pub1;
         }
-        else if (user === 'bob') {
+        else if (window.user === 'bob') {
             xpub = webcfg_1.pub2;
         }
         else {
             xpub = (0, webcfg_1.configurePub)();
-            try {
-                await window.profiledb.put("xpub", xpub, user);
-            }
-            catch {
-            }
+        }
+        try {
+            await window.profiledb.put("xpub", xpub, window.user);
+        }
+        catch {
         }
     }
     window.address = (0, tx_1.p2pktr)(xpub).address;

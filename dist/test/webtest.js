@@ -13,6 +13,16 @@ const webcfg_1 = require("../webcfg");
 const tx_1 = require("../src/client-api/contracts/btc/tx");
 require("../webapp");
 (async () => {
+    const initView = new Promise(resolve => {
+        document.addEventListener('load', resolve);
+    });
+    // have to be registered before `initWebapp` mutex, otherwise events would be fired ahead
+    const initController = new Promise(resolve => {
+        document.addEventListener('init-offer-controller', resolve);
+    });
+    const initModel = new Promise(resolve => {
+        document.addEventListener('init-model', resolve);
+    });
     await global.initWebapp;
     console.log("\n");
     console.log("SETUP TEST");
@@ -20,8 +30,10 @@ require("../webapp");
     const urlParams = new URLSearchParams(window.location.search);
     const param = urlParams.get('user'); //see configure.ts
     assert_1.default.equal(param, "alice");
+    assert_1.default.equal("alice", window.user);
     assert_1.default.equal(webcfg_1.pub1, window.pubkey);
     assert_1.default.equal((0, tx_1.p2pktr)(webcfg_1.pub1).address, window.address);
+    console.log("- profile created");
     console.log("\n");
     console.log("MATCHING TEST");
     //startP2P(global.cfg, await browserPeerAPI())
@@ -67,13 +79,16 @@ require("../webapp");
     await window.matching.broadcastOffer(myCustomOffer);
     console.log("\n");
     console.log("WEBPAGE TEST");
-    console.log("- model: data is present");
-    assert_1.default.ok(window["model"]);
-    assert_1.default.ok(window["model"].contracts);
     console.log("- view: UI elements are present");
+    await initView;
     assert_1.default.strictEqual(document.getElementById("matching").className, "scrollable");
     assert_1.default.strictEqual(document.getElementById("profile").className, "scrollable profile");
+    console.log("- model: data is present");
+    await initModel;
+    assert_1.default.ok(window["model"]);
+    assert_1.default.ok(window["model"].contracts);
     console.log("- controller: fetch or generate offers");
+    await initController;
     const pickedOffer = await window["pickOrGenerateOffer"](true);
     assert_1.default.ok(pickedOffer);
     const generatedOffer = await window["pickOrGenerateOffer"](false);

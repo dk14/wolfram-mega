@@ -444,6 +444,24 @@ exports.matchingEngine = {
             destinationAddr: destination
         };
         return await (0, generate_btc_tx_1.generateSimpleTransaction)(params);
+    },
+    saveProfile: async function (cfg) {
+        await window.profiledb.put("profile", cfg, window.user);
+    },
+    loadProfile: async function () {
+        const profile = await window.profiledb.get("preferences", window.user);
+        if (profile) {
+            return profile;
+        }
+        else {
+            const profile = {
+                minOracleRank: 0,
+                tags: ["world", "sports"],
+                txfee: 2000
+            };
+            await window.profiledb.put("preferences", profile, window.user);
+            return profile;
+        }
     }
 };
 function maxBy(arr, fn) {

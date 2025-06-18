@@ -16,6 +16,7 @@ export interface BtcApi {
 }
 declare global {
     interface Window {
+        user: string;
         traderApi: TraderApi<TraderQuery<OracleId>, TraderQuery<OracleCapability>, boolean>;
         storage: Storage;
         btc: BtcApi;
