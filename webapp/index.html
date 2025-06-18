@@ -429,7 +429,6 @@ const tryinit = (async () => { //jsdom doesn't support modules..we simulate one
         throw "no init"
     }
 
-    console.log("HELLO" + typeof window.initWebapp)
     //await window.initWebapp
 
         
@@ -767,8 +766,7 @@ const tryinit = (async () => { //jsdom doesn't support modules..we simulate one
     })
 
     setInterval(async () => {
-        try { //todo await webapp
-            console.log("Fetching offers...")
+        try {
         
             const orders = await window.matching.listOrders(20)
             if (JSON.stringify(orders) === JSON.stringify(model.contracts)) {
@@ -817,7 +815,7 @@ const tryinit = (async () => { //jsdom doesn't support modules..we simulate one
         await tryinit()
     } catch (e) {
         if (e === "no init") {
-            
+            console.log("RETRY INIT")
 
             const cncel = setInterval(async () => {
                 try {
@@ -825,7 +823,7 @@ const tryinit = (async () => { //jsdom doesn't support modules..we simulate one
                     clearInterval(cncel)
                 } catch (e) {
                     if (e === "no init") {
-                        //retry
+                        console.log("RETRY INIT")
                     } else {
                         console.log("ERROR")
                         clearInterval(cncel)

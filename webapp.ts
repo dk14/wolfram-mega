@@ -64,114 +64,117 @@ declare global {
 
 window.txfee = 2000
 
-global.initWebapp = new Promise(async (resolve) => {
+const initWebapp = new Promise<void>(async (resolve) => {
 
-window.spec = await (await fetch("./../wolfram-mega-spec.yaml")).text()
+    window.spec = await (await fetch("./../wolfram-mega-spec.yaml")).text()
 
-global.cfg = cfg
+    global.cfg = cfg
 
+    //PROFILE
+    window.profiledb = await openDB('profile', 1, {
+        upgrade(db) {
+        db.createObjectStore('xpub');
+        db.createObjectStore('preferences');
+        },
+    });
 
-//PROFILE
-window.profiledb = await openDB('profile', 1, {
-    upgrade(db) {
-      db.createObjectStore('xpub');
-      db.createObjectStore('preferences');
-    },
-});
+    window.user = "default"
 
-window.user = "default"
-
-try {
-    const urlParams = new URLSearchParams(window.location.search);
-    const param = urlParams.get('user');
-    if (param) {
-        window.user = param
-    }
-} catch {
-
-}
-
-let xpub: string = await window.profiledb.get("xpub", window.user)
-
-if (!xpub) {
-    if (window.user === 'alice') {
-        xpub = pub1
-    } else if (window.user === 'bob') {
-        xpub = pub2
-    } else {
-        xpub = configurePub()   
-    }  
     try {
-        await window.profiledb.put("xpub", xpub, window.user)
+        const urlParams = new URLSearchParams(window.location.search);
+        const param = urlParams.get('user');
+        if (param) {
+            window.user = param
+        }
     } catch {
 
-    } 
-}
+    }
 
-window.address = p2pktr(xpub).address
-window.pubkey = xpub
+    let xpub: string = await window.profiledb.get("xpub", window.user)
 
-//WALLETT
-window.privateDB = await openDB('private', 1, {
-    upgrade(db) {
-      db.createObjectStore('secrets');
-    },
-});
+    if (!xpub) {
+        if (window.user === 'alice') {
+            xpub = pub1
+        } else if (window.user === 'bob') {
+            xpub = pub2
+        } else {
+            xpub = configurePub()   
+        }  
+        try {
+            await window.profiledb.put("xpub", xpub, window.user)
+        } catch {
 
-//LOCAL ORACLE
-window.webOracleFacts = await openDB('web-oracle', 1, {
-    upgrade(db) {
-      db.createObjectStore('answers');
-    },
-})
+        } 
+    }
 
+    window.address = p2pktr(xpub).address
+    window.pubkey = xpub
 
-window.pool = ndapi
+    //WALLETT
+    window.privateDB = await openDB('private', 1, {
+        upgrade(db) {
+        db.createObjectStore('secrets');
+        },
+    });
 
-if (!global.isTest) {
-    const api = await startP2P(global.cfg, await browserPeerAPI())
-    setInterval(() => {
-        window.peerlist = api.peers.map(x => x.addr.server)
+    //LOCAL ORACLE
+    window.webOracleFacts = await openDB('web-oracle', 1, {
+        upgrade(db) {
+        db.createObjectStore('answers');
+        },
     })
-}
-
-const store = indexDBstorage(await database())
-
-window.traderApi = traderApi(cfg.trader, cfg, ndapi, store, p2pNode)
-window.storage = store
-window.hashLockProvider = hashLockProvider
-
-window.btc = { 
-    generateClosingTransaction: btc.generateClosingTransaction,
-    generateCetRedemptionTransaction: btc.generateCetRedemptionTransaction,
-    generateDlcContract: btc.generateDlcContract,
-    generateChildDlcContract: btc.generateChildDlcContract
-}
 
 
-window.matching = matchingEngine
-window.stalking = stalkingEngine
+    window.pool = ndapi
 
-window.progressOffers = async () => {
-    await window.stalking.trackIssuedOffers({
-        "bitcoin-testnet": btcDlcContractInterpreter
-    }, dataProvider)
-}
+    if (!global.isTest) {
+        const api = await startP2P(global.cfg, await browserPeerAPI())
+        setInterval(() => {
+            window.peerlist = api.peers.map(x => x.addr.server)
+        })
+    }
 
-await configureWebMocks()
+    const store = indexDBstorage(await database())
 
-window.pool = ndapi
+    window.traderApi = traderApi(cfg.trader, cfg, ndapi, store, p2pNode)
+    window.storage = store
+    window.hashLockProvider = hashLockProvider
 
-if (!global.isTest && !window.test) {
-    startP2P(global.cfg, await browserPeerAPI())
-     setInterval(() => window.stalking.trackIssuedOffers({
-        "bitcoin-testnet": btcDlcContractInterpreter
-    }, dataProvider), 200)
-}
+    window.btc = { 
+        generateClosingTransaction: btc.generateClosingTransaction,
+        generateCetRedemptionTransaction: btc.generateCetRedemptionTransaction,
+        generateDlcContract: btc.generateDlcContract,
+        generateChildDlcContract: btc.generateChildDlcContract
+    }
 
-console.log("WebAPI is ready!")
-resolve(window)
+
+    window.matching = matchingEngine
+    window.stalking = stalkingEngine
+
+    window.progressOffers = async () => {
+        await window.stalking.trackIssuedOffers({
+            "bitcoin-testnet": btcDlcContractInterpreter
+        }, dataProvider)
+    }
+
+    await configureWebMocks()
+
+    window.pool = ndapi
+
+    if (!global.isTest && !window.test) {
+        startP2P(global.cfg, await browserPeerAPI())
+        setInterval(() => window.stalking.trackIssuedOffers({
+            "bitcoin-testnet": btcDlcContractInterpreter
+        }, dataProvider), 200)
+    }
+
+    console.log("WebAPI is ready!")
+    resolve()
 
 })
 
-window.initWebapp = global.initWebapp
+global.initWebapp = initWebapp
+window.initWebapp = initWebapp
+
+
+
