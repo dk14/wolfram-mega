@@ -47,7 +47,7 @@ const webcfg_1 = require("./webcfg");
 const oracle_data_provider_1 = require("./src-web/oracle-data-provider");
 const transactions_1 = require("./src-web/transactions");
 window.txfee = 2000;
-global.initWebapp = new Promise(async (resolve) => {
+const initWebapp = new Promise(async (resolve) => {
     window.spec = await (await fetch("./../wolfram-mega-spec.yaml")).text();
     global.cfg = webcfg_1.cfg;
     //PROFILE
@@ -131,7 +131,8 @@ global.initWebapp = new Promise(async (resolve) => {
         }, oracle_data_provider_1.dataProvider), 200);
     }
     console.log("WebAPI is ready!");
-    resolve(window);
+    resolve();
 });
-window.initWebapp = global.initWebapp;
+global.initWebapp = initWebapp;
+window.initWebapp = initWebapp;
 //# sourceMappingURL=webapp.js.map
