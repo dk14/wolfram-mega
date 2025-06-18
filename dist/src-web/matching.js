@@ -161,7 +161,7 @@ exports.matchingEngine = {
         const counterpartyBetAmountOptions = cfg.preferBetsToGenerate ? cfg.preferBetsToGenerate[1] : [5, 250, 300, 500];
         const counterpartyBetAmount = counterpartyBetAmountOptions[(0, exports.randomInt)(counterpartyBetAmountOptions.length)];
         const model = {
-            id: "aaa",
+            id: "tentative",
             bet: [partyBetAmount, counterpartyBetAmount],
             oracles: [{
                     capabilityPub: cp.capabilityPubKey,
