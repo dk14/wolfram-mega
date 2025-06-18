@@ -422,7 +422,8 @@ const switchTab = (tabname) => {
     
 }
 
-const initWebapp = new Promise(resolve => {
+//await on orgiginal init does not work; browser bug
+const initWebapp = new Promise(resolve => { 
     cancel = setInterval(() => {
         if (window.pool && window.matching && window.matching.loadProfile) {
             clearInterval(cancel)
@@ -434,7 +435,7 @@ const initWebapp = new Promise(resolve => {
 
 (async () => { //jsdom doesn't support modules..we simulate one
 
-    await initWebapp //await on orgiginal init does not work; browser bug
+    await initWebapp 
 
     setTimeout(() => {
         window.matching.collectOffers(model.profile)                  
