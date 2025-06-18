@@ -4,8 +4,19 @@ global.isTest = true
 
 import { JSDOM } from 'jsdom';
 
+const baseUrl = 'https://example.com/webapp';
+const queryParams = {
+  user: 'alice'
+};
+
+// Construct the URL with query parameters
+const urlWithParams = new URL(baseUrl);
+for (const key in queryParams) {
+  urlWithParams.searchParams.append(key, queryParams[key]);
+}
+
 const webpage = process.argv[2] === "unit" ? fs.readFileSync("webapp/index.html").toString("utf-8") : "<html></html>"
-const jsdom = new JSDOM(webpage, { runScripts: "dangerously" });
+const jsdom = new JSDOM(webpage, { url: urlWithParams.toString(), runScripts: "dangerously" });
 const fetchPkg = 'node_modules/whatwg-fetch/dist/fetch.umd.js';
 jsdom.window.eval(fs.readFileSync(fetchPkg, 'utf-8'));
 

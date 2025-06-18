@@ -9,12 +9,21 @@ import { dataProvider } from "../src-web/oracle-data-provider";
 import assert from "assert";
 import { startP2P } from "../src/p2p";
 import { browserPeerAPI } from "../src/p2p-webrtc";
+import { pub1 } from "../webcfg";
 
 require("../webapp");
 
 
 (async () => {
     await global.initWebapp
+
+    console.log("\n")
+    console.log("SETUP TEST")
+    console.log("- user pubkey is selected") 
+    const urlParams = new URLSearchParams(window.location.search);
+    const param = urlParams.get('user'); //see configure.ts
+    assert.equal(param, "alice") 
+    assert.equal(pub1, window.pubkey)
     console.log("\n")
     console.log("MATCHING TEST")
 
