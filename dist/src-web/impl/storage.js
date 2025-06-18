@@ -26,18 +26,22 @@ const clearDb = async () => {
             db.createObjectStore('issued-offers');
         },
     });
-    db.clear('oracles');
-    db.clear('cps');
-    db.clear('reports');
-    db.clear('offers');
-    db.clear('issued-reports');
-    db.clear('issued-offers');
-    window.profiledb.delete('xpub', window.user);
-    window.profiledb.delete('preferences', window.user);
-    window.profiledb.put('xpub', null, window.user);
-    window.profiledb.put('preferences', null, window.user);
-    window.profiledb.delete('xpub', window.user);
-    window.profiledb.delete('preferences', window.user);
+    await db.clear('oracles');
+    await db.clear('cps');
+    await db.clear('reports');
+    await db.clear('offers');
+    await db.clear('issued-reports');
+    await Promise.all((await db.getAll('issued-offers')).map(async (o) => {
+        await db.put('issued-offers', null, o.pow.hash);
+        await db.delete('issued-offers', o.pow.hash);
+    }));
+    await db.clear('issued-offers');
+    await window.profiledb.delete('xpub', window.user);
+    await window.profiledb.delete('preferences', window.user);
+    await window.profiledb.put('xpub', null, window.user);
+    await window.profiledb.put('preferences', null, window.user);
+    await window.profiledb.delete('xpub', window.user);
+    await window.profiledb.delete('preferences', window.user);
 };
 exports.clearDb = clearDb;
 const indexDBstorage = (db) => {

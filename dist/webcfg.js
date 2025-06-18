@@ -136,17 +136,12 @@ exports.testOfferMsg = {
     content: testOffer
 };
 const configureWebMocks = async () => {
-    try {
-        await window.privateDB.add("secrets", exports.privRandom, exports.pubRandom);
-        await window.privateDB.add("secrets", "cRFAdefAzpxzKduj3F9wf3qSTgA5johBBqPZZT72hh46dgCRr997", exports.pub1);
-        await window.privateDB.add("secrets", "cPCMiHyZQt7UWF9y49CaW7ckT9FaFQj5ChnEbXnF51WwEcp6Agkq", exports.pub2);
-        await window.privateDB.add("secrets", "cW3z2LN7rwnomrds4cF2PJhbrCmFPkX1Q8KY5Fe6F6myRotHFXrv", pubOracleCp);
-        await window.webOracleFacts.add("answers", "YES", pubOracleCp);
-        await window.webOracleFacts.add("answers", "YES", pubOracleCp2);
-    }
-    catch (e) {
-        console.error(e);
-    }
+    await window.privateDB.put("secrets", exports.privRandom, exports.pubRandom);
+    await window.privateDB.put("secrets", "cRFAdefAzpxzKduj3F9wf3qSTgA5johBBqPZZT72hh46dgCRr997", exports.pub1);
+    await window.privateDB.put("secrets", "cPCMiHyZQt7UWF9y49CaW7ckT9FaFQj5ChnEbXnF51WwEcp6Agkq", exports.pub2);
+    await window.privateDB.put("secrets", "cW3z2LN7rwnomrds4cF2PJhbrCmFPkX1Q8KY5Fe6F6myRotHFXrv", pubOracleCp);
+    await window.webOracleFacts.put("answers", "YES", pubOracleCp);
+    await window.webOracleFacts.put("answers", "YES", pubOracleCp2);
     const mockPow = {
         difficulty: 0,
         algorithm: 'SHA256',
@@ -162,11 +157,7 @@ const configureWebMocks = async () => {
         oracleSignature: '',
         oracleSignatureType: 'SHA256'
     };
-    try {
-        await window.storage.addOracle(testOracle);
-    }
-    catch {
-    }
+    await window.storage.addOracle(testOracle);
     const testCp = {
         oraclePubKey: pubOracleCp,
         capabilityPubKey: pubOracleCp,
@@ -193,19 +184,11 @@ const configureWebMocks = async () => {
         tags: ["world"],
         answers: ["YES", "NO"]
     };
-    try {
-        await api_1.api.announceOracle(exports.cfg, testOracle);
-        await api_1.api.announceCapability(exports.cfg, testCp);
-        await window.storage.addCp(testCp);
-    }
-    catch {
-    }
-    try {
-        await api_1.api.announceCapability(exports.cfg, testCp2);
-        await window.storage.addCp(testCp2);
-    }
-    catch {
-    }
+    await api_1.api.announceOracle(exports.cfg, testOracle);
+    await api_1.api.announceCapability(exports.cfg, testCp);
+    await window.storage.addCp(testCp);
+    await api_1.api.announceCapability(exports.cfg, testCp2);
+    await window.storage.addCp(testCp2);
 };
 exports.configureWebMocks = configureWebMocks;
 exports.nodeMock = {
