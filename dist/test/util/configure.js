@@ -8,7 +8,7 @@ require("fake-indexeddb/auto");
 const fs_1 = __importDefault(require("fs"));
 global.isTest = true;
 const jsdom_1 = require("jsdom");
-const baseUrl = 'https://example.com/webapp';
+const baseUrl = 'https://dk14.github.io/wolfram-mega/webapp/';
 const queryParams = {
     user: 'alice'
 };
