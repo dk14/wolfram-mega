@@ -76,12 +76,6 @@ const keyPair = ECPair.makeRandom()
 export const pubRandom = keyPair.publicKey.toString("hex").slice(2)
 export const privRandom = keyPair.toWIF()
 
-export const configurePub = () => {
-    const candidates = [pub1, pub2, pubRandom]
-    const random = Math.round(Math.random() * 3) - 1
-    return candidates[random] ?? pub1
-}
-
 //HD wallets: https://github.com/paulmillr/scure-bip32
 
 const testPow: HashCashPow = {

@@ -708,13 +708,15 @@ const initWebapp = new Promise(resolve => {
             : window.address
 
             try {
+                const user = window.user === 'default' ? '' : ` (${window.user})`
                 const stats = await (await fetch("https://mempool.space/testnet/api/address/" + window.address)).json()
                 const bal = stats.chain_stats.funded_txo_sum - stats.chain_stats.spent_txo_sum
                 const balance = bal === 0 ? "0,000 sat" : bal.toLocaleString() + " sat"
-                document.getElementById("wallet-balance").innerText = balance
+                document.getElementById("wallet-balance").innerText = balance + user
 
             } catch {
                 const balance = "0,000 sat"
+                document.getElementById("wallet-balance").innerText = balance + user
 
             }
             

@@ -9,7 +9,7 @@ import { p2pktr } from './src/client-api/contracts/btc/tx';
 import { stalkingEngine, StalkingEngine } from './src-web/stalking';
 import { browserPeerAPI } from './src/p2p-webrtc';
 import { TraderQuery, database, Storage, indexDBstorage } from './src-web/impl/storage';
-import { cfg, configurePub, configureWebMocks, nodeMock, pub1, pub2 } from './webcfg';
+import { cfg, configureWebMocks, nodeMock, pub1, pub2, pubRandom } from './webcfg';
 import { dataProvider } from './src-web/oracle-data-provider';
 import { btcDlcContractInterpreter, UTxO } from './src-web/transactions';
 import Sandbox from '@nyariv/sandboxjs';
@@ -98,7 +98,7 @@ const initWebapp = new Promise<void>(async (resolve) => {
         } else if (window.user === 'bob') {
             xpub = pub2
         } else {
-            xpub = configurePub()   
+            xpub = pubRandom  
         }  
         try {
             await window.profiledb.put("xpub", xpub, window.user)
