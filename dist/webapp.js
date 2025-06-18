@@ -76,7 +76,7 @@ const initWebapp = new Promise(async (resolve) => {
             xpub = webcfg_1.pub2;
         }
         else {
-            xpub = (0, webcfg_1.configurePub)();
+            xpub = webcfg_1.pubRandom;
         }
         try {
             await window.profiledb.put("xpub", xpub, window.user);
