@@ -34,6 +34,10 @@ const clearDb = async () => {
     db.clear('issued-offers');
     window.profiledb.delete('xpub', window.user);
     window.profiledb.delete('preferences', window.user);
+    window.profiledb.put('xpub', null, window.user);
+    window.profiledb.put('preferences', null, window.user);
+    window.profiledb.delete('xpub', window.user);
+    window.profiledb.delete('preferences', window.user);
 };
 exports.clearDb = clearDb;
 const indexDBstorage = (db) => {
