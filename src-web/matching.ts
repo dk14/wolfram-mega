@@ -170,6 +170,7 @@ export const matchingEngine: MatchingEngine = {
             status: "matching",
             role: 'acceptor'
         };
+        model["msg"] = offer
         return model;
     },
     generateOffer: async function (cfg: PreferenceModel): Promise<OfferModel> {
@@ -448,6 +449,7 @@ export const matchingEngine: MatchingEngine = {
                 role: "initiator",
                 orderId: o.content.orderId
             };
+            model["msg"] = o
             return model;
         }));
 
@@ -467,6 +469,7 @@ export const matchingEngine: MatchingEngine = {
                 role: "acceptor",
                 orderId: o.content.orderId
             };
+            model["msg"] = o
             return model;
         }));
 

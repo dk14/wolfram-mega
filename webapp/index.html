@@ -6,6 +6,8 @@
         <meta name="apple-mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
         <meta name="mobile-web-app-status-bar-style" content="black-translucent">
+        
+         
         <style>
             .panel, .profile, .offer-view, .box {
                 border: 2px solid rgb(96 139 168);
@@ -214,9 +216,42 @@
                 background: #04AA6D;
                 cursor: pointer;
             }
+
+            .json-viewer {
+                --background-color: #8091b7;
+                --color: #f8f8f2;
+                --font-family: Nimbus Mono PS, Courier New, monospace;
+                --font-size: 1rem;
+                --line-height: 1.2rem;
+                --indent-size: 0.5em;
+                --indentguide-size: 1px;
+                --indentguide-style: solid;
+                --indentguide-color: #333;
+                --indentguide-color-active: #666;
+                --indentguide: var(--indentguide-size) var(--indentguide-style) var(--indentguide-color);
+                --indentguide-active: var(--indentguide-size) var(--indentguide-style) var(--indentguide-color-active);
+                --outline-color: #e0e4e5;
+                --outline-width: 1px;
+                --outline-style: dotted;
+
+                /* Types colors */
+                --string-color: #a3eea0;
+                --number-color: #d19a66;
+                --boolean-color: #4ba7ef;
+                --null-color: #df9cf3;
+                --property-color: #6fb3d2;
+
+                /* Collapsed node preview */
+                --preview-color: #deae8f;
+
+                /* Search highlight color */
+                --highlight-color:  #c92a2a;
+            }
       
               
         </style>
+       
+
     </head>
     <body style="background-color:black;">
 
@@ -265,22 +300,16 @@ Address: <font color="blue" id="wallet-address">................................
             <div class="offer-info-group">
                 <h4>Offer Terms: </h4>
                 <div id="terms"></div>
-            </div>
-            <hr>
-            <div class="offer-info-group">
-                <h4>Oracle Details:</h4>
-                <div id="oracle">PubKey: ABCDEF<br>Name: Wolfram</div>
-            </div>
-            <hr>
-            <div class="offer-info-group">
-            <h4>Capabilities Info:</h4>
-            <div id="capability">PubKey: ABCDEF</div>
-            </div>
-            <hr>
+                <pre color="green">Preview: </pre>
+                <div "offer-tree-container">
+                    <json-viewer id="offer-tree">
+                    </json-viewer>
 
-            <div class="offer-info-group">
-                <h4>Malleability Reports:</h4>
-                <div id="reports">NONE</div>
+                </div>
+                
+                
+
+                </div>
             </div>
             <hr>
             
@@ -342,6 +371,26 @@ Address: <font color="blue" id="wallet-address">................................
         <script src="https://unpkg.com/darkreader@4.9.105/darkreader.js"></script> 
         
         <script>
+
+try {
+    const container = document.getElementById("offer-tree-container")
+
+    if (navigator.userAgent.includes("Node.js") || navigator.userAgent.includes("jsdom")) {
+        
+        const el = document.createElement("div")
+        el.setAttribute("id", "offer-tree")
+        container.appendChild(el)
+    } else {
+        const scriptTag = document.createElement('script');
+        scriptTag.src = "https://unpkg.com/@alenaksu/json-viewer@2.1.0/dist/json-viewer.bundle.js";
+        document.body.appendChild(scriptTag);
+        
+        const el = document.createElement("json-viewer")
+        el.setAttribute("id", "offer-tree")
+        container.appendChild(el)
+    }
+    
+} catch {}
 
 setTimeout(() => {
     if(!window.offersFound){
@@ -571,7 +620,6 @@ const initWebapp = new Promise(resolve => {
             oracle.innerHTML = `<font color="brown">${offer.oracles[0].oracle.slice(0, 30) + "..." + (offer.oracles.length > 1 ? " +" : "")}</font>`
             oracleEndpoint.innerHTML = `<font color="brown">${offer.oracles[0].endpoint.replace("http://", "").replace("https://", "").slice(0, 30) + (offer.oracles.length > 1 ? "+" : "")}</font>`
                 
-
         }
         return offerInfo
     }
@@ -582,7 +630,11 @@ const initWebapp = new Promise(resolve => {
         downArrowSvg.className = "offer-button"
         downArrowSvg.onclick = () => {
             renderOfferDetails(offer)
+            const tree = document.getElementById("offer-tree")
+            tree.data = offer
+
         }
+
 
         const yesSvg = document.createElement("img")
         yesSvg.src = "./assets/yes.svg"
