@@ -434,7 +434,7 @@ const initWebapp = new Promise(resolve => {
 
 (async () => { //jsdom doesn't support modules..we simulate one
 
-    await initWebapp
+    await initWebapp //await on orgiginal init does not work; browser bug
 
     setTimeout(() => {
         window.matching.collectOffers(model.profile)                  
