@@ -171,6 +171,7 @@ export const matchingEngine: MatchingEngine = {
             role: 'acceptor'
         };
         model["msg"] = offer
+        model.oracles[0]["msg"] = capability
         return model;
     },
     generateOffer: async function (cfg: PreferenceModel): Promise<OfferModel> {
@@ -201,6 +202,8 @@ export const matchingEngine: MatchingEngine = {
             status: "matching",
             role: 'initiator'
         };
+
+        model.oracles[0]["msg"] = cp
 
         return model;
     },
@@ -450,6 +453,7 @@ export const matchingEngine: MatchingEngine = {
                 orderId: o.content.orderId
             };
             model["msg"] = o
+            model.oracles[0]["msg"] = cp
             return model;
         }));
 
@@ -470,6 +474,7 @@ export const matchingEngine: MatchingEngine = {
                 orderId: o.content.orderId
             };
             model["msg"] = o
+            model.oracles[0]["msg"] = cp
             return model;
         }));
 
