@@ -147,6 +147,7 @@ exports.matchingEngine = {
             role: 'acceptor'
         };
         model["msg"] = offer;
+        model.oracles[0]["msg"] = capability;
         return model;
     },
     generateOffer: async function (cfg) {
@@ -173,6 +174,7 @@ exports.matchingEngine = {
             status: "matching",
             role: 'initiator'
         };
+        model.oracles[0]["msg"] = cp;
         return model;
     },
     broadcastOffer: async function (o) {
@@ -389,6 +391,7 @@ exports.matchingEngine = {
                 orderId: o.content.orderId
             };
             model["msg"] = o;
+            model.oracles[0]["msg"] = cp;
             return model;
         }));
         const theirModels = await Promise.all(theirOffers.map(async (o) => {
@@ -408,6 +411,7 @@ exports.matchingEngine = {
                 orderId: o.content.orderId
             };
             model["msg"] = o;
+            model.oracles[0]["msg"] = cp;
             return model;
         }));
         const together = myModels.concat(theirModels);
