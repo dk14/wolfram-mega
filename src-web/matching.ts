@@ -189,7 +189,7 @@ export const matchingEngine: MatchingEngine = {
         const counterpartyBetAmount = counterpartyBetAmountOptions[randomInt(counterpartyBetAmountOptions.length)];
 
         const model: OfferModel = {
-            id: "aaa",
+            id: "tentative",
             bet: [partyBetAmount, counterpartyBetAmount],
             oracles: [{
                 capabilityPub: cp.capabilityPubKey,
