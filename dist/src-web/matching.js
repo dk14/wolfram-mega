@@ -460,7 +460,7 @@ exports.matchingEngine = {
         return await (0, generate_btc_tx_1.generateSimpleTransaction)(params);
     },
     saveProfile: async function (cfg) {
-        await window.profiledb.put("profile", cfg, window.user);
+        await window.profiledb.put("preferences", cfg, window.user);
     },
     loadProfile: async function () {
         const profile = await window.profiledb.get("preferences", window.user);

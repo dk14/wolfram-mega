@@ -115,6 +115,7 @@ var initWebapp = new Promise((resolve) => {
     document.getElementById("oracle-strength").onchange = () => {
       window.model.profile.minOracleRank = document.getElementById("oracle-strength").valueAsNumber;
       document.getElementById("ranktext").innerText = "" + window.model.profile.minOracleRank;
+      window.matching.saveProfile(window.model.profile);
     };
   } catch (e) {
     console.error(e);
@@ -122,16 +123,21 @@ var initWebapp = new Promise((resolve) => {
   try {
     document.getElementById("txfee").onchange = () => {
       window.model.profile.txfee = document.getElementById("txfee").valueAsNumber;
+      window.matching.saveProfile(window.model.profile);
     };
   } catch (e) {
     console.error(e);
   }
   document.getElementById("send-funds-button").onclick = async () => {
-    const amount = document.getElementById("send-funds-amount").valueAsNumber;
-    const address = document.getElementById("send-funds-amount").value;
-    const tx = window.matching.takeWinnings(amount, address, window.model.profile.txfee);
-    navigator.clipboard.writeText(await tx);
-    alert("Copied TxBody To Clipboard!");
+    try {
+      const amount = document.getElementById("send-funds-amount").valueAsNumber;
+      const address = document.getElementById("send-funds-address").value;
+      const tx = window.matching.takeWinnings(amount + window.model.profile.txfee, address, window.model.profile.txfee);
+      navigator.clipboard.writeText(await tx);
+      alert("Copied TxBody To Clipboard!");
+    } catch (e) {
+      alert(e.message);
+    }
   };
   window.pickOrGenerateOffer = async (pick) => {
     if (pick) {
@@ -149,6 +155,7 @@ var initWebapp = new Promise((resolve) => {
   window.removeInterest = (tag) => {
     window.model.profile.tags = window.model.profile.tags.filter((x) => x != tag);
     document.getElementById(`tag-${tag}`).remove();
+    window.matching.saveProfile(window.model.profile);
   };
   document.getElementById("add-interest-button").onclick = () => {
     const tag = document.getElementById("interest").value;
