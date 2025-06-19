@@ -190,7 +190,7 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
                         window.storage.removeIssuedOffers([orderPreviousState.pow.hash])  
                         
 
-                        //console.error(e)
+                        console.error(e)
                     }
                 }    
 
