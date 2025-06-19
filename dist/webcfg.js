@@ -189,6 +189,45 @@ const configureWebMocks = async () => {
     await window.storage.addCp(testCp);
     await api_1.api.announceCapability(exports.cfg, testCp2);
     await window.storage.addCp(testCp2);
+    const reportPow = {
+        difficulty: 0,
+        algorithm: "",
+        hash: "report-13",
+        magicNo: 0
+    };
+    const reportPow2 = {
+        difficulty: 0,
+        algorithm: "",
+        hash: "report-13-self-issued",
+        magicNo: 0
+    };
+    const request = {
+        capabilityPubKey: pubOracleCp,
+        arguments: {}
+    };
+    const maleabilityReport = {
+        type: "fact-disagreees-with-public",
+        request: request
+    };
+    const report = {
+        seqNo: 0,
+        cTTL: 0,
+        pow: reportPow,
+        oraclePubKey: pubOracleCp,
+        content: maleabilityReport
+    };
+    const report2 = {
+        seqNo: 0,
+        cTTL: 0,
+        pow: reportPow2,
+        oraclePubKey: pubOracleCp,
+        content: maleabilityReport
+    };
+    await api_1.api.reportMalleability(exports.cfg, report);
+    await window.storage.addReport(report);
+    await api_1.api.reportMalleability(exports.cfg, report2);
+    await window.storage.addReport(report2);
+    await window.storage.addIssuedReport(report2);
 };
 exports.configureWebMocks = configureWebMocks;
 exports.nodeMock = {
