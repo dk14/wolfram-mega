@@ -107,10 +107,29 @@ var initWebapp = new Promise((resolve) => {
     offers: [],
     contracts: []
   };
-  setInterval(async () => {
-    window.model.profile = await window.matching.loadProfile();
+  setTimeout(async () => {
+    const profile = await window.matching.loadProfile();
+    if (profile === void 0) {
+      return;
+    }
+    window.model.profile = profile;
     window.document.dispatchEvent(new Event("init-model"));
-  }, 300);
+    document.getElementById("ranktext").innerText = "" + window.model.profile.minOracleRank;
+    document.getElementById("oracle-strength").valueAsNumber = window.model.profile.minOracleRank;
+    document.getElementById("txfee").valueAsNumber = window.model.profile.txfee;
+    document.getElementById(`tag-world`).remove();
+    document.getElementById(`tag-sports`).remove();
+    profile.tags.forEach((tag) => {
+      const btn = document.createElement("button");
+      btn.className = "tag-button";
+      btn.id = `tag-${tag}`;
+      btn.innerText = tag;
+      window.model.profile.tags.push(tag);
+      btn.onclick = () => {
+        window.removeInterest(tag);
+      };
+    });
+  }, 1e3);
   try {
     document.getElementById("oracle-strength").onchange = () => {
       window.model.profile.minOracleRank = document.getElementById("oracle-strength").valueAsNumber;

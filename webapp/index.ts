@@ -182,11 +182,34 @@ const initWebapp = new Promise(resolve => {
         contracts: []
     }
 
-    setInterval(async () => {
-        window.model.profile = await window.matching.loadProfile()
+    setTimeout(async () => {
+        const profile = await window.matching.loadProfile();
+        if (profile === undefined) {
+            return
+        }
+        
+        window.model.profile = profile;
         window.document.dispatchEvent(new Event('init-model'));
+        document.getElementById("ranktext").innerText = "" + window.model.profile.minOracleRank;
+        (document.getElementById("oracle-strength") as HTMLInputElement).valueAsNumber = window.model.profile.minOracleRank;
+        (document.getElementById("txfee") as HTMLInputElement).valueAsNumber = window.model.profile.txfee; 
 
-    }, 300)
+        document.getElementById(`tag-world`).remove();
+        document.getElementById(`tag-sports`).remove();
+
+        profile.tags = [...new Set(profile.tags )]
+        profile.tags.forEach(tag => {
+            const btn = document.createElement("button");
+            btn.className="tag-button";
+            btn.id = `tag-${tag}`;
+            btn.innerText = tag;
+            btn.onclick = () => {
+                window.removeInterest(tag);
+            }
+            document.getElementById("tags").appendChild(btn)
+        })
+
+    }, 1000)
     
     try {
         document.getElementById("oracle-strength").onchange = () => {
@@ -200,7 +223,7 @@ const initWebapp = new Promise(resolve => {
 
     try {
         document.getElementById("txfee").onchange = () => {
-            window.model.profile.txfee = (document.getElementById("txfee") as HTMLInputElement).valueAsNumber 
+            window.model.profile.txfee = (document.getElementById("txfee") as HTMLInputElement).valueAsNumber; 
             window.matching.saveProfile(window.model.profile) 
         }
     } catch (e) {
@@ -243,9 +266,17 @@ const initWebapp = new Promise(resolve => {
     }
 
 
+    document.getElementById("interest").addEventListener("keypress", function(event) {
+    if (event.key === "Enter") {
+        document.getElementById("add-interest-button").click();
+    }
+    })
 
     document.getElementById("add-interest-button").onclick = () => {
         const tag = (document.getElementById("interest") as HTMLInputElement).value
+        if (window.model.profile.tags.find(x => x === tag)) {
+            return
+        }
         const btn = document.createElement("button")
         btn.className="tag-button"
         btn.id = `tag-${tag}`
