@@ -23,6 +23,8 @@ const trackIssuedOffers = async (interpreters, dataProvider) => {
     //TODO collapse duplicates 
     const rank = (offer) => {
         let rank = 0;
+        rank += offer.content.finalize ? 7 : 0;
+        rank += offer.content.failed ? 20 : 0;
         rank += offer.content.accept ? 1 : 0;
         rank += offer.content.finalize ? 1 : 0;
         if (!offer.content.accept) {
@@ -59,7 +61,6 @@ const trackIssuedOffers = async (interpreters, dataProvider) => {
             rank += unlocks[0] ? 1 : 0;
             rank += unlocks[1] ? 1 : 0;
         }
-        rank += offer.content.finalize ? 7 : 0;
         return rank;
     };
     //TODO
@@ -233,7 +234,7 @@ const trackIssuedOffers = async (interpreters, dataProvider) => {
         catch (err) {
             console.error(err);
             const failed = structuredClone(orderPreviousState);
-            failed.content.failed = err.msg;
+            failed.content.failed = err.message ?? "unknown";
             failed.pow.hash = failed.pow.hash + "-failed" + (0, matching_1.randomInt)(100);
             await window.traderApi.issueOffer(failed);
             await window.storage.removeIssuedOffers([orderPreviousState.pow.hash]);
