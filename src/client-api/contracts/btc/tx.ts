@@ -573,6 +573,10 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
         },
         genAliceCet: async (multiIn: UTxO, alicePub: string, bobPub: string, adaptorPub: string, aliceAmount: number, bobAmount: number, txfee: number, session: PublicSession = null, stateAmount?: number, partyFee?: UTxO[]): Promise<Tx> => {
             const psbt = new bitcoin.Psbt({ network: net})
+            psbt.setLocktime(0)
+            psbt.setVersion(2)
+            psbt.setMaximumFeeRate(100000)
+            
             const pkCombined = muSig.pubKeyCombine([Buffer.from(alicePub, "hex"), Buffer.from(bobPub, "hex")]);
             const pubKeyCombined = convert.intToBuffer(pkCombined.affineX);
             const multiP2TR = p2pktr(pubKeyCombined)
@@ -670,6 +674,7 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
                 await psbt.signInputAsync(0, schnorrSignerMulti(alicePub, bobPub))
             } else {
                 try {
+                    psbt.setInputSequence(0, 4294967295)
                     await psbt.signInputAsync(0, schnorrSignerInteractive(alicePub, bobPub, session))
                 } catch (e) {
                     if (e === "incomplete sign") {
@@ -682,6 +687,7 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
             }
 
             if (partyFee) {
+                psbt.setInputSequence(1, 4294967295)
                 await psbt.signInputAsync(1, schnorrSignerSingleWebSimple(aliceAmount > bobAmount ? alicePub: bobPub))
             }
             
