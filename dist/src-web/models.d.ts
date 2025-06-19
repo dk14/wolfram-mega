@@ -1,4 +1,4 @@
-export type OfferStatus = 'matching' | 'accepted' | 'oracle committed' | 'signing' | 'opening tx available' | 'tx submitted' | 'outcome revealed' | 'redeem tx available' | 'redeemed';
+export type OfferStatus = 'matching' | 'accepted' | 'oracle committed' | 'signing' | 'opening tx available' | 'tx submitted' | 'outcome revealed' | 'redeem tx available' | 'redeemed' | 'failed';
 type Answer = string;
 export interface DependsOn {
     outcome: Answer;

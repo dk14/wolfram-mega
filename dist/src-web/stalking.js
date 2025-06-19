@@ -16,7 +16,7 @@ const trackIssuedOffers = async (interpreters, dataProvider) => {
         chunkSize: 9000
     };
     const allOffers = (await window.storage.queryIssuedOffers({
-        where: async (x) => !ignore[x.pow.hash] && !(x.content.finalize && x.content.finalize.redemptionTx)
+        where: async (x) => !ignore[x.pow.hash] && !(x.content.finalize && x.content.finalize.redemptionTx) && !x.content.failed
     }, pagedescriptor));
     const allOffersGrouped = Object.groupBy(allOffers, x => x.content.orderId);
     const reattemptMuSig = 30;
@@ -231,8 +231,11 @@ const trackIssuedOffers = async (interpreters, dataProvider) => {
             window.storage.removeIssuedOffers([orderPreviousState.pow.hash]);
         }
         catch (err) {
-            window.storage.removeIssuedOffers([orderPreviousState.pow.hash]);
             console.error(err);
+            const failed = structuredClone(orderPreviousState);
+            failed.content.failed = err.msg;
+            failed.pow.hash = failed.pow.hash + "-failed" + (0, matching_1.randomInt)(100);
+            window.storage.removeIssuedOffers([orderPreviousState.pow.hash]);
         }
     });
 };

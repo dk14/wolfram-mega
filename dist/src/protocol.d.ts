@@ -197,6 +197,7 @@ export interface Offer {
     transactionToBeCoSigned?: PartiallySignedTx;
     accept?: AcceptOffer;
     finalize?: FinalizeOffer;
+    failed?: string;
     encryptedDetails?: string;
     originatorId?: string;
     originatorSig?: string;

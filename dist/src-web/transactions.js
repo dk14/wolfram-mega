@@ -95,7 +95,7 @@ const genContractTx = async (inputs, c, offer, stateTxId) => {
     const yesOutcome = terms.partyBetsOn[0];
     const noOutcome = terms.counterPartyBetsOn[0];
     const autoRefundWinner = ((o.content.dependantOrdersIds && o.content.dependantOrdersIds[0]) ? 0 : ((terms.partyCompositeCollateralAmount ?? terms.partyBetAmount) + (terms.counterpartyCompositeCollateralAmount ?? terms.counterpartyBetAmount) - terms.partyBetAmount - terms.counterpartyBetAmount));
-    const dlcPromise = new Promise(async (resolveDlc) => {
+    const dlcPromise = new Promise(async (resolveDlc, rejectDlc) => {
         const yesSessionUpdate = new Promise(async (resolveYes) => {
             const noSessionUpdate = new Promise(async (resolveNo) => {
                 const params = {
@@ -165,7 +165,12 @@ const genContractTx = async (inputs, c, offer, stateTxId) => {
                         : await (0, exports.getSimpleUtXo)(terms.txfee, o.content.addresses[1], 0, o.content.orderId)
                 };
                 if (!offer.content.terms.dependsOn) {
-                    resolveDlc(await window.btc.generateDlcContract(params));
+                    try {
+                        resolveDlc(await window.btc.generateDlcContract(params));
+                    }
+                    catch (e) {
+                        rejectDlc(e);
+                    }
                 }
                 else {
                     const adaptedParams = {
@@ -173,7 +178,12 @@ const genContractTx = async (inputs, c, offer, stateTxId) => {
                         lockedTxId: stateTxId,
                         stateAmount: params.stateAmount
                     };
-                    resolveDlc(await window.btc.generateChildDlcContract(adaptedParams));
+                    try {
+                        resolveDlc(await window.btc.generateChildDlcContract(adaptedParams));
+                    }
+                    catch (e) {
+                        rejectDlc(e);
+                    }
                 }
             });
             const no = await noSessionUpdate;
