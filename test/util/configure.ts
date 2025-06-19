@@ -8,7 +8,7 @@ const { pathToFileURL } = require('url');
 // Get the current working directory as a string
 
 // Convert the path to a file URL
-const currentDirectoryUrl = pathToFileURL(__dirname);
+const currentDirectoryUrl = pathToFileURL(__dirname + "/../../webapp/");
 
 import { JSDOM } from 'jsdom';
 

@@ -6,8 +6,28 @@
         <meta name="apple-mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
         <meta name="mobile-web-app-status-bar-style" content="black-translucent"> 
-        
-        <link rel="stylesheet" href="index.css">
+        <script type="module">
+            // JSDOM skips modules
+
+            const fileref = document.createElement("link");
+            fileref.rel = "stylesheet";
+            fileref.type = "text/css";
+            fileref.href = "./index.css";
+            document.getElementsByTagName("head")[0].appendChild(fileref)
+
+            import {loadModule} from 'https://klesun.github.io/ts-browser/src/ts-browser.js';
+            
+            const entryScriptPath = './index.ts';
+
+            loadModule(entryScriptPath, {
+                "allowJs": true,
+                js: 2, // ts.JsxEmit.React
+            });
+
+        </script>
+        <script src="../mega-peers.min.js" type="module"></script>
+        <script src="https://unpkg.com/darkreader@4.9.105/darkreader.js"></script>      
+       
     </head>
     <body style="background-color:black;">
 
@@ -111,11 +131,7 @@ Address: <font color="blue" id="wallet-address">................................
                     </g>
                 </svg>
             </div>
-        </div>
-
-        <script src="../mega-peers.min.js" type="module"></script>
-        <script src="https://unpkg.com/darkreader@4.9.105/darkreader.js"></script>      
-        
+        </div> 
 
         <script>
             //for JSDOM
@@ -123,19 +139,13 @@ Address: <font color="blue" id="wallet-address">................................
                 const scriptTag = document.createElement('script');
                 scriptTag.src = "../dist/webapp/index.js";
                 document.body.appendChild(scriptTag);
+
+                const fileref = document.createElement("link");
+                fileref.rel = "stylesheet";
+                fileref.type = "text/css";
+                fileref.href = "../dist/webapp/index.css";
+                document.getElementsByTagName("head")[0].appendChild(fileref)
             }
-        </script>
-        <script type="module">
-
-            import {loadModule} from 'https://klesun.github.io/ts-browser/src/ts-browser.js';
-            
-            const entryScriptPath = './index.ts';
-
-            loadModule(entryScriptPath, {
-                "allowJs": true,
-                js: 2, // ts.JsxEmit.React
-            });
-  
         </script>
 
 
