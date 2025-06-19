@@ -85,9 +85,6 @@ const getUtXo = async (offer: OfferMsg): Promise<Inputs> => {
 
     const terms = offer.content.terms
 
-    //const terms = o.content.terms
-    const req = terms.question
-
     const utxoExplore = async (address: string): Promise<UTxO[]> => {
        return (await (await fetch (`https://mempool.space/testnet/api/address/${address}/utxo`)).json())
     }
@@ -122,16 +119,16 @@ const getUtXo = async (offer: OfferMsg): Promise<Inputs> => {
         return {
             utxoAlice: offer.content.utxos[0] ? 
             offer.content.utxos[0].map(x => {return {txid: x[0], vout: x[1]}})
-                : getMultipleUtxo(aliceUtxos, terms.partyBetAmount),
+                : getMultipleUtxo(aliceUtxos, terms.partyBetAmount + terms.txfee / 2),
     
             utxoBob: offer.content.utxos[1] ? 
                 offer.content.utxos[1].map(x => {return {txid: x[0], vout: x[1]}})
-                : getMultipleUtxo(bobUtxos, terms.counterpartyBetAmount)
+                : getMultipleUtxo(bobUtxos, terms.counterpartyBetAmount  + terms.txfee / 2)
         }
     } else {
         return {
-            utxoAlice: getMultipleUtxo(aliceUtxos, terms.partyBetAmount),
-            utxoBob: getMultipleUtxo(bobUtxos, terms.counterpartyBetAmount)
+            utxoAlice: getMultipleUtxo(aliceUtxos, terms.partyBetAmount + terms.txfee / 2),
+            utxoBob: getMultipleUtxo(bobUtxos, terms.counterpartyBetAmount + terms.txfee / 2)
         }
     }
 
@@ -164,8 +161,8 @@ const genContractTx = async (inputs: Inputs, c: Commitment[], offer: OfferMsg, s
                     oraclePub3: o.content.terms.question3?.capabilityPubKey,
                     outcomes: (() => {
                         const outcomes = {}
-                        outcomes[yesOutcome] = {aliceAmount: terms.partyBetAmount + terms.counterpartyBetAmount + autoRefundWinner, bobAmount: 0}
-                        outcomes[noOutcome] = {aliceAmount: 0, bobAmount: terms.partyBetAmount + terms.counterpartyBetAmount + autoRefundWinner}
+                        outcomes[yesOutcome] = {aliceAmount: terms.txfee + terms.partyBetAmount + terms.counterpartyBetAmount + autoRefundWinner, bobAmount: 0}
+                        outcomes[noOutcome] = {aliceAmount: 0, bobAmount: terms.txfee + terms.partyBetAmount + terms.counterpartyBetAmount + autoRefundWinner}
                         return outcomes
                     })(),
                     rValue: c[0].rValueSchnorrHex,
