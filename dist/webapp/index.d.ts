@@ -1,4 +1,5 @@
 import { OfferModel, PreferenceModel } from '../src-web/models';
+import { MatchingEngine } from '../src-web/matching-api';
 declare global {
     interface Window {
         offersFound: number;
@@ -16,6 +17,7 @@ declare global {
         renderContractPreview: (where: HTMLElement, contract: OfferModel) => void;
         copyAddressToBuffer: () => void;
         switchTab: (tab: string) => void;
+        matching: MatchingEngine;
         DarkReader: any;
     }
 }

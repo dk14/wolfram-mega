@@ -33,10 +33,14 @@ try {
 }
 try {
   const container = document.getElementById("offer-tree-container");
+  const containerReports = document.getElementById("report-tree-container");
   if (navigator.userAgent.includes("Node.js") || navigator.userAgent.includes("jsdom")) {
     const el = document.createElement("div");
     el.setAttribute("id", "offer-tree");
     container.appendChild(el);
+    const el2 = document.createElement("div");
+    el2.setAttribute("id", "report-tree");
+    containerReports.appendChild(el2);
   } else {
     const scriptTag = document.createElement("script");
     scriptTag.src = "https://unpkg.com/@alenaksu/json-viewer@2.1.0/dist/json-viewer.bundle.js";
@@ -44,6 +48,9 @@ try {
     const el = document.createElement("json-viewer");
     el.setAttribute("id", "offer-tree");
     container.appendChild(el);
+    const el2 = document.createElement("json-viewer");
+    el2.setAttribute("id", "report-tree");
+    containerReports.appendChild(el2);
   }
 } catch {
 }
@@ -302,7 +309,7 @@ var initWebapp = new Promise((resolve) => {
     } catch {
     }
   }, 1e3);
-  window.renderOfferDetails = (offer) => {
+  window.renderOfferDetails = async (offer) => {
     window.switchTab("offer");
     const offerInfo = window.createOfferInfo(offer, false);
     offerInfo.className = "offer-info";
@@ -311,6 +318,13 @@ var initWebapp = new Promise((resolve) => {
     terms.appendChild(offerInfo);
     const tree = document.getElementById("offer-tree");
     tree["data"] = offer;
+    const reports = await window.matching.fetchRelatedReports(offer, 20);
+    const reportsIssued = await window.matching.fetchRelatedReports(offer, 20);
+    const combined = {};
+    combined["known"] = reports;
+    combined["issued"] = reportsIssued;
+    const reportTree = document.getElementById("report-tree");
+    reportTree["data"] = combined;
     document.getElementById("delete-offer").onclick = () => {
       window.storage.removeOffers([offer.id]);
     };

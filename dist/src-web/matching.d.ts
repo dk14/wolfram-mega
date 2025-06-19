@@ -1,5 +1,6 @@
 import { OfferMsg, OracleCapability } from "../src/protocol";
-import { MatchingEngine, PreferenceModel } from "./models";
+import { PreferenceModel } from "./models";
+import { MatchingEngine } from "./matching-api";
 export declare const randomInt: (n: number) => number;
 export declare const getOriginatorId: () => string;
 export declare const checkOriginatorId: (id: string) => boolean;

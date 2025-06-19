@@ -469,6 +469,26 @@ exports.matchingEngine = {
             await window.profiledb.put("preferences", profile, window.user);
             return profile;
         }
+    },
+    fetchRelatedReports: async function (o, limit) {
+        const pagedescriptor = {
+            page: 0,
+            chunkSize: limit
+        };
+        const reports = window.storage.queryReports({
+            where: async (r) => r.content.request.capabilityPubKey === o.oracles[0].capabilityPub
+        }, pagedescriptor);
+        return reports;
+    },
+    fetchRelatedIssuedReports: async function (o, limit) {
+        const pagedescriptor = {
+            page: 0,
+            chunkSize: limit
+        };
+        const reports = window.storage.queryReports({
+            where: async (r) => r.content.request.capabilityPubKey === o.oracles[0].capabilityPub
+        }, pagedescriptor);
+        return reports;
     }
 };
 function maxBy(arr, fn) {
