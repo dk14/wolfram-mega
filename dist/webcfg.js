@@ -184,20 +184,25 @@ const configureWebMocks = async () => {
         tags: ["world"],
         answers: ["YES", "NO"]
     };
-    await api_1.api.announceOracle(exports.cfg, testOracle);
-    await api_1.api.announceCapability(exports.cfg, testCp);
+    try {
+        await api_1.api.announceOracle(exports.cfg, testOracle);
+        await api_1.api.announceCapability(exports.cfg, testCp);
+    }
+    catch (e) {
+        console.error(e);
+    }
     await window.storage.addCp(testCp);
     await api_1.api.announceCapability(exports.cfg, testCp2);
     await window.storage.addCp(testCp2);
     const reportPow = {
         difficulty: 0,
-        algorithm: "",
+        algorithm: "SHA256",
         hash: "report-13",
         magicNo: 0
     };
     const reportPow2 = {
         difficulty: 0,
-        algorithm: "",
+        algorithm: "SHA256",
         hash: "report-13-self-issued",
         magicNo: 0
     };
@@ -223,9 +228,19 @@ const configureWebMocks = async () => {
         oraclePubKey: pubOracleCp,
         content: maleabilityReport
     };
-    await api_1.api.reportMalleability(exports.cfg, report);
+    try {
+        await api_1.api.reportMalleability(exports.cfg, report);
+    }
+    catch (e) {
+        console.error(e);
+    }
     await window.storage.addReport(report);
-    await api_1.api.reportMalleability(exports.cfg, report2);
+    try {
+        await api_1.api.reportMalleability(exports.cfg, report2);
+    }
+    catch (e) {
+        console.error(e);
+    }
     await window.storage.addReport(report2);
     await window.storage.addIssuedReport(report2);
 };
