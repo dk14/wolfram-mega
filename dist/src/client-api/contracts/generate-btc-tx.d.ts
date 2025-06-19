@@ -49,7 +49,7 @@ export interface CetParams {
     txfee: number;
     session?: PublicSession;
     stateAmount?: number;
-    txFeeAlice?: UTxO[];
+    utxoPartyFee?: UTxO[];
 }
 export interface CetRedemptionParams {
     cetTxId: TxId;
@@ -71,7 +71,7 @@ export interface CetRedemptionParams {
     amount: number;
     txfee: number;
     session?: PublicSession;
-    txFeeAlice?: UTxO[];
+    utxoPartyFee?: UTxO[];
 }
 export declare const generateSimpleTransaction: (params: SimpleParams) => Promise<Hex>;
 export declare const generateOpeningTransaction: (params: OpeningParams) => Promise<Hex>;

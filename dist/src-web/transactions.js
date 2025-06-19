@@ -162,13 +162,11 @@ const genContractTx = async (inputs, c, offer, stateTxId) => {
                         };
                         return session;
                     })(),
-                    //feeutxo: async outcome => outcome === yesOutcome ? 
-                    //    await getSimpleUtXo(terms.txfee, o.content.addresses[0], 0, o.content.orderId)
-                    //    : await getSimpleUtXo(terms.txfee, o.content.addresses[1], 0, o.content.orderId)
+                    feeutxo: async (outcome) => outcome === yesOutcome ?
+                        await (0, exports.getSimpleUtXo)(terms.txfee, o.content.addresses[0], 0, o.content.orderId)
+                        : await (0, exports.getSimpleUtXo)(terms.txfee, o.content.addresses[1], 0, o.content.orderId)
                 };
                 if (!offer.content.terms.dependsOn) {
-                    //console.error(terms)
-                    //console.error(params)
                     resolveDlc(await window.btc.generateDlcContract(params));
                 }
                 else {
@@ -177,8 +175,6 @@ const genContractTx = async (inputs, c, offer, stateTxId) => {
                         lockedTxId: stateTxId,
                         stateAmount: params.stateAmount
                     };
-                    //console.error(terms)
-                    //console.error(adaptedParams)
                     resolveDlc(await window.btc.generateChildDlcContract(adaptedParams));
                 }
             });
@@ -250,7 +246,7 @@ exports.btcDlcContractInterpreter = {
                 session.hashUnLock2 = offer.content.accept.openingTx.hashUnlocks[1];
                 return session;
             })(),
-            txFeeAlice: await (0, exports.getSimpleUtXo)(terms.txfee, window.address, 0)
+            utxoPartyFee: await (0, exports.getSimpleUtXo)(terms.txfee, window.address, 0)
         };
         return window.btc.generateCetRedemptionTransaction(p);
     },

@@ -271,7 +271,6 @@ function schnorrSignerInteractive(pub1, pub2, session, signer = ((0, util_2.isBr
                 session.sessionId1 = res.sessionId1;
                 session.commitment1 = res.commitment1;
                 session.update(session);
-                console.error("1:::" + hash.toString('hex'));
                 throw "incomplete sign";
             }
             else if (!session.commitment2) {
@@ -280,7 +279,6 @@ function schnorrSignerInteractive(pub1, pub2, session, signer = ((0, util_2.isBr
                 session.nonce2 = res.nonce2;
                 session.sessionId2 = res.sessionId2;
                 session.update(session);
-                console.error("2:::" + hash.toString('hex'));
                 throw "incomplete sign";
             }
             else if (!session.partSig1) {
@@ -293,11 +291,9 @@ function schnorrSignerInteractive(pub1, pub2, session, signer = ((0, util_2.isBr
                 session.partSig1 = res.partSig1;
                 session.combinedNonceParity = res.combinedNonceParity;
                 session.update(session);
-                console.error("3:::" + hash.toString('hex'));
                 throw "incomplete sign";
             }
             else {
-                console.error("4:::" + hash.toString('hex'));
                 const res = await signer.sign2(pub1, pub2, hash.toString('hex'), {
                     partSig1: session.partSig1,
                     combinedNonceParity: session.combinedNonceParity,
@@ -468,11 +464,13 @@ const txApi = () => {
                 hex: psbt.extractTransaction().toHex()
             };
         },
-        genAliceCet: async (multiIn, alicePub, bobPub, adaptorPub, aliceAmount, bobAmount, txfee, session = null, stateAmount) => {
+        genAliceCet: async (multiIn, alicePub, bobPub, adaptorPub, aliceAmount, bobAmount, txfee, session = null, stateAmount, partyFee) => {
             const psbt = new bitcoin.Psbt({ network: net });
             const pkCombined = muSig.pubKeyCombine([Buffer.from(alicePub, "hex"), Buffer.from(bobPub, "hex")]);
             const pubKeyCombined = convert.intToBuffer(pkCombined.affineX);
             const multiP2TR = (0, exports.p2pktr)(pubKeyCombined);
+            const alicePubTR = (0, exports.p2pktr)(alicePub);
+            const bobPubTR = (0, exports.p2pktr)(bobPub);
             const adaptorPkCombined = muSig.pubKeyCombine([Buffer.from(alicePub, "hex"), Buffer.from(adaptorPub, "hex")]);
             const adaptorPubKeyCombined = convert.intToBuffer(adaptorPkCombined.affineX);
             psbt.addInput({
@@ -481,6 +479,16 @@ const txApi = () => {
                 witnessUtxo: { value: aliceAmount + bobAmount, script: multiP2TR.output },
                 tapInternalKey: Buffer.from(alicePub, "hex")
             });
+            if (partyFee) {
+                partyFee.forEach(utxo => {
+                    psbt.addInput({
+                        hash: utxo.txid,
+                        index: utxo.vout,
+                        witnessUtxo: { value: txfee, script: aliceAmount > bobAmount ? alicePubTR.output : bobPubTR.output },
+                        tapInternalKey: Buffer.from(aliceAmount > bobAmount ? alicePub : bobPub, "hex")
+                    });
+                });
+            }
             if (session && session.hashLock1 && session.hashLock2) {
                 const script_HTLC = `${adaptorPubKeyCombined.toString("hex")} OP_CHECKSIGVERIFY OP_HASH256 ${session.hashLock1} OP_EQUALVERIFY OP_HASH256 ${session.hashLock2} OP_EQUALVERIFY`;
                 const scriptTree = {
@@ -525,7 +533,7 @@ const txApi = () => {
             else {
                 psbt.addOutput({
                     address: (0, exports.p2pktr)(adaptorPubKeyCombined).address,
-                    value: aliceAmount + bobAmount - txfee
+                    value: aliceAmount + bobAmount - (partyFee ? 0 : txfee)
                 });
             }
             if (stateAmount !== undefined && stateAmount !== 0) {
@@ -550,20 +558,24 @@ const txApi = () => {
                     }
                 }
             }
+            if (partyFee) {
+                await psbt.signInputAsync(1, schnorrSignerSingleWebSimple(aliceAmount > bobAmount ? alicePub : bobPub));
+            }
             psbt.finalizeAllInputs();
             return {
                 txid: psbt.extractTransaction().getId(),
                 hex: psbt.extractTransaction().toHex()
             };
         },
-        genAliceCetRedemption: async (aliceOracleIn, adaptorPub, alicePub, oracleS, amount, txfee, session, bobPub) => {
+        genAliceCetRedemption: async (aliceOracleIn, adaptorPub, alicePub, oracleS, amount, txfee, session, bobPub, partyFee) => {
             const psbt = new bitcoin.Psbt({ network: net });
             const adaptorPkCombined = muSig.pubKeyCombine([Buffer.from(alicePub, "hex"), Buffer.from(adaptorPub, "hex")]);
             const adaptorPubKeyCombined = convert.intToBuffer(adaptorPkCombined.affineX);
+            const alicePubTR = (0, exports.p2pktr)(alicePub);
             const aliceOracleP2TR = (0, exports.p2pktr)(adaptorPubKeyCombined);
             psbt.addOutput({
                 address: (0, exports.p2pktr)(alicePub).address, // TODO: generate alice address from oracleMsgHex and oracleR
-                value: amount - txfee
+                value: amount - (partyFee ? 0 : txfee)
             });
             if (session && session.hashLock1 && session.hashLock2) {
                 const pkCombined = muSig.pubKeyCombine([Buffer.from(alicePub, "hex"), Buffer.from(bobPub, "hex")]);
@@ -594,6 +606,16 @@ const txApi = () => {
                         tapLeafScript
                     ]
                 });
+                if (partyFee) {
+                    partyFee.forEach(utxo => {
+                        psbt.addInput({
+                            hash: utxo.txid,
+                            index: utxo.vout,
+                            witnessUtxo: { value: txfee, script: alicePubTR.output },
+                            tapInternalKey: Buffer.from(alicePub, "hex")
+                        });
+                    });
+                }
                 await psbt.signInputAsync(0, schnorrSignerMultiWeb(alicePub, adaptorPub, ["", oracleS]));
                 const customFinalizer = (_inputIndex, input) => {
                     const scriptSolution = [
@@ -608,7 +630,13 @@ const txApi = () => {
                         finalScriptWitness: (0, psbtutils_1.witnessStackToScriptWitness)(witness)
                     };
                 };
+                if (partyFee) {
+                    await psbt.signInputAsync(1, schnorrSignerSingleWebSimple(alicePub));
+                }
                 psbt.finalizeInput(0, customFinalizer);
+                if (partyFee) {
+                    psbt.finalizeInput(1);
+                }
             }
             else {
                 psbt.addInput({
@@ -617,7 +645,20 @@ const txApi = () => {
                     witnessUtxo: { value: amount, script: aliceOracleP2TR.output },
                     tapInternalKey: Buffer.from(alicePub, "hex")
                 });
+                if (partyFee) {
+                    partyFee.forEach(utxo => {
+                        psbt.addInput({
+                            hash: utxo.txid,
+                            index: utxo.vout,
+                            witnessUtxo: { value: txfee, script: alicePubTR.output },
+                            tapInternalKey: Buffer.from(alicePub, "hex")
+                        });
+                    });
+                }
                 await psbt.signInputAsync(0, schnorrSignerMulti(alicePub, adaptorPub, ["", oracleS]));
+                if (partyFee) {
+                    await psbt.signInputAsync(1, schnorrSignerSingleWebSimple(alicePub));
+                }
                 psbt.finalizeAllInputs();
             }
             return {
@@ -625,11 +666,13 @@ const txApi = () => {
                 hex: psbt.extractTransaction().toHex()
             };
         },
-        genAliceCetQuorum: async (multiIn, alicePub, bobPub, adaptorPub, adaptorPub2, adaptorPub3, aliceAmount, bobAmount, txfee, session, stateAmount) => {
+        genAliceCetQuorum: async (multiIn, alicePub, bobPub, adaptorPub, adaptorPub2, adaptorPub3, aliceAmount, bobAmount, txfee, session, stateAmount, partyFee) => {
             const psbt = new bitcoin.Psbt({ network: net });
             const pkCombined = muSig.pubKeyCombine([Buffer.from(alicePub, "hex"), Buffer.from(bobPub, "hex")]);
             const pubKeyCombined = convert.intToBuffer(pkCombined.affineX);
             const multiP2TR = (0, exports.p2pktr)(pubKeyCombined);
+            const alicePubTR = (0, exports.p2pktr)(alicePub);
+            const bobPubTR = (0, exports.p2pktr)(bobPub);
             const adaptorPkCombined1 = muSig.pubKeyCombine([Buffer.from(alicePub, "hex"), Buffer.from(adaptorPub, "hex")]);
             const adaptorPubKeyCombined1 = convert.intToBuffer(adaptorPkCombined1.affineX);
             const adaptorPkCombined2 = muSig.pubKeyCombine([Buffer.from(alicePub, "hex"), Buffer.from(adaptorPub2, "hex")]);
@@ -646,6 +689,16 @@ const txApi = () => {
                 witnessUtxo: { value: aliceAmount + bobAmount, script: multiP2TR.output },
                 tapInternalKey: Buffer.from(alicePub, "hex")
             });
+            if (partyFee) {
+                partyFee.forEach(utxo => {
+                    psbt.addInput({
+                        hash: utxo.txid,
+                        index: utxo.vout,
+                        witnessUtxo: { value: txfee, script: aliceAmount > bobAmount ? alicePubTR.output : bobPubTR.output },
+                        tapInternalKey: Buffer.from(aliceAmount > bobAmount ? alicePub : bobPub, "hex")
+                    });
+                });
+            }
             const scriptTree = [
                 {
                     output: bitcoin.script.fromASM(script_asm1)
@@ -711,16 +764,20 @@ const txApi = () => {
             else {
                 await psbt.signInputAsync(0, schnorrSignerInteractive(alicePub, bobPub, session));
             }
+            if (partyFee) {
+                await psbt.signInputAsync(1, schnorrSignerSingleWebSimple(aliceAmount > bobAmount ? alicePub : bobPub));
+            }
             psbt.finalizeAllInputs();
             return {
                 txid: psbt.extractTransaction().getId(),
                 hex: psbt.extractTransaction().toHex()
             };
         },
-        genAliceCetRedemptionQuorum: async (quorumno, aliceOracleIn, adaptorPub, adaptorPub2, adaptorPub3, alicePub, bobPub, oracleS, oracleS2, oracleS3, amount, txfee, session) => {
+        genAliceCetRedemptionQuorum: async (quorumno, aliceOracleIn, adaptorPub, adaptorPub2, adaptorPub3, alicePub, bobPub, oracleS, oracleS2, oracleS3, amount, txfee, session, partyFee) => {
             const psbt = new bitcoin.Psbt({ network: net });
             const pkCombined = muSig.pubKeyCombine([Buffer.from(alicePub, "hex"), Buffer.from(bobPub, "hex")]);
             const pubKeyCombined = convert.intToBuffer(pkCombined.affineX);
+            const alicePubTR = (0, exports.p2pktr)(alicePub);
             const adaptorPkCombined1 = muSig.pubKeyCombine([Buffer.from(alicePub, "hex"), Buffer.from(adaptorPub, "hex")]);
             const adaptorPubKeyCombined1 = convert.intToBuffer(adaptorPkCombined1.affineX);
             const adaptorPkCombined2 = muSig.pubKeyCombine([Buffer.from(alicePub, "hex"), Buffer.from(adaptorPub2, "hex")]);
@@ -769,6 +826,16 @@ const txApi = () => {
                 scriptTree,
                 redeem: redeem3
             });
+            if (partyFee) {
+                partyFee.forEach(utxo => {
+                    psbt.addInput({
+                        hash: utxo.txid,
+                        index: utxo.vout,
+                        witnessUtxo: { value: txfee, script: alicePubTR.output },
+                        tapInternalKey: Buffer.from(alicePub, "hex")
+                    });
+                });
+            }
             if (quorumno == 1) {
                 psbt.addInput({
                     hash: aliceOracleIn.txid,
@@ -887,9 +954,18 @@ const txApi = () => {
                         finalScriptWitness: (0, psbtutils_1.witnessStackToScriptWitness)(witness)
                     };
                 };
+                if (partyFee) {
+                    await psbt.signInputAsync(1, schnorrSignerSingleWebSimple(alicePub));
+                }
                 psbt.finalizeInput(0, customFinalizer);
+                if (partyFee) {
+                    psbt.finalizeInput(1);
+                }
             }
             else {
+                if (partyFee) {
+                    await psbt.signInputAsync(1, schnorrSignerSingleWebSimple(alicePub));
+                }
                 psbt.finalizeAllInputs();
             }
             return {
