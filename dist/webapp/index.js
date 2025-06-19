@@ -4,6 +4,15 @@ setTimeout(() => {
     location.reload();
   }
 }, 15e3);
+var loading_i = 0;
+var loadingAnimation = setInterval(() => {
+  if (document.getElementById("loading").innerText !== "") {
+    loading_i++;
+    document.getElementById("loading").innerText = "Loading" + ".".repeat(loading_i % 3);
+  } else {
+    clearInterval(loadingAnimation);
+  }
+}, 500);
 var defaultClr = "gray";
 var accentColor = "yellow";
 window.highlightOrders = "cyan";
