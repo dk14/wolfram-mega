@@ -278,7 +278,8 @@ const remoteSigner: InteractiveSigner = {
 
 const webSigner: InteractiveSigner = {
     muSigNonce1: async function (pub1: string, pub2: string, msg: string): Promise<{ sessionId1: string; commitment1: string; }> {
-       return multisigInteractive.muSigNonce1(
+        console.error(window.user + "###SIGNING#1: " + msg)
+        return multisigInteractive.muSigNonce1(
             pub1,
             pub2,
             Buffer.from(bs58.decode(await window.privateDB.get("secrets", pub1))).toString("hex").substring(2, 64 + 2),
@@ -286,6 +287,7 @@ const webSigner: InteractiveSigner = {
         )
     },
     muSigCommitment2: async function (pub1: string, pub2: string, msg: string): Promise<{ sessionId2: string; commitment2: string; nonce2: string; }> {
+        console.error(window.user + "###SIGNING#2: " + msg)
         return multisigInteractive.muSigCommitment2(
             pub1,
             pub2,
@@ -294,6 +296,7 @@ const webSigner: InteractiveSigner = {
         )
     },
     sign1: async function (pub1: string, pub2: string, msg: string, input: { commitment2: string; nonce2: string; sessionId1: string; }): Promise<{ nonce1: string; partSig1: string; combinedNonceParity: boolean; }> {
+        console.error(window.user + "###SIGNING#3: " + msg)
         return multisigInteractive.sign1(
             pub1,
             pub2,
@@ -305,6 +308,7 @@ const webSigner: InteractiveSigner = {
         )
     },
     sign2: async function (pub1: string, pub2: string, msg: string, input: { partSig1: string; combinedNonceParity: boolean; nonce1: string; commitment1: string; sessionId2: string; }): Promise<string> {
+        console.error(window.user + "###SIGNING#4: " + msg)
         return multisigInteractive.sign2(
             pub1,
             pub2,
