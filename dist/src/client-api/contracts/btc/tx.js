@@ -549,12 +549,15 @@ const txApi = () => {
                     value: stateAmount
                 });
             }
+            if (partyFee) {
+                psbt.setInputSequence(1, 4294967295);
+            }
+            psbt.setInputSequence(0, 4294967295);
             if (session === null || session === undefined) {
                 await psbt.signInputAsync(0, schnorrSignerMulti(alicePub, bobPub));
             }
             else {
                 try {
-                    psbt.setInputSequence(0, 4294967295);
                     await psbt.signInputAsync(0, schnorrSignerInteractive(alicePub, bobPub, session));
                 }
                 catch (e) {
@@ -567,7 +570,6 @@ const txApi = () => {
                 }
             }
             if (partyFee) {
-                psbt.setInputSequence(1, 4294967295);
                 await psbt.signInputAsync(1, schnorrSignerSingleWebSimple(aliceAmount > bobAmount ? alicePub : bobPub));
             }
             psbt.finalizeAllInputs();
