@@ -1,6 +1,6 @@
 # Mega-App
 
-Mobile trading web-app for BTC test-net.
+Mobile trading web-app for BTC test-net. Demostrates a use case for binary options p2p exchange.
 
 **Proof-Of-Concept**
 
@@ -24,6 +24,8 @@ Mobile trading web-app for BTC test-net.
 
 > The app does not submit tx-es automatically - they can be found in offer-view (`msg`) and submitted manually.
 
+> EDUCATIONAL AND DEMONSTRATIONAL PURPOSES ONLY. Offers in webapp are malleable (originator signature not checked). APp doesn't publish TXes, but they can be found in offer view (see video) 
+
 ## Install
 
 
@@ -35,3 +37,9 @@ Detailed Steps:
 - Select "Add to Home Screen": From the share menu, choose "Add to Home Screen".
 - Tap "Add": Confirm the installation by tapping "Add" in the popup that appears.
 - Find the App: The installed web app will now be on your home screen, appearing as a dedicated icon. 
+
+## Video
+
+<img src="https://i.imgur.com/iLSNJZk.gif"></img>
+
+<a href="./mega-demo.mp4" target="_blank">LINK</a> (non-verbal nevertheless)
