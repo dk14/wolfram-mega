@@ -554,7 +554,7 @@ export const matchingEngine: MatchingEngine = {
             page: 0,
             chunkSize: limit
         };
-        const reports = window.storage.queryReports({
+        const reports = window.storage.queryIssuedReports({
             where: async (r: Report) => r.content.request.capabilityPubKey === o.oracles[0].capabilityPub
         }, pagedescriptor)
         return reports

@@ -32,7 +32,7 @@ setTimeout(() => {
     if(!window.offersFound){
         location.reload()
     }
-}, 7000)
+}, 15000)
 
 const defaultClr = "gray"
 const accentColor = "yellow" 
