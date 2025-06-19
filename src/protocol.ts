@@ -176,6 +176,7 @@ export interface OfferTerms {
     dependsOn?: DependsOn
     partyCompositeCollateralAmount?: number //this is needed to ensure that whole tree of CET-transactions is recovered
     counterpartyCompositeCollateralAmount?: number
+    cumulativeTxFee?: number
     assetPair?: [string, string] // if parties bet assets
     synonyms?: {[id: Answer]: Answer} //for adapting oracle quorums
     txfee?: number

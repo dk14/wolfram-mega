@@ -43,15 +43,10 @@ const scan = (arr, reducer, seed) => {
     }, [seed, []])[1];
 }
 
-let spentUtxos = [] //TODO: persistence, sort by value
-let spentUtxosMemoize = {}
-
 const sorter = (a: UTxO, b: UTxO) => (JSON.stringify(a) < JSON.stringify(b)) ? -1: 1
 
-export const getSimpleUtXo = async (amount: number, addressIn: string, txfee: number, lockname?: string): Promise<UTxO[]> => {
-    if (spentUtxosMemoize[lockname]) {
-        return spentUtxosMemoize[lockname + addressIn]
-    }
+//this might try to spend same output twice, but it is safe nevertheless, since only one party has to sign it
+export const getSimpleUtXo = async (amount: number, addressIn: string, txfee: number): Promise<UTxO[]> => {
 
     const utxoExplore = async (address: string): Promise<UTxO[]> => {
        return (await (await fetch (`https://mempool.space/testnet/api/address/${address}/utxo`)).json())
@@ -67,18 +62,15 @@ export const getSimpleUtXo = async (amount: number, addressIn: string, txfee: nu
             if (i !== -1) {
                 return utxos.slice(0, i + 1)      
             } else {
-                throw new Error(`not enough funds: ${utxos.map(x => x.value).reduce((a, b) => a + b)} < ${amount + txfee / 2} ${amount}`)
+                throw new Error(`not enough funds: ${utxos.map(x => x.value).reduce((a, b) => a + b)} < ${amount + txfee / 2} + ${amount}`)
             }
         }
     }
 
-    const res = getMultipleUtxo((await utxoExplore(addressIn)).filter(x => !spentUtxos.find(y => JSON.stringify(x) === JSON.stringify(y))).sort(sorter), amount)
-    res.forEach(utxo => {
-        utxo['address'] = addressIn
-    })
+    const res = getMultipleUtxo((await utxoExplore(addressIn)).sort(sorter), amount)
+
     res.sort(sorter)
-    spentUtxos = spentUtxos.concat(res)
-    spentUtxosMemoize[lockname + addressIn] = res
+
     return res
 
 }
@@ -91,7 +83,7 @@ const getUtXo = async (offer: OfferMsg): Promise<Inputs> => {
        return (await (await fetch (`https://mempool.space/testnet/api/address/${address}/utxo`)).json())
     }
 
-    const txfee = terms.txfee
+    const txfee = terms.cumulativeTxFee
 
     const addressAlice = offer.content.addresses[0]
     const addressBob = offer.content.addresses[1]
@@ -116,6 +108,8 @@ const getUtXo = async (offer: OfferMsg): Promise<Inputs> => {
             }
         }
     }
+
+    //TODO add to list of spent utxos
 
     if (offer.content.utxos) {
         return {
@@ -161,8 +155,8 @@ const genContractTx = async (inputs: Inputs, c: Commitment[], offer: OfferMsg, s
                     oraclePub3: o.content.terms.question3?.capabilityPubKey,
                     outcomes: (() => {
                         const outcomes = {}
-                        outcomes[yesOutcome] = {aliceAmount: terms.txfee + terms.partyBetAmount + terms.counterpartyBetAmount + autoRefundWinner, bobAmount: 0}
-                        outcomes[noOutcome] = {aliceAmount: 0, bobAmount: terms.txfee + terms.partyBetAmount + terms.counterpartyBetAmount + autoRefundWinner}
+                        outcomes[yesOutcome] = {aliceAmount: terms.cumulativeTxFee + terms.partyBetAmount + terms.counterpartyBetAmount + autoRefundWinner, bobAmount: 0}
+                        outcomes[noOutcome] = {aliceAmount: 0, bobAmount: terms.cumulativeTxFee + terms.partyBetAmount + terms.counterpartyBetAmount + autoRefundWinner}
                         return outcomes
                     })(),
                     rValue: c[0].rValueSchnorrHex,
@@ -170,12 +164,12 @@ const genContractTx = async (inputs: Inputs, c: Commitment[], offer: OfferMsg, s
                     rValue3: c[2]?.rValueSchnorrHex,
                     alicePub:  o.content.pubkeys[0],
                     bobPub: o.content.pubkeys[1],
-                    changeAlice: inputs.utxoAlice.map(x => x.value).reduce((a, b) => a + b) - terms.partyBetAmount - terms.txfee / 2,
-                    changeBob: inputs.utxoBob.map(x => x.value).reduce((a, b) => a + b) - terms.counterpartyBetAmount - terms.txfee / 2,
+                    changeAlice: inputs.utxoAlice.map(x => x.value).reduce((a, b) => a + b) - terms.partyBetAmount - terms.cumulativeTxFee / 2,
+                    changeBob: inputs.utxoBob.map(x => x.value).reduce((a, b) => a + b) - terms.counterpartyBetAmount - terms.cumulativeTxFee / 2,
                     txfee: terms.txfee,
                     openingSession: { sigs: openingSession.partialSigs },
                     stateAmount: o.content.terms.dependsOn ? 
-                        ((o.content.dependantOrdersIds && o.content.dependantOrdersIds[0]) ? terms.partyCompositeCollateralAmount + terms.counterpartyCompositeCollateralAmount - terms.partyBetAmount - terms.counterpartyBetAmount : undefined)
+                        ((o.content.dependantOrdersIds && o.content.dependantOrdersIds[0]) ? terms.partyCompositeCollateralAmount + terms.counterpartyCompositeCollateralAmount - terms.partyBetAmount - terms.counterpartyBetAmount - (offer.content.terms.dependsOn ? 2 : 3) * terms.txfee + terms.cumulativeTxFee : undefined)
                         : undefined,
                     session: (() => {
                         const session = {}
@@ -212,26 +206,20 @@ const genContractTx = async (inputs: Inputs, c: Commitment[], offer: OfferMsg, s
                             hashLock2: openingSession.hashLocks[1]
                         }
                         return session
-                    })(),
-                    feeutxo: async outcome => outcome === yesOutcome ? 
-                        await getSimpleUtXo(terms.txfee, o.content.addresses[0], 0, o.content.orderId)
-                        : await getSimpleUtXo(terms.txfee, o.content.addresses[1], 0, o.content.orderId)
-
+                    })()
                 }
                 if (!offer.content.terms.dependsOn) {
                     try {
                         resolveDlc(await window.btc.generateDlcContract(params))
                     } catch (e) {
                         rejectDlc(e)
-                    }
-                    
+                    }                   
                 } else {
                     const adaptedParams: ChildDlcParams = {
                         ...params,
                         lockedTxId: stateTxId,
                         stateAmount: params.stateAmount!
                     }
-
                     try {
                         resolveDlc(await window.btc.generateChildDlcContract(adaptedParams))
                     } catch (e) {
@@ -313,7 +301,7 @@ export const btcDlcContractInterpreter: ContractInterpreter = {
                 session.hashUnLock2 = offer.content.accept.openingTx.hashUnlocks[1]
                 return session
             })(),
-            utxoPartyFee: await getSimpleUtXo(terms.txfee, window.address, 0)
+            utxoPartyFee: await getSimpleUtXo(offer.content.terms.txfee, window.address, 0)
         }
         return window.btc.generateCetRedemptionTransaction(p)
     },

@@ -48,6 +48,15 @@ export const evaluateCounterPartyCollateral = async (o?: OfferModel): Promise<nu
     }
 }
 
+export const evaluateMaxAmountOfTxNoOptimization= async (o?: OfferModel): Promise<number> => { //promise is to avoid stackoverflow
+    if (o === undefined) {
+        return 1 //opening tx
+    } else {
+        return 1 + Math.max(await evaluateMaxAmountOfTxNoOptimization(o.ifPartyWins), await evaluateMaxAmountOfTxNoOptimization(o.ifCounterPartyWins))
+    }  
+}
+
+
 export namespace DslErrors {
     export class PerfectHedgeError extends Error {
         public state: {[pubkey: string]: [number, boolean, any]}

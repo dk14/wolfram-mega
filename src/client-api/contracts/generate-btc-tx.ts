@@ -295,8 +295,7 @@ export const generateDlcContract = async (params: DlcParams): Promise<DlcContrac
             answer, lockedTxId, 
             aliceAmount: params.outcomes[answer].aliceAmount,
             bobAmount: params.outcomes[answer].bobAmount,
-            session: params.session[answer],
-            utxoPartyFee: await params.feeutxo(answer)
+            session: params.session[answer]
         }))
         return cet
     }))
@@ -309,8 +308,7 @@ export const generateChildDlcContract = async (params: ChildDlcParams): Promise<
             answer, lockedTxId: params.lockedTxId, 
             aliceAmount: params.outcomes[answer].aliceAmount,
             bobAmount: params.outcomes[answer].bobAmount,
-            session: params.session[answer],
-            utxoPartyFee: await params.feeutxo(answer)
+            session: params.session[answer]
         }), 1)
         return cet
     }))

@@ -4,7 +4,7 @@ import { AcceptOffer, DependsOn, FactRequest, HashCashPow, MaleabilityReport, Of
 import { BtcApi } from "../webapp"
 import { OracleDataProvider, dataProvider, webOracle } from "./oracle-data-provider";
 import { clearDb, TraderQuery } from "./impl/storage";
-import { evaluateCounterPartyCollateral, evaluatePartyCollateral } from "./dsl";
+import { evaluateCounterPartyCollateral, evaluateMaxAmountOfTxNoOptimization, evaluatePartyCollateral } from "./dsl";
 import { OfferModel, OfferStatus, PreferenceModel } from "./models";
 import { generateSimpleTransaction, SimpleParams } from "../src/client-api/contracts/generate-btc-tx";
 import { getSimpleUtXo } from "./transactions";
@@ -245,6 +245,7 @@ export const matchingEngine: MatchingEngine = {
             counterpartyBetAmount: o.bet[1],
             txfee: window.txfee,
             dependsOn: o.dependsOn,
+            cumulativeTxFee: await evaluateMaxAmountOfTxNoOptimization(o) * window.txfee,
             partyCompositeCollateralAmount: await evaluatePartyCollateral(o),
             counterpartyCompositeCollateralAmount: await evaluateCounterPartyCollateral(o)
         };

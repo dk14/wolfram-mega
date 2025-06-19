@@ -104,6 +104,8 @@ setInterval(() => window.stalking.trackIssuedOffers(
 
 > proposed `SIGHASH_NOINPUT` (BIP118) would remove the need for HTLC in DLC (as well as LN), if BTC adopts it. CET-pack can be co-signed before opening tx then. Signing opening tx is done atomically (Schnorr mu-sig) without need to commit deposit. Without opening tx - CET become invalid, since there is no UtXO to fit CET TX's inputs.
 
+> Transaction fees are pre-committed in advance, since without ANYPREVOUT - there is no way to attach them ad-hoc. Our BTC API supports separate inputs for fees, but stalker is not using it.
+
 Mainnet version of `btcDlcContractInterpreter` would require extra-optimizations to be secure and practically usable.
 
 > Future mainnet version. Since funds distribution of binary option is all-or-nothing - such contract can be represented with one Taproot transaction without DLC or any scripting: collateral either unlocks with Alice and adapted oracle pub (for leaf1) or Bob and adapted oracle pub (for leaf2). Atomicity of co-signing would be ensured automatically. Composite contracts woulld still require binary tree of off-chain transactions and hash-time-locking though and flattening of a tree might not be applicable.
