@@ -445,6 +445,10 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
         },
         genOpeningTx: async (aliceIn: UTxO[], bobIn: UTxO[], alicePub: string, bobPub: string, aliceAmounts: number[], bobAmounts: number[], changeAlice: number, changeBob: number, txfee: number, session: OpeningTxSession = null): Promise<Tx> => {
             const psbt = new bitcoin.Psbt({ network: net})
+            
+            psbt.setLocktime(0)
+            psbt.setVersion(2)
+            psbt.setMaximumFeeRate(100000)
             const aliceP2TR = p2pktr(alicePub)
             const bobP2TR = p2pktr(bobPub)
       
@@ -493,6 +497,15 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
                 });
             }
 
+
+            for (let i = 0; i <  aliceIn.length; i++) {
+                psbt.setInputSequence(i, 4294967295)
+            }
+
+            for (let i = 0; i <  bobIn.length; i++) {
+                psbt.setInputSequence(aliceIn.length + i, 4294967295)
+            }
+
             for (let i = 0; i <  aliceIn.length; i++) {
                 if (session === null){
                     await psbt.signInputAsync(i, schnorrSignerSingle(alicePub))
@@ -504,8 +517,12 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
                             await psbt.signInputAsync(i, schnorrSignerSingle(alicePub, session, i))
                         }
                        
-                    } catch {
-
+                    } catch (e) {
+                        if (e === "incomplete sign") {
+                            return undefined
+                        } else {
+                            throw e
+                        }
                     } 
                 }
             }
@@ -520,8 +537,12 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
                         } else {
                             await psbt.signInputAsync(aliceIn.length + i, schnorrSignerSingle(bobPub, session, aliceIn.length + i))
                         }
-                    } catch {
-
+                    } catch  (e) {
+                        if (e === "incomplete sign") {
+                            return undefined
+                        } else {
+                            throw e
+                        }
                     }  
                 }
             }
@@ -679,7 +700,6 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
                 await psbt.signInputAsync(0, schnorrSignerMulti(alicePub, bobPub))
             } else {
                 try {
-                    
                     await psbt.signInputAsync(0, schnorrSignerInteractive(alicePub, bobPub, session))
                 } catch (e) {
                     if (e === "incomplete sign") {
