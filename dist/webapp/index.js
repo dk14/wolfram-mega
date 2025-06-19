@@ -321,8 +321,8 @@ var initWebapp = new Promise((resolve) => {
     const reports = await window.matching.fetchRelatedReports(offer, 20);
     const reportsIssued = await window.matching.fetchRelatedReports(offer, 20);
     const combined = {};
-    combined["known"] = reports;
-    combined["issued"] = reportsIssued;
+    combined["collected-known"] = reports;
+    combined["broadcasting-issued"] = reportsIssued;
     const reportTree = document.getElementById("report-tree");
     reportTree["data"] = combined;
     document.getElementById("delete-offer").onclick = () => {

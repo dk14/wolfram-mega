@@ -1,6 +1,6 @@
 import { p2pktr } from "./src/client-api/contracts/btc/tx";
 import { MempoolConfig } from "./src/config";
-import { FactRequest, HashCashPow, Offer, OfferMsg, OfferTerms, OracleCapability, OracleId } from "./src/protocol";
+import { Report, FactRequest, HashCashPow, Offer, OfferMsg, OfferTerms, OracleCapability, OracleId, MaleabilityReport, FactDisagreesWithPublic } from "./src/protocol";
 import { Api, FacilitatorNode, api as ndapi} from './src/api';
 import { Neighbor } from "./src/p2p";
 import ECPairFactory from 'ecpair';
@@ -178,6 +178,53 @@ export const configureWebMocks = async () => {
 
     await ndapi.announceCapability(cfg, testCp2)
     await window.storage.addCp(testCp2)
+
+    const reportPow: HashCashPow = {
+        difficulty: 0,
+        algorithm: "",
+        hash: "report-13",
+        magicNo: 0
+    }
+
+    const reportPow2: HashCashPow = {
+        difficulty: 0,
+        algorithm: "",
+        hash: "report-13-self-issued",
+        magicNo: 0
+    }
+
+    const request: FactRequest = {
+        capabilityPubKey: pubOracleCp,
+        arguments: {}
+    }
+
+    const maleabilityReport: FactDisagreesWithPublic = {
+        type: "fact-disagreees-with-public",
+        request: request
+    }
+
+    const report: Report = {
+        seqNo: 0,
+        cTTL: 0,
+        pow: reportPow,
+        oraclePubKey: pubOracleCp,
+        content: maleabilityReport
+    }
+
+    const report2: Report = {
+        seqNo: 0,
+        cTTL: 0,
+        pow: reportPow2,
+        oraclePubKey: pubOracleCp,
+        content: maleabilityReport
+    }
+
+    await ndapi.reportMalleability(cfg, report)
+    await window.storage.addReport(report)
+
+    await ndapi.reportMalleability(cfg, report2)
+    await window.storage.addReport(report2)
+    await window.storage.addIssuedReport(report2)
     
 }
 
