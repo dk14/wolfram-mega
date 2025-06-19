@@ -192,6 +192,7 @@ const initWebapp = new Promise(resolve => {
         document.getElementById("oracle-strength").onchange = () => {
             window.model.profile.minOracleRank = (document.getElementById("oracle-strength") as HTMLInputElement).valueAsNumber
             document.getElementById("ranktext").innerText = "" + window.model.profile.minOracleRank
+            window.matching.saveProfile(window.model.profile) 
         }
     } catch (e) {
         console.error(e)
@@ -199,18 +200,24 @@ const initWebapp = new Promise(resolve => {
 
     try {
         document.getElementById("txfee").onchange = () => {
-            window.model.profile.txfee = (document.getElementById("txfee") as HTMLInputElement).valueAsNumber   
+            window.model.profile.txfee = (document.getElementById("txfee") as HTMLInputElement).valueAsNumber 
+            window.matching.saveProfile(window.model.profile) 
         }
     } catch (e) {
         console.error(e)
     }
 
     document.getElementById("send-funds-button").onclick = async () => {
-        const amount = (document.getElementById("send-funds-amount") as HTMLInputElement).valueAsNumber
-        const address = (document.getElementById("send-funds-amount") as HTMLInputElement).value
-        const tx = window.matching.takeWinnings(amount, address, window.model.profile.txfee)
-        navigator.clipboard.writeText(await tx)
-        alert("Copied TxBody To Clipboard!")
+        try {
+            const amount = (document.getElementById("send-funds-amount") as HTMLInputElement).valueAsNumber
+            const address = (document.getElementById("send-funds-address") as HTMLInputElement).value
+            const tx = window.matching.takeWinnings(amount + window.model.profile.txfee, address, window.model.profile.txfee)
+            navigator.clipboard.writeText(await tx)
+            alert("Copied TxBody To Clipboard!")
+        } catch (e) {
+            alert(e.message)
+        }
+
     }
 
     window.pickOrGenerateOffer = async (pick: boolean) => {
@@ -232,6 +239,7 @@ const initWebapp = new Promise(resolve => {
     window.removeInterest = (tag: string) => {
         window.model.profile.tags = window.model.profile.tags.filter(x => x != tag)
         document.getElementById(`tag-${tag}`).remove()
+        window.matching.saveProfile(window.model.profile) 
     }
 
 

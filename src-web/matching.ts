@@ -532,7 +532,7 @@ export const matchingEngine: MatchingEngine = {
         return await generateSimpleTransaction(params);
     },
     saveProfile: async function (cfg: PreferenceModel): Promise<void> {
-        await window.profiledb.put("profile", cfg, window.user);
+        await window.profiledb.put("preferences", cfg, window.user);
     },
     loadProfile: async function (): Promise<PreferenceModel> {
         const profile = await window.profiledb.get("preferences", window.user);
