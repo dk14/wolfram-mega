@@ -149,6 +149,7 @@ export interface OfferTerms {
     dependsOn?: DependsOn;
     partyCompositeCollateralAmount?: number;
     counterpartyCompositeCollateralAmount?: number;
+    cumulativeTxFee?: number;
     assetPair?: [string, string];
     synonyms?: {
         [id: Answer]: Answer;

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Dsl = exports.DslErrors = exports.evaluateCounterPartyCollateral = exports.evaluatePartyCollateral = void 0;
+exports.Dsl = exports.DslErrors = exports.evaluateMaxAmountOfTxNoOptimization = exports.evaluateCounterPartyCollateral = exports.evaluatePartyCollateral = void 0;
 const async_mutex_1 = require("async-mutex");
 const evaluatePartyCollateral = async (o) => {
     if (o === undefined) {
@@ -20,6 +20,15 @@ const evaluateCounterPartyCollateral = async (o) => {
     }
 };
 exports.evaluateCounterPartyCollateral = evaluateCounterPartyCollateral;
+const evaluateMaxAmountOfTxNoOptimization = async (o) => {
+    if (o === undefined) {
+        return 1; //opening tx
+    }
+    else {
+        return 1 + Math.max(await (0, exports.evaluateMaxAmountOfTxNoOptimization)(o.ifPartyWins), await (0, exports.evaluateMaxAmountOfTxNoOptimization)(o.ifCounterPartyWins));
+    }
+};
+exports.evaluateMaxAmountOfTxNoOptimization = evaluateMaxAmountOfTxNoOptimization;
 var DslErrors;
 (function (DslErrors) {
     class PerfectHedgeError extends Error {

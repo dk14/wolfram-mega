@@ -20,6 +20,7 @@ type PerpetualState<T> = {
 type PerpetualUpdate<T> = [PerpetualState<T>, PerpetualCashFlow[]];
 export declare const evaluatePartyCollateral: (o?: OfferModel) => Promise<number>;
 export declare const evaluateCounterPartyCollateral: (o?: OfferModel) => Promise<number>;
+export declare const evaluateMaxAmountOfTxNoOptimization: (o?: OfferModel) => Promise<number>;
 export declare namespace DslErrors {
     class PerfectHedgeError extends Error {
         state: {

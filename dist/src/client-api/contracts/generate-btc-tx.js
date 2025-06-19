@@ -85,8 +85,7 @@ const generateDlcContract = async (params) => {
             answer, lockedTxId,
             aliceAmount: params.outcomes[answer].aliceAmount,
             bobAmount: params.outcomes[answer].bobAmount,
-            session: params.session[answer],
-            utxoPartyFee: await params.feeutxo(answer)
+            session: params.session[answer]
         }));
         return cet;
     }));
@@ -99,8 +98,7 @@ const generateChildDlcContract = async (params) => {
             answer, lockedTxId: params.lockedTxId,
             aliceAmount: params.outcomes[answer].aliceAmount,
             bobAmount: params.outcomes[answer].bobAmount,
-            session: params.session[answer],
-            utxoPartyFee: await params.feeutxo(answer)
+            session: params.session[answer]
         }), 1);
         return cet;
     }));

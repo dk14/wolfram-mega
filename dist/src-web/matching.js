@@ -212,6 +212,7 @@ exports.matchingEngine = {
             counterpartyBetAmount: o.bet[1],
             txfee: window.txfee,
             dependsOn: o.dependsOn,
+            cumulativeTxFee: await (0, dsl_1.evaluateMaxAmountOfTxNoOptimization)(o) * window.txfee,
             partyCompositeCollateralAmount: await (0, dsl_1.evaluatePartyCollateral)(o),
             counterpartyCompositeCollateralAmount: await (0, dsl_1.evaluateCounterPartyCollateral)(o)
         };
