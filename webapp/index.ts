@@ -34,6 +34,16 @@ setTimeout(() => {
     }
 }, 15000)
 
+let loading_i = 0
+const loadingAnimation = setInterval(() => {
+    if (document.getElementById("loading").innerText !== "") {
+        loading_i++
+        document.getElementById("loading").innerText = "Loading" + ".".repeat(loading_i % 3)
+    } else {
+        clearInterval(loadingAnimation)
+    }
+}, 500)
+
 const defaultClr = "gray"
 const accentColor = "yellow" 
 window.highlightOrders = "cyan"  
