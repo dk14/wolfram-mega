@@ -79,6 +79,9 @@ const trackIssuedOffers = async (interpreters, dataProvider) => {
             }
             const order = structuredClone((0, matching_1.maxBy)(candidates, x => rank(x)));
             //TODO ORDER MALLEABILITY: validate new state of the order (trader's signature over original terms without accept/finalize)
+            if (order.content.failed) {
+                throw new Error(order.content.failed);
+            }
             console.error("STALKER: FOUND " + order.pow.hash + " <= " + orderPreviousState.pow.hash);
             const interpreter = interpreters[order.content.blockchain];
             const endpoint = (await window.storage.queryCapabilities({ where: async (x) => x.capabilityPubKey === order.content.terms.question.capabilityPubKey }, pagedescriptor))[0].endpoint;
