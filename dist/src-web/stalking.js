@@ -235,7 +235,8 @@ const trackIssuedOffers = async (interpreters, dataProvider) => {
             const failed = structuredClone(orderPreviousState);
             failed.content.failed = err.msg;
             failed.pow.hash = failed.pow.hash + "-failed" + (0, matching_1.randomInt)(100);
-            window.storage.removeIssuedOffers([orderPreviousState.pow.hash]);
+            await window.traderApi.issueOffer(failed);
+            await window.storage.removeIssuedOffers([orderPreviousState.pow.hash]);
         }
     });
 };
