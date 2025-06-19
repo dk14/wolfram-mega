@@ -16,7 +16,7 @@ const trackIssuedOffers = async (interpreters, dataProvider) => {
         chunkSize: 9000
     };
     const allOffers = (await window.storage.queryIssuedOffers({
-        where: async (x) => !ignore[x.pow.hash]
+        where: async (x) => !ignore[x.pow.hash] && !(x.content.finalize && x.content.finalize.redemptionTx)
     }, pagedescriptor));
     const allOffersGrouped = Object.groupBy(allOffers, x => x.content.orderId);
     const reattemptMuSig = 30;
