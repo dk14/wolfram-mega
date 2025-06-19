@@ -289,13 +289,17 @@ export const matchingEngine: MatchingEngine = {
 
         }
 
-        window.traderApi.startBroadcastingIssuedOffers();
-        window.traderApi.issueOffer({
+        const issued = {
             seqNo: 0,
             cTTL: 0,
             pow: pow,
             content: offer
-        });
+        }
+
+        o["msg"] = issued
+
+        window.traderApi.startBroadcastingIssuedOffers();
+        window.traderApi.issueOffer(issued);
         return offer.orderId;
     },
     acceptOffer: async function (o: OfferModel): Promise<void> {
