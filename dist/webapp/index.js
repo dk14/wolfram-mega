@@ -279,7 +279,7 @@ var initWebapp = new Promise((resolve) => {
       }
       if (confirmed) {
         if (offer.role === "initiator") {
-          offer.betOn = true;
+          offer.betOn = false;
           window.matching.broadcastOffer(offer);
         } else {
           if (offer.betOn) {
