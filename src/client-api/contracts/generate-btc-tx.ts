@@ -288,7 +288,7 @@ export const generateDlcContract = async (params: DlcParams): Promise<DlcContrac
     
     const lockedTxId = await doubleSHA256reversed(openingTx)
     console.error(window.user + ":opening txid:" + lockedTxId)
-     console.error(window.user + ":opening txraw:" + lockedTxId)
+    console.error(window.user + ":opening txraw:" + openingTx)
 
     const cet = await Promise.all(Object.keys(params.outcomes).sort().map(async (answer, i)=> {
         const cet = await generateCetTransaction(Object.assign({}, params, {
