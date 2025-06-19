@@ -24,31 +24,11 @@ declare global {
     }
 }
 
-try {
-    const container = document.getElementById("offer-tree-container")
-
-    if (navigator.userAgent.includes("Node.js") || navigator.userAgent.includes("jsdom")) {
-        
-        const el = document.createElement("div")
-        el.setAttribute("id", "offer-tree")
-        container.appendChild(el)
-    } else {
-        const scriptTag = document.createElement('script');
-        scriptTag.src = "https://unpkg.com/@alenaksu/json-viewer@2.1.0/dist/json-viewer.bundle.js";
-        document.body.appendChild(scriptTag);
-        
-        const el = document.createElement("json-viewer")
-        el.setAttribute("id", "offer-tree")
-        container.appendChild(el)
-    }
-    
-} catch {}
-
 setTimeout(() => {
     if(!window.offersFound){
         location.reload()
     }
-}, 4000)
+}, 7000)
 
 const defaultClr = "gray"
 const accentColor = "yellow" 
@@ -96,6 +76,26 @@ try {
 } catch {
 
 }
+
+try {
+    const container = document.getElementById("offer-tree-container")
+
+    if (navigator.userAgent.includes("Node.js") || navigator.userAgent.includes("jsdom")) {
+        
+        const el = document.createElement("div")
+        el.setAttribute("id", "offer-tree")
+        container.appendChild(el)
+    } else {
+        const scriptTag = document.createElement('script');
+        scriptTag.src = "https://unpkg.com/@alenaksu/json-viewer@2.1.0/dist/json-viewer.bundle.js";
+        document.body.appendChild(scriptTag);
+        
+        const el = document.createElement("json-viewer")
+        el.setAttribute("id", "offer-tree")
+        container.appendChild(el)
+    }
+    
+} catch {}
 
 document.getElementById("matching_svg").addEventListener("load", () => {
     document.getElementById("matching_svg").setAttribute("fill", "brown")
