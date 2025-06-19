@@ -234,6 +234,7 @@ const trackIssuedOffers = async (interpreters, dataProvider) => {
         catch (err) {
             console.error(err);
             const failed = structuredClone(orderPreviousState);
+            failed.content.accept.offerRef = orderPreviousState.pow.hash;
             failed.content.failed = err.message ?? "unknown";
             failed.pow.hash = failed.pow.hash + "-failed" + (0, matching_1.randomInt)(100);
             await window.traderApi.issueOffer(failed);
