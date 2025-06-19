@@ -74,6 +74,7 @@ export const getSimpleUtXo = async (amount: number, addressIn: string, txfee: nu
     res.forEach(utxo => {
         utxo['address'] = addressIn
     })
+    res.sort()
     spentUtxos = spentUtxos.concat(res)
     spentUtxosMemoize[lockname + addressIn] = res
     return res
