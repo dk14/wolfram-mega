@@ -58,7 +58,7 @@ export interface CetParams {
     txfee: number,
     session?: PublicSession,
     stateAmount?: number //goes back to multisig, for composite contracts
-    txFeeAlice?: UTxO[]
+    utxoPartyFee?: UTxO[]
 }
 
 export interface CetRedemptionParams {
@@ -81,7 +81,7 @@ export interface CetRedemptionParams {
     amount: number,
     txfee: number,
     session?: PublicSession,
-    txFeeAlice?: UTxO[]
+    utxoPartyFee?: UTxO[]
 }
 
 export const generateSimpleTransaction = async (params: SimpleParams): Promise<Hex> => {
@@ -145,7 +145,9 @@ export const generateCetTransaction = async (params: CetParams, vout: number = 0
             params.bobAmount,
             params.txfee,
             params.session,
-            params.stateAmount))?.hex
+            params.stateAmount,
+            params.utxoPartyFee
+        ))?.hex
     } else {
         const twistedPk1 = schnorr.adaptorPublic(params.oraclePub, params.answer, params.rValue).padStart(64, "0")
         const twistedPk2 = schnorr.adaptorPublic(params.oraclePub2, params.answer2 ?? params.answer, params.rValue2).padStart(64, "0")
@@ -161,7 +163,8 @@ export const generateCetTransaction = async (params: CetParams, vout: number = 0
             params.bobAmount,
             params.txfee,
             params.session,
-            params.stateAmount))?.hex
+            params.stateAmount,
+            params.utxoPartyFee))?.hex
     }
     
 }
@@ -183,7 +186,8 @@ export const generateCetRedemptionTransaction = async (params: CetRedemptionPara
             params.amount,
             params.txfee,
             params.session,
-            params.bobPub)).hex
+            params.bobPub,
+            params.utxoPartyFee)).hex
     } else {
         const twistedPk1 = schnorr.adaptorPublic(params.oraclePub, params.answer, params.rValue).padStart(64, "0")
         const twistedPk2 = schnorr.adaptorPublic(params.oraclePub2, params.answer2 ?? params.answer, params.rValue2).padStart(64, "0")
@@ -202,7 +206,8 @@ export const generateCetRedemptionTransaction = async (params: CetRedemptionPara
             params.oracleSignature3,
             params.amount,
             params.txfee,
-            params.session))?.hex
+            params.session,
+            params.utxoPartyFee))?.hex
         
     }
 }
@@ -283,14 +288,13 @@ export const generateDlcContract = async (params: DlcParams): Promise<DlcContrac
     
     const lockedTxId = await doubleSHA256reversed(openingTx)
 
-    console.error("OPENING TX ID: " + lockedTxId)
-
     const cet = await Promise.all(Object.keys(params.outcomes).sort().map(async (answer, i)=> {
         const cet = await generateCetTransaction(Object.assign({}, params, {
             answer, lockedTxId, 
             aliceAmount: params.outcomes[answer].aliceAmount,
             bobAmount: params.outcomes[answer].bobAmount,
-            session: params.session[answer]
+            session: params.session[answer],
+            utxoPartyFee: await params.feeutxo(answer)
         }))
         return cet
     }))
@@ -303,7 +307,8 @@ export const generateChildDlcContract = async (params: ChildDlcParams): Promise<
             answer, lockedTxId: params.lockedTxId, 
             aliceAmount: params.outcomes[answer].aliceAmount,
             bobAmount: params.outcomes[answer].bobAmount,
-            session: params.session[answer]
+            session: params.session[answer],
+            utxoPartyFee: await params.feeutxo(answer)
         }), 1)
         return cet
     }))
