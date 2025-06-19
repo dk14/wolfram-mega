@@ -11,6 +11,7 @@ const scan = (arr, reducer, seed) => {
 };
 let spentUtxos = []; //TODO: persistence, sort by value
 let spentUtxosMemoize = {};
+const sorter = (a, b) => (JSON.stringify(a) < JSON.stringify(b)) ? -1 : 1;
 const getSimpleUtXo = async (amount, addressIn, txfee, lockname) => {
     if (spentUtxosMemoize[lockname]) {
         return spentUtxosMemoize[lockname + addressIn];
@@ -33,11 +34,11 @@ const getSimpleUtXo = async (amount, addressIn, txfee, lockname) => {
             }
         }
     };
-    const res = getMultipleUtxo((await utxoExplore(addressIn)).filter(x => !spentUtxos.find(y => JSON.stringify(x) === JSON.stringify(y))), amount);
+    const res = getMultipleUtxo((await utxoExplore(addressIn)).filter(x => !spentUtxos.find(y => JSON.stringify(x) === JSON.stringify(y))).sort(sorter), amount);
     res.forEach(utxo => {
         utxo['address'] = addressIn;
     });
-    res.sort();
+    res.sort(sorter);
     spentUtxos = spentUtxos.concat(res);
     spentUtxosMemoize[lockname + addressIn] = res;
     return res;
@@ -73,16 +74,16 @@ const getUtXo = async (offer) => {
         return {
             utxoAlice: offer.content.utxos[0] ?
                 offer.content.utxos[0].map(x => { return { txid: x[0], vout: x[1] }; })
-                : getMultipleUtxo(aliceUtxos, terms.partyBetAmount + terms.txfee / 2),
+                : getMultipleUtxo(aliceUtxos.sort(sorter), terms.partyBetAmount + terms.txfee / 2).sort(sorter),
             utxoBob: offer.content.utxos[1] ?
                 offer.content.utxos[1].map(x => { return { txid: x[0], vout: x[1] }; })
-                : getMultipleUtxo(bobUtxos, terms.counterpartyBetAmount + terms.txfee / 2) // txfee/2 - what if txfee is odd
+                : getMultipleUtxo(bobUtxos.sort(sorter), terms.counterpartyBetAmount + terms.txfee / 2).sort(sorter) // txfee/2 - what if txfee is odd
         };
     }
     else {
         return {
-            utxoAlice: getMultipleUtxo(aliceUtxos, terms.partyBetAmount + terms.txfee / 2),
-            utxoBob: getMultipleUtxo(bobUtxos, terms.counterpartyBetAmount + terms.txfee / 2)
+            utxoAlice: getMultipleUtxo(aliceUtxos.sort(sorter), terms.partyBetAmount + terms.txfee / 2).sort(sorter),
+            utxoBob: getMultipleUtxo(bobUtxos.sort(sorter), terms.counterpartyBetAmount + terms.txfee / 2).sort(sorter)
         };
     }
 };
