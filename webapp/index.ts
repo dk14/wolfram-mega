@@ -32,7 +32,7 @@ setTimeout(() => {
     if(!window.offersFound){
         location.reload()
     }
-}, 15000)
+}, 7000)
 
 let loading_i = 0
 const loadingAnimation = setInterval(() => {
