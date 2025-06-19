@@ -129,7 +129,11 @@ const trackIssuedOffers = async (interpreters, dataProvider) => {
                         window.storage.removeIssuedOffers([orderPreviousState.pow.hash]);
                     }
                     catch (e) {
-                        console.error(e);
+                        order.content.finalize.previousFinalRef = order.pow.hash;
+                        order.pow.hash = order.pow.hash + "-noredeem" + (0, matching_1.randomInt)(1000);
+                        window.traderApi.issueOffer(order);
+                        window.storage.removeIssuedOffers([orderPreviousState.pow.hash]);
+                        //console.error(e)
                     }
                 }
             }

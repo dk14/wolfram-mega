@@ -13,7 +13,7 @@ let spentUtxos = []; //TODO: persistence, sort by value
 let spentUtxosMemoize = {};
 const getSimpleUtXo = async (amount, addressIn, txfee, lockname) => {
     if (spentUtxosMemoize[lockname]) {
-        return spentUtxosMemoize[lockname];
+        return spentUtxosMemoize[lockname + addressIn];
     }
     const utxoExplore = async (address) => {
         return (await (await fetch(`https://mempool.space/testnet/api/address/${address}/utxo`)).json());
@@ -34,8 +34,11 @@ const getSimpleUtXo = async (amount, addressIn, txfee, lockname) => {
         }
     };
     const res = getMultipleUtxo((await utxoExplore(addressIn)).filter(x => !spentUtxos.find(y => JSON.stringify(x) === JSON.stringify(y))), amount);
+    res.forEach(utxo => {
+        utxo['address'] = addressIn;
+    });
     spentUtxos = spentUtxos.concat(res);
-    spentUtxosMemoize[lockname] = res;
+    spentUtxosMemoize[lockname + addressIn] = res;
     return res;
 };
 exports.getSimpleUtXo = getSimpleUtXo;
@@ -158,8 +161,9 @@ const genContractTx = async (inputs, c, offer, stateTxId) => {
                         };
                         return session;
                     })(),
-                    feeutxo1: await (0, exports.getSimpleUtXo)(terms.txfee, o.content.addresses[0], 0, o.content.orderId),
-                    feeutxo2: await (0, exports.getSimpleUtXo)(terms.txfee, o.content.addresses[1], 0, o.content.orderId)
+                    feeutxo: async (outcome) => outcome === yesOutcome ?
+                        await (0, exports.getSimpleUtXo)(terms.txfee, o.content.addresses[0], 0, o.content.orderId)
+                        : await (0, exports.getSimpleUtXo)(terms.txfee, o.content.addresses[1], 0, o.content.orderId)
                 };
                 if (!offer.content.terms.dependsOn) {
                     //console.error(terms)

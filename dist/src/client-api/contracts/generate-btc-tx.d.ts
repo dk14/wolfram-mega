@@ -106,8 +106,7 @@ export interface DlcParams {
     };
     openingSession: OpeningTxSession;
     stateAmount?: number;
-    feeutxo1?: UTxO[];
-    feeutxo2?: UTxO[];
+    feeutxo?: (o: string) => Promise<UTxO[]>;
 }
 export interface ChildDlcParams {
     lockedTxId: TxId;
@@ -128,8 +127,7 @@ export interface ChildDlcParams {
     };
     openingSession: OpeningTxSession;
     stateAmount: number;
-    feeutxo1?: UTxO[];
-    feeutxo2?: UTxO[];
+    feeutxo?: (o: string) => Promise<UTxO[]>;
 }
 export interface DlcContract {
     openingTx?: Hex;

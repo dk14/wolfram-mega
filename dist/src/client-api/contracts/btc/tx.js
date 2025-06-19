@@ -469,8 +469,9 @@ const txApi = () => {
             const pkCombined = muSig.pubKeyCombine([Buffer.from(alicePub, "hex"), Buffer.from(bobPub, "hex")]);
             const pubKeyCombined = convert.intToBuffer(pkCombined.affineX);
             const multiP2TR = (0, exports.p2pktr)(pubKeyCombined);
-            const alicePubTR = (0, exports.p2pktr)(alicePub);
-            const adaptorPkCombined = muSig.pubKeyCombine([Buffer.from(alicePub, "hex"), Buffer.from(adaptorPub, "hex")]);
+            const alicePubTR = (0, exports.p2pktr)(alicePub).address === txFeeAlice[0].address ? (0, exports.p2pktr)(alicePub) : (0, exports.p2pktr)(bobPub);
+            const partyPub = (0, exports.p2pktr)(alicePub).address === txFeeAlice[0].address ? alicePub : bobPub;
+            const adaptorPkCombined = muSig.pubKeyCombine([Buffer.from((0, exports.p2pktr)(alicePub).address === txFeeAlice[0].address ? alicePub : bobPub, "hex"), Buffer.from(adaptorPub, "hex")]);
             const adaptorPubKeyCombined = convert.intToBuffer(adaptorPkCombined.affineX);
             psbt.addInput({
                 hash: multiIn.txid,
@@ -484,7 +485,7 @@ const txApi = () => {
                         hash: utxo.txid,
                         index: utxo.vout,
                         witnessUtxo: { value: txfee, script: alicePubTR.output },
-                        tapInternalKey: Buffer.from(alicePub, "hex")
+                        tapInternalKey: Buffer.from(partyPub, "hex")
                     });
                 });
             }
@@ -568,9 +569,10 @@ const txApi = () => {
         },
         genAliceCetRedemption: async (aliceOracleIn, adaptorPub, alicePub, oracleS, amount, txfee, session, bobPub, txFeeAlice) => {
             const psbt = new bitcoin.Psbt({ network: net });
-            const adaptorPkCombined = muSig.pubKeyCombine([Buffer.from(alicePub, "hex"), Buffer.from(adaptorPub, "hex")]);
+            const adaptorPkCombined = muSig.pubKeyCombine([Buffer.from((0, exports.p2pktr)(alicePub).address === txFeeAlice[0].address ? alicePub : bobPub, "hex"), Buffer.from(adaptorPub, "hex")]);
             const adaptorPubKeyCombined = convert.intToBuffer(adaptorPkCombined.affineX);
-            const aliceP2TR = (0, exports.p2pktr)(alicePub);
+            const aliceP2TR = (0, exports.p2pktr)(alicePub).address === txFeeAlice[0].address ? (0, exports.p2pktr)(alicePub) : (0, exports.p2pktr)(bobPub);
+            const partyPub = (0, exports.p2pktr)(alicePub).address === txFeeAlice[0].address ? alicePub : bobPub;
             const aliceOracleP2TR = (0, exports.p2pktr)(adaptorPubKeyCombined);
             psbt.addOutput({
                 address: (0, exports.p2pktr)(alicePub).address, // TODO: generate alice address from oracleMsgHex and oracleR
@@ -611,11 +613,11 @@ const txApi = () => {
                             hash: utxo.txid,
                             index: utxo.vout,
                             witnessUtxo: { value: txfee, script: aliceP2TR.output },
-                            tapInternalKey: Buffer.from(alicePub, "hex")
+                            tapInternalKey: Buffer.from(partyPub, "hex")
                         });
                     });
                 }
-                await psbt.signInputAsync(0, schnorrSignerMultiWeb(alicePub, adaptorPub, ["", oracleS]));
+                await psbt.signInputAsync(0, schnorrSignerMultiWeb((0, exports.p2pktr)(alicePub).address === txFeeAlice[0].address ? alicePub : bobPub, adaptorPub, ["", oracleS]));
                 const customFinalizer = (_inputIndex, input) => {
                     const scriptSolution = [
                         input.tapScriptSig[0].signature,
@@ -640,9 +642,9 @@ const txApi = () => {
                     hash: aliceOracleIn.txid,
                     index: aliceOracleIn.vout,
                     witnessUtxo: { value: amount, script: aliceOracleP2TR.output },
-                    tapInternalKey: Buffer.from(alicePub, "hex")
+                    tapInternalKey: Buffer.from(partyPub, "hex")
                 });
-                await psbt.signInputAsync(0, schnorrSignerMulti(alicePub, adaptorPub, ["", oracleS]));
+                await psbt.signInputAsync(0, schnorrSignerMulti(partyPub, adaptorPub, ["", oracleS]));
                 psbt.finalizeAllInputs();
             }
             return {
@@ -655,12 +657,13 @@ const txApi = () => {
             const pkCombined = muSig.pubKeyCombine([Buffer.from(alicePub, "hex"), Buffer.from(bobPub, "hex")]);
             const pubKeyCombined = convert.intToBuffer(pkCombined.affineX);
             const multiP2TR = (0, exports.p2pktr)(pubKeyCombined);
-            const aliceP2TR = (0, exports.p2pktr)(alicePub);
-            const adaptorPkCombined1 = muSig.pubKeyCombine([Buffer.from(alicePub, "hex"), Buffer.from(adaptorPub, "hex")]);
+            const aliceP2TR = (0, exports.p2pktr)(alicePub).address === txFeeAlice[0].address ? (0, exports.p2pktr)(alicePub) : (0, exports.p2pktr)(bobPub);
+            const partyPub = (0, exports.p2pktr)(alicePub).address === txFeeAlice[0].address ? alicePub : bobPub;
+            const adaptorPkCombined1 = muSig.pubKeyCombine([Buffer.from((0, exports.p2pktr)(alicePub).address === txFeeAlice[0].address ? alicePub : bobPub, "hex"), Buffer.from(adaptorPub, "hex")]);
             const adaptorPubKeyCombined1 = convert.intToBuffer(adaptorPkCombined1.affineX);
-            const adaptorPkCombined2 = muSig.pubKeyCombine([Buffer.from(alicePub, "hex"), Buffer.from(adaptorPub2, "hex")]);
+            const adaptorPkCombined2 = muSig.pubKeyCombine([Buffer.from((0, exports.p2pktr)(alicePub).address === txFeeAlice[0].address ? alicePub : bobPub, "hex"), Buffer.from(adaptorPub2, "hex")]);
             const adaptorPubKeyCombined2 = convert.intToBuffer(adaptorPkCombined2.affineX);
-            const adaptorPkCombined3 = muSig.pubKeyCombine([Buffer.from(alicePub, "hex"), Buffer.from(adaptorPub3, "hex")]);
+            const adaptorPkCombined3 = muSig.pubKeyCombine([Buffer.from((0, exports.p2pktr)(alicePub).address === txFeeAlice[0].address ? alicePub : bobPub, "hex"), Buffer.from(adaptorPub3, "hex")]);
             const adaptorPubKeyCombined3 = convert.intToBuffer(adaptorPkCombined3.affineX);
             const script_HTLCOpt = session && session.hashLock1 ? ` OP_HASH256 ${session.hashLock1} OP_EQUALVERIFY OP_HASH256 ${session.hashLock2} OP_EQUALVERIFY` : '';
             const script_asm1 = `${adaptorPubKeyCombined1.toString("hex")} OP_CHECKSIGVERIFY ${adaptorPubKeyCombined2.toString("hex")} OP_CHECKSIGVERIFY` + script_HTLCOpt;
@@ -737,7 +740,7 @@ const txApi = () => {
                         hash: utxo.txid,
                         index: utxo.vout,
                         witnessUtxo: { value: txfee, script: aliceP2TR.output },
-                        tapInternalKey: Buffer.from(alicePub, "hex")
+                        tapInternalKey: Buffer.from(partyPub, "hex")
                     });
                 });
             }
@@ -760,12 +763,12 @@ const txApi = () => {
             const psbt = new bitcoin.Psbt({ network: net });
             const pkCombined = muSig.pubKeyCombine([Buffer.from(alicePub, "hex"), Buffer.from(bobPub, "hex")]);
             const pubKeyCombined = convert.intToBuffer(pkCombined.affineX);
-            const aliceP2TR = (0, exports.p2pktr)(alicePub);
-            const adaptorPkCombined1 = muSig.pubKeyCombine([Buffer.from(alicePub, "hex"), Buffer.from(adaptorPub, "hex")]);
+            const aliceP2TR = (0, exports.p2pktr)(alicePub).address === txFeeAlice[0].address ? (0, exports.p2pktr)(alicePub) : (0, exports.p2pktr)(bobPub);
+            const adaptorPkCombined1 = muSig.pubKeyCombine([Buffer.from((0, exports.p2pktr)(alicePub).address === txFeeAlice[0].address ? alicePub : bobPub, "hex"), Buffer.from(adaptorPub, "hex")]);
             const adaptorPubKeyCombined1 = convert.intToBuffer(adaptorPkCombined1.affineX);
-            const adaptorPkCombined2 = muSig.pubKeyCombine([Buffer.from(alicePub, "hex"), Buffer.from(adaptorPub2, "hex")]);
+            const adaptorPkCombined2 = muSig.pubKeyCombine([Buffer.from((0, exports.p2pktr)(alicePub).address === txFeeAlice[0].address ? alicePub : bobPub, "hex"), Buffer.from(adaptorPub2, "hex")]);
             const adaptorPubKeyCombined2 = convert.intToBuffer(adaptorPkCombined2.affineX);
-            const adaptorPkCombined3 = muSig.pubKeyCombine([Buffer.from(alicePub, "hex"), Buffer.from(adaptorPub3, "hex")]);
+            const adaptorPkCombined3 = muSig.pubKeyCombine([Buffer.from((0, exports.p2pktr)(alicePub).address === txFeeAlice[0].address ? alicePub : bobPub, "hex"), Buffer.from(adaptorPub3, "hex")]);
             const adaptorPubKeyCombined3 = convert.intToBuffer(adaptorPkCombined3.affineX);
             const script_HTLCOpt = session && session.hashLock1 ? ` OP_HASH256 ${session.hashLock1} OP_EQUALVERIFY OP_HASH256 ${session.hashLock2} OP_EQUALVERIFY` : '';
             const script_asm1 = `${adaptorPubKeyCombined1.toString("hex")} OP_CHECKSIGVERIFY ${adaptorPubKeyCombined2.toString("hex")} OP_CHECKSIGVERIFY` + script_HTLCOpt;
@@ -867,56 +870,57 @@ const txApi = () => {
                     });
                 });
             }
+            const partyPub = (0, exports.p2pktr)(alicePub).address === txFeeAlice[0].address ? alicePub : bobPub;
             if (quorumno == 1) {
                 if (session) {
-                    await psbt.signInputAsync(0, schnorrSignerMultiWeb(alicePub, adaptorPub, ["", oracleS]));
+                    await psbt.signInputAsync(0, schnorrSignerMultiWeb(partyPub, adaptorPub, ["", oracleS]));
                 }
                 else {
-                    await psbt.signInputAsync(0, schnorrSignerMulti(alicePub, adaptorPub, ["", oracleS]));
+                    await psbt.signInputAsync(0, schnorrSignerMulti(partyPub, adaptorPub, ["", oracleS]));
                 }
                 if (adaptorPub !== adaptorPub2) {
                     if (session) {
-                        await psbt.signInputAsync(0, schnorrSignerMultiWeb(alicePub, adaptorPub2, ["", oracleS2]));
+                        await psbt.signInputAsync(0, schnorrSignerMultiWeb(partyPub, adaptorPub2, ["", oracleS2]));
                     }
                     else {
-                        await psbt.signInputAsync(0, schnorrSignerMulti(alicePub, adaptorPub2, ["", oracleS2]));
+                        await psbt.signInputAsync(0, schnorrSignerMulti(partyPub, adaptorPub2, ["", oracleS2]));
                     }
                 }
             }
             if (quorumno == 2) {
                 if (session) {
-                    await psbt.signInputAsync(0, schnorrSignerMultiWeb(alicePub, adaptorPub, ["", oracleS]));
+                    await psbt.signInputAsync(0, schnorrSignerMultiWeb(partyPub, adaptorPub, ["", oracleS]));
                 }
                 else {
-                    await psbt.signInputAsync(0, schnorrSignerMulti(alicePub, adaptorPub, ["", oracleS]));
+                    await psbt.signInputAsync(0, schnorrSignerMulti(partyPub, adaptorPub, ["", oracleS]));
                 }
                 if (adaptorPub !== adaptorPub3) {
                     if (session) {
-                        await psbt.signInputAsync(0, schnorrSignerMultiWeb(alicePub, adaptorPub3, ["", oracleS3]));
+                        await psbt.signInputAsync(0, schnorrSignerMultiWeb(partyPub, adaptorPub3, ["", oracleS3]));
                     }
                     else {
-                        await psbt.signInputAsync(0, schnorrSignerMulti(alicePub, adaptorPub3, ["", oracleS3]));
+                        await psbt.signInputAsync(0, schnorrSignerMulti(partyPub, adaptorPub3, ["", oracleS3]));
                     }
                 }
             }
             if (quorumno == 3) {
                 if (session) {
-                    await psbt.signInputAsync(0, schnorrSignerMultiWeb(alicePub, adaptorPub2, ["", oracleS2]));
+                    await psbt.signInputAsync(0, schnorrSignerMultiWeb(partyPub, adaptorPub2, ["", oracleS2]));
                 }
                 else {
-                    await psbt.signInputAsync(0, schnorrSignerMulti(alicePub, adaptorPub2, ["", oracleS2]));
+                    await psbt.signInputAsync(0, schnorrSignerMulti(partyPub, adaptorPub2, ["", oracleS2]));
                 }
                 if (adaptorPub2 !== adaptorPub3) {
                     if (session) {
-                        await psbt.signInputAsync(0, schnorrSignerMultiWeb(alicePub, adaptorPub3, ["", oracleS3]));
+                        await psbt.signInputAsync(0, schnorrSignerMultiWeb(partyPub, adaptorPub3, ["", oracleS3]));
                     }
                     else {
-                        await psbt.signInputAsync(0, schnorrSignerMulti(alicePub, adaptorPub3, ["", oracleS3]));
+                        await psbt.signInputAsync(0, schnorrSignerMulti(partyPub, adaptorPub3, ["", oracleS3]));
                     }
                 }
             }
             if (txFeeAlice) {
-                await psbt.signInputAsync(1, schnorrSignerSingleWebSimple(alicePub));
+                await psbt.signInputAsync(1, schnorrSignerSingleWebSimple(partyPub));
             }
             if (session && session.hashLock1 && session.hashLock2) {
                 const customFinalizer = (_inputIndex, input) => {

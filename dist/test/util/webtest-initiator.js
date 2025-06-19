@@ -68,7 +68,7 @@ const dsl_1 = require("../../src-web/dsl");
     await window.matching.broadcastOffer(isComposite ? myCompositeOffer : myCustomOffer);
     setInterval(async () => {
         const orders = await window.matching.listOrders(100);
-        const txReady = orders.filter(o => o.status === "redeemed" && (o.bet[1] === 2053 || (isComposite && o.bet[1] === 3000))).length > (isComposite ? 1 : 0);
+        const txReady = orders.filter(o => (o.status === "outcome revealed" && o.bet[1] === 2053) || (o.status === "redeemed" && isComposite && o.bet[1] === 3000)).length > (isComposite ? 1 : 0);
         if (txReady) {
             console.error(await window.matching.listOrders(100));
             console.error("OK");

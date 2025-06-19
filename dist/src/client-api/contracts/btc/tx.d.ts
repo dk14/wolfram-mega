@@ -2,6 +2,7 @@ import * as bitcoin from "bitcoinjs-lib";
 export interface UTxO {
     txid: string;
     vout: number;
+    address?: string;
 }
 export interface Tx {
     txid: string;
