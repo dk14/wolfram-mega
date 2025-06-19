@@ -244,15 +244,19 @@ const remoteSigner = {
 };
 const webSigner = {
     muSigNonce1: async function (pub1, pub2, msg) {
+        console.error(window.user + "###SIGNING#1: " + msg);
         return multisigInteractive.muSigNonce1(pub1, pub2, Buffer.from(bs58_1.default.decode(await window.privateDB.get("secrets", pub1))).toString("hex").substring(2, 64 + 2), Buffer.from(msg, "hex"));
     },
     muSigCommitment2: async function (pub1, pub2, msg) {
+        console.error(window.user + "###SIGNING#2: " + msg);
         return multisigInteractive.muSigCommitment2(pub1, pub2, Buffer.from(bs58_1.default.decode(await window.privateDB.get("secrets", pub2))).toString("hex").substring(2, 64 + 2), Buffer.from(msg, "hex"));
     },
     sign1: async function (pub1, pub2, msg, input) {
+        console.error(window.user + "###SIGNING#3: " + msg);
         return multisigInteractive.sign1(pub1, pub2, input.commitment2, input.nonce2, Buffer.from(bs58_1.default.decode(await window.privateDB.get("secrets", pub1))).toString("hex").substring(2, 64 + 2), Buffer.from(msg, "hex"), input.sessionId1);
     },
     sign2: async function (pub1, pub2, msg, input) {
+        console.error(window.user + "###SIGNING#4: " + msg);
         return multisigInteractive.sign2(pub1, pub2, input.partSig1, input.combinedNonceParity, input.nonce1, input.commitment1, Buffer.from(bs58_1.default.decode(await window.privateDB.get("secrets", pub2))).toString("hex").substring(2, 64 + 2), Buffer.from(msg, "hex"), input.sessionId2);
     }
 };
