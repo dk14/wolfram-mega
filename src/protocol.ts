@@ -228,6 +228,7 @@ export interface Offer {
     transactionToBeCoSigned?: PartiallySignedTx 
     accept?: AcceptOffer //note for interactive sign: counterparty returns its commitment through this first time and party replies with its commitment; second time: party returns its nonce; third time ccounterparty returns nonce and partial sig
     finalize?: FinalizeOffer //here after final signature is put; txid is reported
+    failed?: string
     encryptedDetails?: string //to make matching private - can encrypt actual `Offer` here
     originatorId?: string //for matching
     originatorSig?: string //for matching - to check if u really originator

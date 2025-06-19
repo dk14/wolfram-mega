@@ -148,7 +148,7 @@ const genContractTx = async (inputs: Inputs, c: Commitment[], offer: OfferMsg, s
 
     const autoRefundWinner = ((o.content.dependantOrdersIds && o.content.dependantOrdersIds[0]) ? 0 : ((terms.partyCompositeCollateralAmount ?? terms.partyBetAmount) + (terms.counterpartyCompositeCollateralAmount ?? terms.counterpartyBetAmount) - terms.partyBetAmount - terms.counterpartyBetAmount))
 
-    const dlcPromise: Promise<DlcContract> = new Promise(async resolveDlc => {
+    const dlcPromise: Promise<DlcContract> = new Promise(async (resolveDlc, rejectDlc) => {
         const yesSessionUpdate: Promise<PublicSession> = new Promise(async resolveYes => {
             const noSessionUpdate: Promise<PublicSession> = new Promise(async resolveNo => {
                 const params: DlcParams = {
@@ -219,14 +219,25 @@ const genContractTx = async (inputs: Inputs, c: Commitment[], offer: OfferMsg, s
 
                 }
                 if (!offer.content.terms.dependsOn) {
-                    resolveDlc(await window.btc.generateDlcContract(params))
+                    try {
+                        resolveDlc(await window.btc.generateDlcContract(params))
+                    } catch (e) {
+                        rejectDlc(e)
+                    }
+                    
                 } else {
                     const adaptedParams: ChildDlcParams = {
                         ...params,
                         lockedTxId: stateTxId,
                         stateAmount: params.stateAmount!
                     }
-                    resolveDlc(await window.btc.generateChildDlcContract(adaptedParams))
+
+                    try {
+                        resolveDlc(await window.btc.generateChildDlcContract(adaptedParams))
+                    } catch (e) {
+                        rejectDlc(e)
+                    }
+                    
                 }
             })
             const no = await noSessionUpdate

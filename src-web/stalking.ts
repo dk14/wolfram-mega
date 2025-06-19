@@ -27,7 +27,7 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
     }
 
     const allOffers = (await window.storage.queryIssuedOffers({
-        where: async x => !ignore[x.pow.hash] && !(x.content.finalize && x.content.finalize.redemptionTx)}, pagedescriptor))
+        where: async x => !ignore[x.pow.hash] && !(x.content.finalize && x.content.finalize.redemptionTx) && !x.content.failed}, pagedescriptor))
 
     const allOffersGrouped: {[key: string]: OfferMsg[]} = Object.groupBy(allOffers, x => x.content.orderId)
 
@@ -300,8 +300,13 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
             ignore[orderPreviousState.pow.hash] = true
             window.storage.removeIssuedOffers([orderPreviousState.pow.hash])  
         } catch (err) {
-            window.storage.removeIssuedOffers([orderPreviousState.pow.hash])  
             console.error(err)
+            const failed = structuredClone(orderPreviousState)
+            failed.content.failed = err.msg
+            failed.pow.hash = failed.pow.hash + "-failed" + randomInt(100)
+            window.storage.removeIssuedOffers([orderPreviousState.pow.hash])  
+
+
         }   
     })
 

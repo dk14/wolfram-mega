@@ -1,6 +1,6 @@
 
 export type OfferStatus = 'matching' | 'accepted' | 'oracle committed' | 'signing' 
-| 'opening tx available' | 'tx submitted' | 'outcome revealed' | 'redeem tx available' | 'redeemed'
+| 'opening tx available' | 'tx submitted' | 'outcome revealed' | 'redeem tx available' | 'redeemed' | 'failed'
 
 
 type Answer = string

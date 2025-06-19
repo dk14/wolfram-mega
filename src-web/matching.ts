@@ -17,6 +17,9 @@ export const randomInt = (n: number): number => {
 }
 
 const detectStatus = async (o: Offer, cp: OracleCapability, provider: OracleDataProvider): Promise<OfferStatus> => {
+    if (o.failed) {
+        return 'failed'
+    }
     if (o.accept) {
         const commitment = await provider.getCommitment(cp.endpoint, o.terms.question)
         if (commitment) { //todo: linearize
@@ -506,7 +509,7 @@ export const matchingEngine: MatchingEngine = {
         }, pagedescriptor))[0];
 
         const status = await detectStatus(progressed.content, cp, dataProvider);
-        if (status === 'matching' || status === 'redeem tx available' || status === 'tx submitted') {
+        if (status === 'matching' || status === 'redeem tx available' || status === 'tx submitted' || status === 'failed') {
             const others = (await window.storage.queryIssuedOffers({
                 where: async (x) => x.content.orderId && x.content.orderId === progressed.content.orderId
             }, pagedescriptor));
