@@ -354,6 +354,9 @@ const txApi = () => {
         },
         genOpeningTx: async (aliceIn, bobIn, alicePub, bobPub, aliceAmounts, bobAmounts, changeAlice, changeBob, txfee, session = null) => {
             const psbt = new bitcoin.Psbt({ network: net });
+            psbt.setLocktime(0);
+            psbt.setVersion(2);
+            psbt.setMaximumFeeRate(100000);
             const aliceP2TR = (0, exports.p2pktr)(alicePub);
             const bobP2TR = (0, exports.p2pktr)(bobPub);
             console.log("alice_addr = " + aliceP2TR.address);
@@ -395,6 +398,12 @@ const txApi = () => {
                 });
             }
             for (let i = 0; i < aliceIn.length; i++) {
+                psbt.setInputSequence(i, 4294967295);
+            }
+            for (let i = 0; i < bobIn.length; i++) {
+                psbt.setInputSequence(aliceIn.length + i, 4294967295);
+            }
+            for (let i = 0; i < aliceIn.length; i++) {
                 if (session === null) {
                     await psbt.signInputAsync(i, schnorrSignerSingle(alicePub));
                 }
@@ -407,7 +416,13 @@ const txApi = () => {
                             await psbt.signInputAsync(i, schnorrSignerSingle(alicePub, session, i));
                         }
                     }
-                    catch {
+                    catch (e) {
+                        if (e === "incomplete sign") {
+                            return undefined;
+                        }
+                        else {
+                            throw e;
+                        }
                     }
                 }
             }
@@ -424,7 +439,13 @@ const txApi = () => {
                             await psbt.signInputAsync(aliceIn.length + i, schnorrSignerSingle(bobPub, session, aliceIn.length + i));
                         }
                     }
-                    catch {
+                    catch (e) {
+                        if (e === "incomplete sign") {
+                            return undefined;
+                        }
+                        else {
+                            throw e;
+                        }
                     }
                 }
             }
