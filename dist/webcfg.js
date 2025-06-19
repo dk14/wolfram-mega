@@ -77,12 +77,12 @@ exports.cfg = {
         "wsPort": 9081
     },
     "trader": {
-        "broadcastOfferCycle": 5000,
+        "broadcastOfferCycle": 10000,
         "broadcastReportCycle": 1000,
-        "collectOffersCycle": 100,
-        "collectReportsCycle": 100,
-        "collectOracleAdsCycle": 100,
-        "collectOracleCpCycle": 100,
+        "collectOffersCycle": 7000,
+        "collectReportsCycle": 5000,
+        "collectOracleAdsCycle": 1000,
+        "collectOracleCpCycle": 1000,
         "pageSize": 100,
         "maxOraclesPages": 2,
         "maxCpPages": 2,
