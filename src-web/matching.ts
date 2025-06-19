@@ -1,15 +1,16 @@
 import { off } from "process";
 import { TraderApi } from "../src/client-api/trader-api"
-import { AcceptOffer, DependsOn, FactRequest, HashCashPow, Offer, OfferMsg, OfferTerms, OracleCapability, OracleId, PagingDescriptor, PartiallySignedTx } from "../src/protocol"
+import { AcceptOffer, DependsOn, FactRequest, HashCashPow, MaleabilityReport, Offer, OfferMsg, OfferTerms, OracleCapability, OracleId, PagingDescriptor, PartiallySignedTx, Report } from "../src/protocol"
 import { BtcApi } from "../webapp"
 import { OracleDataProvider, dataProvider, webOracle } from "./oracle-data-provider";
 import { clearDb, TraderQuery } from "./impl/storage";
 import { evaluateCounterPartyCollateral, evaluatePartyCollateral } from "./dsl";
-import { MatchingEngine, OfferModel, OfferStatus, PreferenceModel } from "./models";
+import { OfferModel, OfferStatus, PreferenceModel } from "./models";
 import { generateSimpleTransaction, SimpleParams } from "../src/client-api/contracts/generate-btc-tx";
 import { getSimpleUtXo } from "./transactions";
 import { p2pktr } from "../src/client-api/contracts/btc/tx";
 import { pub1, pub2, pubRandom } from "../webcfg";
+import { MatchingEngine } from "./matching-api";
 
 export const randomInt = (n: number): number => {
     return Math.floor(Math.random() * n);
@@ -170,8 +171,8 @@ export const matchingEngine: MatchingEngine = {
             status: "matching",
             role: 'acceptor'
         };
-        model["msg"] = offer
-        model.oracles[0]["msg"] = capability
+        model["msg"] = offer;
+        model.oracles[0]["msg"] = capability;
         return model;
     },
     generateOffer: async function (cfg: PreferenceModel): Promise<OfferModel> {
@@ -203,7 +204,7 @@ export const matchingEngine: MatchingEngine = {
             role: 'initiator'
         };
 
-        model.oracles[0]["msg"] = cp
+        model.oracles[0]["msg"] = cp;
 
         return model;
     },
@@ -452,8 +453,8 @@ export const matchingEngine: MatchingEngine = {
                 role: "initiator",
                 orderId: o.content.orderId
             };
-            model["msg"] = o
-            model.oracles[0]["msg"] = cp
+            model["msg"] = o;
+            model.oracles[0]["msg"] = cp;
             return model;
         }));
 
@@ -473,8 +474,8 @@ export const matchingEngine: MatchingEngine = {
                 role: "acceptor",
                 orderId: o.content.orderId
             };
-            model["msg"] = o
-            model.oracles[0]["msg"] = cp
+            model["msg"] = o;
+            model.oracles[0]["msg"] = cp;
             return model;
         }));
 
@@ -522,21 +523,41 @@ export const matchingEngine: MatchingEngine = {
         return await generateSimpleTransaction(params);
     },
     saveProfile: async function (cfg: PreferenceModel): Promise<void> {
-       await window.profiledb.put("profile", cfg, window.user)
+        await window.profiledb.put("profile", cfg, window.user);
     },
     loadProfile: async function (): Promise<PreferenceModel> {
-        const profile = await window.profiledb.get("preferences", window.user)
+        const profile = await window.profiledb.get("preferences", window.user);
         if (profile) {
-            return profile
+            return profile;
         } else {
             const profile: PreferenceModel = {
                 minOracleRank: 0,
                 tags: ["world", "sports"],
                 txfee: 2000
-            }
-            await window.profiledb.put("preferences", profile, window.user)
-            return profile
+            };
+            await window.profiledb.put("preferences", profile, window.user);
+            return profile;
         }
+    },
+    fetchRelatedReports: async function (o: OfferModel, limit: number): Promise<Report[]> {
+        const pagedescriptor = {
+            page: 0,
+            chunkSize: limit
+        };
+        const reports = window.storage.queryReports({
+            where: async (r: Report) => r.content.request.capabilityPubKey === o.oracles[0].capabilityPub
+        }, pagedescriptor)
+        return reports
+    },
+    fetchRelatedIssuedReports: async function (o: OfferModel, limit: number): Promise<Report[]> {
+        const pagedescriptor = {
+            page: 0,
+            chunkSize: limit
+        };
+        const reports = window.storage.queryReports({
+            where: async (r: Report) => r.content.request.capabilityPubKey === o.oracles[0].capabilityPub
+        }, pagedescriptor)
+        return reports
     }
 }
 

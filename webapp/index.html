@@ -55,17 +55,22 @@ Address: <font color="blue" id="wallet-address">................................
                 <div id="terms"></div>
             </div>
             <hr>
-            <div class="offer-info-group"></div>
+            <div class="offer-info-group">
                 <pre color="green">Preview: </pre>
-                <div "offer-tree-container">
-
+                <div id="offer-tree-container">
                     <json-viewer id="offer-tree"></json-viewer>
                 </div>
-                 <button id="delete-offer" class="action-button" onclick="">Delete Collected Offer</button>
-                 <button id="delete-cp" class="action-button" onclick="">Delete Collected Capability</button>
-                <hr>
-            </div>
+                <button id="delete-offer" class="action-button" onclick="">Delete Collected Offer</button>
+                <button id="delete-cp" class="action-button" onclick="">Delete Collected Capability</button>
+            </div> 
             <hr>
+            <div class="offer-info-group"></div>
+                <pre color="green">Reports against oracle: </pre>
+                <div id="report-tree-container">
+                    <json-viewer id="report-tree"></json-viewer>
+                </div>
+            </div>
+
         </div>
         <div id="panel" class="panel menu">
             <div onclick="switchTab('contracts')">
@@ -123,18 +128,14 @@ Address: <font color="blue" id="wallet-address">................................
         <script type="module">
 
             import {loadModule} from 'https://klesun.github.io/ts-browser/src/ts-browser.js';
-            // language=file-reference
-
-            console.log("Hello")
             
             const entryScriptPath = './index.ts';
+
             loadModule(entryScriptPath, {
                 "allowJs": true,
                 js: 2, // ts.JsxEmit.React
             });
-
-       
-            
+  
         </script>
 
 
