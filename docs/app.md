@@ -1,8 +1,8 @@
-# Mega-App (WIP)
+# Mega-App
 
 Mobile trading web-app for BTC test-net.
 
-**Work-In-Progress**
+**Proof-Of-Concept**
 
 ## Live preview
 
@@ -18,7 +18,11 @@ Mobile trading web-app for BTC test-net.
 </div>
 
 
-> Serverless app. P2P-network relies on WebRTC here.
+> Serverless app. P2P-network relies on WebRTC here, start-up time is peer-discovery.
+
+> Since offer negotiation relies on Mega-p2p and database is not optimized, the app tx-negotiates matched offers slowly - it is a 10 seconds cycle, betweeen updates. Takes like minute or two to negotiate all transactions (incl.querying mock-up oracle). No webworkers so UI gets sluggish during post-matching tx-negotitation.
+
+> The app does not submit tx-es automatically - they can be found in offer-view (`msg`) and submitted manually.
 
 ## Install
 
