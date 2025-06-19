@@ -27,7 +27,7 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
     }
 
     const allOffers = (await window.storage.queryIssuedOffers({
-        where: async x => !ignore[x.pow.hash]}, pagedescriptor))
+        where: async x => !ignore[x.pow.hash] && !(x.content.finalize && x.content.finalize.redemptionTx)}, pagedescriptor))
 
     const allOffersGrouped: {[key: string]: OfferMsg[]} = Object.groupBy(allOffers, x => x.content.orderId)
 
