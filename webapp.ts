@@ -14,7 +14,7 @@ import { dataProvider } from './src-web/oracle-data-provider';
 import { btcDlcContractInterpreter, UTxO } from './src-web/transactions';
 import Sandbox from '@nyariv/sandboxjs';
 import { Dsl } from './src-web/dsl';
-import { MatchingEngine } from './src-web/models';
+import { MatchingEngine } from './src-web/matching-api';
 
 export interface BtcApi {
     generateDlcContract:(params: btc.DlcParams) => Promise<btc.DlcContract>

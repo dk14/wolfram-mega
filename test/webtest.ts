@@ -4,7 +4,7 @@ configure
 
 
 import { btcDlcContractInterpreter } from "../src-web/transactions";
-import { PreferenceModel, CapabilityModel, OfferModel, MatchingEngine } from "../src-web/models";
+import { PreferenceModel, CapabilityModel, OfferModel } from "../src-web/models";
 import { dataProvider } from "../src-web/oracle-data-provider";
 import assert from "assert";
 import { startP2P } from "../src/p2p";
