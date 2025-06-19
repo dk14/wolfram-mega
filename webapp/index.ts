@@ -163,7 +163,7 @@ const initWebapp = new Promise(resolve => {
 
     setTimeout(() => {
         window.matching.collectOffers(window.model.profile)                  
-        setInterval(() => window.progressOffers(), 1000)
+        setInterval(() => window.progressOffers(), 5000)
         window.matching.collectQuestions(window.model.profile)    
     }, 4000)
 
