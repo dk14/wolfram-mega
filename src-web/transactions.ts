@@ -275,7 +275,7 @@ export const btcDlcContractInterpreter: ContractInterpreter = {
         const yesOutcome = terms.partyBetsOn[0]
         const noOutcome = terms.counterPartyBetsOn[0]
 
-        const p: CetRedemptionParams = { //TODO refunds
+        const p: CetRedemptionParams = { //TODO refunds of txfee
             cetTxId: lockingTxId.txid,
             oraclePub: c[0].req.capabilityPubKey,
             oraclePub2: c[1]?.req.capabilityPubKey,
