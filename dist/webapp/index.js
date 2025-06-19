@@ -119,15 +119,16 @@ var initWebapp = new Promise((resolve) => {
     document.getElementById("txfee").valueAsNumber = window.model.profile.txfee;
     document.getElementById(`tag-world`).remove();
     document.getElementById(`tag-sports`).remove();
+    profile.tags = [...new Set(profile.tags)];
     profile.tags.forEach((tag) => {
       const btn = document.createElement("button");
       btn.className = "tag-button";
       btn.id = `tag-${tag}`;
       btn.innerText = tag;
-      window.model.profile.tags.push(tag);
       btn.onclick = () => {
         window.removeInterest(tag);
       };
+      document.getElementById("tags").appendChild(btn);
     });
   }, 1e3);
   try {
@@ -176,8 +177,16 @@ var initWebapp = new Promise((resolve) => {
     document.getElementById(`tag-${tag}`).remove();
     window.matching.saveProfile(window.model.profile);
   };
+  document.getElementById("interest").addEventListener("keypress", function(event) {
+    if (event.key === "Enter") {
+      document.getElementById("add-interest-button").click();
+    }
+  });
   document.getElementById("add-interest-button").onclick = () => {
     const tag = document.getElementById("interest").value;
+    if (window.model.profile.tags.find((x) => x === tag)) {
+      return;
+    }
     const btn = document.createElement("button");
     btn.className = "tag-button";
     btn.id = `tag-${tag}`;
