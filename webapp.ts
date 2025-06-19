@@ -163,9 +163,6 @@ const initWebapp = new Promise<void>(async (resolve) => {
 
     if (!global.isTest && !window.test) {
         startP2P(global.cfg, await browserPeerAPI())
-        setInterval(() => window.stalking.trackIssuedOffers({
-            "bitcoin-testnet": btcDlcContractInterpreter
-        }, dataProvider), 200)
     }
 
     console.log("WebAPI is ready!")

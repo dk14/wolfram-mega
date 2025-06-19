@@ -126,9 +126,6 @@ const initWebapp = new Promise(async (resolve) => {
     window.pool = api_1.api;
     if (!global.isTest && !window.test) {
         (0, p2p_1.startP2P)(global.cfg, await (0, p2p_webrtc_1.browserPeerAPI)());
-        setInterval(() => window.stalking.trackIssuedOffers({
-            "bitcoin-testnet": transactions_1.btcDlcContractInterpreter
-        }, oracle_data_provider_1.dataProvider), 200);
     }
     console.log("WebAPI is ready!");
     resolve();
