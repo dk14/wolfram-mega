@@ -123,7 +123,7 @@ const getUtXo = async (offer: OfferMsg): Promise<Inputs> => {
     
             utxoBob: offer.content.utxos[1] ? 
                 offer.content.utxos[1].map(x => {return {txid: x[0], vout: x[1]}})
-                : getMultipleUtxo(bobUtxos, terms.counterpartyBetAmount  + terms.txfee / 2)
+                : getMultipleUtxo(bobUtxos, terms.counterpartyBetAmount  + terms.txfee / 2) // txfee/2 - what if txfee is odd
         }
     } else {
         return {
