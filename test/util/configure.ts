@@ -2,9 +2,17 @@ import "fake-indexeddb/auto";
 import fs from "fs"
 global.isTest = true
 
+const path = require('path');
+const { pathToFileURL } = require('url');
+
+// Get the current working directory as a string
+
+// Convert the path to a file URL
+const currentDirectoryUrl = pathToFileURL(__dirname);
+
 import { JSDOM } from 'jsdom';
 
-const baseUrl = 'https://dk14.github.io/wolfram-mega/webapp/';
+const baseUrl = currentDirectoryUrl + "webapp";
 const queryParams = {
   user: 'alice'
 };

@@ -12,7 +12,7 @@
     <body style="background-color:black;">
 
         <pre class="wallet">
-            <div>Balance: <font color="cyan" id="wallet-balance">0,000 sat</font>
+            <div>Balance: <font color="cyan" id="wallet-balance">..... sat</font>
 Address: <font color="blue" id="wallet-address">.................................</font> <img src="./assets/copy.svg" class="copy-button" onclick="window.copyAddressToBuffer()"></div></pre>
 
         <div id="matching"class="scrollable" ><p id="loading" style="color: #00FF00; font-size: 24px; font-family: monospace">Loading...</p></div>
@@ -110,7 +110,33 @@ Address: <font color="blue" id="wallet-address">................................
 
         <script src="../mega-peers.min.js" type="module"></script>
         <script src="https://unpkg.com/darkreader@4.9.105/darkreader.js"></script>      
-        <script src="./index.js">
+        
+
+        <script>
+            //for JSDOM
+            if (navigator.userAgent.includes("Node.js") || navigator.userAgent.includes("jsdom")) {
+                const scriptTag = document.createElement('script');
+                scriptTag.src = "../dist/webapp/index.js";
+                document.body.appendChild(scriptTag);
+            }
         </script>
+        <script type="module">
+
+            import {loadModule} from 'https://klesun.github.io/ts-browser/src/ts-browser.js';
+            // language=file-reference
+
+            console.log("Hello")
+            
+            const entryScriptPath = './index.ts';
+            loadModule(entryScriptPath, {
+                "allowJs": true,
+                js: 2, // ts.JsxEmit.React
+            });
+
+       
+            
+        </script>
+
+
     </body>
 </html>

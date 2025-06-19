@@ -1,3 +1,29 @@
+
+import { OfferModel, PreferenceModel } from '../src-web/models';
+
+declare global {
+    interface Window {
+        offersFound: number
+        highlightOrders: string
+        model: {
+            profile: PreferenceModel,
+            offers: OfferModel[],
+            contracts: OfferModel[]
+        },
+        pickOrGenerateOffer: (pick: boolean) => Promise<OfferModel>
+        removeInterest: (tag: string) => void
+        createOfferInfo: (offer: OfferModel, isTentative: boolean, isFullInfo?: boolean) => HTMLElement
+        renderOfferDetails: (offer: OfferModel) => void
+        renderOfferPreview: (where: HTMLElement, offer: OfferModel, append: boolean) => HTMLElement
+        renderContractPreview: (where: HTMLElement, contract: OfferModel) =>  void
+
+        copyAddressToBuffer: () => void
+        switchTab: (tab: string) => void
+
+        DarkReader: any
+    }
+}
+
 try {
     const container = document.getElementById("offer-tree-container")
 
@@ -28,11 +54,12 @@ const defaultClr = "gray"
 const accentColor = "yellow" 
 window.highlightOrders = "cyan"  
 
-    const conf = {
+const conf = {
     brightness: 80,
     contrast: 200,
     sepia: 80
 }
+
 
 const recolor = () => {
     try {
@@ -42,7 +69,7 @@ const recolor = () => {
         document.getElementById("contracts_svg")) {
 
             
-            DarkReader.setFetchMethod(window.fetch)
+            window.DarkReader.setFetchMethod(window.fetch)
 
             document.getElementById("contracts_svg").setAttribute("fill", defaultClr)
             document.getElementById("matching_svg").setAttribute("fill", accentColor)
@@ -54,7 +81,7 @@ const recolor = () => {
             document.getElementById("profile_svg").setAttribute("fill", defaultClr)
                 
             
-            DarkReader.enable(conf);
+            window.DarkReader.enable(conf);
             //clearInterval(color)
         }
 
@@ -74,7 +101,7 @@ document.getElementById("matching_svg").addEventListener("load", () => {
     document.getElementById("matching_svg").setAttribute("fill", "brown")
 })
             
-const switchTab = (tabname) => {
+window.switchTab = (tabname) => {
     document.getElementById("matching").style.display = "none"
     document.getElementById("contracts").style.display = "none"
     document.getElementById("profile").style.display = "none"
@@ -98,10 +125,10 @@ const switchTab = (tabname) => {
 
 //await on original init does not work; browser bug
 const initWebapp = new Promise(resolve => { 
-    cancel = setInterval(() => {
+    const cancel = setInterval(() => {
         if (window.pool && window.matching && window.matching.loadProfile) {
             clearInterval(cancel)
-            resolve()
+            resolve(null)
         }
     }, 100)
 });
@@ -112,9 +139,9 @@ const initWebapp = new Promise(resolve => {
     await initWebapp 
 
     setTimeout(() => {
-        window.matching.collectOffers(model.profile)                  
+        window.matching.collectOffers(window.model.profile)                  
         setInterval(() => window.progressOffers(), 3000)
-        window.matching.collectQuestions(model.profile)    
+        window.matching.collectQuestions(window.model.profile)    
     }, 4000)
 
 
@@ -140,7 +167,7 @@ const initWebapp = new Promise(resolve => {
     
     try {
         document.getElementById("oracle-strength").onchange = () => {
-            window.model.profile.minOracleRank = document.getElementById("oracle-strength").value
+            window.model.profile.minOracleRank = (document.getElementById("oracle-strength") as HTMLInputElement).valueAsNumber
             document.getElementById("ranktext").innerText = "" + window.model.profile.minOracleRank
         }
     } catch (e) {
@@ -149,37 +176,37 @@ const initWebapp = new Promise(resolve => {
 
     try {
         document.getElementById("txfee").onchange = () => {
-            window.model.profile.txfee = document.getElementById("txfee").value   
+            window.model.profile.txfee = (document.getElementById("txfee") as HTMLInputElement).valueAsNumber   
         }
     } catch (e) {
         console.error(e)
     }
 
-    document.getElementById("send-funds-button").onclick = () => {
-        const amount = document.getElementById("send-funds-amount").value
-        const address = document.getElementById("send-funds-address").value
-        const tx = matching.takeWinnings(amount, address, window.model.profile.txfee)
-        navigator.clipboard.writeText(tx)
+    document.getElementById("send-funds-button").onclick = async () => {
+        const amount = (document.getElementById("send-funds-amount") as HTMLInputElement).valueAsNumber
+        const address = (document.getElementById("send-funds-amount") as HTMLInputElement).value
+        const tx = window.matching.takeWinnings(amount, address, window.model.profile.txfee)
+        navigator.clipboard.writeText(await tx)
         alert("Copied TxBody To Clipboard!")
     }
 
-    window.pickOrGenerateOffer = async (pick) => {
+    window.pickOrGenerateOffer = async (pick: boolean) => {
         if (pick) {
             try {
-                return await window.matching.pickOffer(model.profile)
+                return await window.matching.pickOffer(window.model.profile)
             } catch (e) {
                 console.error(e)
-                return await window.matching.generateOffer(model.profile)
+                return await window.matching.generateOffer(window.model.profile)
             }
             
         } else {
-            return await window.matching.generateOffer(model.profile)
+            return await window.matching.generateOffer(window.model.profile)
         }
     }
 
     window.document.dispatchEvent(new Event('init-offer-controller'));
 
-    window.removeInterest = (tag) => {
+    window.removeInterest = (tag: string) => {
         window.model.profile.tags = window.model.profile.tags.filter(x => x != tag)
         document.getElementById(`tag-${tag}`).remove()
     }
@@ -187,20 +214,20 @@ const initWebapp = new Promise(resolve => {
 
 
     document.getElementById("add-interest-button").onclick = () => {
-        const tag = document.getElementById("interest").value
+        const tag = (document.getElementById("interest") as HTMLInputElement).value
         const btn = document.createElement("button")
         btn.className="tag-button"
         btn.id = `tag-${tag}`
         btn.innerText = tag;
         window.model.profile.tags.push(tag)
         btn.onclick = () => {
-            removeInterest(tag)
+            window.removeInterest(tag)
         }
         document.getElementById("tags").appendChild(btn)
 
     }
 
-    window.createOfferInfo = (offer, isTentative = false) => {
+    window.createOfferInfo = (offer, isTentative = false, isFullInfo = false) => {
         const offerInfo = document.createElement("div")
         function chunkString(sStr, iLen) {
             return [...sStr].reduce((aChunks, sChar, iIdx) => ( 
@@ -237,7 +264,7 @@ const initWebapp = new Promise(resolve => {
             const offerStatus = document.createElement("pre")
             offerStatus.innerHTML = `<font color="white">${rename(offer.status)}</font>`
             offerInfo.appendChild(offerStatus)
-            if (offer.role === "acceptor" && !offer.patyBetsOn || offer.role === "originator" && offer.patyBetsOn) {
+            if (offer.role === "acceptor" && !offer.betOn || offer.role === "initiator" && offer.betOn) {
                 offerBet.innerHTML = `<font color = "grene">[u bet ${offer.bet[0]} sat on YES]:${offer.bet[1]}</font>`
             } else {
                 offerBet.innerHTML = `<font color = "grene">${offer.bet[0]}:[u bet ${offer.bet[1]} sat on NO]</font>`
@@ -249,15 +276,12 @@ const initWebapp = new Promise(resolve => {
         return offerInfo
     }
 
-    window.renderOfferPreview = (where, offer, append = true) => {
+    window.renderOfferPreview = (where: HTMLElement, offer: OfferModel, append = true) => {
         const downArrowSvg = document.createElement("img")
         downArrowSvg.src = "./assets/down.svg"
         downArrowSvg.className = "offer-button"
         downArrowSvg.onclick = () => {
-            renderOfferDetails(offer)
-
-
-
+            window.renderOfferDetails(offer)
         }
 
 
@@ -266,7 +290,7 @@ const initWebapp = new Promise(resolve => {
         yesSvg.className = "offer-button"
         yesSvg.onclick = () => {
             let confirmed = undefined
-            if (document.getElementById("confirm_orders").checked) {
+            if ((document.getElementById("confirm_orders") as HTMLInputElement).checked) {
                 confirmed = confirm("Bet " + offer.bet[1] + " sat against '" + offer.question + "'")
             } else {
                 confirmed = true
@@ -292,7 +316,7 @@ const initWebapp = new Promise(resolve => {
         noSvg.className = "offer-button"
         noSvg.onclick = () => {
             let confirmed = undefined
-            if (document.getElementById("confirm_orders").checked) {
+            if ((document.getElementById("confirm_orders") as HTMLInputElement).checked) {
                 confirmed = confirm("Bet " + offer.bet[1] + " sat against '" + offer.question + "'")
             } else {
                 confirmed = true
@@ -315,7 +339,7 @@ const initWebapp = new Promise(resolve => {
         updateSvg.src = "./assets/cycle.svg"
         updateSvg.className = "offer-button"
         
-        const offerInfo = createOfferInfo(offer, true)
+        const offerInfo = window.createOfferInfo(offer, true)
         offerInfo.className = "offer-info"
         
 
@@ -340,8 +364,8 @@ const initWebapp = new Promise(resolve => {
 
         
         updateSvg.onclick = async () => {
-            const newOffer = await pickOrGenerateOffer(Math.random() < 0.5)
-            const panel2 = renderOfferPreview(where, newOffer, false)
+            const newOffer = await window.pickOrGenerateOffer(Math.random() < 0.5)
+            const panel2 = window.renderOfferPreview(where, newOffer, false)
             where.replaceChild(panel2, panel)
         }
         
@@ -357,16 +381,15 @@ const initWebapp = new Promise(resolve => {
     window.offersFound = 0
 
     const camcel = setInterval(async () => {
-        if (offersFound >= maxMatching - 1) {
+        if (window.offersFound >= maxMatching - 1) {
             clearInterval(camcel)
         }
         try {
-            const offer = await window.matching.generateOffer(model.profile)
-            offersFound++
+            const offer = await window.matching.generateOffer(window.model.profile)
+            window.offersFound++
             window.model.offers.push(offer)
-            renderOfferPreview(document.getElementById("matching"), offer)
+            window.renderOfferPreview(document.getElementById("matching"), offer, true)
             document.getElementById("loading").innerText = ""
-            
         } catch {
 
         }
@@ -393,8 +416,7 @@ const initWebapp = new Promise(resolve => {
 
             } catch {
                 const balance = "0,000 sat"
-                document.getElementById("wallet-balance").innerText = balance + user
-
+                document.getElementById("wallet-balance").innerText = balance + window.user
             }
             document.getElementById("wallet-address").innerText = address
         } catch {
@@ -403,14 +425,14 @@ const initWebapp = new Promise(resolve => {
     }, 1000)
     
     window.renderOfferDetails = (offer) => {
-        switchTab("offer")
-        const offerInfo = createOfferInfo(offer)
+        window.switchTab("offer")
+        const offerInfo = window.createOfferInfo(offer, false)
         offerInfo.className = "offer-info"
         const terms = document.getElementById("terms")
         terms.innerHTML = ""
         terms.appendChild(offerInfo)
         const tree = document.getElementById("offer-tree")
-        tree.data = offer
+        tree["data"] = offer
         document.getElementById("delete-offer").onclick = () => {
             window.storage.removeOffers([offer.id])
         }
@@ -419,12 +441,12 @@ const initWebapp = new Promise(resolve => {
         }
     }
 
-    window.renderContractPreview = (where, contract) => {
+    window.renderContractPreview = (where: HTMLElement, contract: OfferModel) => {
         const downArrowSvg = document.createElement("img")
         downArrowSvg.src = "./assets/down.svg"
         downArrowSvg.className = "offer-button"
         downArrowSvg.onclick = () => {
-            renderOfferDetails(contract)
+            window.renderOfferDetails(contract)
         }
 
         const removeSvg = document.createElement("img")
@@ -434,7 +456,7 @@ const initWebapp = new Promise(resolve => {
             window.matching.removeOrder(contract.id)
         }
 
-        const offerInfo = createOfferInfo(contract)
+        const offerInfo = window.createOfferInfo(contract, false)
         offerInfo.className = "contract-info"
         const panel = document.createElement("div")
         panel.className = "panel wide-panel"
@@ -450,32 +472,44 @@ const initWebapp = new Promise(resolve => {
 
     
 
-    model.contracts.forEach(contract => {
-        renderContractPreview(document.getElementById("contracts"), contract)
+    window.model.contracts.forEach(contract => {
+        window.renderContractPreview(document.getElementById("contracts"), contract)
     })
 
     setInterval(async () => {
         try {
         
             const orders = await window.matching.listOrders(20)
-            if (JSON.stringify(orders) === JSON.stringify(model.contracts)) {
+            const odersCensored = orders.map(o => {
+                const copy = structuredClone(o)
+                o["msg"] = undefined
+                o.oracles[0]["msg"]
+            })
+
+            const contractsCensored = window.model.contracts.map(o => {
+                const copy = structuredClone(o)
+                o["msg"] = undefined
+                o.oracles[0]["msg"]
+            })
+
+            if (JSON.stringify(odersCensored) === JSON.stringify(contractsCensored)) {
                 return
             }
 
             document.getElementById("contracts").innerHTML = "";
-            model.contracts = orders
+            window.model.contracts = orders
             orders.forEach(contract => {
-                renderContractPreview(document.getElementById("contracts"), contract)
+                window.renderContractPreview(document.getElementById("contracts"), contract)
             })
 
-            if (model.contracts.length > 0) {
+            if (window.model.contracts.length > 0) {
                 try {
                     let i = 0
                     const before = document.getElementById("contracts_svg").getAttribute("fill")
                     const beforeFilter = document.getElementById("contracts_svg").style.filter = document.getElementById("contracts_svg").style.filter
                     const blink = setInterval(() => {
                         i++
-                        document.getElementById("contracts_svg").setAttribute("fill", i % 2 == 0? before : highlightOrders)
+                        document.getElementById("contracts_svg").setAttribute("fill", i % 2 == 0? before : window.highlightOrders)
                         document.getElementById("contracts_svg").style.filter = i % 2 == 0?  "brightness(1.5)" : "brightness(1.5)"
                         if (i > 5) {
                             document.getElementById("contracts_svg").style.filter = beforeFilter
