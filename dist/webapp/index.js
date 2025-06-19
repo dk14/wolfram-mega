@@ -93,7 +93,7 @@ var initWebapp = new Promise((resolve) => {
   await initWebapp;
   setTimeout(() => {
     window.matching.collectOffers(window.model.profile);
-    setInterval(() => window.progressOffers(), 5e3);
+    setInterval(() => window.progressOffers(), 1e3);
     window.matching.collectQuestions(window.model.profile);
   }, 4e3);
   setInterval(() => {
