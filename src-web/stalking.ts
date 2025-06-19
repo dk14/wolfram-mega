@@ -304,7 +304,8 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
             const failed = structuredClone(orderPreviousState)
             failed.content.failed = err.msg
             failed.pow.hash = failed.pow.hash + "-failed" + randomInt(100)
-            window.storage.removeIssuedOffers([orderPreviousState.pow.hash])  
+            await window.traderApi.issueOffer(failed)
+            await window.storage.removeIssuedOffers([orderPreviousState.pow.hash])  
 
 
         }   
