@@ -112,6 +112,10 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
 
             //TODO ORDER MALLEABILITY: validate new state of the order (trader's signature over original terms without accept/finalize)
 
+            if (order.content.failed) {
+                throw new Error(order.content.failed)
+            }
+
             console.error("STALKER: FOUND " + order.pow.hash + " <= " + orderPreviousState.pow.hash)
 
             const interpreter = interpreters[order.content.blockchain]
