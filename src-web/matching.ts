@@ -61,7 +61,8 @@ const statusRank = (status: OfferStatus): number => {
         'tx submitted' : 6,
         'outcome revealed': 7,
         'redeem tx available' : 8,
-        'redeemed' : 9
+        'redeemed' : 9,
+        'failed' : 100
     }
     return map[status]
 }
