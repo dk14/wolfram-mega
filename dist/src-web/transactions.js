@@ -37,6 +37,7 @@ const getSimpleUtXo = async (amount, addressIn, txfee, lockname) => {
     res.forEach(utxo => {
         utxo['address'] = addressIn;
     });
+    res.sort();
     spentUtxos = spentUtxos.concat(res);
     spentUtxosMemoize[lockname + addressIn] = res;
     return res;
