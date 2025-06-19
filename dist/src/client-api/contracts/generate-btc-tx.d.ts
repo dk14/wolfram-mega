@@ -96,8 +96,8 @@ export interface DlcParams {
     rValue: Hex;
     rValue2?: Hex;
     rValue3?: Hex;
-    alicePub: (o: string) => PubKey;
-    bobPub: (o: string) => PubKey;
+    alicePub: PubKey;
+    bobPub: PubKey;
     changeAlice: number;
     changeBob: number;
     txfee: number;
@@ -119,8 +119,8 @@ export interface ChildDlcParams {
     rValue: Hex;
     rValue2?: Hex;
     rValue3?: Hex;
-    alicePub: (o: string) => PubKey;
-    bobPub: (o: string) => PubKey;
+    alicePub: PubKey;
+    bobPub: PubKey;
     txfee: number;
     session: {
         [id: Msg]: PublicSession;

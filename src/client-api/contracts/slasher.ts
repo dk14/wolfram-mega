@@ -112,8 +112,8 @@ export const btcSlasher: Slasher = {
             rValue: quorumPledge.rvalue1,
             rValue2: quorumPledge.rvalue2,
             rValue3: quorumPledge.rvalue3,
-            alicePub: () => quorumPubs.oracle1Pub,
-            bobPub: () => quorumPubs.oracle2Pub,
+            alicePub: quorumPubs.oracle1Pub,
+            bobPub: quorumPubs.oracle2Pub,
             changeAlice: quorumUtxOs.oracle1.map(x => x.amount).reduce((a, b) => a + b) 
                 - quorumPledge.oracle1Pledge 
                 - quorumPledge.txfee12 / 2,
@@ -142,8 +142,8 @@ export const btcSlasher: Slasher = {
             rValue: quorumPledge.rvalue1,
             rValue2: quorumPledge.rvalue2,
             rValue3: quorumPledge.rvalue3,
-            alicePub: () => quorumPubs.oracle1Pub,
-            bobPub: () => quorumPubs.oracle3Pub,
+            alicePub: quorumPubs.oracle1Pub,
+            bobPub: quorumPubs.oracle3Pub,
             changeAlice: quorumUtxOs.oracle1.map(x => x.amount).reduce((a, b) => a + b) 
                 - quorumPledge.oracle1Pledge 
                 - quorumPledge.txfee13 / 2,
@@ -172,8 +172,8 @@ export const btcSlasher: Slasher = {
                 rValue: quorumPledge.rvalue1,
                 rValue2: quorumPledge.rvalue2,
                 rValue3: quorumPledge.rvalue3,
-                alicePub: () => quorumPubs.oracle2Pub,
-                bobPub: () => quorumPubs.oracle3Pub,
+                alicePub: quorumPubs.oracle2Pub,
+                bobPub: quorumPubs.oracle3Pub,
                 changeAlice: quorumUtxOs.oracle2.map(x => x.amount).reduce((a, b) => a + b) 
                     - quorumPledge.oracle2Pledge 
                     - quorumPledge.txfee23 / 2,
@@ -207,8 +207,8 @@ export const btcSlasher: Slasher = {
             rValue: contractParams.rValue,
             rValue2: contractParams.rValue2,
             rValue3: contractParams.rValue3,
-            alicePub: contractParams.alicePub(outcome),
-            bobPub: contractParams.bobPub(outcome),
+            alicePub: contractParams.alicePub,
+            bobPub: contractParams.bobPub,
             oracleSignature: signatures.oracle1Signature,
             oracleSignature2: signatures.oracle2Signature,
             oracleSignature3:  signatures.oracle3Signature,
