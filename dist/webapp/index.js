@@ -3,7 +3,7 @@ setTimeout(() => {
   if (!window.offersFound) {
     location.reload();
   }
-}, 7e3);
+}, 15e3);
 var defaultClr = "gray";
 var accentColor = "yellow";
 window.highlightOrders = "cyan";
