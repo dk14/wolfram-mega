@@ -1,0 +1,1 @@
+{"version":3,"file":"esbuild-webapp-ui.js","sourceRoot":"","sources":["../esbuild-webapp-ui.ts"],"names":[],"mappings":";;AAAA,qCAAgC;AAEhC,IAAA,eAAK,EAAC;IACL,WAAW,EAAE,CAAC,iBAAiB,CAAC;IAChC,MAAM,EAAE,IAAI;IACZ,OAAO,EAAE,sBAAsB;IAC/B,MAAM,EAAE,KAAK;IACb,SAAS,EAAE,IAAI;IACf,OAAO,EAAE,EACR;CACD,CAAC,CAAC"}

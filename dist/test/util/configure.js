@@ -7,8 +7,13 @@ exports.configure = void 0;
 require("fake-indexeddb/auto");
 const fs_1 = __importDefault(require("fs"));
 global.isTest = true;
+const path = require('path');
+const { pathToFileURL } = require('url');
+// Get the current working directory as a string
+// Convert the path to a file URL
+const currentDirectoryUrl = pathToFileURL(__dirname);
 const jsdom_1 = require("jsdom");
-const baseUrl = 'https://dk14.github.io/wolfram-mega/webapp/';
+const baseUrl = currentDirectoryUrl + "webapp";
 const queryParams = {
     user: 'alice'
 };

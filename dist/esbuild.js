@@ -31,4 +31,12 @@ const canBeBlank = ['module', 'node-fetch', 'path', 'http', 'util', 'net', 'url'
     sourcemap: true,
     plugins: [],
 });
+(0, esbuild_1.build)({
+    entryPoints: ["webapp/index.ts"],
+    bundle: true,
+    outfile: "dist/webapp/index.js",
+    format: "cjs",
+    sourcemap: true,
+    plugins: [],
+});
 //# sourceMappingURL=esbuild.js.map
