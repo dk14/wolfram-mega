@@ -670,11 +670,16 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
                 });
             }
 
+            if (partyFee) {
+                psbt.setInputSequence(1, 4294967295)
+            }
+            psbt.setInputSequence(0, 4294967295)
+
             if (session === null || session === undefined) {
                 await psbt.signInputAsync(0, schnorrSignerMulti(alicePub, bobPub))
             } else {
                 try {
-                    psbt.setInputSequence(0, 4294967295)
+                    
                     await psbt.signInputAsync(0, schnorrSignerInteractive(alicePub, bobPub, session))
                 } catch (e) {
                     if (e === "incomplete sign") {
@@ -683,11 +688,9 @@ export const txApi: (schnorrApi: SchnorrApi) => TxApi = () => {
                         throw e
                     }
                 }
-
             }
 
             if (partyFee) {
-                psbt.setInputSequence(1, 4294967295)
                 await psbt.signInputAsync(1, schnorrSignerSingleWebSimple(aliceAmount > bobAmount ? alicePub: bobPub))
             }
             
