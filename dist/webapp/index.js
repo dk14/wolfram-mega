@@ -371,13 +371,15 @@ var initWebapp = new Promise((resolve) => {
       const orders = await window.matching.listOrders(20);
       const odersCensored = orders.map((o) => {
         const copy = structuredClone(o);
-        o["msg"] = void 0;
-        o.oracles[0]["msg"];
+        copy["msg"] = void 0;
+        copy.oracles[0]["msg"];
+        return copy;
       });
       const contractsCensored = window.model.contracts.map((o) => {
         const copy = structuredClone(o);
-        o["msg"] = void 0;
-        o.oracles[0]["msg"];
+        copy["msg"] = void 0;
+        copy.oracles[0]["msg"];
+        return copy;
       });
       if (JSON.stringify(odersCensored) === JSON.stringify(contractsCensored)) {
         return;
