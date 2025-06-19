@@ -171,8 +171,13 @@ export const configureWebMocks = async () => {
         answers: ["YES", "NO"]
     }
 
-    await ndapi.announceOracle(cfg, testOracle)
-    await ndapi.announceCapability(cfg, testCp)
+    try {
+        await ndapi.announceOracle(cfg, testOracle)
+        await ndapi.announceCapability(cfg, testCp)
+    } catch (e) {
+        console.error(e)
+    }
+    
     await window.storage.addCp(testCp)
 
 
@@ -181,14 +186,14 @@ export const configureWebMocks = async () => {
 
     const reportPow: HashCashPow = {
         difficulty: 0,
-        algorithm: "",
+        algorithm: "SHA256",
         hash: "report-13",
         magicNo: 0
     }
 
     const reportPow2: HashCashPow = {
         difficulty: 0,
-        algorithm: "",
+        algorithm: "SHA256",
         hash: "report-13-self-issued",
         magicNo: 0
     }
@@ -219,10 +224,18 @@ export const configureWebMocks = async () => {
         content: maleabilityReport
     }
 
-    await ndapi.reportMalleability(cfg, report)
+    try {
+        await ndapi.reportMalleability(cfg, report)
+    } catch (e) {
+        console.error(e)
+    }
     await window.storage.addReport(report)
 
-    await ndapi.reportMalleability(cfg, report2)
+    try {
+        await ndapi.reportMalleability(cfg, report2)
+    } catch (e) {
+        console.error(e)
+    }
     await window.storage.addReport(report2)
     await window.storage.addIssuedReport(report2)
     
