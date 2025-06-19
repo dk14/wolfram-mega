@@ -171,8 +171,8 @@ const genContractTx = async (inputs: Inputs, c: Commitment[], offer: OfferMsg, s
                     rValue: c[0].rValueSchnorrHex,
                     rValue2: c[1]?.rValueSchnorrHex,
                     rValue3: c[2]?.rValueSchnorrHex,
-                    alicePub: outcome => outcome === yesOutcome ? o.content.pubkeys[0]: o.content.pubkeys[1],
-                    bobPub: outcome => outcome === noOutcome ? o.content.pubkeys[1]: o.content.pubkeys[0],
+                    alicePub:  o.content.pubkeys[0],
+                    bobPub: o.content.pubkeys[1],
                     changeAlice: inputs.utxoAlice.map(x => x.value).reduce((a, b) => a + b) - terms.partyBetAmount - terms.txfee / 2,
                     changeBob: inputs.utxoBob.map(x => x.value).reduce((a, b) => a + b) - terms.counterpartyBetAmount - terms.txfee / 2,
                     txfee: terms.txfee,
@@ -216,9 +216,9 @@ const genContractTx = async (inputs: Inputs, c: Commitment[], offer: OfferMsg, s
                         }
                         return session
                     })(),
-                    feeutxo: async outcome => outcome === yesOutcome ? 
-                        await getSimpleUtXo(terms.txfee, o.content.addresses[0], 0, o.content.orderId)
-                        : await getSimpleUtXo(terms.txfee, o.content.addresses[1], 0, o.content.orderId)
+                    //feeutxo: async outcome => outcome === yesOutcome ? 
+                    //    await getSimpleUtXo(terms.txfee, o.content.addresses[0], 0, o.content.orderId)
+                    //    : await getSimpleUtXo(terms.txfee, o.content.addresses[1], 0, o.content.orderId)
 
                 }
                 if (!offer.content.terms.dependsOn) {

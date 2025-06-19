@@ -110,7 +110,7 @@ export const sign1 = (pk1, pk2, commitment2hex, nonce2hex, secret1, msg, session
     pubKeyCombined,
     pubKeyParity,
     pubKeyHash,
-    1
+    0
   )
 
   const nonce1 = session1.nonce
@@ -157,7 +157,7 @@ export const sign2 = (pk1, pk2, partSig1Hex, combinedNonceParity, nonce1hex, com
     pubKeyCombined,
     pubKeyParity,
     pubKeyHash,
-    0
+    1
   );
 
   const nonceCombined = muSig.sessionNonceCombine(session2, [nonce1, session2.nonce])

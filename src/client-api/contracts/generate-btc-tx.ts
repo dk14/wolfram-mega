@@ -145,8 +145,7 @@ export const generateCetTransaction = async (params: CetParams, vout: number = 0
             params.bobAmount,
             params.txfee,
             params.session,
-            params.stateAmount,
-            params.txFeeAlice))?.hex
+            params.stateAmount))?.hex
     } else {
         const twistedPk1 = schnorr.adaptorPublic(params.oraclePub, params.answer, params.rValue).padStart(64, "0")
         const twistedPk2 = schnorr.adaptorPublic(params.oraclePub2, params.answer2 ?? params.answer, params.rValue2).padStart(64, "0")
@@ -162,8 +161,7 @@ export const generateCetTransaction = async (params: CetParams, vout: number = 0
             params.bobAmount,
             params.txfee,
             params.session,
-            params.stateAmount,
-           params.txFeeAlice))?.hex
+            params.stateAmount))?.hex
     }
     
 }
@@ -185,8 +183,7 @@ export const generateCetRedemptionTransaction = async (params: CetRedemptionPara
             params.amount,
             params.txfee,
             params.session,
-            params.bobPub,
-            params.txFeeAlice)).hex
+            params.bobPub)).hex
     } else {
         const twistedPk1 = schnorr.adaptorPublic(params.oraclePub, params.answer, params.rValue).padStart(64, "0")
         const twistedPk2 = schnorr.adaptorPublic(params.oraclePub2, params.answer2 ?? params.answer, params.rValue2).padStart(64, "0")
@@ -205,8 +202,7 @@ export const generateCetRedemptionTransaction = async (params: CetRedemptionPara
             params.oracleSignature3,
             params.amount,
             params.txfee,
-            params.session,
-            params.txFeeAlice))?.hex
+            params.session))?.hex
         
     }
 }
@@ -230,8 +226,8 @@ export interface DlcParams {
     rValue: Hex,
     rValue2?: Hex,
     rValue3?: Hex,
-    alicePub: (o: string) => PubKey,
-    bobPub: (o: string) => PubKey,
+    alicePub: PubKey,
+    bobPub: PubKey,
 
     changeAlice: number,
     changeBob: number,
@@ -251,8 +247,8 @@ export interface ChildDlcParams {
     rValue: Hex,
     rValue2?: Hex,
     rValue3?: Hex,
-    alicePub: (o: string) => PubKey,
-    bobPub: (o: string) => PubKey,
+    alicePub: PubKey,
+    bobPub: PubKey,
     txfee: number,
     session: { [id: Msg]: PublicSession; },
     openingSession: OpeningTxSession,
@@ -278,20 +274,23 @@ export async function doubleSHA256reversed(input: string) {
 
 export const generateDlcContract = async (params: DlcParams): Promise<DlcContract> => {
     const [yes, no] = Object.keys(params.outcomes)
-    const openingTx = await generateOpeningTransaction({...params, alicePub: params.alicePub(yes), bobPub: params.bobPub(yes)})
+    const openingTx = await generateOpeningTransaction({...params, alicePub: params.alicePub, bobPub: params.bobPub})
     if (!openingTx) {
         return undefined //opening tx co-sgned first; MAD-flavor of DLC;
     }
+
+
     
     const lockedTxId = await doubleSHA256reversed(openingTx)
+
+    console.error("OPENING TX ID: " + lockedTxId)
+
     const cet = await Promise.all(Object.keys(params.outcomes).sort().map(async (answer, i)=> {
         const cet = await generateCetTransaction(Object.assign({}, params, {
-            alicePub: params.alicePub(answer), bobPub: params.bobPub(answer),
             answer, lockedTxId, 
             aliceAmount: params.outcomes[answer].aliceAmount,
             bobAmount: params.outcomes[answer].bobAmount,
-            session: params.session[answer],
-            txFeeAlice: await params.feeutxo(answer)
+            session: params.session[answer]
         }))
         return cet
     }))
@@ -301,12 +300,10 @@ export const generateDlcContract = async (params: DlcParams): Promise<DlcContrac
 export const generateChildDlcContract = async (params: ChildDlcParams): Promise<DlcContract> => {
     const cet = await Promise.all(Object.keys(params.outcomes).sort().map(async (answer, i) => {
         const cet = await generateCetTransaction(Object.assign({}, params, {
-            alicePub: params.alicePub(answer), bobPub: params.bobPub(answer),
             answer, lockedTxId: params.lockedTxId, 
             aliceAmount: params.outcomes[answer].aliceAmount,
             bobAmount: params.outcomes[answer].bobAmount,
-            session: params.session[answer],
-            txFeeAlice: await params.feeutxo(answer)
+            session: params.session[answer]
         }), 1)
         return cet
     }))
