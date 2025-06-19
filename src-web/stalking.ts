@@ -37,6 +37,10 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
     const rank = (offer: OfferMsg): number => {
         let rank = 0
 
+        rank += offer.content.finalize ? 7 : 0
+
+        rank += offer.content.failed ? 20 : 0
+
         rank += offer.content.accept ? 1 : 0
         rank += offer.content.finalize ? 1 : 0
         if (!offer.content.accept) {
@@ -78,7 +82,7 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
             rank += unlocks[1] ? 1 : 0
         }
 
-        rank += offer.content.finalize ? 7 : 0
+
 
         return rank
     }
@@ -302,7 +306,7 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
         } catch (err) {
             console.error(err)
             const failed = structuredClone(orderPreviousState)
-            failed.content.failed = err.msg
+            failed.content.failed = err.message ?? "unknown"
             failed.pow.hash = failed.pow.hash + "-failed" + randomInt(100)
             await window.traderApi.issueOffer(failed)
             await window.storage.removeIssuedOffers([orderPreviousState.pow.hash])  
