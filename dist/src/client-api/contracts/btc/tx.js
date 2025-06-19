@@ -470,6 +470,9 @@ const txApi = () => {
         },
         genAliceCet: async (multiIn, alicePub, bobPub, adaptorPub, aliceAmount, bobAmount, txfee, session = null, stateAmount, partyFee) => {
             const psbt = new bitcoin.Psbt({ network: net });
+            psbt.setLocktime(0);
+            psbt.setVersion(2);
+            psbt.setMaximumFeeRate(100000);
             const pkCombined = muSig.pubKeyCombine([Buffer.from(alicePub, "hex"), Buffer.from(bobPub, "hex")]);
             const pubKeyCombined = convert.intToBuffer(pkCombined.affineX);
             const multiP2TR = (0, exports.p2pktr)(pubKeyCombined);
@@ -551,6 +554,7 @@ const txApi = () => {
             }
             else {
                 try {
+                    psbt.setInputSequence(0, 4294967295);
                     await psbt.signInputAsync(0, schnorrSignerInteractive(alicePub, bobPub, session));
                 }
                 catch (e) {
@@ -563,6 +567,7 @@ const txApi = () => {
                 }
             }
             if (partyFee) {
+                psbt.setInputSequence(1, 4294967295);
                 await psbt.signInputAsync(1, schnorrSignerSingleWebSimple(aliceAmount > bobAmount ? alicePub : bobPub));
             }
             psbt.finalizeAllInputs();

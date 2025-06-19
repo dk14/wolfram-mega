@@ -78,6 +78,7 @@ const generateDlcContract = async (params) => {
         return undefined; //opening tx co-sgned first; MAD-flavor of DLC;
     }
     const lockedTxId = await doubleSHA256reversed(openingTx);
+    console.error(window.user + ":opening txid:" + lockedTxId);
     const cet = await Promise.all(Object.keys(params.outcomes).sort().map(async (answer, i) => {
         const cet = await (0, exports.generateCetTransaction)(Object.assign({}, params, {
             answer, lockedTxId,
