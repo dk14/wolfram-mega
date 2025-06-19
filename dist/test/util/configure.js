@@ -11,7 +11,7 @@ const path = require('path');
 const { pathToFileURL } = require('url');
 // Get the current working directory as a string
 // Convert the path to a file URL
-const currentDirectoryUrl = pathToFileURL(__dirname);
+const currentDirectoryUrl = pathToFileURL(__dirname + "/../../webapp/");
 const jsdom_1 = require("jsdom");
 const baseUrl = currentDirectoryUrl + "webapp";
 const queryParams = {
