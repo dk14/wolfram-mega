@@ -3,7 +3,7 @@ setTimeout(() => {
   if (!window.offersFound) {
     location.reload();
   }
-}, 15e3);
+}, 7e3);
 var loading_i = 0;
 var loadingAnimation = setInterval(() => {
   if (document.getElementById("loading").innerText !== "") {
