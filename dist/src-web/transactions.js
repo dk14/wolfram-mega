@@ -230,7 +230,7 @@ exports.btcDlcContractInterpreter = {
             alicePub: fact.factWithQuestion === yesOutcome ? offer.content.pubkeys[0] : offer.content.pubkeys[1],
             bobPub: fact.factWithQuestion === noOutcome ? offer.content.pubkeys[0] : offer.content.pubkeys[1],
             oracleSignature: fact.signature,
-            amount: (terms.partyBetAmount + terms.counterpartyBetAmount) - terms.txfee + autoRefundWinner,
+            amount: (terms.partyBetAmount + terms.counterpartyBetAmount) + autoRefundWinner,
             txfee: offer.content.terms.txfee,
             session: (() => {
                 const session = {
