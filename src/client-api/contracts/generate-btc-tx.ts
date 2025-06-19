@@ -239,8 +239,7 @@ export interface DlcParams {
     session: { [id: Msg]: PublicSession; },
     openingSession: OpeningTxSession,
     stateAmount?: number //goes back to multisig, for composite contracts
-    feeutxo1?: UTxO[],
-    feeutxo2?: UTxO[]
+    feeutxo?: (o: string) => Promise<UTxO[]>
 }
 
 export interface ChildDlcParams {
@@ -258,8 +257,7 @@ export interface ChildDlcParams {
     session: { [id: Msg]: PublicSession; },
     openingSession: OpeningTxSession,
     stateAmount: number
-    feeutxo1?: UTxO[]
-    feeutxo2?: UTxO[]
+    feeutxo?: (o: string) => Promise<UTxO[]>
 }
 
 export interface DlcContract {
@@ -286,14 +284,14 @@ export const generateDlcContract = async (params: DlcParams): Promise<DlcContrac
     }
     
     const lockedTxId = await doubleSHA256reversed(openingTx)
-    const cet = await Promise.all(Object.keys(params.outcomes).map(async (answer, i)=> {
+    const cet = await Promise.all(Object.keys(params.outcomes).sort().map(async (answer, i)=> {
         const cet = await generateCetTransaction(Object.assign({}, params, {
             alicePub: params.alicePub(answer), bobPub: params.bobPub(answer),
             answer, lockedTxId, 
             aliceAmount: params.outcomes[answer].aliceAmount,
             bobAmount: params.outcomes[answer].bobAmount,
             session: params.session[answer],
-            txFeeAlice: i === 0 ? params.feeutxo1 : params.feeutxo2
+            txFeeAlice: await params.feeutxo(answer)
         }))
         return cet
     }))
@@ -301,14 +299,14 @@ export const generateDlcContract = async (params: DlcParams): Promise<DlcContrac
 }
 
 export const generateChildDlcContract = async (params: ChildDlcParams): Promise<DlcContract> => {
-    const cet = await Promise.all(Object.keys(params.outcomes).map(async (answer, i) => {
+    const cet = await Promise.all(Object.keys(params.outcomes).sort().map(async (answer, i) => {
         const cet = await generateCetTransaction(Object.assign({}, params, {
             alicePub: params.alicePub(answer), bobPub: params.bobPub(answer),
             answer, lockedTxId: params.lockedTxId, 
             aliceAmount: params.outcomes[answer].aliceAmount,
             bobAmount: params.outcomes[answer].bobAmount,
             session: params.session[answer],
-            txFeeAlice: i === 0 ? params.feeutxo1 : params.feeutxo2
+            txFeeAlice: await params.feeutxo(answer)
         }), 1)
         return cet
     }))

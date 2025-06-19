@@ -48,7 +48,7 @@ let spentUtxosMemoize = {}
 
 export const getSimpleUtXo = async (amount: number, addressIn: string, txfee: number, lockname?: string): Promise<UTxO[]> => {
     if (spentUtxosMemoize[lockname]) {
-        return spentUtxosMemoize[lockname]
+        return spentUtxosMemoize[lockname + addressIn]
     }
 
     const utxoExplore = async (address: string): Promise<UTxO[]> => {
@@ -71,8 +71,11 @@ export const getSimpleUtXo = async (amount: number, addressIn: string, txfee: nu
     }
 
     const res = getMultipleUtxo((await utxoExplore(addressIn)).filter(x => !spentUtxos.find(y => JSON.stringify(x) === JSON.stringify(y))), amount)
+    res.forEach(utxo => {
+        utxo['address'] = addressIn
+    })
     spentUtxos = spentUtxos.concat(res)
-    spentUtxosMemoize[lockname] = res
+    spentUtxosMemoize[lockname + addressIn] = res
     return res
 
 }
@@ -212,8 +215,9 @@ const genContractTx = async (inputs: Inputs, c: Commitment[], offer: OfferMsg, s
                         }
                         return session
                     })(),
-                    feeutxo1: await getSimpleUtXo(terms.txfee, o.content.addresses[0], 0, o.content.orderId),
-                    feeutxo2: await getSimpleUtXo(terms.txfee, o.content.addresses[1], 0, o.content.orderId)
+                    feeutxo: async outcome => outcome === yesOutcome ? 
+                        await getSimpleUtXo(terms.txfee, o.content.addresses[0], 0, o.content.orderId)
+                        : await getSimpleUtXo(terms.txfee, o.content.addresses[1], 0, o.content.orderId)
 
                 }
                 if (!offer.content.terms.dependsOn) {

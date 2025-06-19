@@ -174,7 +174,15 @@ const trackIssuedOffers = async (interpreters: {[id: string]: ContractInterprete
                         window.traderApi.issueOffer(order)
                         window.storage.removeIssuedOffers([orderPreviousState.pow.hash])  
                     } catch (e) {
-                        console.error(e)
+        
+                        order.content.finalize.previousFinalRef = order.pow.hash
+                        order.pow.hash = order.pow.hash + "-noredeem" + randomInt(1000)
+                        
+                        window.traderApi.issueOffer(order)
+                        window.storage.removeIssuedOffers([orderPreviousState.pow.hash])  
+                        
+
+                        //console.error(e)
                     }
                 }    
 
