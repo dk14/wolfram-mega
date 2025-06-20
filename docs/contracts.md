@@ -1,4 +1,3 @@
-
 # Contracts API (Web)
 > Experimental
 ## Add bundle
@@ -15,7 +14,7 @@ npm run build
 <script src="https://dk14.github.io/wolfram-mega/mega-peers.min.js" type="module"></script>
 ```
 
-## Implement your blockchain:
+## Implement your blockchain
 ```ts
 //non-Utxo blockchains can insecurely specify account number in txid and omit vout, ... coz they insecure about tech
 export interface UTxO {
@@ -31,7 +30,6 @@ export interface Inputs {
 }
 
 export interface ContractInterpreter {
-    
     getUtXo: (terms: OfferMsg) => Promise<Inputs>
     genContractTx: (inputs: Inputs, c: Commitment[], offer: OfferMsg) => Promise<[Contract, OfferMsg?]>
     submitTx: (tx: string) => Promise<TxId>
@@ -56,7 +54,28 @@ setInterval(() => window.stalking.trackIssuedOffers(
 ), 1000)
 ```
 
-> If counterparty has interpreter - stalking API will automatically find accepted offers, negotiate and co-sign transactions through Mega P2P.
+If counterparty has corresponding interpreter - stalking API will automatically find accepted offers, negotiate and co-sign transactions through Mega P2P. Stalker acts as a state-machine responsible for:
+
+- obtaining commitment from oraacle
+- interactive signing of transactions neccessary  to finalize accepted offer
+- maintaining and progressing state of the offer
+- maintaining atomicity of co-signing
+- calculating and attaching transaction fees
+- enrichment of `OfferMsg` with co-signed transactions.
+- communicating through Mega-mempools
+
+Stalker listens for "issued" accepted as well as originated offers in database, then it starts looking for counterparty reply. 
+
+> Stalker relies on polling since data is already arrived to db as a push-notification from p2p. Current implementation  of database is for reference, since it is inefficient. 
+
+> Stalker meant for demo purposes, it does not put `originator` signatures, so offers are malleable.
+
+Web architecture:
+```
+Offer -> Matching -> DB <-> Stalker <-> Interpreter
+                           <-> Mempools <-> Counterparty (Stalker + Interpreter)
+```
+
 
 ## Use Matching API to submit offer
 
@@ -411,11 +430,7 @@ Sample of TestNet BTC transactions created with trader console:
 
 <img src="https://github.com/user-attachments/assets/247c97e7-a945-4b37-9783-48fd85ccc847" style="filter: sepia() opacity(0.8)" alt="drawing" width="500"/>
 
-Security note on DLC atomicity during interactive signing. Do not sign opening (funding) DLC transaction until all CET transactions are co-signed.
-
-Security note on interactive sign: if no precommitments implemented, rogue keys are welcome. 
-
-## Architecture
+## Node.js Contracts Architecture
 
 <img src="https://github.com/user-attachments/assets/bc7daa77-21cf-4a5c-9c88-ae2191ee95dd" style="filter: invert() sepia() opacity(0.5) saturate(1.2)" alt="drawing" width="500"/>
 
@@ -423,10 +438,10 @@ Security note on interactive sign: if no precommitments implemented, rogue keys 
 
 
 ## Persistence
-`src/client-api/client-storage` provides simple minimalistic implementation of a database holding collected broadcasts.
+`src/client-api/client-storage` provides simple minimalistic demo implementation of a database holding collected broadcasts.
 It is only indexed by key. Custom storage implementation can be specified in `app.ts` script for `startOracleService`, `startTraderService`
 
-Note: delete oldest entries in `../../db/reports`, `../../db/capabilities`, `../../db/offers`, `../../db/oracles` in order to manage storage.
+> delete oldest entries in `../../db/reports`, `../../db/capabilities`, `../../db/offers`, `../../db/oracles` in order to manage storage.
 
 ## Utils
 `src/client-api/utils/` folder contains examples of oracle endpoint and auto-signing services (configs are in `src/client-api/utils/cfg`):
@@ -438,5 +453,5 @@ npm run btc-signer cfg/btc-signer-test.json
 ```
 
 # Blockly Editor
-`OfferModel` editor:
+`OfferModel` editor (<a href="./blockly.html">separate page</a>):
 <iframe src="./blockly.html" style="height: 900px; width: 820px; border:none"></iframe>
