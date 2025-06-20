@@ -34,7 +34,7 @@
         <pre class="wallet">
             <div>Balance: <font color="cyan" id="wallet-balance">..... sat</font>
 Address: <font color="blue" id="wallet-address">.................................</font> <img src="./assets/copy.svg" class="copy-button" onclick="window.copyAddressToBuffer()"></div></pre>
-
+    <div>
         <div id="matching"class="scrollable" ><p id="loading" style="color: #00FF00; font-size: 24px; font-family: monospace">Loading...</p></div>
         <div id="contracts" class="scrollable" style="display:none"></div>
         <div id="profile" class="scrollable profile" style="display:none" class="profile">
@@ -78,7 +78,7 @@ Address: <font color="blue" id="wallet-address">................................
             <div class="offer-info-group">
                 <pre color="green">Preview: </pre>
                 <div id="offer-tree-container">
-                    <json-viewer id="offer-tree"></json-viewer>
+                    
                 </div>
                 <button id="delete-offer" class="action-button" onclick="">Delete Collected Offer</button>
                 <button id="delete-cp" class="action-button" onclick="">Delete Collected Capability</button>
@@ -87,11 +87,13 @@ Address: <font color="blue" id="wallet-address">................................
             <div class="offer-info-group"></div>
                 <pre color="green">Reports against oracle: </pre>
                 <div id="report-tree-container">
-                    <json-viewer id="report-tree"></json-viewer>
+                    
                 </div>
             </div>
 
         </div>
+    </div>
+        
         <div id="panel" class="panel menu">
             <div onclick="switchTab('contracts')">
                 <svg class="button" id="contracts_svg" fill="#000000" width="800px" height="800px" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

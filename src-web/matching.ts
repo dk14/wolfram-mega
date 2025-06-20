@@ -395,6 +395,7 @@ export const matchingEngine: MatchingEngine = {
                 return await window.matching.acceptOffer(model);
             }));
         }
+        o["msg"] = offer
         window.traderApi.startBroadcastingIssuedOffers();
         window.traderApi.issueOffer(offer);
     },
