@@ -399,38 +399,36 @@ export const matchingEngine: MatchingEngine = {
         window.traderApi.startBroadcastingIssuedOffers();
         window.traderApi.issueOffer(offer);
     },
-    collectQuestions: async function (cfg: PreferenceModel): Promise<string[]> {
-        //TODO calculate oracle's PoW-strength and reputation
-        const ocollectors = cfg.tags.map(tag => {
-            window.traderApi.collectOracles("pref-oracles-" + tag, async (o: OracleId) => o.tags?.find(x => x === tag) !== undefined, 10);
-            return "pref-oracles-" + tag;
-        });
-        const cpcollectors = cfg.tags.map(tag => {
-            window.traderApi.collectCapabilities(
+    collectQuestions: async function (cfg: PreferenceModel): Promise<[string, () => void][]> {
+        const ocollectors: [string, () => void][] = await Promise.all(cfg.tags.map(async tag => {
+            const collector = await window.traderApi.collectOracles("pref-oracles-" + tag, async (o: OracleId) => o.tags?.find(x => x === tag) !== undefined, 10);
+            return ["pref-oracles-" + tag, collector.cancel]
+        }));
+        const cpcollectors: [string, () => void][] = await Promise.all(cfg.tags.map(async tag => {
+            const collector = await window.traderApi.collectCapabilities(
                 "pref-cps-" + tag,
                 { where: async (x) => true },
                 async (o: OracleId) => o.tags?.find(x => x === tag) !== undefined,
                 capabilityFilter(tag),
                 10);
-            return "pref-cps-" + tag;
-        });
+            return ["pref-cps-" + tag, collector.cancel]
+        }));
         return ocollectors.concat(cpcollectors);
     },
-    collectOffers: async function (cfg: PreferenceModel): Promise<string[]> {
+    collectOffers: async function (cfg: PreferenceModel): Promise<[string, () => void][]> {
         const paging: PagingDescriptor = { page: 0, chunkSize: 100 };
         const cps = cfg.tags.map(tag => window.storage.queryCapabilities({ where: async (x) => capabilityFilter(tag)(x) }, paging));
         const cpPubList = (await Promise.all(cps)).flat().map(x => x.capabilityPubKey);
 
-        return cpPubList.map(cpPub => {
-            window.traderApi.collectOffers(
+        return await Promise.all(cpPubList.map(async cpPub => {
+            const collector = await window.traderApi.collectOffers(
                 "cppub-" + cpPub,
                 { where: async (x) => x.capabilityPubKey === cpPub },
                 async (x) => true,
                 async (x) => true,
                 10);
-            return "cppub-" + cpPub;
-        });
-
+            return ["cppub-" + cpPub, collector.cancel];
+        }));
     },
     listOrders: async function (limit: number): Promise<OfferModel[]> {
         const pagedescriptor = {

@@ -101,10 +101,17 @@ var initWebapp = new Promise((resolve) => {
 });
 (async () => {
   await initWebapp;
-  setTimeout(() => {
-    window.matching.collectOffers(window.model.profile);
+  let cancel = () => {
+  };
+  setInterval(async () => {
+    cancel();
+    const offerCollectors = await window.matching.collectOffers(window.model.profile);
     setInterval(() => window.progressOffers(), 5e3);
-    window.matching.collectQuestions(window.model.profile);
+    const questionCollectors = await window.matching.collectQuestions(window.model.profile);
+    cancel = () => {
+      offerCollectors.forEach(([_, cancel2]) => cancel2());
+      questionCollectors.forEach(([_, cancel2]) => cancel2());
+    };
   }, 4e3);
   setInterval(() => {
     try {
@@ -386,9 +393,12 @@ var initWebapp = new Promise((resolve) => {
     reportTree["expand"]("**.*");
     document.getElementById("delete-offer").onclick = () => {
       window.storage.removeOffers([offer.id]);
+      window.storage.removeIssuedOffers([offer.id]);
+      alert("Deleted! Collectors might bring it back!");
     };
     document.getElementById("delete-cp").onclick = () => {
       window.storage.removeCps([offer.oracles[0].capabilityPub]);
+      alert("Deleted! Collectors might bring it back!");
     };
   };
   window.renderContractPreview = (where, contract) => {
@@ -402,7 +412,11 @@ var initWebapp = new Promise((resolve) => {
     removeSvg.src = "./assets/remove.svg";
     removeSvg.className = "offer-button";
     removeSvg.onclick = () => {
-      window.matching.removeOrder(contract.id);
+      if (contract.status === "matching" || contract.status === "redeem tx available" || contract.status === "tx submitted" || contract.status === "failed") {
+        window.matching.removeOrder(contract.id);
+      } else {
+        alert("Cannot delete offer in progress!");
+      }
     };
     const offerInfo = window.createOfferInfo(contract, false);
     offerInfo.className = "contract-info";

@@ -174,19 +174,23 @@ const initWebapp = new Promise(resolve => {
 
     await initWebapp 
 
-    setTimeout(() => {
-        window.matching.collectOffers(window.model.profile)                  
-        setInterval(() => window.progressOffers(), 5000)
-        window.matching.collectQuestions(window.model.profile)    
-    }, 4000)
+    let cancel = () => {}
 
+    setInterval(async () => {
+        cancel()
+        const offerCollectors = await window.matching.collectOffers(window.model.profile)                  
+        setInterval(() => window.progressOffers(), 5000)
+         const questionCollectors = await window.matching.collectQuestions(window.model.profile)  
+        cancel = () => {
+            offerCollectors.forEach(([_, cancel]) => cancel())
+            questionCollectors.forEach(([_, cancel]) => cancel())
+        }  
+    }, 4000)
 
     setInterval(() => {
         try {
             document.getElementById("peers").innerText = "" + window.peerlist.length
-        } catch {
-
-        }    
+        } catch { }    
     }, 1000)
 
     window.model = {
@@ -514,9 +518,6 @@ const initWebapp = new Promise(resolve => {
         terms.innerHTML = ""
         terms.appendChild(offerInfo)
 
-        
-
-
         const reports = await window.matching.fetchRelatedReports(offer, 20)
         const reportsIssued = await window.matching.fetchRelatedReports(offer, 20)
         const combined = {}
@@ -528,13 +529,15 @@ const initWebapp = new Promise(resolve => {
         reportTree["data"] = combined
         reportTree["expand"]('**.*');
 
-
-
         document.getElementById("delete-offer").onclick = () => {
             window.storage.removeOffers([offer.id])
+            window.storage.removeIssuedOffers([offer.id])
+            alert('Deleted from Database! Collectors might bring it back!')
         }
+
         document.getElementById("delete-cp").onclick = () => {
             window.storage.removeCps([offer.oracles[0].capabilityPub])
+            alert('Deleted from Database! Collectors might bring it back!')
         }
     }
 
@@ -550,7 +553,11 @@ const initWebapp = new Promise(resolve => {
         removeSvg.src = "./assets/remove.svg"
         removeSvg.className = "offer-button"
         removeSvg.onclick = () => {
-            window.matching.removeOrder(contract.id)
+            if (contract.status === 'matching' || contract.status === 'redeem tx available' || contract.status === 'tx submitted' || contract.status === 'failed') {
+                window.matching.removeOrder(contract.id)
+            } else {
+                alert('Cannot delete offer in progress!')
+            }
         }
 
         const offerInfo = window.createOfferInfo(contract, false)
@@ -560,8 +567,6 @@ const initWebapp = new Promise(resolve => {
         panel.appendChild(removeSvg)
 
         panel.appendChild(offerInfo)
-
-        
 
         panel.appendChild(downArrowSvg)
         where.appendChild(panel)
@@ -615,12 +620,10 @@ const initWebapp = new Promise(resolve => {
                             document.getElementById("contracts_svg").setAttribute("fill", before)
                             clearInterval(blink)
                         }
-                    }, 300)
-                    
+                    }, 300) 
                 } catch {
 
-                }
-                
+                }       
             }
         } catch {
 
