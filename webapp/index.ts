@@ -299,6 +299,7 @@ const initWebapp = new Promise(resolve => {
             window.removeInterest(tag)
         }
         document.getElementById("tags").appendChild(btn)
+        window.matching.saveProfile(window.model.profile) 
 
     }
 
