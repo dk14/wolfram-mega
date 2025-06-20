@@ -3,8 +3,8 @@ import { OfferModel, PreferenceModel } from "./models";
 export type TxRaw = string;
 export interface MatchingEngine {
     pickOffer: (cfg: PreferenceModel) => Promise<OfferModel>;
-    collectQuestions: (cfg: PreferenceModel) => Promise<string[]>;
-    collectOffers: (cfg: PreferenceModel) => Promise<string[]>;
+    collectQuestions: (cfg: PreferenceModel) => Promise<[string, () => void][]>;
+    collectOffers: (cfg: PreferenceModel) => Promise<[string, () => void][]>;
     generateOffer: (cfg: PreferenceModel) => Promise<OfferModel>;
     broadcastOffer: (o: OfferModel) => Promise<string>;
     acceptOffer: (o: OfferModel) => Promise<void>;

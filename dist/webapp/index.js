@@ -394,11 +394,11 @@ var initWebapp = new Promise((resolve) => {
     document.getElementById("delete-offer").onclick = () => {
       window.storage.removeOffers([offer.id]);
       window.storage.removeIssuedOffers([offer.id]);
-      alert("Deleted! Collectors might bring it back!");
+      alert("Deleted from Database! Collectors might bring it back!");
     };
     document.getElementById("delete-cp").onclick = () => {
       window.storage.removeCps([offer.oracles[0].capabilityPub]);
-      alert("Deleted! Collectors might bring it back!");
+      alert("Deleted from Database! Collectors might bring it back!");
     };
   };
   window.renderContractPreview = (where, contract) => {
