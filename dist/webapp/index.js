@@ -206,6 +206,7 @@ var initWebapp = new Promise((resolve) => {
       window.removeInterest(tag);
     };
     document.getElementById("tags").appendChild(btn);
+    window.matching.saveProfile(window.model.profile);
   };
   window.createOfferInfo = (offer, isTentative = false, isFullInfo = false) => {
     const offerInfo = document.createElement("div");
