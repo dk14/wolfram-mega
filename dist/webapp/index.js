@@ -1,4 +1,12 @@
 // webapp/index.ts
+Array.from(document.getElementsByClassName("scrollable")).forEach((x) => {
+  x.style.height = `${window.innerHeight - 130 - 110}`;
+});
+window.onresize = (event) => {
+  Array.from(document.getElementsByClassName("scrollable")).forEach((x) => {
+    x.style.height = `${window.innerHeight - 130 - 100}`;
+  });
+};
 setTimeout(() => {
   if (!window.offersFound) {
     location.reload();
@@ -6,7 +14,7 @@ setTimeout(() => {
 }, 7e3);
 var loading_i = 0;
 var loadingAnimation = setInterval(() => {
-  if (document.getElementById("loading").innerText !== "") {
+  if (document.getElementById("loading")) {
     loading_i++;
     document.getElementById("loading").innerText = "Loading" + ".".repeat(loading_i % 3);
   } else {
@@ -56,9 +64,11 @@ try {
     document.body.appendChild(scriptTag);
     const el = document.createElement("json-viewer");
     el.setAttribute("id", "offer-tree");
+    el["data"] = { loading: true };
     container.appendChild(el);
     const el2 = document.createElement("json-viewer");
     el2.setAttribute("id", "report-tree");
+    el2["data"] = { loading: true };
     containerReports.appendChild(el2);
   }
 } catch {
@@ -246,7 +256,7 @@ var initWebapp = new Promise((resolve) => {
     const yesSvg = document.createElement("img");
     yesSvg.src = "./assets/yes.svg";
     yesSvg.className = "offer-button";
-    yesSvg.onclick = () => {
+    yesSvg.onclick = async () => {
       let confirmed = void 0;
       if (document.getElementById("confirm_orders").checked) {
         confirmed = confirm("Bet " + offer.bet[1] + " sat against '" + offer.question + "'");
@@ -257,7 +267,7 @@ var initWebapp = new Promise((resolve) => {
         console.log(offer.status);
         if (offer.role === "initiator") {
           offer.betOn = true;
-          window.matching.broadcastOffer(offer);
+          await window.matching.broadcastOffer(offer);
         } else {
           if (!offer.betOn) {
             window.matching.acceptOffer(offer);
@@ -270,7 +280,7 @@ var initWebapp = new Promise((resolve) => {
     const noSvg = document.createElement("img");
     noSvg.src = "./assets/no.svg";
     noSvg.className = "offer-button";
-    noSvg.onclick = () => {
+    noSvg.onclick = async () => {
       let confirmed = void 0;
       if (document.getElementById("confirm_orders").checked) {
         confirmed = confirm("Bet " + offer.bet[1] + " sat against '" + offer.question + "'");
@@ -280,7 +290,7 @@ var initWebapp = new Promise((resolve) => {
       if (confirmed) {
         if (offer.role === "initiator") {
           offer.betOn = false;
-          window.matching.broadcastOffer(offer);
+          await window.matching.broadcastOffer(offer);
         } else {
           if (offer.betOn) {
             window.matching.acceptOffer(offer);
@@ -330,7 +340,7 @@ var initWebapp = new Promise((resolve) => {
       window.offersFound++;
       window.model.offers.push(offer);
       window.renderOfferPreview(document.getElementById("matching"), offer, true);
-      document.getElementById("loading").innerText = "";
+      document.getElementById("loading").remove();
     } catch {
     }
   }, 500);
@@ -356,14 +366,15 @@ var initWebapp = new Promise((resolve) => {
     }
   }, 1e3);
   window.renderOfferDetails = async (offer) => {
+    const tree = document.getElementById("offer-tree");
+    tree["data"] = offer;
+    tree["expand"]("**.*");
     window.switchTab("offer");
     const offerInfo = window.createOfferInfo(offer, false);
     offerInfo.className = "offer-info";
     const terms = document.getElementById("terms");
     terms.innerHTML = "";
     terms.appendChild(offerInfo);
-    const tree = document.getElementById("offer-tree");
-    tree["data"] = offer;
     const reports = await window.matching.fetchRelatedReports(offer, 20);
     const reportsIssued = await window.matching.fetchRelatedReports(offer, 20);
     const combined = {};
@@ -371,6 +382,7 @@ var initWebapp = new Promise((resolve) => {
     combined["broadcasting-issued"] = reportsIssued;
     const reportTree = document.getElementById("report-tree");
     reportTree["data"] = combined;
+    reportTree["expand"]("**.*");
     document.getElementById("delete-offer").onclick = () => {
       window.storage.removeOffers([offer.id]);
     };

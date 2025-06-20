@@ -8,7 +8,7 @@
             }
 
             .wallet {
-                border: 2px solid rgb(96 139 168);
+                border: 1px solid rgb(96 139 168);
                 background: rgb(96 139 168);
                 display: flex;
                 align-items: center;
@@ -32,21 +32,24 @@
                 padding: 10px
             }
 
-            .scrollable {
+            .scrollable { 
+                
+                top: 60px;        
                 overflow-y: scroll;
-                height: 65%;
+                height: 60%;
+  
+                border: 1px;
+                width: 100%;
+                align-items: center;
+
                  
                 -ms-overflow-style: none;  /* Internet Explorer 10+ */
                 scrollbar-width: none;  /* Firefox */
             }
 
+
             .scrollable::-webkit-scrollbar { 
                 display: none;  /* Safari and Chrome */
-            }
-
-            object {
-                width: 100%;
-                pointer-events: none;
             }
 
             .wide-panel {
