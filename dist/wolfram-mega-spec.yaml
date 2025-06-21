@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: Wolfram Mega API
   description: |-
-    [Repo](https://github.com/dk14/wolfram-mega)
+    [Repo](https://github.com/dk14/mega-peers)
     
   version: 1.0.0
 

@@ -26,7 +26,7 @@ Discreet🌿 is typesafe. It provides checks and restrictions allowing traders t
 
 ## Example
 ```ts
-import { Dsl } from '@dk14/wolfram-mega/discreet'
+import { Dsl } from '@dk14/mega-peers/discreet'
 
 const maxBudgetAlice = 300
 const maxBudgetBob = 300
@@ -304,7 +304,7 @@ Multi-party mode creates a set of mutual 2-party contracts. The contracts themse
 > U don't have to think 🤔
 
 ```ts
-import { Dsl } from '@dk14/wolfram-mega/discreet'
+import { Dsl } from '@dk14/mega-peers/discreet'
 
 const multi = await (new Dsl (async dsl => {
     if (dsl.outcome("really?", ["YES"], ["NO"])) {
@@ -325,7 +325,7 @@ Adding a new party "on the go" is equivalent to early-termination of a contract.
 Meantime, off-chain code can benefit from the use of factories:
 
 ```ts
-import { Dsl } from '@dk14/wolfram-mega/discreet'
+import { Dsl } from '@dk14/mega-peers/discreet'
 
 //assume contributors collateral in btc, beneficiary collateral is in assets
 const fundFactory = (accumulatedFund: number, refillFund: number, refillBeneficiaryCollateral: number, contributors: string[], beneficiaries: string[], lock: string) => {

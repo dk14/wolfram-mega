@@ -19,7 +19,7 @@ npm run peer cfg/mempool-trader.json
 ```
 from the library:
 ```bash
-npm i dk14/wolfram-mega
+npm i dk14/mega-peers
 npx mega-peer cfg/mempool-trader.json
 ```
 Trader Console UI and REST will be available at:
@@ -34,7 +34,7 @@ npm run demo
 ```
 or
 ```bash
-npm i dk14/wolfram-mega
+npm i dk14/mega-peers
 npx mega-demo
 ```
 - Peer: http://localhost:8080/peer-monitor/
@@ -290,8 +290,8 @@ export interface TraderPow {
 ## Custom API
 
 ```ts
-import { traderApi, TraderApi } from '@dk14/wolfram-mega/trader-api'
-import { TraderStorage } from '@dk14/wolfram-mega/trader-api'
+import { traderApi, TraderApi } from '@dk14/mega-peers/trader-api'
+import { TraderStorage } from '@dk14/mega-peers/trader-api'
 
 const storage: TraderStorage<OracleQ, CpQ, RpQ, MatchQ> = ...
 

@@ -37,7 +37,7 @@ Nevertheless, nothing stops you from paying with "WolframCoin" though if you buy
 
 Since Mega only needs operators to be able to manage basic network security (opening ports, avoiding DDoS and eclipse attacks), there is no entry bar to join it rather than basic proficiency. We don't have to consult operators about security or pretend that we are independent advisers. In our case, P2P network does not depend on us at all. 
 
-We specify protocol, mostly in declarative terms. We provide reference implementation and [swagger spec](../wolfram-mega-spec.yaml). 
+We specify protocol, mostly in declarative terms. We provide reference implementation and [swagger spec](../mega-peers-spec.yaml). 
 
 We only benefit from the fact that we actually provide most interesting data (to us at least!) so far (cool sports bets, political events bets, even bets on scientific discoveries).
 

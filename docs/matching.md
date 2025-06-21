@@ -12,13 +12,13 @@ npm run build
 ```
 
 ```html
-<script src="https://dk14.github.io/wolfram-mega/mega-peers.min.js" type="module"></script>
+<script src="https://dk14.github.io/mega-peers/mega-peers.min.js" type="module"></script>
 ```
 
 ## Start collectors
 
 ```ts
-import { PreferenceModel } from '@dk14/wolfram-mega/models'
+import { PreferenceModel } from '@dk14/mega-peers/models'
 
 const preferences: PreferenceModel = {
     minOraclePow: 0,
@@ -52,7 +52,7 @@ await window.matching.broadcastOffer(myOffer)
 
 ```ts
 
-import { CapabilityModel, OfferModel } from '@dk14/wolfram-mega/models'
+import { CapabilityModel, OfferModel } from '@dk14/mega-peers/models'
 
 const oracles = await window.storage.queryCapabilities(
     {where: async x => true}, 
@@ -88,7 +88,7 @@ await window.matching.listOrders(30)
 Stalker API can negotiate blockchain-transactions for an **accepted** offer using a given blockchain interpreter (see Contracts doc) and publish transactions on-chain if needed:
 
 ```ts
-import { dataProvider } from '@dk14/wolfram-mega/oracle-data-provider';
+import { dataProvider } from '@dk14/mega-peers/oracle-data-provider';
 
 setInterval(() => window.stalking.trackIssuedOffers(
     {
@@ -119,12 +119,12 @@ npm run webtest-it-composite trace
 ## Tricks to run web-api on node.js
 
 ```ts
-import { cfg } from '@dk14/wolfram-mega/webcfg';
+import { cfg } from '@dk14/mega-peers/webcfg';
 cfg.p2pseed = []
 cfg.p2pseed[0] = {server: "peerjs-handle-for-known-public-node", port: 0}
 cfg.hostname = "your-peerjs-handle-unique"
 
-import { configure } from '@dk14/wolfram-mega/web-to-node'
+import { configure } from '@dk14/mega-peers/web-to-node'
 configure
 
 await global.initWebapp

@@ -1,8 +1,8 @@
 {
-  "name": "@dk14/wolfram-mega",
+  "name": "@dk14/mega-peers",
   "repository": {
     "type": "git",
-    "url": "https://github.com/dk14/wolfram-mega.git"
+    "url": "https://github.com/dk14/mega-peers.git"
   },
   "version": "0.0.22",
   "description": "A p2p fact sharing network",
@@ -22,7 +22,7 @@
     "webtest-it-composite": "npx tsx test/webtest-integration.ts notrace composite",
     "webrtc-bridge": "npx tsx test/util/webrtc-bridge.ts",
     "webtest-dsl": "npx tsx src-web/dsl.ts",
-    "build": "cp ./wolfram-mega-spec.yaml dist/wolfram-mega-spec.yaml && tsc --build && npx tsx esbuild.ts"
+    "build": "cp ./mega-peers-spec.yaml dist/mega-peers-spec.yaml && tsc --build && npx tsx esbuild.ts"
   },
   "browser": {
     "openapi-enforcer": false,

@@ -19,7 +19,7 @@ Everything is stored in Mega's mempoolss. No blockchain required.
 ## Docs
 
 
-https://dk14.github.io/wolfram-mega/docs/
+https://dk14.github.io/mega-peers/docs/
 
 ---------
 
@@ -38,9 +38,9 @@ npm run webtest-it trace  # trace matching stdout
 
 # Protocol
 
-Protocol and specifications are in `src/protocol.ts` and `wolfram-mega-spec.yaml`. Protocol reference implementation is in `src/api.ts`. 
+Protocol and specifications are in `src/protocol.ts` and `mega-peers-spec.yaml`. Protocol reference implementation is in `src/api.ts`. 
 
 ## Use cases
- Non-essential APIs and apps are under `src/client-api/` (oracles and traders, contracts demo), `webapp/` (p2p exchange UI), `src-web/` (matching). See [docs](https://dk14.github.io/wolfram-mega/docs/).
+ Non-essential APIs and apps are under `src/client-api/` (oracles and traders, contracts demo), `webapp/` (p2p exchange UI), `src-web/` (matching). See [docs](https://dk14.github.io/mega-peers/docs/).
 > Security. Non-essential APIs need stricter typescript flavor, testnet integration tests and security audits for crypto-mainnet uses (as well as HD-wallet support). p2p-network needs real-life performance tests for scaling.
 

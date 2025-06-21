@@ -66,7 +66,7 @@ window.txfee = 2000
 
 const initWebapp = new Promise<void>(async (resolve) => {
 
-    window.spec = await (await fetch("./../wolfram-mega-spec.yaml")).text()
+    window.spec = await (await fetch("./../mega-peers-spec.yaml")).text()
 
     global.cfg = cfg
 

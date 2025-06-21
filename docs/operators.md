@@ -2,7 +2,7 @@
 ## Test Run
 
 ```bash
-npm i dk14/wolfram-mega
+npm i dk14/mega-peers
 npx mega-peer cfg/mempool-1.json 
 ```
 
@@ -10,7 +10,7 @@ or
 
 ```bash
 git clone <github-repo>
-cd wolfram-mega
+cd mega-peers
 npm install
 npm run peer cfg/mempool-1.json 
 npm run peer cfg/mempool-2.json 
@@ -64,7 +64,7 @@ npm run webrtc-bridge <mempool-conf.json>
 
 ## Custom implementations of protocol
 
-reference is in `src/api.ts`, protocol is in `src/protocol.ts`. OpenAPI is in `wolfram-mega-spec.yaml`
+reference is in `src/api.ts`, protocol is in `src/protocol.ts`. OpenAPI is in `mega-peers-spec.yaml`
 
 ```ts
 export interface Api { // Mempool

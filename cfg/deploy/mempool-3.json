@@ -9,6 +9,6 @@
     "hostname": "0.0.0.0",
     "isTest": true,
     "p2pseed": [
-        {"server": "wolfram-mega-1.onrender.com", "port" : 80}
+        {"server": "mega-peers-1.onrender.com", "port" : 80}
     ]
 }

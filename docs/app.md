@@ -29,7 +29,7 @@ Mobile trading web-app for BTC test-net. Demostrates a use case for binary optio
 ## Install
 
 
-To install a web app from Safari, navigate to [THE APP](https://dk14.github.io/wolfram-mega/webapp/) in Safari, tap the "Share" button, select "Add to Home Screen," and then tap "Add" in the popup. This will create a shortcut on your home screen that acts like a native app. 
+To install a web app from Safari, navigate to [THE APP](https://dk14.github.io/mega-peers/webapp/) in Safari, tap the "Share" button, select "Add to Home Screen," and then tap "Add" in the popup. This will create a shortcut on your home screen that acts like a native app. 
 Detailed Steps:
 - Open Safari: Launch the Safari web browser.
 - Navigate to the Website: Enter the URL of the website you want to install as a web app.

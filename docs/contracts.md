@@ -11,7 +11,7 @@ npm run build
 ```
 
 ```html
-<script src="https://dk14.github.io/wolfram-mega/mega-peers.min.js" type="module"></script>
+<script src="https://dk14.github.io/mega-peers/mega-peers.min.js" type="module"></script>
 ```
 
 ## Implement your blockchain
@@ -35,7 +35,7 @@ export interface ContractInterpreter {
     submitTx: (tx: string) => Promise<TxId>
 }
 
-import { ContractInterpreter, Inputs, UTxO } from '@dk14/wolfram-mega/chain-interpreter'
+import { ContractInterpreter, Inputs, UTxO } from '@dk14/mega-peers/chain-interpreter'
 
 const interpreter: ContractInterpreter = ...
 ```
@@ -44,7 +44,7 @@ const interpreter: ContractInterpreter = ...
 ## Start stalking accepted offers
 
 ```ts
-import { dataProvider } from '@dk14/wolfram-mega/oracle-data-provider';
+import { dataProvider } from '@dk14/mega-peers/oracle-data-provider';
 
 setInterval(() => window.stalking.trackIssuedOffers(
     {
@@ -104,8 +104,8 @@ There is a default intepreter for [BTC-DLC](https://adiabat.github.io/dlc.pdf).
 > MAD (mutually assured destruction) version of DLC is implemented. If any of the parties rejects co-signing - their funds will be locked (symmetrically).
 
 ```ts
-import { btcDlcContractInterpreter } from '@dk14/wolfram-mega/transactions';
-import { dataProvider } from '@dk14/wolfram-mega/oracle-data-provider';
+import { btcDlcContractInterpreter } from '@dk14/mega-peers/transactions';
+import { dataProvider } from '@dk14/mega-peers/oracle-data-provider';
 
 setInterval(() => window.stalking.trackIssuedOffers(
     {
@@ -344,7 +344,7 @@ The following webpage is shown on Trader Console (see `npx mega-demo`), where yo
 ### CET API
 
 ```ts
-import { generateOpeningTransaction,  generateClosingTransaction,generateCetTransaction, OpeningParams, ClosingParams, CetParams } from '@dk14/wolfram-mega/btc'
+import { generateOpeningTransaction,  generateClosingTransaction,generateCetTransaction, OpeningParams, ClosingParams, CetParams } from '@dk14/mega-peers/btc'
 
 generateOpeningTransaction(...)
 generateClosingTransactionn(...)
@@ -363,7 +363,7 @@ generateCetTransaction(...)
 ### Full BTC DLC
 
 ```ts
-import {DlcParams, DlcContract, generateDlcContract} from '@dk14/wolfram-mega/btc'
+import {DlcParams, DlcContract, generateDlcContract} from '@dk14/mega-peers/btc'
 
 generateDlcContract(...)
 ```

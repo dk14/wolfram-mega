@@ -22,7 +22,7 @@ export const createPemPub = (base64: string): string => {
 
 /* c8 ignore start */
 
-const openapi = !isBrowser() ? Enforcer(__dirname + '/../wolfram-mega-spec.yaml') 
+const openapi = !isBrowser() ? Enforcer(__dirname + '/../mega-peers-spec.yaml') 
     : new OpenAPIRequestValidator(yaml.load(window.spec))
 
 const validate = async (msg: any, path: string, method: string): Promise<any> => {

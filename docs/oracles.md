@@ -78,7 +78,7 @@ npm run peer cfg/mempool-oracle.json
 
 from the library:
 ```bash
-npm i dk14/wolfram-mega
+npm i dk14/mega-peers
 npx mega-peer cfg/mempool-oracle.json 
 ```
 
@@ -96,7 +96,7 @@ npm run demo
 ```
 from git-npm-repository:
 ```bash
-npm install dk14/wolfram-mega
+npm install dk14/mega-peers
 npx mega-demo
 ```
 - Peer UI: http://localhost:8080/peer-monitor/
@@ -329,7 +329,7 @@ Oarcle API has default CPU implementation for pow.
 ```ts
 // implement you own database (default one is filesystem)
 
-import { CapabilityStorage } from '@dk14/wolfram-mega/oracle-control-api'
+import { CapabilityStorage } from '@dk14/mega-peers/oracle-control-api'
 import { api as ndapi } from "./src/api";
 import { p2pNode } from "./src/p2p";
 
@@ -416,7 +416,7 @@ Separation of responsibilities:
 Example of endpoint implementation from `src/client-api/utils/oracle-endpoint`:
 
 ```ts
-import { OracleEndpointApi } from '@dk14/wolfram-mega/oracle-endpoint-api'
+import { OracleEndpointApi } from '@dk14/mega-peers/oracle-endpoint-api'
 
 //optional, can check proof of payment here
 const canCommit = ... 
