@@ -1035,7 +1035,7 @@ if (outcome1) {
 
 > unless you specify `allowMisplacedPay` (which is default in `unsafe`)
 
-Writing transpiler or optimizer macro for Typescript would theoretically allow for transformation. However, `outcome1` and `outcome2` can get captured, thus naive analysis `if` constructs won;t work - have to trace the original `dsl.outcome` call, possibly accross imported packages.
+> Writing transpiler or optimizer macro for Typescript would theoretically allow for transformation. However, `outcome1` and `outcome2` can get captured, thus naive analysis of `if` constructs won;t work - have to trace the original `dsl.outcome` call, possibly accross imported packages.
 
 Note, that this form will pass the "pay at most once" verification:
 
