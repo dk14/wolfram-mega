@@ -51,7 +51,7 @@ const createPemPub = (base64) => {
 };
 exports.createPemPub = createPemPub;
 /* c8 ignore start */
-const openapi = !(0, util_1.isBrowser)() ? (0, openapi_enforcer_1.default)(__dirname + '/../wolfram-mega-spec.yaml')
+const openapi = !(0, util_1.isBrowser)() ? (0, openapi_enforcer_1.default)(__dirname + '/../mega-peers-spec.yaml')
     : new openapi_request_validator_1.default(js_yaml_1.default.load(window.spec));
 const validate = async (msg, path, method) => {
     if (!(0, util_1.isBrowser)()) {

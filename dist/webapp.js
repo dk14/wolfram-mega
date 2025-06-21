@@ -48,7 +48,7 @@ const oracle_data_provider_1 = require("./src-web/oracle-data-provider");
 const transactions_1 = require("./src-web/transactions");
 window.txfee = 2000;
 const initWebapp = new Promise(async (resolve) => {
-    window.spec = await (await fetch("./../wolfram-mega-spec.yaml")).text();
+    window.spec = await (await fetch("./../mega-peers-spec.yaml")).text();
     global.cfg = webcfg_1.cfg;
     //PROFILE
     window.profiledb = await (0, idb_1.openDB)('profile', 1, {

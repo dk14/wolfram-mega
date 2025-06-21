@@ -59,9 +59,9 @@ const startHttp = (cfg) => {
                 res.end(fs.readFileSync(__dirname + '/../index.html').toString());
                 return;
             }
-            if (req.method === 'GET' && (reqUrl.pathname == '/wolfram-mega-spec.yaml') || reqUrl.pathname == '/') {
+            if (req.method === 'GET' && (reqUrl.pathname == '/mega-peers-spec.yaml') || reqUrl.pathname == '/') {
                 res.setHeader('content-Type', 'Application/json');
-                res.end(fs.readFileSync(__dirname + '/../wolfram-mega-spec.yaml').toString().replace("$$url", "http://" + (cfg.hostname ?? "localhost") + ":" + cfg.httpPort));
+                res.end(fs.readFileSync(__dirname + '/../mega-peers-spec.yaml').toString().replace("$$url", "http://" + (cfg.hostname ?? "localhost") + ":" + cfg.httpPort));
                 return;
             }
             if (req.method === 'GET' && reqUrl.pathname == '/peers') {

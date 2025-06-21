@@ -1,0 +1,465 @@
+openapi: 3.0.3
+info:
+  title: Wolfram Mega API
+  description: |-
+    [Repo](https://github.com/dk14/mega-peers)
+    
+  version: 1.0.0
+
+servers:
+  - url: $$url
+
+paths:
+  /oracle:
+    post:
+      summary: Register oracle
+      description: Register oracle
+      operationId: oracle
+      requestBody:
+        description: Submit oracle id
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Oracle'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            text/plain: 
+              schema:
+                type: string
+                       
+          
+  /capability:
+    post:
+      summary: Register capability
+      description: Register capability
+      operationId: capability
+      requestBody:
+        description: Create a new capability
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Capability'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            text/plain: 
+              schema:
+                type: string
+                       
+          
+  /report:
+    post:
+      summary: Register report
+      description: Register malleability report
+      operationId: report
+      requestBody:
+        description: Create a new report
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Report'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            text/plain: 
+              schema:
+                type: string
+
+  /dispute:
+    post:
+      summary: Dispute report
+      description: Dispute malleability report
+      operationId: dispute
+      requestBody:
+        description: Dispute report
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Dispute'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            text/plain: 
+              schema:
+                type: string
+
+  /offer:
+    post:
+      summary: Publish offer
+      description: Publish offer
+      operationId: offer
+      requestBody:
+        description: Create a new capability
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Offer'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            text/plain: 
+              schema:
+                type: string
+  
+  /oracles:
+    get:
+      summary: List oracles
+      description: List oracles
+      operationId: lookupOracles
+      parameters:
+        - name: pageNo
+          in: query
+          description: page number in a list
+          required: false
+          schema:
+            default: 0
+            type: integer
+            format: int32
+        - name: pageSize
+          in: query
+          description: size of page in a list
+          required: false
+          schema:
+            default: 10
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Oracle'          
+
+  /capabilities:
+    get:
+      summary: Find reports by oracle pubkey
+      description: Returns a single pet
+      operationId: lookupCapabilities
+      parameters:
+        - name: pubkey
+          in: query
+          description: pubkey of oracle
+          required: true
+          schema:
+            type: string
+        - name: pageNo
+          in: query
+          description: page number in a list
+          required: false
+          schema:
+            default: 0
+            type: integer
+            format: int32
+        - name: pageSize
+          in: query
+          description: size of page in a list
+          required: false
+          schema:
+            default: 10
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Capability'       
+          
+  /reports:
+    get:
+      summary: Find reports by oracle pubkey
+      description: Returns reports
+      operationId: lookupReports
+      parameters:
+        - name: pubkey
+          in: query
+          description: pubkey of oracle
+          required: true
+          schema:
+            type: string
+        - name: pageNo
+          in: query
+          description: page number in a list
+          required: false
+          schema:
+            default: 0
+            type: integer
+            format: int32
+        - name: pageSize
+          in: query
+          description: size of page in a list
+          required: false
+          schema:
+            default: 10
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Report'          
+
+  /offers:
+    get:
+      summary: Find P2P exchange offers related to capability
+      description: Returns offers
+      operationId: lookupOffers
+      parameters:
+        - name: pubkey
+          in: query
+          description: pubkey of capabilty
+          required: true
+          schema:
+            type: string
+        - name: pageNo
+          in: query
+          description: page number in a list
+          required: false
+          schema:
+            default: 0
+            type: integer
+            format: int32
+        - name: pageSize
+          in: query
+          description: size of page in a list
+          required: false
+          schema:
+            default: 10
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Offer'          
+
+
+components:
+  schemas:
+    Oracle:
+      type: object
+      required: [pubkey, pow, bid, cTTL, oracleSignature, oracleSignatureType]
+      properties:
+        pubkey: 
+          type: string
+        seqNo: 
+          type: integer
+          format: int32
+        cTTL: 
+          type: integer
+          format: int32
+        pow: 
+          $ref: '#/components/schemas/Pow'
+        bid: 
+          type: object
+          properties: 
+            amount: 
+              type: integer
+              format: int32
+            proof: 
+              type: string
+        oracleSignature: 
+          type: string
+          maxLength: 2000
+        oracleSignatureType: 
+          type: string
+          enum: [SHA256]
+
+
+    Capability:
+      type: object
+      required: [oraclePubKey, capabilityPubKey, pow, cTTL, oracleSignature, oracleSignatureType, question]
+      properties:
+        oraclePubKey: 
+            type: string
+            maxLength: 2000
+        capabilityPubKey:
+            type: string
+            maxLength: 2000
+        question: 
+            type: string
+            maxLength: 2000
+        seqNo: 
+            type: integer
+            format: int32
+        cTTL: 
+          type: integer
+          format: int32
+        pow: 
+          $ref: '#/components/schemas/Pow'
+        oracleSignature: 
+          type: string
+          maxLength: 2000
+        oracleSignatureType: 
+          type: string
+          enum: [SHA256]
+
+    Report:
+      type: object
+      required: [oraclePubKey, seqNo, cTTL, content, pow]
+      properties:
+        oraclePubKey: 
+          type: string
+          maxLength: 2000
+        seqNo: 
+          type: integer
+          format: int32
+        cTTL: 
+          type: integer
+          format: int32
+        content: 
+          $ref: '#/components/schemas/MalleabilityReport'
+        pow: 
+          $ref: '#/components/schemas/Pow' 
+
+    MalleabilityReport:
+      type: object
+      required: [request]
+      properties: 
+        'type': 
+          type: string
+          enum: [fact-disagreees-with-public, fact-conflict, fact-missing, ad-collision, free-form] 
+        request: 
+          $ref: '#/components/schemas/FactRequest'
+        capabilitySignatureOverRequest:
+          type: string
+          maxLength: 2000
+
+    Offer:
+      type: object
+      required: [seqNo, cTTL, content]
+      properties:
+        seqNo: 
+          type: integer
+          format: int32
+        cTTL: 
+          type: integer
+          format: int32
+        content:
+          type: object
+          properties:
+            message: 
+              type: string
+              maxLength: 6000
+            customContract: 
+              type: string
+              maxLength: 6000
+            terms: 
+              $ref: '#/components/schemas/OfferTerms'
+            blockchain: 
+              type: string
+              maxLength: 200
+            transactionToBeCoSigned: 
+              type: string
+              maxLength: 6000
+            contact: 
+              type: string
+              maxLength: 20000
+        pow: 
+          $ref: '#/components/schemas/Pow'
+        
+
+    Pow:
+      type: object
+      required: [difficulty, algorithm, hash]
+      properties: 
+        difficulty: 
+          type: integer
+          format: int32
+        algorithm: 
+          enum: [SHA256]
+          type: string
+        hash: 
+          type: string
+          maxLength: 2000
+        magicNo: 
+          type: integer
+          format: int32
+        magicString:
+          type: string
+          maxLength: 2000
+
+    OfferTerms:
+      type: object
+      properties:
+        question:
+          $ref: '#/components/schemas/FactRequest'
+        partyBetsOn: 
+          type: array
+          items:
+            type: string
+            maxLength: 2000
+        counterPartyBetsOn: 
+          type: array
+          items:
+            type: string
+            maxLength: 2000
+        partyBetAmount:
+          type: integer
+          format: int32
+        counterpartyBetAmount: 
+          type: integer
+          format: int32
+
+    FactRequest: 
+      type: object
+      required: [capabilityPubKey]
+      properties: 
+        capabilityPubKey: 
+          type: string
+          maxLength: 2000
+        arguments: 
+          type: object
+        invoice:
+          type: string
+          maxLength: 2000
+
+    Fact:
+      type: object
+      properties:
+        factWithQuestion: 
+          type: string
+          maxLength: 20000
+        signatureType:
+          type: string
+          maxLength: 2000
+        signature: 
+          type: string
+          maxLength: 2000
+
+    Dispute:
+      type: object
+      properties:
+        claim: 
+          $ref: '#/components/schemas/MalleabilityReport'
+        reportPow:
+          $ref: '#/components/schemas/Pow'
+        oraclePubKey: 
+          type: string
+        fact: 
+          $ref: '#/components/schemas/Fact'
