@@ -44,3 +44,7 @@ Protocol and specifications are in `src/protocol.ts` and `mega-peers-spec.yaml`.
  Non-essential APIs and apps are under `src/client-api/` (oracles and traders, contracts demo), `webapp/` (p2p exchange UI), `src-web/` (matching). See [docs](https://dk14.github.io/mega-peers/docs/).
 > Security. Non-essential APIs need stricter typescript flavor, testnet integration tests and security audits for crypto-mainnet uses (as well as HD-wallet support). p2p-network needs real-life performance tests for scaling.
 
+
+P.S. ru GO F** YOURSELF. USELESS OVERPAID, TALENTLESS GARBAGE. 
+CARDANO, GO F** YOURSELF, FOR SPONSORING WAR BY PAYING WBL 50 TIMES ACTUAL WORTH OF THEIR WORK. WHERE DO U THINK THIS MONEY LANDS?
+
