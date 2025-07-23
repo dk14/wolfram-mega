@@ -180,6 +180,7 @@ export class Dsl {
             throw new Error("should not call outside of body; use `new Dsl((dsl) => handler).enumerate()`")
         }
         if (this.prev === undefined || this.lastOutcome === undefined) {
+            // TODO throw
             new Error("cannot pay unconditionally!")
         }
 
